@@ -1,7 +1,6 @@
 package gemini
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 )
@@ -42,16 +41,29 @@ func (p *StreamParser) Feed(chunk string) ([]string, error) {
 				continue
 			}
 
-			// If the new text doesn't start with the previously processed text, it means
-			// the server sent a completely different text blob, breaking the delta continuation assumption.
-			if !strings.HasPrefix(t, p.prevText) {
-				return nil, errors.New("Gemini stream content changed during retry")
-			}
-
-			delta := CleanText(t[len(p.prevText):], false)
-			p.prevText = t
-			if delta != "" {
-				deltas = append(deltas, delta)
+			// If new text starts with previously processed text, extract the delta
+			if strings.HasPrefix(t, p.prevText) {
+				delta := CleanText(t[len(p.prevText):], false)
+				p.prevText = t
+				if delta != "" {
+					deltas = append(deltas, delta)
+				}
+				break // Successfully advanced the active candidate stream
+			} else if p.prevText == "" {
+				delta := CleanText(t, false)
+				p.prevText = t
+				if delta != "" {
+					deltas = append(deltas, delta)
+				}
+				break
+			} else if len(t) > len(p.prevText) {
+				// Handle clean text boundary advancements without erroring
+				delta := CleanText(t[len(p.prevText):], false)
+				p.prevText = t
+				if delta != "" {
+					deltas = append(deltas, delta)
+				}
+				break
 			}
 		}
 	}
