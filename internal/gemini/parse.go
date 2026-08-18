@@ -74,6 +74,17 @@ func ExtractTextsFromLine(line string) []string {
 	return texts
 }
 
+func FormatBardError(code string) string {
+	switch code {
+	case "1003":
+		return "Gemini upstream rejected image attachment (BardErrorInfo [1003]): Multimodal vision requires a full authenticated Google Gemini session cookie with active SAPISID authorization. Please refresh your session via './bob-gemini-free --login' or update cookie.txt."
+	case "1024", "42901":
+		return fmt.Sprintf("Gemini upstream rate limit reached (BardErrorInfo [%s]): Please wait a few seconds before sending another request.", code)
+	default:
+		return fmt.Sprintf("Gemini upstream rejected request: BardErrorInfo [%s]", code)
+	}
+}
+
 func IsBardError(raw string) (string, bool) {
 	match := reBardError.FindStringSubmatch(raw)
 	if len(match) > 1 {
@@ -84,7 +95,7 @@ func IsBardError(raw string) (string, bool) {
 
 func ExtractResponseText(raw string) (string, error) {
 	if code, ok := IsBardError(raw); ok {
-		return "", fmt.Errorf("Gemini upstream rejected request: BardErrorInfo [%s]", code)
+		return "", fmt.Errorf("%s", FormatBardError(code))
 	}
 
 	var lastText string

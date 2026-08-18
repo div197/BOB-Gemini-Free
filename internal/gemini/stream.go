@@ -24,7 +24,7 @@ func (p *StreamParser) Feed(chunk string) ([]string, error) {
 
 	if strings.Contains(p.buf, "BardErrorInfo") {
 		if code, ok := IsBardError(p.buf); ok {
-			return nil, fmt.Errorf("Gemini upstream rejected request: BardErrorInfo [%s]", code)
+			return nil, fmt.Errorf("%s", FormatBardError(code))
 		}
 	}
 
