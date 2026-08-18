@@ -49,7 +49,9 @@ func NewClient(cfg config.Config) *Client {
 
 	if req == nil {
 		transport := &http.Transport{
-			DisableCompression: true,
+			DisableCompression:    true,
+			ResponseHeaderTimeout: time.Duration(cfg.RequestTimeoutSec) * time.Second,
+			IdleConnTimeout:       90 * time.Second,
 		}
 
 		if cfg.Proxy != "" {
@@ -62,7 +64,6 @@ func NewClient(cfg config.Config) *Client {
 
 		req = &http.Client{
 			Transport: transport,
-			Timeout:   time.Duration(cfg.RequestTimeoutSec) * time.Second,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return http.ErrUseLastResponse
 			},
