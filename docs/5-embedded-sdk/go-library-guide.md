@@ -60,11 +60,54 @@ func main() {
 | `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
 | `WithLogRequests(enabled bool)` | `bool` | Enable request lifecycle logging |
 
+## ⚡ Direct In-Process Programmatic Go Inference (`NewEngine`)
+
+When building autonomous CLI agents, background bots, or microservices, you can execute inference directly in Go without HTTP overhead:
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/div197/bob-gemini-free/pkg/gateway"
+)
+
+func main() {
+	// Instantiate the in-process inference engine
+	engine := gateway.NewEngine(
+		gateway.WithDefaultModel("gemini-3.7-flash"),
+		gateway.WithCookieFile("./cookie.txt"),
+	)
+
+	ctx := context.Background()
+
+	// 1. Direct synchronous generation
+	response, err := engine.Generate(ctx, "Explain quantum error correction briefly.", "gemini-3.7-flash")
+	if err != nil {
+		log.Fatalf("Inference error: %v", err)
+	}
+	fmt.Println("Response:\n", response)
+
+	// 2. Direct real-time streaming in Go
+	fmt.Println("\nStreaming:")
+	err = engine.GenerateStream(ctx, "Write a quicksort in Go.", "gemini-3.7-flash", func(delta string) error {
+		fmt.Print(delta)
+		return nil
+	})
+	if err != nil {
+		log.Fatalf("Stream error: %v", err)
+	}
+}
+```
+
 ---
 
 ## 🔒 Custom Context Cancellation & Timeouts
 
-The embedded handler respects standard Go `context.Context` cancellation:
+The embedded engine and handler respect standard Go `context.Context` cancellation:
 
 ```go
 ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)

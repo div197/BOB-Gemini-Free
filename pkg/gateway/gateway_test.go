@@ -47,3 +47,25 @@ func TestNewHandlerEmbedded(t *testing.T) {
 		t.Errorf("Expected 200 on models endpoint, got %d", rec3.Code)
 	}
 }
+
+func TestNewEngine(t *testing.T) {
+	engine := NewEngine(
+		WithDefaultModel("gemini-3.7-flash"),
+		WithLogRequests(false),
+	)
+	if engine == nil {
+		t.Fatalf("Expected non-nil Engine")
+	}
+
+	h := engine.Handler()
+	if h == nil {
+		t.Fatalf("Expected non-nil Handler from Engine")
+	}
+
+	rec := httptest.NewRecorder()
+	req := httptest.NewRequest("GET", "/", nil)
+	h.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Errorf("Expected 200 on health check via Engine handler, got %d", rec.Code)
+	}
+}

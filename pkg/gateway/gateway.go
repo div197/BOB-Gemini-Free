@@ -1,9 +1,11 @@
 package gateway
 
 import (
+	"context"
 	"net/http"
 
 	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/server"
 )
 
@@ -80,12 +82,52 @@ func WithLogRequests(enabled bool) Option {
 	}
 }
 
-// NewHandler creates a standalone standard http.Handler that can be mounted into any Go HTTP server or router.
-func NewHandler(opts ...Option) http.Handler {
+// Engine represents an embedded in-process Gemini inference engine.
+type Engine struct {
+	app *server.App
+}
+
+// NewEngine creates an embedded in-process engine for direct programmatic Go inference.
+func NewEngine(opts ...Option) *Engine {
 	cfg := config.Default()
 	for _, opt := range opts {
 		opt(&cfg)
 	}
 	app := server.New(cfg, "v0.1.1")
-	return app.Handler()
+	return &Engine{app: app}
+}
+
+// Handler returns the standard http.Handler for mounting into HTTP servers or routers.
+func (e *Engine) Handler() http.Handler {
+	return e.app.Handler()
+}
+
+// Generate performs a synchronous, single-turn text generation request directly in Go.
+func (e *Engine) Generate(ctx context.Context, prompt string, model string) (string, error) {
+	if model == "" {
+		model = e.app.Cfg.DefaultModel
+	}
+	resolved, err := models.Resolve(model, e.app.Cfg.DefaultModel)
+	if err != nil {
+		return "", err
+	}
+	return e.app.Gem.GenerateContext(ctx, prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+}
+
+// GenerateStream performs real-time streaming text generation directly in Go, invoking onDelta for each token chunk.
+func (e *Engine) GenerateStream(ctx context.Context, prompt string, model string, onDelta func(delta string) error) error {
+	if model == "" {
+		model = e.app.Cfg.DefaultModel
+	}
+	resolved, err := models.Resolve(model, e.app.Cfg.DefaultModel)
+	if err != nil {
+		return err
+	}
+	return e.app.Gem.GenerateStreamContext(ctx, prompt, resolved.Mode, resolved.Think, nil, resolved.Extra, onDelta)
+}
+
+// NewHandler creates a standalone standard http.Handler that can be mounted into any Go HTTP server or router.
+func NewHandler(opts ...Option) http.Handler {
+	engine := NewEngine(opts...)
+	return engine.Handler()
 }
