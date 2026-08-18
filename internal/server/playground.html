@@ -22,6 +22,8 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+<!-- MermaidJS for Interactive Architecture & Flowchart Diagrams -->
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10.9.0/dist/mermaid.min.js"></script>
 <style>
 /* 
   Sacred Harmonic Golden Ratio Architecture (Phi = 1.618)
@@ -2370,6 +2372,20 @@ function highlightAllCode(targetEl) {
   } catch(e) {}
 }
 
+function renderAllMermaid(targetEl) {
+  const root = targetEl || document.getElementById("messages-content");
+  if (!root || !window.mermaid) return;
+  try {
+    const isLight = document.documentElement.getAttribute('data-theme') === 'vodafone';
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: isLight ? 'default' : 'dark',
+      securityLevel: 'loose'
+    });
+    mermaid.run({ nodes: root.querySelectorAll('.mermaid') });
+  } catch(e) {}
+}
+
 const msgListEl = document.getElementById("messages-list");
 msgListEl.addEventListener("scroll", () => {
   const threshold = 120;
@@ -2561,12 +2577,23 @@ function downloadCode(btn, lang) {
 }
 
 function downloadImage(btn) {
-  const img = btn.closest('.assistant-image-card').querySelector('img');
+  const img = btn.closest('.assistant-image-card')?.querySelector('img');
+  if (!img) return;
   const a = document.createElement('a');
   a.href = img.src;
   a.download = `bob_image_${Date.now()}.png`;
   a.click();
   showToast("Image downloaded", "🎨");
+}
+
+function handleImageError(img, altText) {
+  const card = img.closest('.assistant-image-card');
+  if (card) {
+    const placeholder = document.createElement('div');
+    placeholder.style.cssText = "padding: 10px 14px; font-size: 0.82rem; color: var(--text-muted); font-style: italic; border-left: 3px solid var(--accent-primary); background: var(--bg-card); margin: 10px 0; border-radius: var(--radius-sm); border: 1px solid var(--border-color); display: flex; align-items: center; gap: 8px;";
+    placeholder.innerHTML = `<span>🖼️</span> <span><strong>Image Reference:</strong> ${escapeHtml(altText || 'Visual Representation')}</span>`;
+    card.replaceWith(placeholder);
+  }
 }
 
 // Initialize Universal Marked.js Configuration with Custom GFM Renderers
@@ -2576,12 +2603,16 @@ if (window.marked) {
   customRenderer.code = function(code, lang) {
     const safeCode = escapeHtml(code);
     const langLabel = lang || 'code';
+    if (langLabel.toLowerCase() === 'mermaid') {
+      return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${code}</div></div>`;
+    }
     const prismClass = lang ? 'language-' + lang : 'language-none';
     return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${langLabel}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${langLabel}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${safeCode}</code></pre>`;
   };
 
   customRenderer.image = function(href, title, text) {
-    return `<div class="assistant-image-card"><img src="${href}" alt="${escapeHtml(text || '')}" loading="lazy"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(text || 'Generated Image')}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
+    const cleanAlt = escapeHtml(text || 'Image Reference');
+    return `<div class="assistant-image-card"><img src="${href}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer" onerror="handleImageError(this, '${cleanAlt}')"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
   };
 
   marked.setOptions({
@@ -2878,6 +2909,7 @@ function renderMessages() {
   }
   renderAllMath(content);
   highlightAllCode(content);
+  renderAllMermaid(content);
   if (userIsAtBottom) {
     msgListEl.scrollTop = msgListEl.scrollHeight;
   }
@@ -3093,7 +3125,7 @@ async function sendMessage() {
       }
     }
 
-    // Final render pass with Math & Syntax Highlighting
+    // Final render pass with Math, Diagrams & Syntax Highlighting
     if (thoughtFullText) {
       thoughtBox.classList.add("active");
       thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
@@ -3101,6 +3133,7 @@ async function sendMessage() {
     contentSpan.innerHTML = renderMarkdown(asstFullText);
     renderAllMath(storyDiv);
     highlightAllCode(storyDiv);
+    renderAllMermaid(storyDiv);
     storyDiv.setAttribute('data-raw', asstFullText);
     
     // Update final word & token stats
@@ -3118,6 +3151,7 @@ async function sendMessage() {
       contentSpan.innerHTML = renderMarkdown(asstFullText);
       renderAllMath(storyDiv);
       highlightAllCode(storyDiv);
+      renderAllMermaid(storyDiv);
       storyDiv.setAttribute('data-raw', asstFullText);
       
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
