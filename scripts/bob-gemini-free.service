@@ -1,5 +1,5 @@
 [Unit]
-Description=BOB Gemini Free - Local OpenAI & Gemini Gateway
+Description=BOB Gemini Free - Local Universal 3-in-1 AI Gateway (OpenAI, Anthropic & Gemini)
 Documentation=https://github.com/div197/BOB-Gemini-Free
 After=network.target
 
