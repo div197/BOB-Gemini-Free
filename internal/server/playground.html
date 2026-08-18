@@ -1,40 +1,118 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="bob-builder">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BOB GEMINI FREE — Universal AI Gateway Studio</title>
-<!-- KaTeX for High-Precision Scientific & Mathematical Typography -->
+<!-- KaTeX for Scientific & Mathematical Typography -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="onKaTeXLoaded()"></script>
-<!-- PrismJS for Terminal & Code Highlighting (Tomorrow Dark) -->
+<!-- PrismJS for Terminal & Code Highlighting -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <style>
+/* CSS Theme Engine */
 :root {
-  --color-primary: #e60000;
-  --color-primary-hover: #cc0000;
-  --color-primary-active: #b30000;
-  --color-on-primary: #ffffff;
-  --color-ink: #25282b;
-  --color-ink-subdued: #4b5563;
-  --color-body: #6b7280;
-  --color-mute: #9ca3af;
-  --color-canvas: #ffffff;
-  --color-canvas-soft: #f4f5f7;
-  --color-card-border: #e5e7eb;
-  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-  --shadow-elevated: 0 8px 24px rgba(0, 0, 0, 0.08);
-  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.3);
+  /* Default: BOB Builder (Industrial Navy + Construction Yellow + Bold Red) */
+  --bg-app: #08101e;
+  --bg-header: #040913;
+  --bg-sidebar: #0a1424;
+  --bg-workspace: #060c18;
+  --bg-card: #0d1a2d;
+  --bg-card-hover: #13233c;
+  --bg-input: #08101e;
+  --border-color: #1a2b44;
+  --border-focus: #ffc800;
+  --text-main: #ffffff;
+  --text-muted: #8ea3bf;
+  --text-subdued: #5e738f;
+  --accent-primary: #ffc800;
+  --accent-primary-hover: #ffd733;
+  --accent-primary-text: #000000;
+  --accent-badge: #d91e26;
+  --accent-badge-text: #ffffff;
+  --accent-secondary: #024ca1;
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-cta: 0 4px 16px rgba(255, 200, 0, 0.35);
   --font-sans: "Inter", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
+
+[data-theme="vodafone"] {
+  --bg-app: #f4f5f7;
+  --bg-header: #25282b;
+  --bg-sidebar: #f4f5f7;
+  --bg-workspace: #ffffff;
+  --bg-card: #ffffff;
+  --bg-card-hover: #f9fafb;
+  --bg-input: #f4f5f7;
+  --border-color: #e5e7eb;
+  --border-focus: #25282b;
+  --text-main: #25282b;
+  --text-muted: #6b7280;
+  --text-subdued: #9ca3af;
+  --accent-primary: #e60000;
+  --accent-primary-hover: #cc0000;
+  --accent-primary-text: #ffffff;
+  --accent-badge: #e60000;
+  --accent-badge-text: #ffffff;
+  --accent-secondary: #25282b;
+  --shadow-main: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.3);
+}
+
+[data-theme="spotify"] {
+  --bg-app: #121212;
+  --bg-header: #0a0a0a;
+  --bg-sidebar: #121212;
+  --bg-workspace: #121212;
+  --bg-card: #181818;
+  --bg-card-hover: #222222;
+  --bg-input: #1f1f1f;
+  --border-color: #282828;
+  --border-focus: #1ed760;
+  --text-main: #ffffff;
+  --text-muted: #b3b3b3;
+  --text-subdued: #7c7c7c;
+  --accent-primary: #1ed760;
+  --accent-primary-hover: #1fdf64;
+  --accent-primary-text: #000000;
+  --accent-badge: #1ed760;
+  --accent-badge-text: #000000;
+  --accent-secondary: #282828;
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-cta: 0 4px 16px rgba(30, 215, 96, 0.35);
+}
+
+[data-theme="quantum"] {
+  --bg-app: #070a12;
+  --bg-header: #05070d;
+  --bg-sidebar: #090e1a;
+  --bg-workspace: #070a12;
+  --bg-card: #0e1424;
+  --bg-card-hover: #141d33;
+  --bg-input: #090e1a;
+  --border-color: #1a243a;
+  --border-focus: #00f0ff;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --text-subdued: #64748b;
+  --accent-primary: #00f0ff;
+  --accent-primary-hover: #38f4ff;
+  --accent-primary-text: #000000;
+  --accent-badge: #a855f7;
+  --accent-badge-text: #ffffff;
+  --accent-secondary: #3b82f6;
+  --shadow-main: 0 4px 24px rgba(0, 240, 255, 0.1);
+  --shadow-cta: 0 4px 18px rgba(0, 240, 255, 0.35);
+}
+
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: var(--color-canvas-soft);
-  color: var(--color-ink);
+  background: var(--bg-app);
+  color: var(--text-main);
   font-family: var(--font-sans);
   line-height: 1.6;
   display: flex;
@@ -44,9 +122,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Vodafone Hero Nav (Ink Band) */
+/* Master Navigation Bar */
 header {
-  background: var(--color-ink);
+  background: var(--bg-header);
   color: #ffffff;
   padding: 10px 24px;
   display: flex;
@@ -55,8 +133,8 @@ header {
   flex-wrap: wrap;
   gap: 12px;
   z-index: 40;
-  border-bottom: 1px solid #1a1c1e;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  border-bottom: 1px solid var(--border-color);
+  box-shadow: var(--shadow-main);
 }
 .brand-anchor {
   display: flex;
@@ -64,42 +142,36 @@ header {
   gap: 12px;
   text-decoration: none;
 }
-.speechmark-orb {
-  background: var(--color-primary);
-  color: #ffffff;
-  font-weight: 900;
-  font-size: 1.3rem;
-  width: 34px;
-  height: 34px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  line-height: 1;
-  box-shadow: var(--shadow-cta);
+.brand-logo-svg {
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
 }
 .brand-headings {
   display: flex;
   flex-direction: column;
 }
 .brand-title {
-  font-weight: 800;
-  font-size: 1.2rem;
-  letter-spacing: -0.6px;
+  font-weight: 900;
+  font-size: 1.25rem;
+  letter-spacing: -0.5px;
   text-transform: uppercase;
-  color: #ffffff;
+  color: var(--text-main);
   line-height: 1.1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
-.brand-title span {
-  color: var(--color-primary);
+.brand-title .accent {
+  color: var(--accent-primary);
 }
 .brand-tagline {
   font-size: 0.65rem;
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #9ca3af;
+  color: var(--text-muted);
 }
 
 /* Header Telemetry Pills */
@@ -109,11 +181,11 @@ header {
   align-items: center;
 }
 .stat-pill {
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-color);
   padding: 3px 12px;
   border-radius: 60px;
-  color: #c9d0d6;
+  color: var(--text-muted);
   font-size: 0.74rem;
   font-weight: 600;
   display: inline-flex;
@@ -121,7 +193,7 @@ header {
   gap: 6px;
 }
 .stat-pill b {
-  color: #ffffff;
+  color: var(--text-main);
   font-family: var(--font-mono);
   font-weight: 700;
 }
@@ -129,15 +201,28 @@ header {
   color: #34d399;
 }
 
-/* Mobile Drawer Buttons */
-.mobile-toggles {
-  display: none;
-  gap: 6px;
+/* Theme Switcher & Actions */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.theme-selector {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  padding: 4px 10px;
+  border-radius: 60px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 .nav-pill-btn {
-  background: rgba(255, 255, 255, 0.08);
-  color: #ffffff;
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -151,57 +236,59 @@ header {
   transition: all 0.15s ease;
 }
 .nav-pill-btn:hover {
-  background: rgba(255, 255, 255, 0.2);
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
 }
+.mobile-toggles { display: none; gap: 6px; }
 
-/* Main 3-Column Studio Layout */
+/* Main Studio Layout */
 main {
   flex: 1;
   display: grid;
   grid-template-columns: 280px 1fr 320px;
   overflow: hidden;
   position: relative;
-  background: var(--color-canvas-soft);
+  background: var(--bg-app);
 }
 
-/* Left & Right Studio Sidebars */
+/* Sidebars */
 .sidebar-panel {
-  background: var(--color-canvas-soft);
+  background: var(--bg-sidebar);
   padding: 16px;
   overflow-y: auto;
-  border-right: 1px solid var(--color-card-border);
+  border-right: 1px solid var(--border-color);
 }
 .sidebar-panel.right {
   border-right: none;
-  border-left: 1px solid var(--color-card-border);
+  border-left: 1px solid var(--border-color);
 }
 .panel-header {
   font-size: 0.76rem;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: var(--color-ink);
+  color: var(--text-main);
   margin-bottom: 14px;
   font-weight: 800;
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-bottom: 8px;
-  border-bottom: 2px solid var(--color-ink);
+  border-bottom: 2px solid var(--accent-primary);
 }
 
-/* Control Cards (Vodafone 6px cards) */
+/* Control Cards */
 .control-card {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: 12px 14px;
   border-radius: 6px;
   margin-bottom: 12px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-main);
 }
 .control-card label {
   display: block;
   font-size: 0.74rem;
-  color: var(--color-ink);
+  color: var(--text-main);
   margin-bottom: 6px;
   font-weight: 800;
   text-transform: uppercase;
@@ -209,9 +296,9 @@ main {
 }
 select, textarea {
   width: 100%;
-  background: var(--color-canvas-soft);
-  border: 1px solid #d1d5db;
-  color: var(--color-ink);
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
   padding: 8px 10px;
   border-radius: 6px;
   font-size: 0.86rem;
@@ -221,9 +308,8 @@ select, textarea {
   transition: all 0.15s ease;
 }
 select:focus, textarea:focus {
-  border-color: var(--color-ink);
-  box-shadow: 0 0 0 1px var(--color-ink);
-  background: #ffffff;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus);
 }
 
 /* Central Workspace Area */
@@ -233,7 +319,7 @@ select:focus, textarea:focus {
   height: 100%;
   position: relative;
   overflow: hidden;
-  background: var(--color-canvas);
+  background: var(--bg-workspace);
 }
 
 /* Top Sub-Bar */
@@ -242,36 +328,36 @@ select:focus, textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid var(--color-card-border);
-  background: var(--color-canvas);
+  border-bottom: 1px solid var(--border-color);
+  background: var(--bg-workspace);
 }
 .active-model-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   padding: 4px 14px;
   border-radius: 60px;
   font-size: 0.76rem;
   font-weight: 700;
-  color: var(--color-ink);
+  color: var(--text-main);
 }
 .active-model-chip .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+  background: var(--accent-primary);
+  box-shadow: 0 0 8px var(--accent-primary);
 }
 .sub-bar-actions {
   display: flex;
   gap: 8px;
 }
 .btn-pill-subtle {
-  background: var(--color-canvas);
-  color: var(--color-ink);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -285,8 +371,8 @@ select:focus, textarea:focus {
   transition: all 0.15s ease;
 }
 .btn-pill-subtle:hover {
-  border-color: var(--color-ink);
-  background: var(--color-canvas-soft);
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
 }
 
 /* Messages Scroll Container */
@@ -299,19 +385,19 @@ select:focus, textarea:focus {
   gap: 18px;
   scroll-behavior: smooth;
   position: relative;
-  background: var(--color-canvas);
+  background: var(--bg-workspace);
 }
 
-/* Vodafone Story Card (Assistant Message) */
+/* Story Card (Assistant Message) */
 .story-card {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 20px 24px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-main);
   animation: fadeIn 0.22s ease-out;
   position: relative;
-  max-width: 95%;
+  max-width: 96%;
 }
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(4px); }
@@ -323,11 +409,11 @@ select:focus, textarea:focus {
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 10px;
-  border-bottom: 1px solid var(--color-card-border);
+  border-bottom: 1px solid var(--border-color);
 }
 .badge-chip {
-  background: var(--color-canvas-soft);
-  color: var(--color-ink);
+  background: var(--bg-app);
+  color: var(--text-main);
   padding: 4px 12px;
   border-radius: 32px;
   font-size: 0.7rem;
@@ -337,10 +423,11 @@ select:focus, textarea:focus {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  border: 1px solid var(--border-color);
 }
-.badge-chip .mini-speechmark {
-  background: var(--color-primary);
-  color: #fff;
+.badge-chip .mini-orb {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
   width: 14px;
   height: 14px;
   border-radius: 3px;
@@ -358,7 +445,7 @@ select:focus, textarea:focus {
   justify-content: flex-end;
 }
 .user-bubble {
-  background: var(--color-ink);
+  background: var(--accent-secondary);
   color: #ffffff;
   padding: 12px 20px;
   border-radius: 16px 16px 3px 16px;
@@ -366,19 +453,20 @@ select:focus, textarea:focus {
   line-height: 1.6;
   max-width: 84%;
   white-space: pre-wrap;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-main);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Thought Card */
 .thought-card {
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-card-border);
-  border-left: 4px solid var(--color-ink);
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent-primary);
   padding: 10px 14px;
   margin-bottom: 14px;
   border-radius: 4px;
   font-size: 0.82rem;
-  color: #374151;
+  color: var(--text-muted);
   font-family: var(--font-mono);
   white-space: pre-wrap;
   display: none;
@@ -387,7 +475,7 @@ select:focus, textarea:focus {
 }
 .thought-card.active { display: block; }
 .thought-card-header {
-  color: var(--color-ink);
+  color: var(--accent-primary);
   font-weight: 800;
   font-size: 0.7rem;
   text-transform: uppercase;
@@ -403,28 +491,28 @@ select:focus, textarea:focus {
   width: 100%;
 }
 .hero-title-band {
-  background: var(--color-canvas-soft);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 24px 28px;
   margin-bottom: 18px;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-main);
 }
 .hero-headline {
   font-size: 2rem;
-  font-weight: 800;
+  font-weight: 900;
   letter-spacing: -1px;
   text-transform: uppercase;
-  color: var(--color-ink);
+  color: var(--text-main);
   line-height: 1.1;
   margin-bottom: 8px;
 }
 .hero-headline span {
-  color: var(--color-primary);
+  color: var(--accent-primary);
 }
 .hero-subline {
   font-size: 0.94rem;
-  color: var(--color-body);
+  color: var(--text-muted);
   line-height: 1.5;
 }
 .starters-grid {
@@ -433,23 +521,23 @@ select:focus, textarea:focus {
   gap: 14px;
 }
 .starter-card {
-  background: var(--color-canvas);
-  border: 1px solid var(--color-card-border);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   padding: 16px 18px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-card);
+  box-shadow: var(--shadow-main);
 }
 .starter-card:hover {
-  border-color: var(--color-primary);
+  border-color: var(--accent-primary);
   transform: translateY(-2px);
-  box-shadow: var(--shadow-elevated);
+  background: var(--bg-card-hover);
 }
 .starter-card .badge-chip { margin-bottom: 10px; }
 .starter-card-title {
   font-weight: 800;
-  color: var(--color-ink);
+  color: var(--text-main);
   font-size: 0.98rem;
   letter-spacing: -0.3px;
   margin-bottom: 4px;
@@ -457,14 +545,14 @@ select:focus, textarea:focus {
 }
 .starter-card-desc {
   font-size: 0.8rem;
-  color: var(--color-body);
+  color: var(--text-muted);
   line-height: 1.45;
 }
 
 /* Studio Input Area */
 .studio-input-area {
-  background: var(--color-canvas);
-  border-top: 1px solid var(--color-card-border);
+  background: var(--bg-workspace);
+  border-top: 1px solid var(--border-color);
   padding: 14px 24px 10px 24px;
   display: flex;
   flex-direction: column;
@@ -485,22 +573,21 @@ select:focus, textarea:focus {
   padding: 10px 14px;
   border-radius: 6px;
   font-size: 0.92rem;
-  background: var(--color-canvas-soft);
-  border: 1px solid #d1d5db;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
   outline: none;
   font-family: inherit;
-  color: var(--color-ink);
+  color: var(--text-main);
   font-weight: 500;
   transition: all 0.15s ease;
 }
 #user-input:focus {
-  background: #ffffff;
-  border-color: var(--color-ink);
-  box-shadow: 0 0 0 1px var(--color-ink);
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus);
 }
 .btn-pill-cta {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
   border: none;
   font-weight: 800;
   font-size: 0.82rem;
@@ -519,12 +606,8 @@ select:focus, textarea:focus {
   flex-shrink: 0;
 }
 .btn-pill-cta:hover {
-  background: var(--color-primary-hover);
+  background: var(--accent-primary-hover);
   transform: translateY(-1px);
-}
-.btn-pill-cta:active {
-  background: var(--color-primary-active);
-  transform: translateY(0);
 }
 .btn-pill-cta:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -533,7 +616,7 @@ select:focus, textarea:focus {
   justify-content: space-between;
   align-items: center;
   font-size: 0.68rem;
-  color: var(--color-body);
+  color: var(--text-subdued);
 }
 
 .scroll-bottom-pill {
@@ -541,8 +624,8 @@ select:focus, textarea:focus {
   top: -42px;
   left: 50%;
   transform: translateX(-50%);
-  background: var(--color-ink);
-  color: #ffffff;
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
   border: none;
   padding: 6px 16px;
   border-radius: 60px;
@@ -552,31 +635,31 @@ select:focus, textarea:focus {
   letter-spacing: 0.6px;
   cursor: pointer;
   display: none;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-cta);
   transition: all 0.15s ease;
 }
-.scroll-bottom-pill:hover { background: #000000; transform: translateX(-50%) scale(1.03); }
+.scroll-bottom-pill:hover { transform: translateX(-50%) scale(1.03); }
 
 /* Right Sidebar Code Cards */
 .code-card-box {
-  background: #181b20;
-  border: 1px solid #2d3139;
+  background: #101520;
+  border: 1px solid var(--border-color);
   border-radius: 6px;
   overflow: hidden;
   margin-bottom: 14px;
 }
 .code-card-header {
-  background: #121418;
+  background: #080c14;
   padding: 6px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #2d3139;
+  border-bottom: 1px solid var(--border-color);
 }
 .code-card-header span {
   font-size: 0.7rem;
   font-weight: 800;
-  color: #9ca3af;
+  color: var(--accent-primary);
   text-transform: uppercase;
   font-family: var(--font-mono);
 }
@@ -591,25 +674,25 @@ select:focus, textarea:focus {
 
 /* Markdown Typography */
 .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-  color: var(--color-ink);
+  color: var(--text-main);
   margin: 16px 0 6px 0;
   font-weight: 800;
   letter-spacing: -0.3px;
 }
-.markdown-body h1 { font-size: 1.35rem; border-bottom: 2px solid var(--color-ink); padding-bottom: 4px; }
-.markdown-body h2 { font-size: 1.15rem; border-bottom: 1px solid var(--color-card-border); padding-bottom: 4px; }
+.markdown-body h1 { font-size: 1.35rem; border-bottom: 2px solid var(--accent-primary); padding-bottom: 4px; }
+.markdown-body h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
 .markdown-body h3 { font-size: 1.02rem; }
 .markdown-body h4 { font-size: 0.92rem; }
 .markdown-body hr {
   border: none;
-  border-top: 1px solid var(--color-card-border);
+  border-top: 1px solid var(--border-color);
   margin: 16px 0;
 }
 
 /* Code Blocks in Assistant Story */
 .markdown-body pre {
-  background: #181b20 !important;
-  border: 1px solid #282c34 !important;
+  background: #101520 !important;
+  border: 1px solid var(--border-color) !important;
   border-radius: 6px !important;
   margin: 14px 0 !important;
   padding: 0 !important;
@@ -617,12 +700,12 @@ select:focus, textarea:focus {
   position: relative;
 }
 .code-window-header {
-  background: #121418;
+  background: #080c14;
   padding: 6px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #282c34;
+  border-bottom: 1px solid var(--border-color);
 }
 .window-dots { display: flex; gap: 5px; }
 .window-dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -631,7 +714,7 @@ select:focus, textarea:focus {
 .dot-green { background: #27c93f; }
 .lang-badge {
   font-size: 0.68rem;
-  color: #9ca3af;
+  color: var(--accent-primary);
   text-transform: uppercase;
   font-weight: 800;
   font-family: var(--font-mono);
@@ -648,8 +731,8 @@ select:focus, textarea:focus {
   line-height: 1.55;
 }
 .markdown-body code:not(pre code) {
-  background: var(--color-canvas-soft);
-  color: var(--color-ink);
+  background: rgba(255, 200, 0, 0.1);
+  color: var(--accent-primary);
   padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-mono);
@@ -659,11 +742,11 @@ select:focus, textarea:focus {
 
 /* Quotes */
 .markdown-body blockquote:not(.callout) {
-  border-left: 4px solid var(--color-ink);
-  background: var(--color-canvas-soft);
+  border-left: 4px solid var(--accent-primary);
+  background: var(--bg-app);
   padding: 10px 16px;
   margin: 12px 0;
-  color: #374151;
+  color: var(--text-muted);
   font-style: italic;
   border-radius: 0 6px 6px 0;
 }
@@ -686,18 +769,18 @@ select:focus, textarea:focus {
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.callout-note { border-color: #2563eb; background: #eff6ff; color: #1e3a8a; }
-.callout-tip { border-color: #16a34a; background: #f0fdf4; color: #14532d; }
-.callout-important { border-color: #9333ea; background: #faf5ff; color: #581c87; }
-.callout-warning { border-color: #d97706; background: #fffbeb; color: #78350f; }
-.callout-caution { border-color: var(--color-primary); background: #fef2f2; color: #991b1b; }
+.callout-note { border-color: #2563eb; background: rgba(37, 99, 235, 0.1); color: #93c5fd; }
+.callout-tip { border-color: #16a34a; background: rgba(22, 163, 74, 0.1); color: #86efac; }
+.callout-important { border-color: #9333ea; background: rgba(147, 51, 234, 0.1); color: #d8b4fe; }
+.callout-warning { border-color: #d97706; background: rgba(217, 119, 6, 0.1); color: #fde047; }
+.callout-caution { border-color: #d91e26; background: rgba(217, 30, 38, 0.1); color: #fca5a5; }
 
 /* Tables */
 .table-wrapper {
   overflow-x: auto;
   margin: 14px 0;
   border-radius: 6px;
-  border: 1px solid var(--color-card-border);
+  border: 1px solid var(--border-color);
 }
 table {
   width: 100%;
@@ -706,10 +789,10 @@ table {
   text-align: left;
 }
 th {
-  background: var(--color-canvas-soft);
+  background: var(--bg-card);
   padding: 8px 12px;
-  color: var(--color-ink);
-  border-bottom: 1px solid var(--color-card-border);
+  color: var(--accent-primary);
+  border-bottom: 1px solid var(--border-color);
   font-weight: 800;
   text-transform: uppercase;
   font-size: 0.74rem;
@@ -717,23 +800,23 @@ th {
 }
 td {
   padding: 8px 12px;
-  border-bottom: 1px solid var(--color-card-border);
-  color: var(--color-ink);
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-main);
 }
 tr:last-child td { border-bottom: none; }
-tr:hover td { background: #fafafa; }
+tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 /* Task list */
 .task-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-.task-checkbox { margin-top: 5px; accent-color: var(--color-primary); }
+.task-checkbox { margin-top: 5px; accent-color: var(--accent-primary); }
 
 .markdown-body p { margin-bottom: 8px; }
 .markdown-body p:last-child { margin-bottom: 0; }
 .markdown-body ul, .markdown-body ol { margin: 6px 0 8px 20px; }
 .markdown-body li { margin-bottom: 4px; }
-.markdown-body a { color: var(--color-primary); text-decoration: none; font-weight: 600; }
+.markdown-body a { color: var(--accent-primary); text-decoration: none; font-weight: 600; }
 .markdown-body a:hover { text-decoration: underline; }
-.markdown-body del { color: var(--color-mute); }
+.markdown-body del { color: var(--text-subdued); }
 
 /* KaTeX Math Styling */
 .katex-display {
@@ -741,10 +824,10 @@ tr:hover td { background: #fafafa; }
   overflow-x: auto;
   overflow-y: hidden;
   padding: 4px 0;
-  color: var(--color-ink);
+  color: var(--text-main);
 }
 
-/* Responsive Drawer for Mobile/Tablet */
+/* Responsive */
 @media (max-width: 1100px) {
   main { grid-template-columns: 1fr; }
   .sidebar-panel {
@@ -754,7 +837,7 @@ tr:hover td { background: #fafafa; }
     bottom: 0;
     width: 320px;
     z-index: 50;
-    box-shadow: var(--shadow-elevated);
+    box-shadow: var(--shadow-main);
   }
   .sidebar-panel.open { display: block; }
   .sidebar-panel.right { right: 0; }
@@ -767,9 +850,23 @@ tr:hover td { background: #fafafa; }
 
 <header>
   <div class="brand-anchor">
-    <div class="speechmark-orb">“</div>
+    <!-- Custom BOB GEMINI FREE Vector Emblem -->
+    <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect width="100" height="100" rx="20" fill="url(#brand-grad)"/>
+      <path d="M22 28H48C56 28 62 33 62 40C62 45 58 48 53 50C60 52 65 57 65 64C65 72 58 78 48 78H22V28Z" fill="#000000" opacity="0.18"/>
+      <path d="M25 25H50C57.7 25 64 30.3 64 37.5C64 42.2 60.5 45.8 55.5 47.5C62 49.5 67 54.5 67 61.5C67 69.5 60 75 50 75H25V25Z" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" fill="none"/>
+      <path d="M37 37H48C51.5 37 54 39 54 42C54 45 51.5 47 48 47H37V37Z" fill="#ffffff"/>
+      <path d="M37 53H49C53 53 56 55.5 56 59C56 62.5 53 65 49 65H37V53Z" fill="#ffffff"/>
+      <polygon points="76,22 80,33 91,37 80,41 76,52 72,41 61,37 72,33" fill="#ffffff"/>
+      <defs>
+        <linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
+          <stop stop-color="#FFC800"/>
+          <stop offset="1" stop-color="#D91E26"/>
+        </linearGradient>
+      </defs>
+    </svg>
     <div class="brand-headings">
-      <div class="brand-title">BOB <span>GEMINI FREE</span></div>
+      <div class="brand-title">BOB <span class="accent">GEMINI FREE</span></div>
       <div class="brand-tagline">Universal AI Gateway • Web RPC Bridge</div>
     </div>
   </div>
@@ -781,9 +878,18 @@ tr:hover td { background: #fafafa; }
     <div class="stat-pill savings">Saved: <b id="stat-savings">$0.00</b></div>
   </div>
 
-  <div class="mobile-toggles">
-    <button class="nav-pill-btn" onclick="toggleSidebar('left')">⚙️ Config</button>
-    <button class="nav-pill-btn" onclick="toggleSidebar('right')">💻 Code</button>
+  <div class="header-controls">
+    <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
+      <option value="bob-builder" selected>🏗️ BOB Builder</option>
+      <option value="vodafone">🔴 Vodafone Editorial</option>
+      <option value="spotify">🟢 Spotify Dark</option>
+      <option value="quantum">🌌 Gemini Quantum</option>
+    </select>
+
+    <div class="mobile-toggles">
+      <button class="nav-pill-btn" onclick="toggleSidebar('left')">⚙️ Config</button>
+      <button class="nav-pill-btn" onclick="toggleSidebar('right')">💻 Code</button>
+    </div>
   </div>
 </header>
 
@@ -902,6 +1008,19 @@ tr:hover td { background: #fafafa; }
 let chatHistory = [];
 let userIsAtBottom = true;
 const STORAGE_KEY = "bob_gemini_free_chat_history";
+const THEME_KEY = "bob_gemini_free_theme";
+
+function initTheme() {
+  const saved = localStorage.getItem(THEME_KEY) || "bob-builder";
+  changeTheme(saved);
+  const sel = document.getElementById("theme-selector");
+  if (sel) sel.value = saved;
+}
+
+function changeTheme(themeName) {
+  document.documentElement.setAttribute("data-theme", themeName);
+  localStorage.setItem(THEME_KEY, themeName);
+}
 
 function onKaTeXLoaded() {
   renderAllMath();
@@ -1206,7 +1325,7 @@ function renderMessages() {
     welcome.innerHTML = `
       <div class="hero-title-band">
         <div class="hero-headline">
-          TOGETHER WE CAN <span>DO MORE</span>
+          BUILD ANYTHING. <span>BREAK ORDINARY BOUNDARIES</span>.
         </div>
         <div class="hero-subline">
           High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
@@ -1215,7 +1334,7 @@ function renderMessages() {
       <div class="starters-grid">
         <div class="starter-card" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
           <div class="badge-chip">
-            <span class="mini-speechmark">“</span>
+            <span class="mini-orb">⚙️</span>
             <span>SYSTEM ENGINE</span>
           </div>
           <div class="starter-card-title">Go HTTP Server</div>
@@ -1223,7 +1342,7 @@ function renderMessages() {
         </div>
         <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
           <div class="badge-chip">
-            <span class="mini-speechmark">“</span>
+            <span class="mini-orb">🧠</span>
             <span>DEEP THOUGHT</span>
           </div>
           <div class="starter-card-title">Quantum Reasoning</div>
@@ -1231,7 +1350,7 @@ function renderMessages() {
         </div>
         <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
           <div class="badge-chip">
-            <span class="mini-speechmark">“</span>
+            <span class="mini-orb">🐍</span>
             <span>INTEGRATION</span>
           </div>
           <div class="starter-card-title">Python Stream</div>
@@ -1239,7 +1358,7 @@ function renderMessages() {
         </div>
         <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
           <div class="badge-chip">
-            <span class="mini-speechmark">“</span>
+            <span class="mini-orb">🏗️</span>
             <span>ARCHITECTURE</span>
           </div>
           <div class="starter-card-title">Microservices Pipeline</div>
@@ -1266,7 +1385,7 @@ function renderMessages() {
       header.className = "story-card-header";
       header.innerHTML = `
         <div class="badge-chip">
-          <span class="mini-speechmark">“</span>
+          <span class="mini-orb">✦</span>
           <span>BOB AI RESPONSE</span>
         </div>
         <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
@@ -1294,6 +1413,7 @@ function renderMessages() {
   }
 }
 
+initTheme();
 loadHistory();
 
 async function sendMessage() {
@@ -1326,7 +1446,7 @@ async function sendMessage() {
   header.className = "story-card-header";
   header.innerHTML = `
     <div class="badge-chip">
-      <span class="mini-speechmark">“</span>
+      <span class="mini-orb">✦</span>
       <span>BOB AI RESPONSE</span>
     </div>
     <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
