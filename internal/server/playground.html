@@ -141,16 +141,16 @@
 
 [data-theme="apple"] {
   --bg-app: #f5f5f7;              /* Signature Apple Parchment */
-  --bg-header: #000000;           /* Pure Black Global Nav */
+  --bg-header: rgba(255, 255, 255, 0.85); /* Frosted Apple Glass */
   --bg-sidebar: #f5f5f7;          /* Parchment */
   --bg-workspace: #ffffff;        /* Pure White Canvas */
   --bg-card: #ffffff;             /* Pure White Tile */
   --bg-card-hover: #fafafc;       /* Pearl Surface */
   --bg-modal: #ffffff;            /* White Modal */
-  --bg-input: #f5f5f7;            /* Parchment Input */
-  --border-color: #e5e5ea;        /* Subtle Hairline */
+  --bg-input: #ffffff;            /* Clean White Input */
+  --border-color: rgba(0, 0, 0, 0.08); /* Apple Hairline */
   --border-focus: #0071e3;        /* Focus Blue */
-  --border-glow: rgba(0, 102, 204, 0.28);
+  --border-glow: rgba(0, 102, 204, 0.25);
   --text-main: #1d1d1f;           /* Near-Black Ink */
   --text-muted: #6e6e73;          /* Ink Muted */
   --text-subdued: #86868b;        /* Ink Muted 48 */
@@ -160,64 +160,229 @@
   --accent-badge: #0066cc;
   --accent-badge-text: #ffffff;
   --accent-secondary: #1d1d1f;    /* Near-Black Ink */
-  --shadow-main: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-cta: 0 4px 14px rgba(0, 102, 204, 0.25);
-  --shadow-celestial: 0 20px 60px rgba(0, 0, 0, 0.12), 0 3px 30px rgba(0, 0, 0, 0.08);
+  --shadow-main: 0 2px 12px rgba(0, 0, 0, 0.04);
+  --shadow-cta: 0 3px 12px rgba(0, 102, 204, 0.28);
+  --shadow-celestial: 0 24px 60px rgba(0, 0, 0, 0.1), 0 2px 12px rgba(0, 0, 0, 0.04);
+  --radius-card: 18px;
+  --radius-modal: 20px;
 }
 
 [data-theme="apple"] header {
-  background: #000000;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.02);
 }
 [data-theme="apple"] header .brand-title,
 [data-theme="apple"] header .brand-bob,
 [data-theme="apple"] header .brand-gemini,
 [data-theme="apple"] header .brand-free {
-  color: #ffffff;
+  color: #1d1d1f;
+  font-weight: 700;
+}
+[data-theme="apple"] header .brand-sep {
+  color: #0066cc;
 }
 [data-theme="apple"] header .brand-tagline {
   color: #86868b;
 }
 [data-theme="apple"] header .stat-pill {
-  background: #1d1d1f;
-  color: #d2d2d7;
-  border-color: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.04);
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 [data-theme="apple"] header .stat-pill b {
-  color: #2997ff;
+  color: #0066cc;
+}
+[data-theme="apple"] header .stat-pill.savings b {
+  color: #34c759;
 }
 [data-theme="apple"] header .nav-pill-btn {
-  background: #1d1d1f;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.04);
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
 [data-theme="apple"] header .nav-pill-btn:hover {
-  background: #272729;
-  border-color: #2997ff;
+  background: rgba(0, 102, 204, 0.08);
+  color: #0066cc;
+  border-color: rgba(0, 102, 204, 0.3);
 }
 [data-theme="apple"] header .theme-selector {
-  background: #1d1d1f;
-  color: #ffffff;
-  border-color: rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.04);
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 13px;
+  font-weight: 500;
 }
-[data-theme="apple"] .user-bubble {
+
+[data-theme="apple"] .chat-sub-bar {
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+[data-theme="apple"] .btn-pill-subtle {
+  background: rgba(0, 0, 0, 0.04);
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-weight: 500;
+  border-radius: 9999px;
+  transition: all 0.15s ease;
+}
+[data-theme="apple"] .btn-pill-subtle:hover {
+  background: rgba(0, 102, 204, 0.08);
+  color: #0066cc;
+  border-color: rgba(0, 102, 204, 0.3);
+}
+[data-theme="apple"] .active-model-pill {
+  background: #ffffff;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+[data-theme="apple"] .model-indicator-dot {
   background: #0066cc;
-  color: #ffffff;
-  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 0 8px rgba(0, 102, 204, 0.4);
 }
-[data-theme="apple"] .btn-pill-primary-action,
+
+[data-theme="apple"] .welcome-hero {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 20px 0 32px 0;
+}
+[data-theme="apple"] .hero-headline {
+  font-size: 2.3rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: #1d1d1f;
+}
+[data-theme="apple"] .hero-headline .accent {
+  color: #0066cc;
+  background: none;
+  -webkit-text-fill-color: #0066cc;
+}
+[data-theme="apple"] .hero-subline {
+  font-size: 1.02rem;
+  line-height: 1.48;
+  color: #86868b;
+  font-weight: 400;
+  max-width: 620px;
+  margin: 10px auto 0 auto;
+}
+[data-theme="apple"] .starter-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+[data-theme="apple"] .starter-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.08);
+  border-color: rgba(0, 102, 204, 0.35);
+}
+[data-theme="apple"] .starter-card .badge-chip {
+  background: #f5f5f7;
+  color: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  font-weight: 600;
+  font-size: 11px;
+}
+[data-theme="apple"] .starter-card-title {
+  font-size: 1.12rem;
+  font-weight: 600;
+  color: #1d1d1f;
+  letter-spacing: -0.02em;
+  margin-top: 10px;
+}
+[data-theme="apple"] .starter-card-desc {
+  font-size: 0.85rem;
+  line-height: 1.45;
+  color: #6e6e73;
+  margin-top: 6px;
+}
+
+[data-theme="apple"] .prompt-dock-wrapper {
+  background: linear-gradient(180deg, transparent 0%, rgba(245, 245, 247, 0.85) 30%, #f5f5f7 100%);
+  border-top: none;
+}
+[data-theme="apple"] .studio-input-area {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 22px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+[data-theme="apple"] .studio-input-area:focus-within {
+  border-color: #0066cc;
+  box-shadow: 0 4px 28px rgba(0, 102, 204, 0.18), 0 0 0 3px rgba(0, 102, 204, 0.12);
+}
+[data-theme="apple"] .prompt-textarea {
+  color: #1d1d1f;
+  font-size: 0.95rem;
+}
+[data-theme="apple"] .prompt-textarea::placeholder {
+  color: #86868b;
+}
 [data-theme="apple"] .btn-send {
   background: #0066cc;
   color: #ffffff;
   border-radius: 9999px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 102, 204, 0.35);
+  transition: all 0.15s cubic-bezier(0.25, 1, 0.5, 1);
 }
 [data-theme="apple"] .btn-send:hover {
   background: #0071e3;
+  transform: scale(1.02);
 }
-[data-theme="apple"] .starter-card-title,
-[data-theme="apple"] h1, [data-theme="apple"] h2, [data-theme="apple"] h3 {
-  letter-spacing: -0.28px;
-  font-weight: 600;
+[data-theme="apple"] .btn-send:active {
+  transform: scale(0.95);
+}
+
+[data-theme="apple"] .user-bubble {
+  background: #0066cc;
+  color: #ffffff;
+  border-radius: 18px 18px 4px 18px;
+  box-shadow: 0 2px 10px rgba(0, 102, 204, 0.25);
+}
+[data-theme="apple"] .story-card {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
+}
+[data-theme="apple"] .thought-card {
+  background: #f5f5f7;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 3px solid #0066cc;
+  border-radius: 10px;
+}
+[data-theme="apple"] .thought-card-header {
+  color: #0066cc;
+}
+[data-theme="apple"] pre {
+  background: #1d1d1f;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  color: #f5f5f7;
+}
+[data-theme="apple"] .code-window-header {
+  background: #272729;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+[data-theme="apple"] .dock-meta-bar,
+[data-theme="apple"] .shortcut-pill {
+  color: #86868b;
+}
+[data-theme="apple"] .shortcut-pill:hover {
+  color: #0066cc;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
