@@ -50,6 +50,19 @@ The **BOB Series** by **ABCsteps** is a developer-first suite of high-impact run
 
 ## Quick Start (Zero-Friction for All Users)
 
+### Super Simple Start (No Config Required)
+
+```bash
+# 1. Start the gateway
+./bob-gemini-free
+
+# 2. Point any AI tool or script to:
+# Base URL: http://127.0.0.1:8081/v1
+# API Key:  none
+```
+
+---
+
 ### Option 1: Automatic Installer (No Go Required)
 
 #### macOS & Linux
@@ -67,30 +80,56 @@ chmod +x install.sh
 
 ### Option 2: Docker & Docker Compose
 
-If you have Docker installed, no Go toolchain is needed:
-
 ```bash
-# Using Docker
-docker build -t bob-gemini-free .
-docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free
-
 # Using Docker Compose
 docker compose up -d
+
+# Or standard Docker
+docker build -t bob-gemini-free .
+docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free
 ```
 
 ---
 
-### Option 3: Build from Source with Make or Go (Go 1.22+)
+### Option 3: Automated Diagnostic Test Kit
+
+Verify every endpoint, streaming chunk, reasoning model, and API format with the built-in diagnostic test kit:
 
 ```bash
-# Clone the repository
-git clone https://github.com/div197/bob-gemini-free.git
-cd bob-gemini-free
+# Run automated test kit against the default local server
+./bob-gemini-free --test
 
-# Build with Make
+# Or against a custom port / authenticated instance
+./bob-gemini-free --test --test-url http://127.0.0.1:8081 --test-key your_api_key
+
+# Or run the standalone script
+./test-kit.sh
+```
+
+```text
+[1/9] [✔ PASS] Gateway Engine Health (GET /) (5ms)
+[2/9] [✔ PASS] OpenAI Models Registry (GET /v1/models) (0s)
+[3/9] [✔ PASS] Single Model Lookup (GET /v1/models/gemini-3.7-flash) (0s)
+[4/9] [✔ PASS] Gemini 3.7 Flash Fast Completion (4.0s)
+[5/9] [✔ PASS] Gemini 3.7 Flash Deep Reasoning (8.3s)
+[6/9] [✔ PASS] Real-time SSE Delta Stream & Usage (1.5s)
+[7/9] [✔ PASS] Developer Role & JSON Output Enforcement (3.9s)
+[8/9] [✔ PASS] Google Native Gemini API Format (3.5s)
+[9/9] [✔ PASS] OpenAI Codex CLI Responses API Format (3.5s)
+==================================================================
+    ALL 9 DIAGNOSTIC CHECKS PASSED (100% SUCCESS)
+==================================================================
+```
+
+---
+
+### Option 4: Build from Source with Make or Go (Go 1.22+)
+
+```bash
+# Build binary
 make build
 
-# Start the gateway on port 8081
+# Start the gateway
 ./bob-gemini-free --port 8081
 ```
 

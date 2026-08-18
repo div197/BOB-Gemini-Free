@@ -35,4 +35,5 @@ Part of the **BOB Series** (*Break Ordinary Boundaries*) by [**ABCsteps.com**](h
 - **Multilingual Documentation**: Added comprehensive Hindi guide ([`README.hi.md`](README.hi.md)).
 - **Automated Cookie Setup Helper**: Added `--setup-cookie` and `--cookie-string` CLI commands to automatically extract, validate, and securely store (`chmod 0600`) Gemini Advanced session cookies.
 - **Architectural Workflow Diagram**: Added comprehensive dataflow and system architecture visual (`assets/bob-gemini-free-architecture.jpg`).
-- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, config loading, auth caching, cookie token extraction, and security middleware.
+- **Automated Diagnostic Test Kit**: Built-in CLI `--test` flag and standalone scripts (`test-kit.sh`, `test-kit.ps1`) executing full-spectrum automated validation across all 9 endpoint and model scenarios with millisecond latency telemetry.
+- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, config loading, auth caching, cookie token extraction, diagnostics runner, and security middleware.

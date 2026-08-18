@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/diag"
 	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/server"
@@ -31,6 +32,46 @@ func resolveVersion() string {
 		return info.Main.Version
 	}
 	return Version
+}
+
+func handleDiagnostics(targetURL, apiKey string) {
+	fmt.Println("==================================================================")
+	fmt.Println("    BOB Gemini Free - Automated Diagnostic Test Kit               ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
+	fmt.Println("==================================================================")
+	fmt.Printf("Target Gateway URL: %s\n\n", targetURL)
+
+	results := diag.RunDiagnostics(targetURL, apiKey)
+	var passCount, failCount int
+
+	for i, res := range results {
+		if res.Passed {
+			passCount++
+			fmt.Printf("[%d/%d] [✔ PASS] %s (%v)\n", i+1, len(results), res.Name, res.Duration.Round(time.Millisecond))
+			if res.Details != "" {
+				fmt.Printf("      ↳ %s\n", res.Details)
+			}
+		} else {
+			failCount++
+			fmt.Printf("[%d/%d] [✘ FAIL] %s (%v)\n", i+1, len(results), res.Name, res.Duration.Round(time.Millisecond))
+			fmt.Printf("      ↳ Error: %v\n", res.Error)
+		}
+	}
+
+	fmt.Println()
+	fmt.Println("==================================================================")
+	if failCount == 0 {
+		fmt.Printf("    ALL %d DIAGNOSTIC CHECKS PASSED (100%% SUCCESS)               \n", passCount)
+	} else {
+		fmt.Printf("    DIAGNOSTICS SUMMARY: %d PASSED, %d FAILED                    \n", passCount, failCount)
+	}
+	fmt.Println("==================================================================")
+	fmt.Println()
+
+	if failCount > 0 {
+		os.Exit(1)
+	}
+	os.Exit(0)
 }
 
 func handleCookieSetup(rawInput string) {
@@ -114,12 +155,19 @@ func main() {
 	impersonateFlag := flag.String("impersonate", "", "TLS impersonation profile")
 	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper")
 	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
+	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
+	testURLFlag := flag.String("test-url", "http://127.0.0.1:8081", "Target gateway URL for diagnostic tests")
+	testKeyFlag := flag.String("test-key", "", "API key to use for diagnostic tests")
 	versionFlag := flag.Bool("version", false, "Show version")
 	flag.Parse()
 
 	if *versionFlag {
 		fmt.Printf("BOB-Gemini-Free %s (Break Ordinary Boundaries by ABCsteps - https://abcsteps.com)\n", currentVersion)
 		os.Exit(0)
+	}
+
+	if *testFlag {
+		handleDiagnostics(*testURLFlag, *testKeyFlag)
 	}
 
 	if *setupCookieFlag || *cookieStringFlag != "" {

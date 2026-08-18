@@ -49,16 +49,45 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 
 ## त्वरित शुरुआत (Quick Start)
 
-### 1. यदि आपके कंप्यूटर पर Go इंस्टॉल नहीं है (Non-Go Users)
-
-#### विकल्प A: डॉकर (Docker) द्वारा चलाएँ
+### सबसे आसान तरीका (Super Simple - बिना किसी कॉन्फ़िग के)
 
 ```bash
-docker build -t bob-gemini-free .
-docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free
+# 1. गेटवे शुरू करें
+./bob-gemini-free
+
+# 2. किसी भी टूल में सेट करें:
+# Base URL: http://127.0.0.1:8081/v1
+# API Key:  none
 ```
 
-#### विकल्प B: ऑटोमैटिक इंस्टॉलर स्क्रिप्ट (macOS / Linux)
+---
+
+### ऑटोमैटिक टेस्ट किट (Diagnostic Test Kit)
+
+सभी मॉडल्स, स्ट्रीमिंग, और API फ़ॉर्मेट्स की लाइव जाँच के लिए:
+
+```bash
+# डिफ़ॉल्ट लोकल गेटवे का परीक्षण
+./bob-gemini-free --test
+
+# या कस्टम पोर्ट / API Key के साथ
+./bob-gemini-free --test --test-url http://127.0.0.1:8081 --test-key your_api_key
+
+# या स्क्रिप्ट चलाएँ
+./test-kit.sh
+```
+
+---
+
+### विकल्प A: डॉकर (Docker) द्वारा चलाएँ
+
+```bash
+docker compose up -d
+```
+
+---
+
+### विकल्प B: ऑटोमैटिक इंस्टॉलर स्क्रिप्ट (macOS / Linux)
 
 ```bash
 chmod +x install.sh
@@ -67,21 +96,12 @@ chmod +x install.sh
 
 ---
 
-### 2. सोर्स कोड से निर्माण (Build from Source - Go 1.22+)
+### विकल्प C: सोर्स कोड से निर्माण (Build from Source - Go 1.22+)
 
 ```bash
-# रिपॉजिटरी क्लोन करें
-git clone https://github.com/div197/bob-gemini-free.git
-cd bob-gemini-free
-
-# सिंगल बाइनरी बनाएँ
-go build -o bob-gemini-free .
-
-# सर्वर शुरू करें
+make build
 ./bob-gemini-free --port 8081
 ```
-
-सर्वर `http://127.0.0.1:8081/v1` पर शुरू हो जाएगा।
 
 ---
 
