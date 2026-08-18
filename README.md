@@ -260,6 +260,50 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 
 ---
 
+## Frequently Asked Questions (FAQ)
+
+<details>
+<summary><strong>1. How does BOB Gemini Free provide free access without an API key?</strong></summary>
+
+Google provides access to Gemini (Flash 3.7, Flash 3.6, Flash Lite, and Flash Thinking) to every user with a standard Google/Gmail account via the web interface. **BOB Gemini Free** acts as a high-performance local proxy that translates standard OpenAI (`/v1/chat/completions`) and Gemini (`/v1beta/models`) API calls directly into Google's internal web RPC format.
+</details>
+
+<details>
+<summary><strong>2. What is the difference between Free (Anonymous) mode and Gemini Advanced ($20/mo)?</strong></summary>
+
+* **Free / Anonymous**: Instant access to `gemini-3.7-flash`, `gemini-3.7-flash-thinking` (up to 20,000+ characters of reasoning tokens), and `gemini-flash-lite` without any login or cookie setup.
+* **Gemini Advanced ($20/mo)**: By providing your session cookie (`cookie.txt`), you can route requests to Google's flagship **Pro** models (`gemini-3.1-pro` / `gemini-pro`).
+</details>
+
+<details>
+<summary><strong>3. How does thinking / reasoning mode work? Where do I see thinking tokens?</strong></summary>
+
+When querying thinking models (`gemini-3.7-flash-thinking` or any model with `@think=0`), BOB Gemini Free automatically extracts internal reasoning traces and delivers them via the standard OpenAI `reasoning_content` field. In frontends like Cursor, Cherry Studio, ChatBox, or OpenWebUI, this automatically renders a collapsible "Reasoning Process" card alongside the final answer.
+</details>
+
+<details>
+<summary><strong>4. How do I use Vision and image uploads?</strong></summary>
+
+Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or base64 strings. BOB Gemini Free automatically compresses oversized images (downscaling to max 1024px, 75% JPEG quality, <1MB) and uploads them via Google's Scotty Resumable Upload protocol to obtain authentic WIZ file references.
+</details>
+
+<details>
+<summary><strong>5. Are my session cookies and API keys safe?</strong></summary>
+
+Yes, 100%. BOB Gemini Free is a self-contained local proxy that binds to `127.0.0.1` by default. Your cookies and keys never leave your machine and are only transmitted directly to Google's official endpoints over TLS.
+</details>
+
+<details>
+<summary><strong>6. Can I use this without installing Go on my computer?</strong></summary>
+
+Yes! You can run BOB Gemini Free using:
+1. **One-line installer** (`./install.sh` on macOS/Linux or `.\install.ps1` on Windows).
+2. **Docker / Docker Compose** (`docker compose up -d`).
+3. **Pre-compiled standalone binaries** built via `make dist`.
+</details>
+
+---
+
 ## About ABCsteps
 
 [**ABCsteps**](https://abcsteps.com/) is an online AI engineering school founded by **Divyanshu Singh Chouhan** in Jodhpur, Rajasthan, India.

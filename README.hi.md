@@ -164,6 +164,41 @@ print(response.choices[0].message.content)
 
 ---
 
+## अक्सर पूछे जाने वाले प्रश्न (FAQ)
+
+<details>
+<summary><strong>1. BOB Gemini Free बिना किसी API Key के मुफ़्त कैसे काम करता है?</strong></summary>
+
+गूगल हर जीमेल अकाउंट धारक को अपने वेब इंटरफ़ेस के ज़रिए जेमिनी (Flash 3.7, Flash 3.6, Flash Lite, Flash Thinking) का मुफ़्त एक्सेस देता है। **BOB Gemini Free** एक हाई-परफ़ॉर्मेंस लोकल प्रॉक्सी है जो स्टैंडर्ड OpenAI और Gemini API कॉल्स को गूगल के आंतरिक वेब RPC फ़ॉर्मेट में ट्रांसलेट करता है।
+</details>
+
+<details>
+<summary><strong>2. मुफ़्त (Anonymous) मोड और Gemini Advanced ($20/माह) में क्या अंतर है?</strong></summary>
+
+* **मुफ़्त मोड**: `gemini-3.7-flash`, `gemini-3.7-flash-thinking` (20,000+ अक्षरों की रीज़निंग), और `gemini-flash-lite` का बिना किसी लॉगिन या कुकी के सीधा उपयोग।
+* **Gemini Advanced ($20/माह)**: अपनी कुकी (`cookie.txt`) जोड़कर गूगल के फ्लैगशिप **Pro** मॉडल (`gemini-3.1-pro` / `gemini-pro`) को एक्टिवेट करने की सुविधा।
+</details>
+
+<details>
+<summary><strong>3. थिंकिंग / रीज़निंग मोड कैसे काम करता है?</strong></summary>
+
+जब आप थिंकिंग मॉडल (`gemini-3.7-flash-thinking` या `@think=0`) पर क्वेरी करते हैं, तो BOB Gemini Free ऑटोमैटिक रूप से इंटरनल रीज़निंग ट्रेस को अलग कर OpenAI के `reasoning_content` फ़ील्ड में भेजता है। Cursor, Cherry Studio, ChatBox या OpenWebUI में यह अंतिम उत्तर के साथ एक कोलैप्सेबल "Reasoning" कार्ड के रूप में दिखाई देता है।
+</details>
+
+<details>
+<summary><strong>4. मल्टीमॉडल विज़न और इमेज अपलोड कैसे काम करता है?</strong></summary>
+
+OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भेजें। BOB Gemini Free बड़ी छवियों को ऑटोमैटिक रूप से कंप्रेस करता है (अधिकतम 1024px, 75% JPEG क्वालिटी, 1MB से कम) और गूगल के Scotty Resumable Upload प्रोटोकॉल से अपलोड करता है।
+</details>
+
+<details>
+<summary><strong>5. क्या मेरे कुकीज़ और क्रेडेंशियल्स सुरक्षित हैं?</strong></summary>
+
+हाँ, 100% सुरक्षित हैं। BOB Gemini Free केवल आपके लोकल कंप्यूटर (`127.0.0.1`) पर चलता है। आपके क्रेडेंशियल्स कभी किसी तीसरे सर्वर पर नहीं भेजे जाते।
+</details>
+
+---
+
 ## ABCsteps के बारे में
 
 [**ABCsteps**](https://abcsteps.com/) जोधपुर, राजस्थान, भारत में स्थापित एक ऑनलाइन एआई इंजीनियरिंग स्कूल है जिसकी स्थापना **दिव्यांशु सिंह चौहान** द्वारा की गई है।
