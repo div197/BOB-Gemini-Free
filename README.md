@@ -285,6 +285,30 @@ export GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8081
 gemini
 ```
 
+### Embedded Go Library / Package Import
+
+Embed BOB Gemini Free directly as an in-process module inside any Go application or agent runtime:
+
+```go
+package main
+
+import (
+	"net/http"
+	"github.com/div197/bob-gemini-free/pkg/gateway"
+)
+
+func main() {
+	handler := gateway.NewHandler(
+		gateway.WithDefaultModel("gemini-3.7-flash"),
+		gateway.WithCookieFile("cookie.txt"), // optional
+	)
+
+	http.ListenAndServe("127.0.0.1:8081", handler)
+}
+```
+
+---
+
 ## Deep Architectural Comparison: Google AI Studio vs. BOB Gemini Free
 
 ### Official Limits & Feature Matrix (Free Tier Without Paid Billing)

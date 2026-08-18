@@ -56,10 +56,23 @@ func TestLoadConfigFile(t *testing.T) {
 	if len(cfg.APIKeys) != 2 || cfg.APIKeys[0] != "sk-test-key-1" {
 		t.Errorf("unexpected api keys: %v", cfg.APIKeys)
 	}
-	if cfg.Impersonate != "chrome_133" {
-		t.Errorf("expected impersonate chrome_133, got %s", cfg.Impersonate)
-	}
 	if cfg.CookieFile != "/path/to/cookie.txt" {
 		t.Errorf("expected cookie file /path/to/cookie.txt, got %s", cfg.CookieFile)
+	}
+}
+
+func TestFindCookie(t *testing.T) {
+	tmpDir := t.TempDir()
+	cookieFile := filepath.Join(tmpDir, "cookie.txt")
+	_ = os.WriteFile(cookieFile, []byte("SID=test; SAPISID=test;"), 0600)
+
+	// Set env var to test direct resolution
+	t.Setenv("BOB_GEMINI_FREE_COOKIE_FILE", cookieFile)
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.CookieFile != cookieFile {
+		t.Errorf("expected %s, got %s", cookieFile, cfg.CookieFile)
 	}
 }

@@ -46,80 +46,75 @@ func Default() Config {
 
 func Load(path string) (Config, error) {
 	cfg := Default()
-	if path == "" {
-		return cfg, nil
-	}
+	if path != "" {
+		data, err := os.ReadFile(path)
+		if err != nil {
+			return cfg, err
+		}
 
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return cfg, err
-	}
+		var aux struct {
+			Port              *int      `json:"port"`
+			Host              *string   `json:"host"`
+			RetryAttempts     *int      `json:"retry_attempts"`
+			RetryDelaySec     *int      `json:"retry_delay_sec"`
+			RequestTimeoutSec *int      `json:"request_timeout_sec"`
+			GeminiBL          *string   `json:"gemini_bl"`
+			AuthUser          *string   `json:"auth_user"`
+			XSRFToken         *string   `json:"xsrf_token"`
+			DefaultModel      *string   `json:"default_model"`
+			LogRequests       *bool     `json:"log_requests"`
+			CookieFile        *string   `json:"cookie_file"`
+			Proxy             *string   `json:"proxy"`
+			APIKeys           *[]string `json:"api_keys"`
+			Impersonate       *string   `json:"impersonate"`
+		}
 
-	// Use temporary struct with pointer fields or interface to handle null values from JSON if needed,
-	// but standard unmarshal over struct fields handles JSON null for strings by leaving existing or setting zero-value if unmarshaling map/struct.
-	// Let's ensure string fields default properly if JSON has explicitly `null`.
-	var aux struct {
-		Port              *int      `json:"port"`
-		Host              *string   `json:"host"`
-		RetryAttempts     *int      `json:"retry_attempts"`
-		RetryDelaySec     *int      `json:"retry_delay_sec"`
-		RequestTimeoutSec *int      `json:"request_timeout_sec"`
-		GeminiBL          *string   `json:"gemini_bl"`
-		AuthUser          *string   `json:"auth_user"`
-		XSRFToken         *string   `json:"xsrf_token"`
-		DefaultModel      *string   `json:"default_model"`
-		LogRequests       *bool     `json:"log_requests"`
-		CookieFile        *string   `json:"cookie_file"`
-		Proxy             *string   `json:"proxy"`
-		APIKeys           *[]string `json:"api_keys"`
-		Impersonate       *string   `json:"impersonate"`
-	}
+		if err := json.Unmarshal(data, &aux); err != nil {
+			return cfg, err
+		}
 
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return cfg, err
-	}
-
-	if aux.Port != nil {
-		cfg.Port = *aux.Port
-	}
-	if aux.Host != nil {
-		cfg.Host = *aux.Host
-	}
-	if aux.RetryAttempts != nil {
-		cfg.RetryAttempts = *aux.RetryAttempts
-	}
-	if aux.RetryDelaySec != nil {
-		cfg.RetryDelaySec = *aux.RetryDelaySec
-	}
-	if aux.RequestTimeoutSec != nil {
-		cfg.RequestTimeoutSec = *aux.RequestTimeoutSec
-	}
-	if aux.GeminiBL != nil {
-		cfg.GeminiBL = *aux.GeminiBL
-	}
-	if aux.AuthUser != nil {
-		cfg.AuthUser = *aux.AuthUser
-	}
-	if aux.XSRFToken != nil {
-		cfg.XSRFToken = *aux.XSRFToken
-	}
-	if aux.DefaultModel != nil {
-		cfg.DefaultModel = *aux.DefaultModel
-	}
-	if aux.LogRequests != nil {
-		cfg.LogRequests = *aux.LogRequests
-	}
-	if aux.CookieFile != nil {
-		cfg.CookieFile = *aux.CookieFile
-	}
-	if aux.Proxy != nil {
-		cfg.Proxy = *aux.Proxy
-	}
-	if aux.APIKeys != nil {
-		cfg.APIKeys = *aux.APIKeys
-	}
-	if aux.Impersonate != nil {
-		cfg.Impersonate = *aux.Impersonate
+		if aux.Port != nil {
+			cfg.Port = *aux.Port
+		}
+		if aux.Host != nil {
+			cfg.Host = *aux.Host
+		}
+		if aux.RetryAttempts != nil {
+			cfg.RetryAttempts = *aux.RetryAttempts
+		}
+		if aux.RetryDelaySec != nil {
+			cfg.RetryDelaySec = *aux.RetryDelaySec
+		}
+		if aux.RequestTimeoutSec != nil {
+			cfg.RequestTimeoutSec = *aux.RequestTimeoutSec
+		}
+		if aux.GeminiBL != nil {
+			cfg.GeminiBL = *aux.GeminiBL
+		}
+		if aux.AuthUser != nil {
+			cfg.AuthUser = *aux.AuthUser
+		}
+		if aux.XSRFToken != nil {
+			cfg.XSRFToken = *aux.XSRFToken
+		}
+		if aux.DefaultModel != nil {
+			cfg.DefaultModel = *aux.DefaultModel
+		}
+		if aux.LogRequests != nil {
+			cfg.LogRequests = *aux.LogRequests
+		}
+		if aux.CookieFile != nil {
+			cfg.CookieFile = *aux.CookieFile
+		}
+		if aux.Proxy != nil {
+			cfg.Proxy = *aux.Proxy
+		}
+		if aux.APIKeys != nil {
+			cfg.APIKeys = *aux.APIKeys
+		}
+		if aux.Impersonate != nil {
+			cfg.Impersonate = *aux.Impersonate
+		}
 	}
 
 	// Environment variable overrides (useful for Docker & cloud environments)
@@ -133,6 +128,9 @@ func Load(path string) (Config, error) {
 	}
 	if envCookie := os.Getenv("BOB_GEMINI_FREE_COOKIE_FILE"); envCookie != "" {
 		cfg.CookieFile = envCookie
+	}
+	if cfg.CookieFile == "" {
+		cfg.CookieFile = FindCookie()
 	}
 	if envProxy := os.Getenv("BOB_GEMINI_FREE_PROXY"); envProxy != "" {
 		cfg.Proxy = envProxy
@@ -169,3 +167,19 @@ func Find() string {
 	}
 	return ""
 }
+
+func FindCookie() string {
+	paths := []string{"./cookie.txt"}
+	home, err := os.UserHomeDir()
+	if err == nil {
+		paths = append(paths, filepath.Join(home, ".config", "bob-gemini-free", "cookie.txt"))
+	}
+
+	for _, p := range paths {
+		if _, err := os.Stat(p); err == nil {
+			return p
+		}
+	}
+	return ""
+}
+
