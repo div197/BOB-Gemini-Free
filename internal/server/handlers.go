@@ -1,8 +1,11 @@
 package server
 
 import (
+	"encoding/json"
+	"io"
 	"net/http"
 
+	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/models"
 )
 
@@ -97,3 +100,25 @@ func (a *App) handleGoogleModels(w http.ResponseWriter, r *http.Request) {
 		"models": modelList,
 	})
 }
+
+func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
+	bodyBytes, err := io.ReadAll(r.Body)
+	if err != nil || len(bodyBytes) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON body"}})
+		return
+	}
+
+	var req models.OpenAIChatRequest
+	if err := json.Unmarshal(bodyBytes, &req); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON payload"}})
+		return
+	}
+
+	totalTokens := format.CountOpenAITokens(req)
+	writeJSON(w, http.StatusOK, map[string]any{
+		"prompt_tokens": totalTokens,
+		"total_tokens":  totalTokens,
+		"model":         req.Model,
+	})
+}
+

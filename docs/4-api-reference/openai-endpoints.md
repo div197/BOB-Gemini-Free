@@ -84,3 +84,31 @@ curl http://127.0.0.1:8081/v1/responses \
     "instructions": "Return clean code only"
   }'
 ```
+
+---
+
+## 5. Token Counting (`POST /v1/tokens/count`)
+
+Calculate prompt and message tokens before initiating completion loops:
+
+```bash
+curl -X POST http://127.0.0.1:8081/v1/tokens/count \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.7-flash",
+    "messages": [
+      {"role": "system", "content": "You are a code reviewer."},
+      {"role": "user", "content": "Review this pull request."}
+    ]
+  }'
+```
+
+### Response
+```json
+{
+  "model": "gemini-3.7-flash",
+  "prompt_tokens": 14,
+  "total_tokens": 14
+}
+```
+

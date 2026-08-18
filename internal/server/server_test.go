@@ -295,3 +295,48 @@ func TestObservabilityHeaders(t *testing.T) {
 		t.Errorf("Missing openai-processing-ms header")
 	}
 }
+
+func TestTokenCountingEndpoints(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	// 1. Google Native :countTokens
+	googlePayload := `{"contents":[{"role":"user","parts":[{"text":"Explain the theory of relativity in simple words."}]}]}`
+	req1 := httptest.NewRequest("POST", "/v1beta/models/gemini-3.7-flash:countTokens", strings.NewReader(googlePayload))
+	rec1 := httptest.NewRecorder()
+	handler.ServeHTTP(rec1, req1)
+
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("Expected 200 for Google countTokens, got %d (body: %s)", rec1.Code, rec1.Body.String())
+	}
+
+	var gResp map[string]any
+	if err := json.Unmarshal(rec1.Body.Bytes(), &gResp); err != nil {
+		t.Fatalf("Failed to parse Google countTokens JSON: %v", err)
+	}
+	totalTokens, ok := gResp["totalTokens"].(float64)
+	if !ok || totalTokens < 5 {
+		t.Errorf("Expected valid totalTokens >= 5, got %v", gResp["totalTokens"])
+	}
+
+	// 2. OpenAI /v1/tokens/count
+	openAIPayload := `{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"How does quantum teleportation work?"}]}`
+	req2 := httptest.NewRequest("POST", "/v1/tokens/count", strings.NewReader(openAIPayload))
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, req2)
+
+	if rec2.Code != http.StatusOK {
+		t.Fatalf("Expected 200 for OpenAI /v1/tokens/count, got %d", rec2.Code)
+	}
+
+	var oResp map[string]any
+	if err := json.Unmarshal(rec2.Body.Bytes(), &oResp); err != nil {
+		t.Fatalf("Failed to parse OpenAI tokens count JSON: %v", err)
+	}
+	promptTokens, ok := oResp["prompt_tokens"].(float64)
+	if !ok || promptTokens < 5 {
+		t.Errorf("Expected valid prompt_tokens >= 5, got %v", oResp["prompt_tokens"])
+	}
+}
+

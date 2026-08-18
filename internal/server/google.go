@@ -21,11 +21,14 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	modelName := target
 	stream := false
 
+	isCountTokens := false
 	if idx := strings.LastIndex(target, ":"); idx != -1 {
 		action := target[idx+1:]
 		modelName = target[:idx]
 		if action == "streamGenerateContent" {
 			stream = true
+		} else if action == "countTokens" {
+			isCountTokens = true
 		} else if action != "generateContent" {
 			writeJSON(w, http.StatusNotFound, map[string]any{"error": "not found"})
 			return
@@ -41,6 +44,14 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	var req models.GoogleGenerateRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+
+	if isCountTokens {
+		totalTokens := format.CountGoogleTokens(req)
+		writeJSON(w, http.StatusOK, map[string]any{
+			"totalTokens": totalTokens,
+		})
 		return
 	}
 

@@ -57,3 +57,33 @@ curl http://127.0.0.1:8081/v1beta/models
 ## 3. Streaming Generate Content (`POST /v1beta/models/{model}:streamGenerateContent`)
 
 Streams real-time Server-Sent Events with candidates array chunks directly to Google SDK clients.
+
+---
+
+## 4. Token Counting (`POST /v1beta/models/{model}:countTokens`)
+
+Calculate the exact token count for prompt text and multimodal images before sending inference requests (100% free with zero overhead):
+
+### Request
+```bash
+curl -X POST http://127.0.0.1:8081/v1beta/models/gemini-3.7-flash:countTokens \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [
+      {
+        "role": "user",
+        "parts": [
+          {"text": "Explain the architecture of Transformer neural networks."}
+        ]
+      }
+    ]
+  }'
+```
+
+### Response
+```json
+{
+  "totalTokens": 10
+}
+```
+
