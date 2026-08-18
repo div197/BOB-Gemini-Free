@@ -14,8 +14,8 @@
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <style>
 /* 
-  Harmonic Golden Ratio Design System (Phi = 1.618)
-  Default Zen Focus Canvas, Keyboard-Driven Modals, Credits & 60FPS Streaming Engine
+  Sacred Harmonic Golden Ratio Design System (Phi = 1.618)
+  Celestial Glassmorphic Architecture, Luminous Radiance & 60FPS Streaming Engine
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -25,9 +25,11 @@
   --bg-workspace: #050a14;
   --bg-card: #0c182a;
   --bg-card-hover: #11223b;
+  --bg-modal: #0a1324;
   --bg-input: #081220;
   --border-color: #16263f;
   --border-focus: #ffca00;
+  --border-glow: rgba(255, 202, 0, 0.35);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-subdued: #64748b;
@@ -39,7 +41,9 @@
   --accent-secondary: #024ca1;
   --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.4);
   --shadow-cta: 0 4px 16px rgba(255, 202, 0, 0.32);
-  --radius-card: 8px;
+  --shadow-celestial: 0 24px 70px rgba(0, 0, 0, 0.8), 0 0 30px rgba(255, 202, 0, 0.12);
+  --radius-card: 10px;
+  --radius-modal: 18px;
   --radius-pill: 9999px;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -52,9 +56,11 @@
   --bg-workspace: #ffffff;
   --bg-card: #ffffff;
   --bg-card-hover: #f8f9fa;
+  --bg-modal: #ffffff;
   --bg-input: #f4f5f8;
   --border-color: #e2e5e9;
   --border-focus: #e60000;
+  --border-glow: rgba(230, 0, 0, 0.35);
   --text-main: #111418;
   --text-muted: #4b5563;
   --text-subdued: #6b7280;
@@ -66,6 +72,7 @@
   --accent-secondary: #111418;
   --shadow-main: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.32);
+  --shadow-celestial: 0 20px 60px rgba(0, 0, 0, 0.15), 0 0 20px rgba(230, 0, 0, 0.1);
 }
 
 [data-theme="spotify"] {
@@ -75,9 +82,11 @@
   --bg-workspace: #121212;
   --bg-card: #181818;
   --bg-card-hover: #222222;
+  --bg-modal: #181818;
   --bg-input: #1f1f1f;
   --border-color: #282828;
   --border-focus: #1ed760;
+  --border-glow: rgba(30, 215, 96, 0.35);
   --text-main: #ffffff;
   --text-muted: #b3b3b3;
   --text-subdued: #7c7c7c;
@@ -89,6 +98,7 @@
   --accent-secondary: #282828;
   --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.5);
   --shadow-cta: 0 4px 16px rgba(30, 215, 96, 0.32);
+  --shadow-celestial: 0 24px 70px rgba(0, 0, 0, 0.8), 0 0 30px rgba(30, 215, 96, 0.12);
 }
 
 [data-theme="quantum"] {
@@ -98,9 +108,11 @@
   --bg-workspace: #060911;
   --bg-card: #0d1322;
   --bg-card-hover: #121b30;
+  --bg-modal: #0d1322;
   --bg-input: #080c17;
   --border-color: #182236;
   --border-focus: #00f0ff;
+  --border-glow: rgba(0, 240, 255, 0.35);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
   --text-subdued: #64748b;
@@ -112,6 +124,7 @@
   --accent-secondary: #3b82f6;
   --shadow-main: 0 4px 22px rgba(0, 240, 255, 0.1);
   --shadow-cta: 0 4px 16px rgba(0, 240, 255, 0.32);
+  --shadow-celestial: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 240, 255, 0.15);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -119,7 +132,7 @@ body {
   background: var(--bg-app);
   color: var(--text-main);
   font-family: var(--font-sans);
-  line-height: 1.6;
+  line-height: 1.618;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -155,6 +168,12 @@ header {
   gap: 8px;
   text-decoration: none;
   cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+.brand-anchor:hover {
+  background: rgba(255, 255, 255, 0.04);
 }
 .brand-headings {
   display: flex;
@@ -1031,9 +1050,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .cmd-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.68);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 100;
   display: none;
   align-items: flex-start;
@@ -1042,21 +1061,21 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .cmd-modal-backdrop.open { display: flex; animation: fadeIn 0.15s ease-out; }
 .cmd-palette {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  width: 540px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-glow);
+  width: 560px;
   max-width: 92vw;
-  border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.7);
+  border-radius: var(--radius-modal);
+  box-shadow: var(--shadow-celestial);
   overflow: hidden;
 }
 .cmd-input-box {
-  padding: 14px 18px;
+  padding: 16px 20px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   gap: 12px;
-  background: var(--bg-card);
+  background: var(--bg-modal);
 }
 .cmd-input-box input {
   flex: 1;
@@ -1071,19 +1090,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .cmd-list {
   max-height: 380px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 10px;
 }
 .cmd-section-label {
   font-size: 0.66rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: var(--text-muted);
   padding: 10px 10px 4px 10px;
 }
 .cmd-item {
-  padding: 8px 12px;
-  border-radius: 6px;
+  padding: 9px 12px;
+  border-radius: 8px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
@@ -1100,11 +1119,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .cmd-item-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
 }
 .cmd-item-icon {
-  font-size: 1.05rem;
-  width: 22px;
+  font-size: 1.1rem;
+  width: 24px;
   text-align: center;
 }
 .cmd-item-info {
@@ -1113,7 +1132,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .cmd-item-title {
   font-weight: 700;
-  font-size: 0.86rem;
+  font-size: 0.88rem;
   line-height: 1.25;
 }
 .cmd-item-desc {
@@ -1123,7 +1142,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .cmd-item kbd {
   font-size: 0.68rem;
   background: rgba(255, 255, 255, 0.08);
-  padding: 2px 6px;
+  padding: 2px 7px;
   border-radius: 4px;
   font-family: var(--font-mono);
   color: var(--text-muted);
@@ -1134,9 +1153,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .dialog-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.78);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   z-index: 120;
   display: none;
   align-items: center;
@@ -1145,16 +1164,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .dialog-backdrop.open { display: flex; animation: fadeIn 0.15s ease-out; }
 .dialog-box {
-  background: var(--bg-card);
+  background: var(--bg-modal);
   border: 1px solid var(--border-color);
   width: 440px;
   max-width: 92vw;
-  border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
-  padding: 24px;
+  border-radius: var(--radius-modal);
+  box-shadow: var(--shadow-celestial);
+  padding: 26px;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   animation: scaleIn 0.18s cubic-bezier(0.25, 1, 0.5, 1);
 }
 @keyframes scaleIn {
@@ -1167,26 +1186,28 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   gap: 12px;
 }
 .dialog-icon-orb {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
   background: rgba(217, 30, 38, 0.15);
   color: #ef4444;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.25rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
+  box-shadow: 0 0 16px rgba(217, 30, 38, 0.2);
 }
 .dialog-title {
-  font-size: 1.1rem;
+  font-size: 1.15rem;
   font-weight: 800;
   color: var(--text-main);
+  letter-spacing: -0.3px;
 }
 .dialog-desc {
   font-size: 0.88rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.6;
 }
 .dialog-actions {
   display: flex;
@@ -1195,52 +1216,215 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   margin-top: 6px;
 }
 .dialog-btn-cancel {
-  background: var(--bg-app);
+  background: var(--bg-card);
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  padding: 0 16px;
-  height: 36px;
+  padding: 0 18px;
+  height: 38px;
   border-radius: var(--radius-pill);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
 }
-.dialog-btn-cancel:hover { border-color: var(--text-muted); }
+.dialog-btn-cancel:hover { border-color: var(--text-muted); transform: translateY(-1px); }
 .dialog-btn-danger {
   background: #d91e26;
   color: #ffffff;
   border: none;
-  padding: 0 18px;
-  height: 36px;
+  padding: 0 20px;
+  height: 38px;
   border-radius: var(--radius-pill);
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 800;
-  letter-spacing: 0.4px;
+  letter-spacing: 0.5px;
   text-transform: uppercase;
   cursor: pointer;
   transition: all 0.15s ease;
-  box-shadow: 0 4px 14px rgba(217, 30, 38, 0.35);
+  box-shadow: 0 4px 16px rgba(217, 30, 38, 0.4);
   outline: none;
 }
 .dialog-btn-danger:focus {
-  box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 14px rgba(217, 30, 38, 0.35);
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 16px rgba(217, 30, 38, 0.4);
 }
 .dialog-btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
 
-/* About & Legal Modal */
+/* 
+  Celestial Temple-Grade About & Credits Modal 
+  Sacred Geometric Harmony, Ethereal Aura & Typographic Elegance
+*/
 .about-dialog-box {
-  background: var(--bg-card);
-  border: 1px solid var(--border-color);
-  width: 520px;
+  background: linear-gradient(180deg, rgba(255, 202, 0, 0.04) 0%, var(--bg-modal) 100%);
+  border: 1px solid var(--border-glow);
+  width: 540px;
   max-width: 92vw;
-  border-radius: 12px;
-  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
-  padding: 26px;
+  border-radius: var(--radius-modal);
+  box-shadow: var(--shadow-celestial);
+  padding: 30px;
   display: flex;
   flex-direction: column;
+  gap: 18px;
+  animation: scaleIn 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  position: relative;
+  overflow: hidden;
+}
+.about-dialog-box::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 10%;
+  right: 10%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
+}
+.about-header-band {
+  display: flex;
+  align-items: center;
   gap: 14px;
-  animation: scaleIn 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+.about-emblem-orb {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(255, 202, 0, 0.12);
+  border: 1px solid var(--accent-primary);
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.4rem;
+  font-weight: 900;
+  flex-shrink: 0;
+  box-shadow: 0 0 20px var(--border-glow);
+}
+.about-headings {
+  display: flex;
+  flex-direction: column;
+}
+.about-title {
+  font-size: 1.3rem;
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+  line-height: 1.15;
+}
+.about-subtitle {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--accent-primary);
+}
+
+.about-card-section {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.about-text-lead {
+  font-size: 0.88rem;
+  color: var(--text-main);
+  line-height: 1.55;
+}
+.creators-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 4px;
+}
+.creator-pill {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 10px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  transition: all 0.15s ease;
+}
+.creator-pill:hover {
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
+  background: var(--bg-card-hover);
+}
+.creator-pill-title {
+  font-weight: 800;
+  font-size: 0.82rem;
+  color: var(--accent-primary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.creator-pill-desc {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+.legal-notice-box {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid var(--accent-primary);
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.about-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 4px;
+}
+.btn-pill-action {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0 16px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.btn-pill-action:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  transform: translateY(-1px);
+}
+.btn-pill-primary-action {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
+  border: none;
+  padding: 0 20px;
+  height: 38px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: var(--shadow-cta);
+}
+.btn-pill-primary-action:hover {
+  background: var(--accent-primary-hover);
+  transform: translateY(-1px);
 }
 
 /* Floating Glass Toast Notification Stack */
@@ -1256,7 +1440,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   pointer-events: none;
 }
 .toast-pill {
-  background: var(--bg-card);
+  background: var(--bg-modal);
   color: var(--text-main);
   border: 1px solid var(--border-color);
   padding: 8px 18px;
@@ -1266,8 +1450,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(12px);
   animation: toastIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
   transition: opacity 0.25s ease, transform 0.25s ease;
 }
@@ -1284,6 +1468,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 @media (max-width: 1080px) {
   .telemetry-bar { display: none; }
   .footer-credits { display: none; }
+  .creators-grid { grid-template-columns: 1fr; }
   .sidebar-panel {
     position: absolute;
     top: 0;
@@ -1324,27 +1509,48 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </div>
 </div>
 
-<!-- About & Legal Modal -->
+<!-- Celestial Temple-Grade About & Credits Modal -->
 <div class="dialog-backdrop" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
   <div class="about-dialog-box">
-    <div class="dialog-header">
-      <div class="dialog-icon-orb" style="background:rgba(255, 202, 0, 0.15); color:var(--accent-primary);">✦</div>
-      <div class="dialog-title">BOB GEMINI FREE</div>
-    </div>
-    <div class="dialog-desc" style="display:flex; flex-direction:column; gap:10px; font-size:0.86rem;">
-      <div>
-        <b>BOB Gemini Free</b> (<i>Break Ordinary Boundaries</i>) is an open-source, high-performance local AI gateway translating standard OpenAI, Anthropic, and Google Gemini APIs into Google's internal web RPC protocol.
-      </div>
-      <div>
-        🏛️ <b>Engineering & Creators:</b> Crafted with devotion by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); font-weight:700;">ABCsteps.com</a> (AI Engineering School) and <a href="https://github.com/div197" target="_blank" style="color:var(--text-main); font-weight:700;">Divyanshu Singh Chouhan (@div197)</a>.
-      </div>
-      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:10px 12px; border-radius:6px; font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
-        ⚖️ <b>Legal Disclaimer:</b> This software is an independent, local developer tool created for research and protocol interoperability. It is <b>not affiliated with, endorsed by, sponsored by, or claiming ownership of Google LLC, Alphabet Inc., OpenAI, or Anthropic</b>. All brand names and trademarks belong strictly to their respective owners.
+    <div class="about-header-band">
+      <div class="about-emblem-orb">✦</div>
+      <div class="about-headings">
+        <div class="about-title">BOB ✦ GEMINI FREE</div>
+        <div class="about-subtitle">Universal AI Gateway • Harmonic Web RPC Bridge</div>
       </div>
     </div>
-    <div class="dialog-actions">
-      <a href="https://github.com/div197/bob-gemini-free" target="_blank" class="dialog-btn-cancel" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">GitHub Repo</a>
-      <button class="dialog-btn-cancel" onclick="closeAboutModal()">Close</button>
+
+    <div class="about-card-section">
+      <div class="about-text-lead">
+        <b>BOB Gemini Free</b> (<i>Break Ordinary Boundaries</i>) translates standard OpenAI, Anthropic, and Google Gemini API protocols directly into Google's internal web RPC stream with <b>zero cloud bills, zero API keys, and 100% free local execution</b>.
+      </div>
+
+      <div class="creators-grid">
+        <a href="https://abcsteps.com/" target="_blank" class="creator-pill">
+          <div class="creator-pill-title"><span>🏛️</span> <span>ABCsteps.com</span></div>
+          <div class="creator-pill-desc">Online AI Engineering School (Jodhpur, India)</div>
+        </a>
+        <a href="https://github.com/div197" target="_blank" class="creator-pill">
+          <div class="creator-pill-title"><span>👨‍💻</span> <span>Divyanshu Singh</span></div>
+          <div class="creator-pill-desc">Lead Architect & Founder (@div197)</div>
+        </a>
+      </div>
+    </div>
+
+    <div class="legal-notice-box">
+      <b>⚖️ Legal Transparency & Independence:</b> BOB Gemini Free is an independent open-source local developer research tool. It is <b>not affiliated with, endorsed by, sponsored by, or claiming ownership of Google LLC, Alphabet Inc., OpenAI Inc., or Anthropic PBC</b>. All trademarks remain the exclusive property of their respective owners.
+    </div>
+
+    <div class="about-actions">
+      <a href="https://abcsteps.com/" target="_blank" class="btn-pill-primary-action">
+        <span>Explore ABCsteps</span>
+        <span style="font-size:0.75rem;">↗</span>
+      </a>
+      <a href="https://github.com/div197/bob-gemini-free" target="_blank" class="btn-pill-action">
+        <span>GitHub Repo</span>
+        <span style="font-size:0.75rem;">⭐</span>
+      </a>
+      <button class="btn-pill-action" onclick="closeAboutModal()">Close</button>
     </div>
   </div>
 </div>
@@ -1649,7 +1855,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             </button>
           </div>
           <div class="footer-credits">
-            <span>Crafted by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); text-decoration:none; font-weight:700;">ABCsteps.com</a> & <a href="https://github.com/div197/bob-gemini-free" target="_blank" style="color:var(--text-main); text-decoration:none; font-weight:700;">@div197</a> • Independent local research gateway. Not affiliated with Google or Gemini.</span>
+            <span>Crafted with devotion by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); text-decoration:none; font-weight:700;">ABCsteps.com</a> & <a href="https://github.com/div197/bob-gemini-free" target="_blank" style="color:var(--text-main); text-decoration:none; font-weight:700;">@div197</a> • Independent local research gateway. Not affiliated with Google or Gemini.</span>
           </div>
         </div>
       </div>
@@ -1764,6 +1970,8 @@ function openAboutModal() {
 function closeAboutModal() {
   const modal = document.getElementById("about-modal");
   if (modal) modal.classList.remove("open");
+  const input = document.getElementById("user-input");
+  if (input) input.focus();
 }
 
 function closeAllSidebars() {
