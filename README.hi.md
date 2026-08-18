@@ -321,28 +321,73 @@ export OPENAI_API_KEY=none
 </details>
 
 <details>
-<summary><strong>2. मुफ़्त (Anonymous) मोड और Gemini Advanced ($20/माह) में क्या अंतर है?</strong></summary>
+<summary><strong>2. क्या मेरा गूगल अकाउंट सुरक्षित है? रेट लिमिट्स या बैन का कोई ख़तरा?</strong></summary>
 
-* **मुफ़्त मोड**: `gemini-3.7-flash`, `gemini-3.7-flash-thinking` (20,000+ अक्षरों की रीज़निंग), और `gemini-flash-lite` का बिना किसी लॉगिन या कुकी के सीधा उपयोग।
-* **Gemini Advanced ($20/माह)**: अपनी कुकी (`cookie.txt`) जोड़कर गूगल के फ्लैगशिप **Pro** मॉडल (`gemini-3.1-pro` / `gemini-pro`) को एक्टिवेट करने की सुविधा।
+* **मुफ़्त / बेनामी (Anonymous) मोड**: BOB Gemini Free **शून्य सेशन कुकीज़ और शून्य अकाउंट टोकन** भेजता है। सभी अनुरोध आपकी गूगल पहचान से पूरी तरह से अलग रहते हैं।
+* **Gemini Advanced ($20/माह) मोड**: BOB Gemini Free वास्तविक ब्राउज़र TLS फ़िंगरप्रिंट (`tls-client` Chrome 133) और सामान्य वेब ट्रैफ़िक पैटर्न का उपयोग करता है।
+* **ऑपरेशनल दिशानिर्देश**: एक समय में 3 से 5 समवर्ती अनुरोध चलाएँ। एक ही IP से प्रति सेकंड सैकड़ों अनुरोध भेजने से बचें।
 </details>
 
 <details>
-<summary><strong>3. थिंकिंग / रीज़निंग मोड कैसे काम करता है?</strong></summary>
+<summary><strong>3. यह Google AI Studio Free Tier या Paid OpenAI APIs की तुलना में कैसा है?</strong></summary>
 
-जब आप थिंकिंग मॉडल (`gemini-3.7-flash-thinking` या `@think=0`) पर क्वेरी करते हैं, तो BOB Gemini Free ऑटोमैटिक रूप से इंटरनल रीज़निंग ट्रेस को अलग कर OpenAI के `reasoning_content` फ़ील्ड में भेजता है। Cursor, Cherry Studio, ChatBox या OpenWebUI में यह अंतिम उत्तर के साथ एक कोलैप्सेबल "Reasoning" कार्ड के रूप में दिखाई देता है।
+* **Google AI Studio Free Tier**: 15 RPM और सख्त दैनिक कोटा सीमा लगाता है (दैनिक सीमा समाप्त होने पर मध्यरात्रि UTC तक सेवा बंद हो जाती है)।
+* **BOB Gemini Free**: गूगल के इंटरैक्टिव वेब बैकएंड पर काम करता है जिसमें **व्यावहारिक रूप से असीमित दैनिक प्रश्न**, शून्य टोकन लागत, और **20,000+ अक्षरों की डीप रीज़निंग** मुफ़्त मिलती है।
 </details>
 
 <details>
-<summary><strong>4. मल्टीमॉडल विज़न और इमेज अपलोड कैसे काम करता है?</strong></summary>
+<summary><strong>4. मैं Google Pro मॉडल (`gemini-3.1-pro` / `gemini-pro`) को कैसे अनलॉक करूँ?</strong></summary>
+
+मुफ़्त जीमेल पर Flash और Thinking पहले से उपलब्ध हैं। यदि आपके पास Gemini Advanced ($20/माह) या Reliance Jio 18 महीने / कॉलेज ऑफ़र है:
+1. `./bob-gemini-free --setup-cookie` चलाएँ।
+2. अपनी सेशन कुकी पेस्ट करें।
+3. टूल ऑटोमैटिक रूप से `SAPISIDHASH` जनरेट कर Pro मॉडल को सक्रिय कर देगा।
+</details>
+
+<details>
+<summary><strong>5. थिंकिंग / रीज़निंग मोड कैसे काम करता है? थिंकिंग टोकन कहाँ दिखते हैं?</strong></summary>
+
+जब आप थिंकिंग मॉडल (`gemini-3.7-flash-thinking` या `@think=0`) पर क्वेरी करते हैं, तो BOB Gemini Free ऑटोमैटिक रूप से इंटरनल रीज़निंग ट्रेस को अलग कर OpenAI के `reasoning_content` फ़ील्ड में भेजता है। Cursor, Cherry Studio, ChatBox या OpenWebUI में यह अंतिम उत्तर के साथ एक सुंदर कोलैप्सेबल "Reasoning Process" कार्ड के रूप में दिखाई देता है।
+</details>
+
+<details>
+<summary><strong>6. क्या मैं इसे Linux VPS, Raspberry Pi या Docker पर चला सकता हूँ?</strong></summary>
+
+हाँ! BOB Gemini Free एक हल्की स्टैटिक बाइनरी (<15MB RAM) और आधिकारिक Multi-Arch Docker इमेज (`alpine:3.21`) के साथ आता है।
+* VPS पर पब्लिक होस्टिंग के लिए `BOB_GEMINI_FREE_HOST=0.0.0.0` और `BOB_GEMINI_FREE_API_KEYS` सेट करें।
+* यदि क्लाउड डेटासेंटर IP पर गूगल WAF चुनौती आए, तो `--proxy socks5://...` या TLS ब्राउज़र इंपर्सनेशन (`--impersonate chrome_133`) का उपयोग करें।
+</details>
+
+<details>
+<summary><strong>7. क्या यह Tool / Function Calling और Structured JSON आउटपुट को सपोर्ट करता है?</strong></summary>
+
+हाँ। यह ऑटोमैटिक रूप से टूल स्कीमा को सिस्टम प्रॉम्ट में इंजेक्ट करता है और ` ```tool_call ` आउटपुट को स्टैंडर्ड OpenAI `tool_calls` JSON में बदलता है। `response_format: {"type": "json_object"}` सख्त JSON आउटपुट सुनिश्चित करता है।
+</details>
+
+<details>
+<summary><strong>8. मल्टीमॉडल विज़न और इमेज अपलोड कैसे काम करता है?</strong></summary>
 
 OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भेजें। BOB Gemini Free बड़ी छवियों को ऑटोमैटिक रूप से कंप्रेस करता है (अधिकतम 1024px, 75% JPEG क्वालिटी, 1MB से कम) और गूगल के Scotty Resumable Upload प्रोटोकॉल से अपलोड करता है।
 </details>
 
 <details>
-<summary><strong>5. क्या मेरे कुकीज़ और क्रेडेंशियल्स सुरक्षित हैं?</strong></summary>
+<summary><strong>9. क्या कई ऐप्स या टीम के सदस्य एक ही गेटवे शेयर कर सकते हैं?</strong></summary>
 
-हाँ, 100% सुरक्षित हैं। BOB Gemini Free केवल आपके लोकल कंप्यूटर (`127.0.0.1`) पर चलता है। आपके क्रेडेंशियल्स कभी किसी तीसरे सर्वर पर नहीं भेजे जाते।
+हाँ। `config.json` में `api_keys: ["sk-team-1", "sk-team-2"]` सेट करें। सभी आने वाले अनुरोधों का प्रमाणीकरण टाइमिंग-हमलों से सुरक्षित कॉन्स्टेंट-टाइम कम्पैरिजन (`crypto/subtle`) द्वारा होता है।
+</details>
+
+<details>
+<summary><strong>10. क्या कोई टेलीमेट्री, ट्रैकिंग या बाहरी डेटा भेजा जाता है?</strong></summary>
+
+शून्य। BOB Gemini Free 100% ओपन-सोर्स (MIT लाइसेंस) है, इसमें कोई ट्रैकिंग नहीं है, और नेटवर्क अनुरोध केवल सीधे आपके कंप्यूटर और गूगल सर्वर के बीच TLS पर होते हैं।
+</details>
+
+<details>
+<summary><strong>11. Python या Node.js के बजाय Go भाषा क्यों?</strong></summary>
+
+* **सिंगल स्टैटिक बाइनरी**: कोई virtualenv या `node_modules` की झंझट नहीं।
+* **तुरंत स्टार्टअप**: <5ms में शुरू और <15MB RAM की न्यूनतम खपत।
+* **अभूतपूर्व कंकरेंसी**: एक साथ कई SSE स्ट्रीमिंग डेल्टा कनेक्शन बिना किसी रुकावट के।
 </details>
 
 ---
