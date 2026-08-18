@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  60FPS Smooth Rendering, LaTeX Engine & Universal Harmonic Interaction
+  Default Zen Focus Canvas, Smart Responsive Drawers & High-Contrast Typography
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -324,6 +324,17 @@ main {
   border-bottom: 2px solid var(--accent-primary);
 }
 
+/* Mobile Drawer Overlay Backdrop */
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  z-index: 15;
+  display: none;
+}
+.drawer-backdrop.active { display: block; }
+
 /* Control Cards */
 .control-card {
   background: var(--bg-card);
@@ -502,6 +513,14 @@ select:focus, textarea:focus {
   font-size: 0.6rem;
   font-weight: 900;
   line-height: 1;
+}
+
+.story-meta-stats {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  margin-left: 8px;
 }
 
 .story-header-actions {
@@ -1193,7 +1212,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 
 /* Responsive Breakpoints for Mobile & Tablet */
-@media (max-width: 900px) {
+@media (max-width: 1080px) {
   .telemetry-bar { display: none; }
   .sidebar-panel {
     position: absolute;
@@ -1214,6 +1233,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 <!-- Floating Toast Container -->
 <div class="toast-stack" id="toast-stack"></div>
+
+<!-- Mobile Drawer Overlay Backdrop -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllSidebars()"></div>
 
 <!-- 2026 Confirmation Modal -->
 <div class="dialog-backdrop" id="confirm-modal" onclick="if(event.target===this) closeConfirmModal()">
@@ -1278,8 +1300,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </div>
 
   <div class="header-controls">
-    <button class="nav-pill-btn active" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">◧ Config</button>
-    <button class="nav-pill-btn active" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">◨ Code</button>
+    <button class="nav-pill-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">◧ Config</button>
+    <button class="nav-pill-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">◨ Code</button>
     <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette">
       <span id="cmd-menu-label">⌘K Menu</span>
     </button>
@@ -1295,7 +1317,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 <main>
   <!-- Left Model Configuration Studio -->
-  <aside class="sidebar-panel left" id="sidebar-left">
+  <aside class="sidebar-panel left collapsed" id="sidebar-left">
     <div class="panel-header">
       <span>Model Configuration</span>
       <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
@@ -1338,7 +1360,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
   </aside>
 
-  <!-- Central Editorial Chat Workspace -->
+  <!-- Central Editorial Chat Workspace (Expansive Zen Canvas by Default) -->
   <section class="chat-workspace">
     <div class="sub-bar">
       <div class="sub-bar-left">
@@ -1390,7 +1412,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </section>
 
   <!-- Right Drop-in Integration Studio -->
-  <aside class="sidebar-panel right" id="sidebar-right">
+  <aside class="sidebar-panel right collapsed" id="sidebar-right">
     <div class="panel-header">
       <span>Drop-in Integration</span>
       <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
@@ -1486,12 +1508,18 @@ function executeConfirmAction() {
   closeConfirmModal();
 }
 
+function closeAllSidebars() {
+  setSidebarState('left', false);
+  setSidebarState('right', false);
+}
+
 function initPanels() {
-  const leftOpen = localStorage.getItem(PANEL_LEFT_KEY) !== "false";
-  const rightOpen = localStorage.getItem(PANEL_RIGHT_KEY) !== "false";
+  // Default to Zen Focus (hidden) mode by default
+  const leftOpen = localStorage.getItem(PANEL_LEFT_KEY) === "true";
+  const rightOpen = localStorage.getItem(PANEL_RIGHT_KEY) === "true";
   
-  if (!leftOpen) setSidebarState('left', false);
-  if (!rightOpen) setSidebarState('right', false);
+  setSidebarState('left', leftOpen);
+  setSidebarState('right', rightOpen);
 }
 
 function toggleSidebar(side) {
@@ -1503,6 +1531,7 @@ function toggleSidebar(side) {
 function setSidebarState(side, isOpen) {
   const panel = document.getElementById('sidebar-' + side);
   const btn = document.getElementById('btn-toggle-' + side);
+  const backdrop = document.getElementById('drawer-backdrop');
   
   if (isOpen) {
     panel.classList.remove('collapsed');
@@ -1512,6 +1541,13 @@ function setSidebarState(side, isOpen) {
     panel.classList.add('collapsed');
     if (btn) btn.classList.remove('active');
     localStorage.setItem(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "false");
+  }
+
+  // Mobile drawer overlay management
+  if (window.innerWidth <= 1080) {
+    const anyOpen = !document.getElementById('sidebar-left').classList.contains('collapsed') ||
+                    !document.getElementById('sidebar-right').classList.contains('collapsed');
+    if (backdrop) backdrop.classList.toggle('active', anyOpen);
   }
 }
 
@@ -2029,12 +2065,18 @@ function renderMessages() {
       storyDiv.className = "story-card markdown-body";
       storyDiv.setAttribute('data-raw', m.content);
 
+      const wordCount = (m.content || "").trim().split(/\s+/).filter(w => w).length;
+      const estTokens = Math.round(wordCount * 1.33);
+
       const header = document.createElement("div");
       header.className = "story-card-header";
       header.innerHTML = `
-        <div class="badge-chip">
-          <span class="mini-orb">✦</span>
-          <span>BOB AI RESPONSE</span>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <div class="badge-chip">
+            <span class="mini-orb">✦</span>
+            <span>BOB AI RESPONSE</span>
+          </div>
+          <span class="story-meta-stats">${wordCount} words • ~${estTokens} tokens</span>
         </div>
         <div class="story-header-actions">
           <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
@@ -2122,9 +2164,12 @@ async function sendMessage() {
   const header = document.createElement("div");
   header.className = "story-card-header";
   header.innerHTML = `
-    <div class="badge-chip">
-      <span class="mini-orb">✦</span>
-      <span>BOB AI RESPONSE</span>
+    <div style="display:flex; align-items:center; gap:8px;">
+      <div class="badge-chip">
+        <span class="mini-orb">✦</span>
+        <span>BOB AI RESPONSE</span>
+      </div>
+      <span class="story-meta-stats" id="live-stream-stats">Streaming...</span>
     </div>
     <div class="story-header-actions">
       <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
@@ -2257,6 +2302,15 @@ async function sendMessage() {
     renderAllMath(storyDiv);
     highlightAllCode(storyDiv);
     storyDiv.setAttribute('data-raw', asstFullText);
+    
+    // Update final word & token stats
+    const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
+    const finalTokens = Math.round(finalWords * 1.33);
+    const statsEl = storyDiv.querySelector("#live-stream-stats");
+    if (statsEl) {
+      statsEl.innerText = `${finalWords} words • ~${finalTokens} tokens`;
+    }
+
     chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
     saveHistory();
   } catch(err) {
@@ -2265,6 +2319,14 @@ async function sendMessage() {
       renderAllMath(storyDiv);
       highlightAllCode(storyDiv);
       storyDiv.setAttribute('data-raw', asstFullText);
+      
+      const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
+      const finalTokens = Math.round(finalWords * 1.33);
+      const statsEl = storyDiv.querySelector("#live-stream-stats");
+      if (statsEl) {
+        statsEl.innerText = `${finalWords} words (stopped)`;
+      }
+
       chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
       saveHistory();
     } else {
