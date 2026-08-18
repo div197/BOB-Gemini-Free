@@ -40,8 +40,23 @@ In the modern AI landscape, learners, independent creators, and developers const
 
 **BOB breaks all three boundaries at once**:
 - ✨ **Zero Cost**: Unlocks Google's flagship **Gemini 3.7 Flash**, **Flash Thinking**, **3.1 Pro**, **Imagen 3**, and **Gemini Nano Banana** for every Google account.
-- 🌉 **Universal 3-in-1 Protocol**: One single local gateway translates Google's web stream simultaneously into **OpenAI Standard** (`/v1/chat/completions`, `/v1/responses`), **Anthropic Standard** (`/v1/messages` for Claude Code CLI), and **Google Gemini Standard** (`/v1beta/models`).
+- 🔓 **The "API-Less AI" Architecture**: No cloud console setup, no credit cards, no billing accounts, and zero risk of API key leaks. Your local session powers everything directly.
+- 🌉 **Universal 4-in-1 Protocol**: One single local gateway translates Google's web stream simultaneously into **OpenAI Standard** (`/v1/chat/completions`, `/v1/responses`, `/v1/tokens/count`), **Anthropic Standard** (`/v1/messages` for Claude Code CLI), **Google Gemini Standard** (`/v1beta/models`, `:countTokens`), and **Embedded Go Library** (`pkg/gateway`).
 - ⚡ **Zero-Friction Simplicity**: Runs as a single, self-contained native binary with **No Go, No Python, and No runtime required**. Includes a **1-Click Native Login Window (`--login`)** that sets up everything in seconds.
+
+---
+
+## 🚀 The "API-Less AI" Paradigm: True Freedom for Developers
+
+Traditional developer tools force you through a maze of cloud billing setups, credit cards, and pay-per-token API fees. **BOB Gemini Free introduces the API-Less AI model**:
+
+| Traditional Cloud API Model | The BOB API-Less Architecture |
+| :--- | :--- |
+| 💳 Requires credit card & billing account | **$0.00 / Zero credit cards needed** |
+| 💸 Pay per million tokens & reasoning steps | **Unlimited daily coding on Flash & Thinking** |
+| 🔑 Fragile API keys prone to leaks & theft | **Secure local session locked with `0600` permissions** |
+| 🔒 Locked to single vendor CLI or protocol | **Universal 4-in-1 translation (OpenAI, Claude, Google, Go)** |
+| 📊 Blind monthly invoices | **Live on-device token & dollar savings tracking (`GET /`)** |
 
 ---
 
@@ -75,7 +90,7 @@ When **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, or **Grok Build** as
 
 The **BOB Series** by **ABCsteps** is a developer-first collection of open-source runtimes and engines designed to remove paywalls and artificial constraints from modern software workflows:
 
-* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — Universal 3-in-1 local gateway unlocking Google Gemini Web for coding agents, IDEs, and developer tools.
+* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — Universal 4-in-1 local gateway unlocking Google Gemini Web for coding agents, IDEs, and developer tools.
 * 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — Docker-first YouTube ingestion and transcription runtime for developers, products, and AI agents.
 
 ---
@@ -83,12 +98,15 @@ The **BOB Series** by **ABCsteps** is a developer-first collection of open-sourc
 ## Key Features
 
 * **Free for Every Gmail User**: Out of the box, every Google account includes free Gemini access with high-speed Flash, adaptive Flash Lite, and deep Flash Thinking (up to 20,000+ characters of reasoning).
-* **Universal 3-in-1 Protocol**: Drop-in compatible with OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, and Google GenAI SDKs.
+* **Universal 4-in-1 Protocol**: Drop-in compatible with OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, Google GenAI SDKs, and in-process Go applications.
+* **Native Token Counting Engine**: Accurate multi-script token counting via `POST /v1beta/models/{model}:countTokens` and `POST /v1/tokens/count`.
+* **Live Telemetry & Cost Savings Tracking**: Real-time dollar savings reported in `GET /` (`estimated_savings_usd`).
+* **13-Point Automated Diagnostic Suite**: Built-in verification command (`./bob-gemini-free --test`) and concurrency stress runner (`--bench`).
 * **1-Click Native Login Window (`--login`)**: Standalone Google sign-in window automatically captures session tokens without Developer Tools or scary Keychain prompts.
 * **Multi-Account Cookie Pool (`cookie_pool`)**: Distribute requests across multiple Google accounts with automatic 60-second backoff and transparent failover on rate limits.
 * **Gemini Advanced ($20/mo) Integration**: Attach your session cookie to legitimately route to Google's flagship **Pro** model (`gemini-3.1-pro`) for deep mathematical and coding capabilities.
 * **Imagen 3 & Gemini Nano Banana 2/Pro**: Standard OpenAI image generation endpoint (`/v1/images/generations`) with photorealistic and native visual rendering.
-* **Claude 3.7 / 3.5 Native Thinking Support**: Accepts `thinking: { type: "enabled" }` and emits structured reasoning blocks for Claude Code CLI.
+* **Claude 3.7 / 3.5 Native Thinking Support**: Accepts `thinking: { type: "enabled" }` and emits structured reasoning blocks and prompt caching counters for Claude Code CLI.
 * **Full Multimodal Vision**: Send base64 images or image URLs via standard OpenAI payloads — automatically uploaded via Google's Scotty Resumable Upload protocol with automatic compression.
 * **Zero Cost, Privacy First & Local Only**: Single static binary with near-zero memory footprint (<15MB RAM baseline), safe local-first binding (`127.0.0.1`), and zero external telemetry.
 
