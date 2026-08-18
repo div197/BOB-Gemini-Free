@@ -343,3 +343,25 @@ func TestTokenCountingEndpoints(t *testing.T) {
 	}
 }
 
+func TestPlaygroundEndpoint(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	for _, path := range []string{"/playground", "/ui"} {
+		req := httptest.NewRequest("GET", path, nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Errorf("Expected 200 for %s, got %d", path, rec.Code)
+		}
+		if !strings.Contains(rec.Body.String(), "BOB GEMINI FREE") {
+			t.Errorf("Expected playground HTML content for %s", path)
+		}
+		if rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
+			t.Errorf("Expected text/html Content-Type for %s, got %s", path, rec.Header().Get("Content-Type"))
+		}
+	}
+}
+

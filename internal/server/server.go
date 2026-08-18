@@ -67,6 +67,8 @@ func (a *App) Handler() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", a.handleHealth)
+	mux.HandleFunc("GET /playground", a.handlePlayground)
+	mux.HandleFunc("GET /ui", a.handlePlayground)
 	mux.HandleFunc("GET /v1/models", a.handleModels)
 	mux.HandleFunc("GET /v1/models/{model}", a.handleSingleModel)
 	mux.HandleFunc("POST /v1/chat/completions", a.handleChat)
