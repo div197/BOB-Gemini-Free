@@ -17,6 +17,10 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 		var sysText string
 		if sStr, ok := req.System.(string); ok {
 			sysText = sStr
+		} else if sMap, ok := req.System.(map[string]any); ok {
+			if txt, ok := sMap["text"].(string); ok {
+				sysText = txt
+			}
 		} else if sList, ok := req.System.([]any); ok {
 			var parts []string
 			for _, item := range sList {
@@ -24,6 +28,8 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 					if txt, ok := m["text"].(string); ok {
 						parts = append(parts, txt)
 					}
+				} else if str, ok := item.(string); ok {
+					parts = append(parts, str)
 				}
 			}
 			sysText = strings.Join(parts, "\n")

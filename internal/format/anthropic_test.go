@@ -120,3 +120,45 @@ func TestAnthropicThinkingConversion(t *testing.T) {
 		t.Errorf("Unexpected text block: %+v", blocks[1])
 	}
 }
+
+func TestAnthropicImageAndStructuredSystemConversion(t *testing.T) {
+	req := models.AnthropicMessagesRequest{
+		Model: "claude-3-7-sonnet",
+		System: map[string]any{
+			"type": "text",
+			"text": "System instructions in map",
+		},
+		Messages: []models.AnthropicMessage{
+			{
+				Role: "user",
+				Content: []any{
+					map[string]any{
+						"type": "text",
+						"text": "What is in this image?",
+					},
+					map[string]any{
+						"type": "image",
+						"source": map[string]any{
+							"type":       "base64",
+							"media_type": "image/jpeg",
+							"data":       "aGVsbG8=",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	chatReq := AnthropicToOpenAIChatRequest(req)
+	if len(chatReq.Messages) != 2 {
+		t.Fatalf("Expected 2 messages (system + user), got %d", len(chatReq.Messages))
+	}
+	if chatReq.Messages[0].Content != "System instructions in map" {
+		t.Errorf("Expected system text, got %v", chatReq.Messages[0].Content)
+	}
+
+	parts, ok := chatReq.Messages[1].Content.([]any)
+	if !ok || len(parts) != 2 {
+		t.Fatalf("Expected 2 parts in user message, got %v", chatReq.Messages[1].Content)
+	}
+}
