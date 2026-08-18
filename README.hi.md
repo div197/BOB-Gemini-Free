@@ -2,24 +2,29 @@
   <img src="assets/bob-gemini-free-banner.jpg" alt="BOB Gemini Free Banner" width="100%">
 </p>
 
-# BOB Gemini Free (बॉब जेमिनी फ्री)
+<h1 align="center">BOB Gemini Free (बॉब जेमिनी फ्री)</h1>
 
 <p align="center">
-  <strong>Break Ordinary Boundaries — हाई-परफॉर्मेंस लोकल OpenAI और Gemini API गेटवे</strong><br>
-  <em>गूगल जेमिनी (Google Gemini) वेब इंटरफ़ेस द्वारा संचालित</em>
+  <strong>यूनिवर्सल 3-इन-1 AI गेटवे इंजन</strong><br>
+  <em>डेवलपर्स और एजेंट्स के लिए ड्रॉप-इन OpenAI, Anthropic, और Google Gemini API</em>
 </p>
 
 <p align="center">
-  <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-blue?style=for-the-badge" alt="ABCsteps"></a>
-  <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan%20(@div197)-green?style=for-the-badge" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.0-blueviolet?style=for-the-badge" alt="Release">
-  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=for-the-badge&logo=go" alt="Go Version">
-  <img src="https://img.shields.io/badge/License-MIT-orange?style=for-the-badge" alt="License">
+  <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
+  <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
+  <img src="https://img.shields.io/badge/Release-v0.1.0-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
+  <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
+  <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
+</p>
+
+<p align="center">
+  <a href="README.md"><strong>English Documentation</strong></a> &nbsp;•&nbsp;
+  <a href="README.hi.md"><strong>हिंदी गाइड (Hindi)</strong></a> &nbsp;•&nbsp;
+  <a href="CHANGELOG.md"><strong>Changelog</strong></a>
 </p>
 
 ---
-
-[English](README.md) | [हिंदी (Hindi)](README.hi.md) | [बदलाव सूची (Changelog)](CHANGELOG.md)
 
 **BOB Gemini Free** (बॉब जेमिनी फ्री), [**ABCsteps.com**](https://abcsteps.com/) — **दिव्यांशु सिंह चौहान** ([@div197](https://github.com/div197)) द्वारा स्थापित ऑनलाइन एआई इंजीनियरिंग स्कूल — की **BOB सीरीज़** (*Break Ordinary Boundaries*) का एक प्रमुख उत्पाद है।
 
