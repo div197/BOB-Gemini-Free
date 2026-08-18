@@ -217,14 +217,20 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ---
 
-### Option 4: Interactive Web Playground & Telemetry UI (`/playground` & `/ui`)
+### Option 4: Interactive Web Playground & Telemetry Studio (`/playground` & `/ui`)
 
-Open `http://127.0.0.1:8081/playground` in any web browser to access the built-in, zero-dependency dark-mode visual interface:
+Open `http://127.0.0.1:8081/playground` (or `/ui`) in any web browser to access the built-in, zero-dependency, temple-grade visual studio:
 
-* 🧠 **Live Reasoning Visualizer**: Watch Gemini 3.7 Flash Thinking reasoning tokens stream in real-time inside a collapsible thought bubble.
-* ⚡ **Model & Think Switcher**: Test fast models, deep reasoning, or Imagen 3 synthesis with one click.
-* 📊 **Live Telemetry & Dollar Savings**: Real-time ticker showing server uptime, tokens processed, and estimated USD savings.
-* 📋 **Multi-Protocol Snippet Generator**: Instantly generate and copy ready-to-run Python, Claude Code CLI, and cURL snippets.
+* 👁️ **Multimodal Vision Engine**: Attach files (`📎`), drag-and-drop images onto the canvas, or paste screenshots directly from your clipboard (`⌘V` / `Ctrl+V`).
+* 🧠 **Real-Time Reasoning Visualizer**: Stream step-by-step thinking tokens live inside isolated reasoning cards without distracting from the main response.
+* 📐 **Synchronous Scientific Typography (KaTeX)**: Zero-flicker mathematical rendering for Dirac bra-kets ($\langle \psi | \phi \rangle$), Hilbert spaces, matrices ($\begin{pmatrix}1\\0\end{pmatrix}$), integrals, and proofs.
+* ⚡ **Multi-Language Terminal Highlighting (Prism.js)**: Syntax highlighting across 200+ programming languages with one-click **`📋 Copy`** and **`💾 Save`** actions.
+* 📊 **Interactive Architecture Diagrams (Mermaid.js)**: Automatically renders ````mermaid ```` blocks into live interactive SVG flowcharts and sequence diagrams.
+* ⌨️ **Spotlight Command Palette (`⌘K` / `Ctrl+K`) & Keybindings**:
+  * `1`–`5`: Switch between flagship models (`gemini-3.7-flash`, `thinking`, `gemini-3.1-pro`, `imagen-3`).
+  * `T1`–`T4`: Switch Sacred Themes (BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum).
+  * `N`: Start a new chat session • `[` / `]`: Toggle sidebars • `E`: Export conversation to Markdown.
+* 📊 **Live On-Device Telemetry & Savings**: Real-time ticker tracking uptime, requests served, token throughput, and estimated USD financial savings.
 
 <p align="center">
   <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard" width="100%">

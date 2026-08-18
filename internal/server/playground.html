@@ -1369,19 +1369,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .dialog-btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
 
-/* Celestial Temple-Grade About Modal */
+/* World-Class Architectural About Modal */
 .about-dialog-box {
-  background: linear-gradient(180deg, rgba(255, 202, 0, 0.04) 0%, var(--bg-modal) 100%);
-  border: 1px solid var(--border-glow);
-  width: 540px;
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  width: 520px;
   max-width: 92vw;
   border-radius: var(--radius-modal);
   box-shadow: var(--shadow-celestial);
-  padding: 30px;
+  padding: 24px 28px;
   display: flex;
   flex-direction: column;
-  gap: 18px;
-  animation: scaleIn 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  gap: 16px;
+  animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
@@ -1389,61 +1389,60 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   content: "";
   position: absolute;
   top: 0;
-  left: 10%;
-  right: 10%;
-  height: 1px;
+  left: 0;
+  right: 0;
+  height: 2px;
   background: linear-gradient(90deg, transparent, var(--accent-primary), transparent);
 }
 .about-header-band {
   display: flex;
-  align-items: center;
-  gap: 14px;
-}
-.about-emblem-orb {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(255, 202, 0, 0.12);
-  border: 1px solid var(--accent-primary);
-  color: var(--accent-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.4rem;
-  font-weight: 900;
-  flex-shrink: 0;
-  box-shadow: 0 0 20px var(--border-glow);
-}
-.about-headings {
-  display: flex;
   flex-direction: column;
+  gap: 4px;
+}
+.about-header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.about-brand-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.about-star {
+  color: var(--accent-primary);
+  font-size: 1.1rem;
 }
 .about-title {
-  font-size: 1.3rem;
-  font-weight: 900;
+  font-size: 1.15rem;
+  font-weight: 800;
   color: var(--text-main);
-  letter-spacing: -0.5px;
-  line-height: 1.15;
+  letter-spacing: -0.3px;
 }
-.about-subtitle {
+.about-version-badge {
   font-size: 0.68rem;
   font-weight: 800;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
+  font-family: var(--font-mono);
+  background: var(--bg-app);
   color: var(--accent-primary);
+  border: 1px solid var(--border-color);
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+}
+.about-subtitle {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.2px;
 }
 
-.about-card-section {
-  background: rgba(255, 255, 255, 0.02);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-card);
-  padding: 14px 16px;
+.about-body {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
-.about-text-lead {
-  font-size: 0.88rem;
+.about-description {
+  font-size: 0.85rem;
   color: var(--text-main);
   line-height: 1.55;
 }
@@ -1451,60 +1450,65 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-top: 4px;
 }
-.creator-pill {
-  background: var(--bg-card);
+.creator-card {
+  background: var(--bg-app);
   border: 1px solid var(--border-color);
-  padding: 10px 12px;
+  padding: 12px 14px;
   border-radius: 8px;
   text-decoration: none;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   transition: all 0.15s ease;
 }
-.creator-pill:hover {
+.creator-card:hover {
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
   background: var(--bg-card-hover);
+  transform: translateY(-1px);
 }
-.creator-pill-title {
-  font-weight: 800;
-  font-size: 0.82rem;
-  color: var(--accent-primary);
+.creator-card-header {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
-.creator-pill-desc {
+.creator-card-header .creator-ext {
+  margin-left: auto;
   font-size: 0.7rem;
   color: var(--text-muted);
 }
+.creator-role {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.35;
+}
 
 .legal-notice-box {
-  background: rgba(0, 0, 0, 0.25);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
   border-left: 3px solid var(--accent-primary);
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-radius: 6px;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  line-height: 1.55;
+  line-height: 1.5;
 }
 
 .about-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 10px;
-  margin-top: 4px;
+  gap: 8px;
+  margin-top: 2px;
 }
 .btn-pill-action {
   background: var(--bg-card);
   color: var(--text-main);
   border: 1px solid var(--border-color);
   padding: 0 16px;
-  height: 38px;
+  height: 36px;
   border-radius: var(--radius-pill);
   font-size: 0.78rem;
   font-weight: 700;
@@ -1629,44 +1633,55 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </div>
 </div>
 
-<!-- Celestial Temple-Grade About Modal -->
+<!-- High-Precision Architectural About Modal -->
 <div class="dialog-backdrop" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
   <div class="about-dialog-box">
     <div class="about-header-band">
-      <div class="about-emblem-orb">✦</div>
-      <div class="about-headings">
-        <div class="about-title">BOB ✦ GEMINI FREE</div>
-        <div class="about-subtitle">Universal AI Gateway • Harmonic Web RPC Bridge</div>
+      <div class="about-header-top">
+        <div class="about-brand-wrap">
+          <span class="about-star">✦</span>
+          <span class="about-title">BOB GEMINI FREE</span>
+        </div>
+        <span class="about-version-badge">v0.1.2</span>
       </div>
+      <div class="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
     </div>
 
-    <div class="about-card-section">
-      <div class="about-text-lead">
-        <b>BOB Gemini Free</b> (<i>Break Ordinary Boundaries</i>) translates standard OpenAI, Anthropic, and Google Gemini API protocols directly into Google's internal web RPC stream with <b>zero cloud bills, zero API keys, and 100% free local execution</b>.
+    <div class="about-body">
+      <div class="about-description">
+        <strong>BOB Gemini Free</strong> (<em>Break Ordinary Boundaries</em>) translates standard OpenAI, Anthropic, and Google Gemini API protocols directly into Google's internal web RPC stream with <strong>zero cloud bills, zero API keys, and 100% free local execution</strong>.
       </div>
 
       <div class="creators-grid">
-        <a href="https://abcsteps.com/" target="_blank" class="creator-pill">
-          <div class="creator-pill-title"><span>🏛️</span> <span>ABCsteps.com</span></div>
-          <div class="creator-pill-desc">Online AI Engineering School (Jodhpur, India)</div>
+        <a href="https://abcsteps.com/" target="_blank" rel="noopener noreferrer" class="creator-card">
+          <div class="creator-card-header">
+            <span class="creator-icon">🏛️</span>
+            <span class="creator-name">ABCsteps</span>
+            <span class="creator-ext">↗</span>
+          </div>
+          <div class="creator-role">Online AI Engineering School • Jodhpur, India</div>
         </a>
-        <a href="https://github.com/div197" target="_blank" class="creator-pill">
-          <div class="creator-pill-title"><span>👨‍💻</span> <span>Divyanshu Singh</span></div>
-          <div class="creator-pill-desc">Lead Architect & Founder (@div197)</div>
+        <a href="https://github.com/div197" target="_blank" rel="noopener noreferrer" class="creator-card">
+          <div class="creator-card-header">
+            <span class="creator-icon">👨‍💻</span>
+            <span class="creator-name">Divyanshu Singh Chouhan</span>
+            <span class="creator-ext">↗</span>
+          </div>
+          <div class="creator-role">Lead Architect & Creator (@div197)</div>
         </a>
+      </div>
+
+      <div class="legal-notice-box">
+        <strong>⚖️ Legal Independence Notice:</strong> BOB Gemini Free is an independent open-source developer research tool and is not affiliated with, endorsed by, sponsored by, or claiming ownership of Google LLC, Alphabet Inc., OpenAI Inc., or Anthropic PBC.
       </div>
     </div>
 
-    <div class="legal-notice-box">
-      <b>⚖️ Legal Transparency & Independence:</b> BOB Gemini Free is an independent open-source local developer research tool. It is <b>not affiliated with, endorsed by, sponsored by, or claiming ownership of Google LLC, Alphabet Inc., OpenAI Inc., or Anthropic PBC</b>. All trademarks remain the exclusive property of their respective owners.
-    </div>
-
     <div class="about-actions">
-      <a href="https://abcsteps.com/" target="_blank" class="btn-pill-primary-action">
+      <a href="https://abcsteps.com/" target="_blank" rel="noopener noreferrer" class="btn-pill-primary-action">
         <span>Explore ABCsteps</span>
         <span style="font-size:0.75rem;">↗</span>
       </a>
-      <a href="https://github.com/div197/bob-gemini-free" target="_blank" class="btn-pill-action">
+      <a href="https://github.com/div197/bob-gemini-free" target="_blank" rel="noopener noreferrer" class="btn-pill-action">
         <span>GitHub Repo</span>
         <span style="font-size:0.75rem;">⭐</span>
       </a>
