@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.0-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.2-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -57,6 +57,12 @@
 | 🔑 API Key लीक होने पर लाखों का नुकसान | **सुरक्षित लोकल सेशन (`0600` फ़ाइल परमिशन)** |
 | 🔒 किसी एक कंपनी के CLI या टूल में क़ैद | **यूनिवर्सल 4-इन-1 ट्रांसलेशन (OpenAI, Claude, Google, Go)** |
 | 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **स्क्रीन पर लाइव टोकन व डॉलर बचत ट्रैकिंग (`GET /`)** |
+
+---
+
+<p align="center">
+  <img src="assets/bob-gemini-free-universal-gateway.png" alt="BOB Gemini Free यूनिवर्सल AI गेटवे आर्किटेक्चर" width="100%">
+</p>
 
 ---
 
@@ -176,12 +182,43 @@ chmod +x install.sh
 
 ---
 
-### विकल्प C: सोर्स कोड से निर्माण (Build from Source - Go 1.22+)
+### विकल्प C: इंटरैक्टिव वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड (`/playground` व `/ui`)
+
+अपने किसी भी वेब ब्राउज़र में `http://127.0.0.1:8081/playground` खोलें और इनबिल्ट विज़ुअल इंटरफ़ेस का आनंद लें:
+
+* 🧠 **लाइव रीज़निंग विज़ुअलाइज़र**: Gemini 3.7 Flash Thinking के रीज़निंग टोकन्स को रीयल-टाइम में प्रवाहित होते हुए देखें।
+* ⚡ **मॉडल व थिंकिंग स्विचर**: तेज़ मॉडल्स, डीप रीज़निंग, या Imagen 3 इमेज सिंथेसिस को एक क्लिक में टेस्ट करें।
+* 📊 **लाइव टेलीमेट्री व डॉलर बचत ट्रैकर**: अपटाइम, प्रोसेस्ड टोकन्स और कुल डॉलर बचत का लाइव मीटर।
+* 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
+
+---
+
+### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.22+)
 
 ```bash
 make build
 ./bob-gemini-free --port 8081
 ```
+
+---
+
+## 📂 मल्टी-लैंग्वेज कोड उदाहरण और SDK इंटीग्रेशन
+
+विभिन्न भाषाओं के रेडी-टू-रन कोड उदाहरण [`examples/`](examples/) डायरेक्टरी में उपलब्ध हैं:
+
+* 🐍 **Python**:
+  * [`examples/python/openai_chat.py`](examples/python/openai_chat.py) — OpenAI SDK द्वारा रीज़निंग टोकन स्ट्रीमिंग।
+  * [`examples/python/anthropic_messages.py`](examples/python/anthropic_messages.py) — Anthropic SDK Messages API और एक्सटेंडेड थिंकिंग।
+* 🟨 **Node.js / TypeScript**:
+  * [`examples/nodejs/openai_chat.mjs`](examples/nodejs/openai_chat.mjs) — OpenAI npm SDK स्ट्रीम कंस्यूमर।
+  * [`examples/nodejs/anthropic_messages.mjs`](examples/nodejs/anthropic_messages.mjs) — `@anthropic-ai/sdk` Messages API क्लाइंट।
+* 🔷 **Go (एंबेडेड इंजन)**:
+  * [`examples/go/embedded_sdk.go`](examples/go/embedded_sdk.go) — डायरेक्ट इन-प्रोसेस Go प्रोग्रामैटिक इन्फरेंस (`pkg/gateway.NewEngine()`)।
+* 🐚 **cURL व शेल स्क्रिप्ट्स**:
+  * [`examples/curl/chat.sh`](examples/curl/chat.sh) — स्टैंडर्ड चैट कंप्लीशन।
+  * [`examples/curl/stream_thinking.sh`](examples/curl/stream_thinking.sh) — रीयल-टाइम रीज़निंग स्ट्रीम।
+  * [`examples/curl/anthropic.sh`](examples/curl/anthropic.sh) — Anthropic messages एंडपॉइंट।
+  * [`examples/curl/responses_codex.sh`](examples/curl/responses_codex.sh) — OpenAI Codex CLI `/v1/responses`।
 
 ---
 

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.0-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.2-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -57,6 +57,12 @@ Traditional developer tools force you through a maze of cloud billing setups, cr
 | 🔑 Fragile API keys prone to leaks & theft | **Secure local session locked with `0600` permissions** |
 | 🔒 Locked to single vendor CLI or protocol | **Universal 4-in-1 translation (OpenAI, Claude, Google, Go)** |
 | 📊 Blind monthly invoices | **Live on-device token & dollar savings tracking (`GET /`)** |
+
+---
+
+<p align="center">
+  <img src="assets/bob-gemini-free-universal-gateway.png" alt="BOB Gemini Free Universal AI Gateway Architecture & Ecosystem" width="100%">
+</p>
 
 ---
 
@@ -211,7 +217,18 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ---
 
-### Option 4: Build from Source with Make or Go (Go 1.22+)
+### Option 4: Interactive Web Playground & Telemetry UI (`/playground` & `/ui`)
+
+Open `http://127.0.0.1:8081/playground` in any web browser to access the built-in, zero-dependency dark-mode visual interface:
+
+* 🧠 **Live Reasoning Visualizer**: Watch Gemini 3.7 Flash Thinking reasoning tokens stream in real-time inside a collapsible thought bubble.
+* ⚡ **Model & Think Switcher**: Test fast models, deep reasoning, or Imagen 3 synthesis with one click.
+* 📊 **Live Telemetry & Dollar Savings**: Real-time ticker showing server uptime, tokens processed, and estimated USD savings.
+* 📋 **Multi-Protocol Snippet Generator**: Instantly generate and copy ready-to-run Python, Claude Code CLI, and cURL snippets.
+
+---
+
+### Option 5: Build from Source with Make or Go (Go 1.22+)
 
 ```bash
 # Build binary
@@ -222,6 +239,26 @@ make build
 ```
 
 The gateway will start listening at `http://127.0.0.1:8081/v1`.
+
+---
+
+## 📂 Multi-Language Examples & Client Integrations
+
+Production-ready, copy-pasteable integration examples are located in the [`examples/`](examples/) directory:
+
+* 🐍 **Python**:
+  * [`examples/python/openai_chat.py`](examples/python/openai_chat.py) — OpenAI SDK with streaming reasoning extraction (`reasoning_content`).
+  * [`examples/python/anthropic_messages.py`](examples/python/anthropic_messages.py) — Anthropic SDK Messages API with extended thinking.
+* 🟨 **Node.js / TypeScript**:
+  * [`examples/nodejs/openai_chat.mjs`](examples/nodejs/openai_chat.mjs) — OpenAI npm SDK stream consumer.
+  * [`examples/nodejs/anthropic_messages.mjs`](examples/nodejs/anthropic_messages.mjs) — `@anthropic-ai/sdk` Messages API client.
+* 🔷 **Go (Embedded Engine)**:
+  * [`examples/go/embedded_sdk.go`](examples/go/embedded_sdk.go) — Direct in-process Go programmatic inference (`pkg/gateway.NewEngine()`).
+* 🐚 **cURL & Shell**:
+  * [`examples/curl/chat.sh`](examples/curl/chat.sh) — Standard completion.
+  * [`examples/curl/stream_thinking.sh`](examples/curl/stream_thinking.sh) — Real-time reasoning stream.
+  * [`examples/curl/anthropic.sh`](examples/curl/anthropic.sh) — Anthropic messages endpoint.
+  * [`examples/curl/responses_codex.sh`](examples/curl/responses_codex.sh) — OpenAI Codex CLI `/v1/responses`.
 
 ---
 
