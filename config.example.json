@@ -12,6 +12,7 @@
     "sk-gemini"
   ],
   "cookie_file": null,
+  "cookie_pool": [],
   "proxy": null,
   "log_requests": true,
   "impersonate": ""

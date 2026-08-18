@@ -32,6 +32,7 @@ type Client struct {
 	Cfg     config.Config
 	HTTP    Requester
 	Cookies *CookieCache
+	Pool    *CookiePool
 	Logf    func(format string, args ...any)
 }
 
@@ -74,16 +75,33 @@ func NewClient(cfg config.Config) *Client {
 		}
 	}
 
+	pool := NewCookiePool()
+	if len(cfg.CookiePool) > 0 {
+		loaded := pool.LoadFromFiles(cfg.CookiePool)
+		if loaded > 0 && cfg.LogRequests {
+			log.Printf("[CookiePool] Loaded %d accounts from cookie pool configuration", loaded)
+		}
+	}
+	if cfg.CookieFile != "" {
+		pool.LoadFromFiles([]string{cfg.CookieFile})
+	}
+
 	return &Client{
 		Cfg:     cfg,
 		HTTP:    req,
 		Cookies: NewCookieCache(cfg.CookieFile),
+		Pool:    pool,
 		Logf:    logFn,
 	}
 }
 
-func (c *Client) buildHeaders() http.Header {
-	prefix := AccountPrefix(c.Cfg.AuthUser)
+func (c *Client) buildHeaders(session *AccountSession) http.Header {
+	authUser := c.Cfg.AuthUser
+	if session != nil && session.AuthUser != "" {
+		authUser = session.AuthUser
+	}
+
+	prefix := AccountPrefix(authUser)
 	h := make(http.Header)
 	h.Set("Content-Type", "application/x-www-form-urlencoded")
 	h.Set("Origin", "https://gemini.google.com")
@@ -91,18 +109,28 @@ func (c *Client) buildHeaders() http.Header {
 	h.Set("X-Same-Domain", "1")
 	h.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-	if prefix != "" && c.Cfg.AuthUser != "" {
-		h.Set("X-Goog-AuthUser", c.Cfg.AuthUser)
+	if prefix != "" && authUser != "" {
+		h.Set("X-Goog-AuthUser", authUser)
 	}
 
-	cookieInfo, _ := c.Cookies.Load()
-	if cookieInfo.Cookie != "" {
-		h.Set("Cookie", cookieInfo.Cookie)
-	}
-	if cookieInfo.SAPISID != "" {
-		hash := SAPISIDHash(cookieInfo.SAPISID)
-		if hash != "" {
-			h.Set("Authorization", hash)
+	if session != nil && session.Cookie != "" {
+		h.Set("Cookie", session.Cookie)
+		if session.SAPISID != "" {
+			hash := SAPISIDHash(session.SAPISID)
+			if hash != "" {
+				h.Set("Authorization", hash)
+			}
+		}
+	} else {
+		cookieInfo, _ := c.Cookies.Load()
+		if cookieInfo.Cookie != "" {
+			h.Set("Cookie", cookieInfo.Cookie)
+		}
+		if cookieInfo.SAPISID != "" {
+			hash := SAPISIDHash(cookieInfo.SAPISID)
+			if hash != "" {
+				h.Set("Authorization", hash)
+			}
 		}
 	}
 
@@ -145,7 +173,6 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
 	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
 	reqURL := BuildURL(c.Cfg)
-	headers := c.buildHeaders()
 
 	var lastErr error
 	for attempt := 0; attempt < c.Cfg.RetryAttempts; attempt++ {
@@ -154,6 +181,9 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 			return "", ctx.Err()
 		default:
 		}
+
+		session := c.Pool.GetHealthySession()
+		headers := c.buildHeaders(session)
 
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {
@@ -167,10 +197,16 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 				return "", ctx.Err()
 			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+			if session != nil {
+				c.Pool.MarkFailure(session.ID)
+			}
 		} else {
 			if err := c.triageStatus(resp); err != nil {
 				_ = resp.Body.Close()
 				lastErr = err
+				if session != nil {
+					c.Pool.MarkFailure(session.ID)
+				}
 			} else {
 				rawBytes, err := io.ReadAll(resp.Body)
 				_ = resp.Body.Close()
@@ -181,6 +217,9 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 					if err != nil {
 						lastErr = &UpstreamError{Kind: "bard", Msg: err.Error()}
 					} else {
+						if session != nil {
+							c.Pool.MarkSuccess(session.ID)
+						}
 						return text, nil
 					}
 				}
@@ -207,7 +246,6 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
 	reqURL := BuildURL(c.Cfg)
-	headers := c.buildHeaders()
 
 	parser := NewStreamParser()
 	var lastErr error
@@ -223,6 +261,9 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 		// This ensures we don't emit duplicate deltas to the client if a stream connection drops halfway.
 		parser.ResetBuffer()
 
+		session := c.Pool.GetHealthySession()
+		headers := c.buildHeaders(session)
+
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {
 			return err
@@ -235,14 +276,23 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 				return ctx.Err()
 			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+			if session != nil {
+				c.Pool.MarkFailure(session.ID)
+			}
 		} else {
 			if err := c.triageStatus(resp); err != nil {
 				_ = resp.Body.Close()
 				lastErr = err
+				if session != nil {
+					c.Pool.MarkFailure(session.ID)
+				}
 			} else {
 				err = c.streamAttempt(resp.Body, parser, emit)
 				_ = resp.Body.Close()
 				if err == nil {
+					if session != nil {
+						c.Pool.MarkSuccess(session.ID)
+					}
 					return nil
 				}
 				if isClientDisconnect(err) || ctx.Err() != nil {

@@ -22,17 +22,20 @@ const (
 // Internal regex patterns used to extract hidden session tokens embedded in Gemini HTML responses:
 // - `qKIAYe`: Push-ID used as tenant identifier for image uploads
 // - `Ylro7b`: Client-Pctx (context token) required for image upload authorization
-// - `thykhd`: XSRF/AT token required for state-changing POST requests
+// - `SNlM0e` / `thykhd`: XSRF/AT token required for state-changing POST requests
+// - `cfb2h`: Build label version required for RPC stream endpoints
 var (
-	rePushID = regexp.MustCompile(`"qKIAYe":"([^"]+)"`)
-	rePctx   = regexp.MustCompile(`"Ylro7b":"([^"]+)"`)
-	reAt     = regexp.MustCompile(`"thykhd":"([^"]+)"`)
+	rePushID  = regexp.MustCompile(`"qKIAYe":"([^"]+)"`)
+	rePctx    = regexp.MustCompile(`"Ylro7b":"([^"]+)"`)
+	reAt      = regexp.MustCompile(`"(?:SNlM0e|thykhd)":"([^"]+)"`)
+	reBL      = regexp.MustCompile(`"cfb2h":"([^"]+)"`)
 )
 
 type PageTokens struct {
 	PushID string
 	Pctx   string
 	At     string
+	BL     string
 }
 
 type TokenCache struct {
@@ -53,6 +56,7 @@ func NewTokenCache(cfg config.Config, cookie *gemini.CookieCache, client *http.C
 			PushID: DefaultPushID,
 			Pctx:   DefaultPctx,
 			At:     "",
+			BL:     cfg.GeminiBL,
 		},
 	}
 }
@@ -62,6 +66,7 @@ func (c *TokenCache) fetchPageTokens() PageTokens {
 		PushID: DefaultPushID,
 		Pctx:   DefaultPctx,
 		At:     "",
+		BL:     c.cfg.GeminiBL,
 	}
 
 	reqURL := fmt.Sprintf("https://gemini.google.com%s/app", gemini.AccountPrefix(c.cfg.AuthUser))
@@ -97,6 +102,9 @@ func (c *TokenCache) fetchPageTokens() PageTokens {
 	}
 	if m := reAt.FindStringSubmatch(html); len(m) > 1 {
 		tokens.At = m[1]
+	}
+	if m := reBL.FindStringSubmatch(html); len(m) > 1 {
+		tokens.BL = m[1]
 	}
 
 	return tokens

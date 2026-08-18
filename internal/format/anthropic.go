@@ -119,18 +119,36 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 		})
 	}
 
+	reasoningEffort := ""
+	if req.Thinking != nil && req.Thinking.Type == "enabled" {
+		reasoningEffort = "high"
+	}
+
 	return models.OpenAIChatRequest{
-		Model:      req.Model,
-		Messages:   openAIMessages,
-		Tools:      openAITools,
-		ToolChoice: req.ToolChoice,
-		Stream:     req.Stream,
+		Model:           req.Model,
+		Messages:        openAIMessages,
+		Tools:           openAITools,
+		ToolChoice:      req.ToolChoice,
+		ReasoningEffort: reasoningEffort,
+		Stream:          req.Stream,
 	}
 }
 
-// ConvertToolCallsToAnthropicBlocks transforms parsed OpenAI tool calls into Anthropic content blocks.
+// ConvertToolCallsToAnthropicBlocks transforms parsed OpenAI tool calls and thinking into Anthropic content blocks.
 func ConvertToolCallsToAnthropicBlocks(text string, toolCalls []models.OpenAIToolCall) []models.AnthropicContentBlock {
+	return ConvertToolCallsAndThinkingToAnthropicBlocks("", text, toolCalls)
+}
+
+// ConvertToolCallsAndThinkingToAnthropicBlocks transforms thinking traces, tool calls, and user text into standard Anthropic content blocks.
+func ConvertToolCallsAndThinkingToAnthropicBlocks(thinking, text string, toolCalls []models.OpenAIToolCall) []models.AnthropicContentBlock {
 	var blocks []models.AnthropicContentBlock
+
+	if strings.TrimSpace(thinking) != "" {
+		blocks = append(blocks, models.AnthropicContentBlock{
+			Type:     "thinking",
+			Thinking: thinking,
+		})
+	}
 
 	if strings.TrimSpace(text) != "" {
 		blocks = append(blocks, models.AnthropicContentBlock{

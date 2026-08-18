@@ -10,6 +10,12 @@ type AnthropicMessagesRequest struct {
 	Temperature *float64           `json:"temperature,omitempty"`
 	Tools       []AnthropicTool    `json:"tools,omitempty"`
 	ToolChoice  any                `json:"tool_choice,omitempty"`
+	Thinking    *AnthropicThinking `json:"thinking,omitempty"`
+}
+
+type AnthropicThinking struct {
+	Type         string `json:"type"` // "enabled" or "disabled"
+	BudgetTokens int    `json:"budget_tokens,omitempty"`
 }
 
 type AnthropicMessage struct {
@@ -36,11 +42,13 @@ type AnthropicMessagesResponse struct {
 }
 
 type AnthropicContentBlock struct {
-	Type  string         `json:"type"` // "text" or "tool_use"
-	Text  string         `json:"text,omitempty"`
-	ID    string         `json:"id,omitempty"`
-	Name  string         `json:"name,omitempty"`
-	Input map[string]any `json:"input,omitempty"`
+	Type      string         `json:"type"` // "text", "tool_use", or "thinking"
+	Text      string         `json:"text,omitempty"`
+	Thinking  string         `json:"thinking,omitempty"`
+	Signature string         `json:"signature,omitempty"`
+	ID        string         `json:"id,omitempty"`
+	Name      string         `json:"name,omitempty"`
+	Input     map[string]any `json:"input,omitempty"`
 }
 
 type AnthropicUsage struct {

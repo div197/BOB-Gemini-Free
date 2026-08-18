@@ -191,12 +191,17 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		text, toolCalls = format.ParseToolCalls(text)
 	}
 
+	thinking, cleanText := format.ExtractThinking(text)
+	if thinking != "" {
+		text = cleanText
+	}
+
 	stopReason := "end_turn"
 	if len(toolCalls) > 0 {
 		stopReason = "tool_use"
 	}
 
-	contentBlocks := format.ConvertToolCallsToAnthropicBlocks(text, toolCalls)
+	contentBlocks := format.ConvertToolCallsAndThinkingToAnthropicBlocks(thinking, text, toolCalls)
 	outputTokens := len(text) / 4
 	if outputTokens == 0 {
 		outputTokens = 1

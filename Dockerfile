@@ -22,4 +22,7 @@ EXPOSE 8081
 ENV BOB_GEMINI_FREE_HOST=0.0.0.0 \
     BOB_GEMINI_FREE_PORT=8081
 
+HEALTHCHECK --interval=20s --timeout=3s --start-period=3s --retries=3 \
+  CMD wget -qO- http://127.0.0.1:8081/ >/dev/null 2>&1 || exit 1
+
 ENTRYPOINT ["/app/bob-gemini-free"]

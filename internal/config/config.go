@@ -20,6 +20,7 @@ type Config struct {
 	DefaultModel      string   `json:"default_model"`
 	LogRequests       bool     `json:"log_requests"`
 	CookieFile        string   `json:"cookie_file"`
+	CookiePool        []string `json:"cookie_pool,omitempty"`
 	Proxy             string   `json:"proxy"`
 	APIKeys           []string `json:"api_keys"`
 	Impersonate       string   `json:"impersonate"`
@@ -38,6 +39,7 @@ func Default() Config {
 		DefaultModel:      "gemini-3.6-flash",
 		LogRequests:       true,
 		CookieFile:        "",
+		CookiePool:        []string{},
 		Proxy:             "",
 		APIKeys:           []string{},
 		Impersonate:       "",
@@ -64,6 +66,7 @@ func Load(path string) (Config, error) {
 			DefaultModel      *string   `json:"default_model"`
 			LogRequests       *bool     `json:"log_requests"`
 			CookieFile        *string   `json:"cookie_file"`
+			CookiePool        *[]string `json:"cookie_pool"`
 			Proxy             *string   `json:"proxy"`
 			APIKeys           *[]string `json:"api_keys"`
 			Impersonate       *string   `json:"impersonate"`
@@ -106,6 +109,9 @@ func Load(path string) (Config, error) {
 		if aux.CookieFile != nil {
 			cfg.CookieFile = *aux.CookieFile
 		}
+		if aux.CookiePool != nil {
+			cfg.CookiePool = *aux.CookiePool
+		}
 		if aux.Proxy != nil {
 			cfg.Proxy = *aux.Proxy
 		}
@@ -129,8 +135,18 @@ func Load(path string) (Config, error) {
 	if envCookie := os.Getenv("BOB_GEMINI_FREE_COOKIE_FILE"); envCookie != "" {
 		cfg.CookieFile = envCookie
 	}
+	if envPool := os.Getenv("BOB_GEMINI_FREE_COOKIE_POOL"); envPool != "" {
+		for _, f := range strings.Split(envPool, ",") {
+			if tf := strings.TrimSpace(f); tf != "" {
+				cfg.CookiePool = append(cfg.CookiePool, tf)
+			}
+		}
+	}
 	if cfg.CookieFile == "" {
 		cfg.CookieFile = FindCookie()
+	}
+	if len(cfg.CookiePool) == 0 {
+		cfg.CookiePool = FindCookiePool()
 	}
 	if envProxy := os.Getenv("BOB_GEMINI_FREE_PROXY"); envProxy != "" {
 		cfg.Proxy = envProxy
@@ -181,5 +197,25 @@ func FindCookie() string {
 		}
 	}
 	return ""
+}
+
+func FindCookiePool() []string {
+	var pool []string
+	dirs := []string{"./cookies"}
+	home, err := os.UserHomeDir()
+	if err == nil {
+		dirs = append(dirs, filepath.Join(home, ".config", "bob-gemini-free", "cookies"))
+	}
+
+	for _, d := range dirs {
+		if entries, err := os.ReadDir(d); err == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+					pool = append(pool, filepath.Join(d, e.Name()))
+				}
+			}
+		}
+	}
+	return pool
 }
 

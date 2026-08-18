@@ -92,3 +92,31 @@ func TestAnthropicToOpenAIChatRequest(t *testing.T) {
 		t.Errorf("Unexpected tool_use block: %+v", blocks[1])
 	}
 }
+
+func TestAnthropicThinkingConversion(t *testing.T) {
+	req := models.AnthropicMessagesRequest{
+		Model: "claude-3-7-sonnet",
+		Thinking: &models.AnthropicThinking{
+			Type:         "enabled",
+			BudgetTokens: 2048,
+		},
+		Messages: []models.AnthropicMessage{
+			{Role: "user", Content: "Calculate complex equation"},
+		},
+	}
+	chatReq := AnthropicToOpenAIChatRequest(req)
+	if chatReq.ReasoningEffort != "high" {
+		t.Errorf("Expected reasoning effort 'high', got %s", chatReq.ReasoningEffort)
+	}
+
+	blocks := ConvertToolCallsAndThinkingToAnthropicBlocks("Thinking steps here", "Result: 42", nil)
+	if len(blocks) != 2 {
+		t.Fatalf("Expected 2 blocks (thinking + text), got %d", len(blocks))
+	}
+	if blocks[0].Type != "thinking" || blocks[0].Thinking != "Thinking steps here" {
+		t.Errorf("Unexpected thinking block: %+v", blocks[0])
+	}
+	if blocks[1].Type != "text" || blocks[1].Text != "Result: 42" {
+		t.Errorf("Unexpected text block: %+v", blocks[1])
+	}
+}
