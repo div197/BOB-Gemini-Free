@@ -114,7 +114,19 @@ codex
 
 ## 6. Cookie Authentication & Multi-Account Guidelines
 
-For AI agents managing or configuring authenticated Pro routing (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3 synthesis:
+For AI agents managing or configuring authenticated Pro routing (`gemini-3.1-pro` / `gemini-pro`), Imagen 3 synthesis, and **Multimodal Image Vision Analysis**:
+
+### Session Requirements & Capability Matrix
+| Capability | Anonymous / Guest Session | Authenticated Google Session (`./cookie.txt` via `--login`) |
+| :--- | :--- | :--- |
+| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | ✅ Unlocked | ✅ Full 1M+ Context & Peak Speed |
+| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | ✅ Unlocked | ✅ Full Deep Thinking Blocks |
+| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | ❌ **Blocked by Google** (`BardErrorInfo [1003]`) | ✅ **Fully Unlocked** |
+| **Imagen 3 Image Synthesis** (`imagen-3`) | ❌ **Blocked by Google** | ✅ **Fully Unlocked** |
+| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Reverts to Flash | ✅ **Fully Unlocked** |
+
+### Why Images Require Session Binding (`BardErrorInfo 1003`)
+Image attachments are uploaded to Google Scotty storage (`content-push.googleapis.com/upload/`). Google requires the storage bucket and downstream `StreamGenerate` RPC call to be signed by an active session with valid `SAPISIDHASH` and `__Secure-1PSIDTS`. Unauthenticated attempts will fail with `BardErrorInfo [1003]`.
 
 ### Session Extraction
 1. **1-Click Interactive Sign-In Window (Recommended)**:

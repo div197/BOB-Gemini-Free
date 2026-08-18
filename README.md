@@ -648,6 +648,25 @@ Run the login command in your terminal:
 
 ---
 
+#### 📸 The Whole Truth: Multimodal Image Analysis (Vision) & Session Requirements
+
+Google's internal web architecture strictly distinguishes between standard text reasoning and multimodal media uploads:
+
+| Capability | Anonymous / Guest Session | Authenticated Google Session (`./cookie.txt` via `--login`) |
+| :--- | :--- | :--- |
+| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | ✅ Unlocked | ✅ Full 1M+ Context & Peak Speed |
+| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | ✅ Unlocked | ✅ Full Deep Thinking Blocks |
+| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | ❌ **Blocked by Google** (`BardErrorInfo [1003]`) | ✅ **Fully Unlocked** (Zero Paywall) |
+| **Imagen 3 Image Synthesis** (`imagen-3`) | ❌ **Blocked by Google** | ✅ **Fully Unlocked** (Photorealistic Synthesis) |
+| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Reverts to Flash | ✅ **Fully Unlocked** |
+
+**Why does Google require a session for images?**
+When you attach an image or screenshot, BOB Gemini Free compresses the payload and initiates a resumable upload to Google's Scotty storage (`content-push.googleapis.com/upload/`). Google's backend verifies that the storage tenant is cryptographically signed by an authenticated Google account (`SAPISIDHASH` + `__Secure-1PSIDTS`). If unauthenticated or expired, Google returns `BardErrorInfo [1003]`. 
+
+Running `./bob-gemini-free --login` once authenticates your session and permanently unlocks vision analysis.
+
+---
+
 #### Method A: Interactive Automated Setup Helper (Paste Prompt)
 
 ```bash
