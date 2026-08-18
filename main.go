@@ -15,6 +15,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/div197/bob-gemini-free/internal/browser"
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/diag"
 	"github.com/div197/bob-gemini-free/internal/gemini"
@@ -32,6 +33,51 @@ func resolveVersion() string {
 		return info.Main.Version
 	}
 	return Version
+}
+
+func handleBrowserLogin() {
+	fmt.Println("================================================================")
+	fmt.Println("    BOB Gemini Free - 1-Click Interactive Login Window          ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com) ")
+	fmt.Println("================================================================")
+	fmt.Println()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+	defer cancel()
+
+	logFn := func(format string, args ...any) {
+		fmt.Printf(format+"\n", args...)
+	}
+
+	extracted, err := browser.LaunchLoginSession(ctx, logFn)
+	if err != nil {
+		fmt.Printf("\n[!] Login failed: %v\n", err)
+		os.Exit(1)
+	}
+
+	home, err := os.UserHomeDir()
+	if err == nil {
+		targetDir := filepath.Join(home, ".config", "bob-gemini-free")
+		targetCookieFile := filepath.Join(targetDir, "cookie.txt")
+		_ = gemini.SaveCookieFile(targetCookieFile, extracted.RawCookie)
+	}
+
+	_ = gemini.SaveCookieFile("./cookie.txt", extracted.RawCookie)
+
+	fmt.Println()
+	fmt.Println("================================================================")
+	fmt.Printf("[✔] Verified %d session tokens!\n", len(extracted.Tokens))
+	if extracted.SAPISID != "" {
+		fmt.Printf("[✔] SAPISID detected: %s... (SAPISIDHASH active)\n", extracted.SAPISID[:min(6, len(extracted.SAPISID))])
+	}
+	fmt.Printf("[✔] Securely saved cookie to ./cookie.txt and ~/.config/bob-gemini-free/cookie.txt (mode 0600)\n")
+	fmt.Println("[✔] Gemini Pro model (gemini-3.1-pro / gemini-pro) & Imagen 3 activated!")
+	fmt.Println("================================================================")
+	fmt.Println()
+	fmt.Println("Start BOB Gemini Free with:")
+	fmt.Println("  ./bob-gemini-free")
+	fmt.Println()
+	os.Exit(0)
 }
 
 func handleDiagnostics(targetURL, apiKey string) {
@@ -186,7 +232,8 @@ func main() {
 	cookieFlag := flag.String("cookie-file", "", "Cookie file path")
 	proxyFlag := flag.String("proxy", "", "HTTP proxy URL")
 	impersonateFlag := flag.String("impersonate", "", "TLS impersonation profile")
-	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper")
+	loginFlag := flag.Bool("login", false, "1-Click interactive browser sign-in window (zero copy-paste)")
+	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper (paste prompt)")
 	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
 	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
 	testURLFlag := flag.String("test-url", "http://127.0.0.1:8081", "Target gateway URL for diagnostic tests")
@@ -200,6 +247,10 @@ func main() {
 	if *versionFlag {
 		fmt.Printf("BOB-Gemini-Free %s (Break Ordinary Boundaries by ABCsteps - https://abcsteps.com)\n", currentVersion)
 		os.Exit(0)
+	}
+
+	if *loginFlag {
+		handleBrowserLogin()
 	}
 
 	if *testFlag {
