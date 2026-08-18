@@ -39,8 +39,13 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	targetModel := req.Model
+	if targetModel == "" {
+		targetModel = "imagen-3"
+	}
+	resolved, _ := models.Resolve(targetModel, a.Cfg.DefaultModel)
+
 	imagePrompt := fmt.Sprintf("Generate an image of: %s. Return the generated image directly.", req.Prompt)
-	resolved, _ := models.Resolve("gemini-3.7-flash", a.Cfg.DefaultModel)
 
 	text, err := a.Gem.GenerateContext(r.Context(), imagePrompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
 	if err != nil {
