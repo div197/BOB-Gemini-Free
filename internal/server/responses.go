@@ -155,11 +155,12 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		}
 
 		respObj := map[string]any{
-			"id":     rid,
-			"object": "response",
-			"status": "completed",
-			"model":  resolved.Name,
-			"output": outputItems,
+			"id":          rid,
+			"object":      "response",
+			"status":      "completed",
+			"model":       resolved.Name,
+			"output":      outputItems,
+			"output_text": text,
 			"usage": map[string]any{
 				"input_tokens":  promptTokens,
 				"output_tokens": outputTokens,
@@ -172,12 +173,13 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		})
 	} else {
 		writeJSON(w, http.StatusOK, map[string]any{
-			"id":         rid,
-			"object":     "response",
-			"created_at": time.Now().Unix(),
-			"status":     "completed",
-			"model":      resolved.Name,
-			"output":     outputItems,
+			"id":          rid,
+			"object":      "response",
+			"created_at":  time.Now().Unix(),
+			"status":      "completed",
+			"model":       resolved.Name,
+			"output":      outputItems,
+			"output_text": text,
 			"usage": map[string]any{
 				"input_tokens":  promptTokens,
 				"output_tokens": outputTokens,

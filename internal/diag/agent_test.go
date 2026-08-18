@@ -117,7 +117,13 @@ func TestCodexResponsesAPIWorkflow(t *testing.T) {
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
-	if rec.Code != http.StatusOK && rec.Code != http.StatusBadGateway {
+	if rec.Code == http.StatusOK {
+		var res map[string]any
+		_ = json.Unmarshal(rec.Body.Bytes(), &res)
+		if _, ok := res["output_text"]; !ok {
+			t.Errorf("Expected output_text property in Responses API JSON response")
+		}
+	} else if rec.Code != http.StatusBadGateway {
 		t.Errorf("Unexpected status on Codex Responses API: %d", rec.Code)
 	}
 }
