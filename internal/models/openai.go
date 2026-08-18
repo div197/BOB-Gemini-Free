@@ -1,16 +1,23 @@
 package models
 
 type OpenAIChatRequest struct {
-	Model         string               `json:"model"`
-	Messages      []OpenAIMessage      `json:"messages"`
-	Tools         []OpenAITool         `json:"tools,omitempty"`
-	ToolChoice    any                  `json:"tool_choice,omitempty"`
-	Stream        bool                 `json:"stream,omitempty"`
-	StreamOptions *OpenAIStreamOptions `json:"stream_options,omitempty"`
-	Temperature   *float64             `json:"temperature,omitempty"`
-	TopP          *float64             `json:"top_p,omitempty"`
-	MaxTokens     *int                 `json:"max_tokens,omitempty"`
-	User          string               `json:"user,omitempty"`
+	Model               string                `json:"model"`
+	Messages            []OpenAIMessage       `json:"messages"`
+	Tools               []OpenAITool          `json:"tools,omitempty"`
+	ToolChoice          any                   `json:"tool_choice,omitempty"`
+	Stream              bool                  `json:"stream,omitempty"`
+	StreamOptions       *OpenAIStreamOptions  `json:"stream_options,omitempty"`
+	ReasoningEffort     string                `json:"reasoning_effort,omitempty"`
+	Temperature         *float64              `json:"temperature,omitempty"`
+	TopP                *float64              `json:"top_p,omitempty"`
+	MaxTokens           *int                  `json:"max_tokens,omitempty"`
+	MaxCompletionTokens *int                  `json:"max_completion_tokens,omitempty"`
+	ResponseFormat      *OpenAIResponseFormat `json:"response_format,omitempty"`
+	User                string                `json:"user,omitempty"`
+}
+
+type OpenAIResponseFormat struct {
+	Type string `json:"type"` // "text", "json_object", "json_schema"
 }
 
 type OpenAIStreamOptions struct {

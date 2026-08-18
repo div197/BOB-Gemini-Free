@@ -36,6 +36,17 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.ReasoningEffort != "" {
+		switch strings.ToLower(req.ReasoningEffort) {
+		case "high", "xhigh":
+			resolved.Think = 0
+		case "medium":
+			resolved.Think = 2
+		case "low", "minimal", "none":
+			resolved.Think = 4
+		}
+	}
+
 	if req.ToolChoice == nil {
 		req.ToolChoice = "auto"
 	}

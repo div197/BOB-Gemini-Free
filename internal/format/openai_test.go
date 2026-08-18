@@ -44,6 +44,25 @@ func TestMessagesToPrompt(t *testing.T) {
 	if !strings.Contains(prompt, "Hello!") {
 		t.Errorf("Prompt missing user message: %q", prompt)
 	}
+
+	// Test developer role and response_format
+	reqDev := models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{
+			{Role: "developer", Content: "Formatting developer rule."},
+			{Role: "user", Content: "Return JSON."},
+		},
+		ResponseFormat: &models.OpenAIResponseFormat{Type: "json_object"},
+	}
+	promptDev, errDev := MessagesToPrompt(reqDev)
+	if errDev != nil {
+		t.Fatalf("Unexpected error: %v", errDev)
+	}
+	if !strings.Contains(promptDev, "[System instruction]: Formatting developer rule.") {
+		t.Errorf("Prompt missing developer instruction: %q", promptDev)
+	}
+	if !strings.Contains(promptDev, "You must respond strictly with valid JSON output.") {
+		t.Errorf("Prompt missing JSON instruction: %q", promptDev)
+	}
 }
 
 func TestResponsesInputToMessagesMultiPartText(t *testing.T) {

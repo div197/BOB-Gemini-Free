@@ -127,7 +127,7 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 		}
 
 		switch role {
-		case "system":
+		case "system", "developer":
 			parts = append(parts, fmt.Sprintf("[System instruction]: %s", contentStr))
 		case "assistant":
 			if len(msg.ToolCalls) > 0 {
@@ -150,6 +150,10 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 				parts = append(parts, contentStr)
 			}
 		}
+	}
+
+	if req.ResponseFormat != nil && (req.ResponseFormat.Type == "json_object" || req.ResponseFormat.Type == "json_schema") {
+		parts = append(parts, "[System instruction]: You must respond strictly with valid JSON output.")
 	}
 
 	return strings.Join(parts, "\n\n"), images, nil
