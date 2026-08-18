@@ -49,7 +49,7 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 				Content: strContent,
 			})
 		} else if blockList, ok := msg.Content.([]any); ok {
-			var textParts []string
+			var contentParts []any
 			var toolCalls []models.OpenAIToolCall
 
 			for _, b := range blockList {
@@ -62,7 +62,26 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 				switch bType {
 				case "text":
 					if txt, ok := bMap["text"].(string); ok {
-						textParts = append(textParts, txt)
+						contentParts = append(contentParts, map[string]any{
+							"type": "text",
+							"text": txt,
+						})
+					}
+				case "image":
+					if src, ok := bMap["source"].(map[string]any); ok {
+						data, _ := src["data"].(string)
+						mediaType, _ := src["media_type"].(string)
+						if mediaType == "" {
+							mediaType = "image/png"
+						}
+						if data != "" {
+							contentParts = append(contentParts, map[string]any{
+								"type": "image_url",
+								"image_url": map[string]string{
+									"url": fmt.Sprintf("data:%s;base64,%s", mediaType, data),
+								},
+							})
+						}
 					}
 				case "tool_use":
 					toolID, _ := bMap["id"].(string)
@@ -96,10 +115,10 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 				}
 			}
 
-			if len(textParts) > 0 || len(toolCalls) > 0 {
+			if len(contentParts) > 0 || len(toolCalls) > 0 {
 				openAIMessages = append(openAIMessages, models.OpenAIMessage{
 					Role:      role,
-					Content:   strings.Join(textParts, "\n"),
+					Content:   contentParts,
 					ToolCalls: toolCalls,
 				})
 			}
