@@ -8,6 +8,10 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="onKaTeXLoaded()"></script>
+<!-- PrismJS for Syntax Highlighting (Tokyo/Tomorrow Dark) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <style>
 :root {
   --bg-primary: #070a12;
@@ -20,6 +24,8 @@
   --accent-blue: #3b82f6;
   --accent-purple: #a855f7;
   --accent-green: #10b981;
+  --accent-amber: #f59e0b;
+  --accent-red: #ef4444;
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --text-muted: #64748b;
@@ -262,7 +268,7 @@ select:focus, input:focus, textarea:focus {
   bottom: 80px;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(14, 20, 34, 0.9);
+  background: rgba(14, 20, 34, 0.92);
   border: 1px solid var(--accent-cyan);
   color: var(--accent-cyan);
   padding: 6px 14px;
@@ -380,15 +386,16 @@ select:focus, input:focus, textarea:focus {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   margin: 14px 0;
 }
+
+/* Beautiful Code Windows */
 .markdown-body pre {
-  background: #090e1a;
-  border: 1px solid #1a2438;
-  border-radius: 8px;
-  margin: 12px 0;
+  background: #090e1a !important;
+  border: 1px solid #1a2438 !important;
+  border-radius: 8px !important;
+  margin: 14px 0 !important;
+  padding: 0 !important;
   overflow: hidden;
   position: relative;
-  font-family: var(--font-mono);
-  font-size: 0.83rem;
 }
 .code-window-header {
   background: #0d1424;
@@ -406,44 +413,61 @@ select:focus, input:focus, textarea:focus {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #2a3854;
 }
+.dot-red { background: #ef4444; }
+.dot-yellow { background: #f59e0b; }
+.dot-green { background: #10b981; }
+
 .lang-badge {
   font-size: 0.68rem;
   color: var(--accent-cyan);
   text-transform: uppercase;
   font-weight: 600;
   font-family: var(--font-mono);
+  letter-spacing: 0.5px;
 }
 .markdown-body pre code {
   display: block;
-  padding: 12px 14px;
+  padding: 12px 14px !important;
   overflow-x: auto;
   color: #e2e8f0;
-  background: transparent;
+  background: transparent !important;
+  font-family: var(--font-mono) !important;
+  font-size: 0.83rem !important;
+  line-height: 1.55;
 }
-.markdown-body code {
+.markdown-body code:not(pre code) {
   background: rgba(0, 240, 255, 0.08);
   color: var(--accent-cyan);
-  padding: 2px 5px;
+  padding: 2px 6px;
   border-radius: 4px;
   font-family: var(--font-mono);
   font-size: 0.86em;
 }
-.markdown-body blockquote {
-  border-left: 3px solid var(--accent-blue);
-  background: rgba(59, 130, 246, 0.05);
-  padding: 6px 12px;
-  margin: 10px 0;
-  color: #cbd5e1;
-  border-radius: 0 4px 4px 0;
+
+/* GitHub Alert Callouts */
+.callout {
+  border-left: 3px solid;
+  padding: 10px 14px;
+  margin: 12px 0;
+  border-radius: 0 6px 6px 0;
+  font-size: 0.88rem;
 }
-.markdown-body p { margin-bottom: 8px; }
-.markdown-body p:last-child { margin-bottom: 0; }
-.markdown-body ul, .markdown-body ol { margin: 8px 0 8px 20px; }
-.markdown-body li { margin-bottom: 4px; }
-.markdown-body a { color: var(--accent-cyan); text-decoration: none; }
-.markdown-body a:hover { text-decoration: underline; }
+.callout-title {
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.callout-note { border-color: var(--accent-blue); background: rgba(59, 130, 246, 0.08); color: #93c5fd; }
+.callout-tip { border-color: var(--accent-green); background: rgba(16, 185, 129, 0.08); color: #86efac; }
+.callout-important { border-color: var(--accent-purple); background: rgba(168, 85, 247, 0.08); color: #d8b4fe; }
+.callout-warning { border-color: var(--accent-amber); background: rgba(245, 158, 11, 0.08); color: #fde047; }
+.callout-caution { border-color: var(--accent-red); background: rgba(239, 68, 68, 0.08); color: #fca5a5; }
 
 /* Markdown Tables */
 .table-wrapper {
@@ -472,6 +496,34 @@ td {
 }
 tr:last-child td { border-bottom: none; }
 tr:hover td { background: rgba(255, 255, 255, 0.02); }
+
+/* Checklists & Tasks */
+.task-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+.task-checkbox {
+  margin-top: 5px;
+  accent-color: var(--accent-cyan);
+}
+
+.markdown-body blockquote:not(.callout) {
+  border-left: 3px solid var(--accent-blue);
+  background: rgba(59, 130, 246, 0.05);
+  padding: 6px 12px;
+  margin: 10px 0;
+  color: #cbd5e1;
+  border-radius: 0 4px 4px 0;
+}
+.markdown-body p { margin-bottom: 8px; }
+.markdown-body p:last-child { margin-bottom: 0; }
+.markdown-body ul, .markdown-body ol { margin: 8px 0 8px 20px; }
+.markdown-body li { margin-bottom: 4px; }
+.markdown-body a { color: var(--accent-cyan); text-decoration: none; }
+.markdown-body a:hover { text-decoration: underline; }
+.markdown-body del { color: var(--text-muted); }
 
 /* KaTeX Math Styling */
 .katex-display {
@@ -631,6 +683,16 @@ function renderAllMath(targetEl) {
   }
 }
 
+function highlightAllCode(targetEl) {
+  const root = targetEl || document.getElementById("messages-list");
+  if (!root || !window.Prism) return;
+  try {
+    root.querySelectorAll('pre code').forEach((el) => {
+      Prism.highlightElement(el);
+    });
+  } catch(e) {}
+}
+
 const msgListEl = document.getElementById("messages-list");
 msgListEl.addEventListener("scroll", () => {
   const threshold = 90;
@@ -735,8 +797,9 @@ function renderMarkdown(text) {
   // Code blocks: ```lang ... ```
   html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
     const safeCode = escapeHtml(code);
-    const langLabel = lang || 'Code';
-    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot"></div><div class="window-dot"></div><div class="window-dot"></div></div><span class="lang-badge">' + langLabel + '</span><button class="mini-btn" onclick="copyCode(this)">Copy Code</button></div><code>' + safeCode + '</code></pre>';
+    const langLabel = lang || 'code';
+    const prismClass = lang ? 'language-' + lang : 'language-none';
+    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><button class="mini-btn" onclick="copyCode(this)">Copy Code</button></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
   });
 
   // Inline code: `code`
@@ -753,8 +816,15 @@ function renderMarkdown(text) {
   // Horizontal rules
   html = html.replace(/^\s*---\s*$/gim, '<hr>');
 
-  // Blockquotes
-  html = html.replace(/^> (.*$)/gim, '<blockquote>$1</blockquote>');
+  // GitHub Alert Callouts: > [!NOTE], > [!TIP], > [!IMPORTANT], > [!WARNING], > [!CAUTION]
+  html = html.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
+  html = html.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
+  html = html.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
+  html = html.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
+  html = html.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
+
+  // Standard Blockquotes
+  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
 
   // Tables
   html = html.replace(/((?:\|[^\n]+\|\r?\n)+)/g, function(tableBlock) {
@@ -776,6 +846,13 @@ function renderMarkdown(text) {
     tableHtml += '</tbody></table></div>';
     return tableHtml;
   });
+
+  // Checkboxes / Task lists
+  html = html.replace(/^\s*-\s*\[ \]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" disabled class="task-checkbox"><span>$1</span></div>');
+  html = html.replace(/^\s*-\s*\[[xX]\]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" checked disabled class="task-checkbox"><span>$1</span></div>');
+
+  // Strikethrough
+  html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
   // Bold & Italic
   html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
@@ -932,6 +1009,7 @@ function renderMessages() {
     list.appendChild(div);
   }
   renderAllMath(list);
+  highlightAllCode(list);
   if (userIsAtBottom) {
     list.scrollTop = list.scrollHeight;
   }
@@ -1061,8 +1139,9 @@ async function sendMessage() {
       }
     }
 
-    // Final math rendering on complete response
+    // Final math and code highlighting on complete response
     renderAllMath(asstDiv);
+    highlightAllCode(asstDiv);
     asstDiv.setAttribute('data-raw', asstFullText);
     chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
     saveHistory();
