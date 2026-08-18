@@ -193,14 +193,49 @@ gemini-3.6-flash@think=4    # Direct fast response (shallowest reasoning)
 
 ---
 
+## Architecture & Data Flow
+
+<p align="center">
+  <img src="assets/bob-gemini-free-architecture.jpg" alt="BOB Gemini Free Architecture" width="100%" />
+</p>
+
+BOB Gemini Free bridges modern developer clients directly to Google Gemini's web infrastructure:
+1. **Client Tier**: Receives standard OpenAI/Gemini REST calls from Cursor, Cherry Studio, ChatBox, OpenWebUI, or Python/TS SDKs.
+2. **Gateway Engine**: Translates OpenAI message arrays into Google BoQ RPC payloads, compresses oversized multimodal vision uploads via Google Scotty, extracts thinking traces into `reasoning_content`, and deduplicates real-time SSE stream frames.
+3. **Google Web Tier**: Dispatches requests directly over TLS with browser fingerprint impersonation and dynamic `SAPISIDHASH` authentication.
+
+---
+
 ## Unlocking Pro: Gemini Advanced ($20/mo) Cookies
 
-Anonymous and standard free accounts have full access to Flash, Thinking, and Lite models. If you have an active **Google AI / Gemini Advanced** subscription, configure your session cookie to activate real **Pro** model routing:
+Anonymous and standard free accounts have full access to Flash, Thinking, and Lite models. If you have an active **Google AI / Gemini Advanced** subscription, configure your session cookie to activate authentic **Pro** model routing:
+
+### Automated Setup Helper (Recommended)
+
+Run the built-in automated helper and paste your cookie string:
+
+```bash
+./bob-gemini-free --setup-cookie
+```
+
+Or pass it directly on the command line:
+
+```bash
+./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
+```
+
+The setup helper automatically:
+* Extracts and verifies all essential session tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`).
+* Validates `SAPISID` for dynamic `SAPISIDHASH` generation.
+* Saves the cookie file to `~/.config/bob-gemini-free/cookie.txt` with POSIX `0600` permissions.
+* Activates Pro routing (`gemini-3.1-pro` / `gemini-pro`).
+
+### Manual Setup
 
 1. Open Chrome, go to [gemini.google.com](https://gemini.google.com) and sign in with your subscribed Google account.
 2. Open DevTools (`F12`) → **Application** → **Cookies** → `https://gemini.google.com`.
 3. Copy your cookie values: `SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`.
-4. Create a secure local cookie file (e.g. `~/.config/bob-gemini-free/cookie.txt`):
+4. Create a secure local cookie file (`~/.config/bob-gemini-free/cookie.txt`):
 
 ```text
 SID=your_sid; HSID=your_hsid; SSID=your_ssid; APISID=your_apisid; SAPISID=your_sapisid; __Secure-1PSID=your_1psid

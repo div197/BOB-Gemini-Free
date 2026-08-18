@@ -150,7 +150,42 @@ print(response.choices[0].message.content)
 
 ---
 
+## आर्किटेक्चर और डेटा प्रवाह
+
+<p align="center">
+  <img src="assets/bob-gemini-free-architecture.jpg" alt="BOB Gemini Free Architecture" width="100%" />
+</p>
+
+1. **डेवलपर क्लाइंट्स**: Cursor, Cherry Studio, ChatBox, OpenWebUI, या Python SDK से स्टैंडर्ड OpenAI/Gemini REST रिक्वेस्ट भेजें।
+2. **गेटवे इंजन**: OpenAI मैसेज को गूगल BoQ RPC पेलोड में ट्रांसलेट करता है, मल्टीमॉडल विज़न अपलोड को ऑटोमैटिक कंप्रेस करता है, और थिंकिंग टोकन्स को `reasoning_content` में एक्सट्रेक्ट करता है।
+3. **गूगल वेब क्लाउड**: ब्राउज़र फिंगरप्रिंट और `SAPISIDHASH` प्रमाणीकरण के साथ सीधे गूगल जेमिनी बैकएंड से जुड़ता है।
+
+---
+
 ## Pro मॉडल के लिए कुकी (Gemini Advanced)
+
+मुफ़्त जीमेल अकाउंट्स में Flash और Thinking मॉडल पहले से सक्रिय हैं। यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है, तो **Pro** मॉडल को सक्रिय करने के लिए कुकी सेट करें:
+
+### ऑटोमैटेड कुकी सेटअप (अनुशंसित)
+
+स्वचालित हेल्पर कमांड चलाएँ और अपनी कुकी पेस्ट करें:
+
+```bash
+./bob-gemini-free --setup-cookie
+```
+
+या सीधे कमांड लाइन पर भेजें:
+
+```bash
+./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
+```
+
+यह टूल ऑटोमैटिक रूप से:
+* आवश्यक टोकन्स (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`) को सत्यापित करता है।
+* `~/.config/bob-gemini-free/cookie.txt` में सुरक्षित रूप से सेव करता है (`chmod 600`)।
+* **Gemini Pro** मॉडल रूटिंग को तुरंत सक्रिय कर देता है।
+
+### मैन्युअल सेटअप
 
 1. क्रोम ब्राउज़र में [gemini.google.com](https://gemini.google.com) खोलें और अपने सब्सक्राइब्ड अकाउंट से लॉगिन करें।
 2. डेवलपर टूल्स (`F12`) → **Application** → **Cookies** में जाएँ।

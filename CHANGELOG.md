@@ -33,4 +33,6 @@ Part of the **BOB Series** (*Break Ordinary Boundaries*) by [**ABCsteps.com**](h
 - **High-Resolution Visual Assets**: Added official cybernetic hero banner and app icon in `./assets/`.
 - **Zero-Friction Cross-Platform Installers**: Added `install.sh` for macOS/Linux, `install.ps1` for Windows, and automated `Makefile` with multi-arch cross-compilation (`make dist`).
 - **Multilingual Documentation**: Added comprehensive Hindi guide ([`README.hi.md`](README.hi.md)).
-- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, config loading, auth caching, and security middleware.
+- **Automated Cookie Setup Helper**: Added `--setup-cookie` and `--cookie-string` CLI commands to automatically extract, validate, and securely store (`chmod 0600`) Gemini Advanced session cookies.
+- **Architectural Workflow Diagram**: Added comprehensive dataflow and system architecture visual (`assets/bob-gemini-free-architecture.jpg`).
+- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, config loading, auth caching, cookie token extraction, and security middleware.

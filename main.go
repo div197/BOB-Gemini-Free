@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"flag"
 	"fmt"
@@ -8,12 +9,14 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"syscall"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/server"
 )
@@ -30,6 +33,76 @@ func resolveVersion() string {
 	return Version
 }
 
+func handleCookieSetup(rawInput string) {
+	fmt.Println("================================================================")
+	fmt.Println("    BOB Gemini Free - Automated Cookie Setup Helper             ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com) ")
+	fmt.Println("================================================================")
+	fmt.Println()
+
+	var cookieInput string
+	if rawInput != "" {
+		cookieInput = rawInput
+	} else {
+		fmt.Println("Follow these quick steps to get your Gemini session cookie:")
+		fmt.Println("  1. Open Chrome and go to: https://gemini.google.com")
+		fmt.Println("  2. Open DevTools (F12) -> Application -> Cookies -> https://gemini.google.com")
+		fmt.Println("  3. Copy your cookies or the raw Cookie header string.")
+		fmt.Println()
+		fmt.Print("Paste your cookie string here and press ENTER:\n> ")
+		scanner := bufio.NewScanner(os.Stdin)
+		if scanner.Scan() {
+			cookieInput = scanner.Text()
+		}
+	}
+
+	cookieInput = strings.TrimSpace(cookieInput)
+	if cookieInput == "" {
+		fmt.Println("\n[!] Error: No cookie input provided. Aborting.")
+		os.Exit(1)
+	}
+
+	extracted, err := gemini.ExtractCookies(cookieInput)
+	if err != nil {
+		fmt.Printf("\n[!] Error parsing cookie: %v\n", err)
+		os.Exit(1)
+	}
+
+	home, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf("\n[!] Error finding home directory: %v\n", err)
+		os.Exit(1)
+	}
+
+	targetDir := filepath.Join(home, ".config", "bob-gemini-free")
+	targetCookieFile := filepath.Join(targetDir, "cookie.txt")
+
+	if err := gemini.SaveCookieFile(targetCookieFile, extracted.RawCookie); err != nil {
+		fmt.Printf("\n[!] Error saving cookie file: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println()
+	fmt.Printf("[✔] Verified %d session tokens!\n", len(extracted.Tokens))
+	if extracted.SAPISID != "" {
+		fmt.Printf("[✔] SAPISID detected: %s... (SAPISIDHASH active)\n", extracted.SAPISID[:min(6, len(extracted.SAPISID))])
+	}
+	fmt.Printf("[✔] Securely saved cookies to: %s (mode 0600)\n", targetCookieFile)
+	fmt.Println("[✔] Gemini Pro model (gemini-3.1-pro / gemini-pro) routing activated!")
+	fmt.Println()
+	fmt.Println("Start BOB Gemini Free with:")
+	fmt.Printf("  ./bob-gemini-free --cookie-file %s\n", targetCookieFile)
+	fmt.Println()
+	os.Exit(0)
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
 func main() {
 	currentVersion := resolveVersion()
 
@@ -38,12 +111,18 @@ func main() {
 	cookieFlag := flag.String("cookie-file", "", "Cookie file path")
 	proxyFlag := flag.String("proxy", "", "HTTP proxy URL")
 	impersonateFlag := flag.String("impersonate", "", "TLS impersonation profile")
+	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper")
+	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
 	versionFlag := flag.Bool("version", false, "Show version")
 	flag.Parse()
 
 	if *versionFlag {
 		fmt.Printf("BOB-Gemini-Free %s (Break Ordinary Boundaries by ABCsteps - https://abcsteps.com)\n", currentVersion)
 		os.Exit(0)
+	}
+
+	if *setupCookieFlag || *cookieStringFlag != "" {
+		handleCookieSetup(*cookieStringFlag)
 	}
 
 	configPath := *configFlag

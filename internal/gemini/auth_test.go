@@ -91,3 +91,51 @@ func TestAccountPrefix(t *testing.T) {
 		t.Errorf("expected /u/1, got %q", prefix)
 	}
 }
+
+func TestExtractCookies(t *testing.T) {
+	// Raw string with header prefix and multiple lines
+	raw := "Cookie: SID=test_sid_123; HSID=test_hsid_456; SAPISID=test_sapisid_789; __Secure-1PSID=test_1psid_abc"
+	extracted, err := ExtractCookies(raw)
+	if err != nil {
+		t.Fatalf("ExtractCookies failed: %v", err)
+	}
+	if extracted.SAPISID != "test_sapisid_789" {
+		t.Errorf("expected SAPISID 'test_sapisid_789', got %q", extracted.SAPISID)
+	}
+	if extracted.Tokens["SID"] != "test_sid_123" {
+		t.Errorf("expected SID 'test_sid_123', got %q", extracted.Tokens["SID"])
+	}
+
+	// Empty cookie should error
+	if _, err := ExtractCookies(""); err == nil {
+		t.Errorf("expected error for empty string")
+	}
+}
+
+func TestSaveCookieFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	targetPath := filepath.Join(tmpDir, "sub", "cookie.txt")
+	cookieContent := "SID=saved_sid; SAPISID=saved_sapisid"
+
+	if err := SaveCookieFile(targetPath, cookieContent); err != nil {
+		t.Fatalf("SaveCookieFile failed: %v", err)
+	}
+
+	readBytes, err := os.ReadFile(targetPath)
+	if err != nil {
+		t.Fatalf("failed to read saved cookie file: %v", err)
+	}
+	if string(readBytes) != cookieContent {
+		t.Errorf("expected %q, got %q", cookieContent, string(readBytes))
+	}
+
+	// Check POSIX permissions
+	info, err := os.Stat(targetPath)
+	if err != nil {
+		t.Fatalf("stat failed: %v", err)
+	}
+	if perm := info.Mode().Perm(); perm != 0600 {
+		t.Errorf("expected 0600 permissions, got %o", perm)
+	}
+}
+
