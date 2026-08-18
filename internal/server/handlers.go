@@ -42,6 +42,46 @@ func (a *App) handleModels(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
+func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
+	modelName := r.PathValue("model")
+	m, exists := models.MODELS[modelName]
+	if !exists {
+		writeJSON(w, http.StatusNotFound, map[string]any{
+			"error": map[string]any{
+				"message": "The model '" + modelName + "' does not exist",
+				"type":    "invalid_request_error",
+				"param":   "model",
+				"code":    "model_not_found",
+			},
+		})
+		return
+	}
+
+	writeJSON(w, http.StatusOK, map[string]any{
+		"id":          modelName,
+		"object":      "model",
+		"created":     1700000000,
+		"owned_by":    "google",
+		"description": m.Desc,
+		"permission": []map[string]any{
+			{
+				"id":                   "modelperm-" + modelName,
+				"object":               "model_permission",
+				"created":              1700000000,
+				"allow_create_engine":  false,
+				"allow_sampling":       true,
+				"allow_logprobs":       true,
+				"allow_search_indices": false,
+				"allow_view":           true,
+				"allow_fine_tuning":    false,
+				"organization":         "*",
+				"group":                nil,
+				"is_blocking":          false,
+			},
+		},
+	})
+}
+
 func (a *App) handleGoogleModels(w http.ResponseWriter, r *http.Request) {
 	var modelList []map[string]any
 	for name, m := range models.MODELS {

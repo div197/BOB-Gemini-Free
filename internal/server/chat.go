@@ -57,12 +57,15 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		var totalDeltaChars int
 		emitErr := a.Gem.GenerateStream(prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+			totalDeltaChars += len(delta)
 			chunk := models.OpenAIChatResponse{
-				ID:      cid,
-				Object:  "chat.completion.chunk",
-				Created: time.Now().Unix(),
-				Model:   resolved.Name,
+				ID:                cid,
+				Object:            "chat.completion.chunk",
+				Created:           time.Now().Unix(),
+				Model:             resolved.Name,
+				SystemFingerprint: "fp_bob_gemini",
 				Choices: []models.OpenAIChoice{
 					{
 						Index: 0,
@@ -79,10 +82,11 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		if emitErr == nil {
 			stopReason := "stop"
 			endChunk := models.OpenAIChatResponse{
-				ID:      cid,
-				Object:  "chat.completion.chunk",
-				Created: time.Now().Unix(),
-				Model:   resolved.Name,
+				ID:                cid,
+				Object:            "chat.completion.chunk",
+				Created:           time.Now().Unix(),
+				Model:             resolved.Name,
+				SystemFingerprint: "fp_bob_gemini",
 				Choices: []models.OpenAIChoice{
 					{
 						Index:        0,
@@ -92,6 +96,26 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 				},
 			}
 			_ = writeSSEData(w, endChunk)
+
+			if req.StreamOptions != nil && req.StreamOptions.IncludeUsage {
+				pTokens := len(prompt) / 4
+				cTokens := totalDeltaChars / 4
+				usageChunk := models.OpenAIChatResponse{
+					ID:                cid,
+					Object:            "chat.completion.chunk",
+					Created:           time.Now().Unix(),
+					Model:             resolved.Name,
+					SystemFingerprint: "fp_bob_gemini",
+					Choices:           []models.OpenAIChoice{},
+					Usage: &models.OpenAIUsage{
+						PromptTokens:     pTokens,
+						CompletionTokens: cTokens,
+						TotalTokens:      pTokens + cTokens,
+					},
+				}
+				_ = writeSSEData(w, usageChunk)
+			}
+
 			_ = writeSSEDone(w)
 		} else {
 			a.Logf("Chat stream error: %v", emitErr)
@@ -133,15 +157,35 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		finish = "tool_calls"
 	}
 
+	promptTokens := len(prompt) / 4
+	completionTokens := len(text) / 4
+	var reasoningTokens int
+	if thinking != "" {
+		reasoningTokens = len(thinking) / 4
+		completionTokens += reasoningTokens
+	}
+
+	usage := &models.OpenAIUsage{
+		PromptTokens:     promptTokens,
+		CompletionTokens: completionTokens,
+		TotalTokens:      promptTokens + completionTokens,
+	}
+	if reasoningTokens > 0 {
+		usage.CompletionTokensDetails = &models.CompletionTokensDetails{
+			ReasoningTokens: reasoningTokens,
+		}
+	}
+
 	if req.Stream {
 		if !startSSE(w) {
 			return
 		}
 		chunk := models.OpenAIChatResponse{
-			ID:      cid,
-			Object:  "chat.completion.chunk",
-			Created: time.Now().Unix(),
-			Model:   resolved.Name,
+			ID:                cid,
+			Object:            "chat.completion.chunk",
+			Created:           time.Now().Unix(),
+			Model:             resolved.Name,
+			SystemFingerprint: "fp_bob_gemini",
 			Choices: []models.OpenAIChoice{
 				{
 					Index:        0,
@@ -151,15 +195,28 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			},
 		}
 		_ = writeSSEData(w, chunk)
+
+		if req.StreamOptions != nil && req.StreamOptions.IncludeUsage {
+			usageChunk := models.OpenAIChatResponse{
+				ID:                cid,
+				Object:            "chat.completion.chunk",
+				Created:           time.Now().Unix(),
+				Model:             resolved.Name,
+				SystemFingerprint: "fp_bob_gemini",
+				Choices:           []models.OpenAIChoice{},
+				Usage:             usage,
+			}
+			_ = writeSSEData(w, usageChunk)
+		}
+
 		_ = writeSSEDone(w)
 	} else {
-		promptTokens := len(prompt) / 4
-		completionTokens := len(text) / 4
 		resp := models.OpenAIChatResponse{
-			ID:      cid,
-			Object:  "chat.completion",
-			Created: time.Now().Unix(),
-			Model:   resolved.Name,
+			ID:                cid,
+			Object:            "chat.completion",
+			Created:           time.Now().Unix(),
+			Model:             resolved.Name,
+			SystemFingerprint: "fp_bob_gemini",
 			Choices: []models.OpenAIChoice{
 				{
 					Index:        0,
@@ -167,11 +224,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 					FinishReason: &finish,
 				},
 			},
-			Usage: &models.OpenAIUsage{
-				PromptTokens:     promptTokens,
-				CompletionTokens: completionTokens,
-				TotalTokens:      promptTokens + completionTokens,
-			},
+			Usage: usage,
 		}
 		writeJSON(w, http.StatusOK, resp)
 	}

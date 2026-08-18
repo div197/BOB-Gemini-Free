@@ -154,3 +154,33 @@ func TestHealthAuthCheck(t *testing.T) {
 		t.Errorf("Expected 200 on health check with valid API key, got %d", rec2.Code)
 	}
 }
+
+func TestSingleModelEndpoint(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	// 1. Valid model -> 200
+	req1 := httptest.NewRequest("GET", "/v1/models/gemini-3.7-flash", nil)
+	rec1 := httptest.NewRecorder()
+	handler.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusOK {
+		t.Fatalf("Expected 200 for valid model, got %d", rec1.Code)
+	}
+
+	var res map[string]any
+	if err := json.Unmarshal(rec1.Body.Bytes(), &res); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+	if res["id"] != "gemini-3.7-flash" || res["object"] != "model" {
+		t.Errorf("Unexpected model payload: %v", res)
+	}
+
+	// 2. Unknown model -> 404
+	req2 := httptest.NewRequest("GET", "/v1/models/non-existent-model", nil)
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusNotFound {
+		t.Errorf("Expected 404 for unknown model, got %d", rec2.Code)
+	}
+}

@@ -1,11 +1,20 @@
 package models
 
 type OpenAIChatRequest struct {
-	Model      string          `json:"model"`
-	Messages   []OpenAIMessage `json:"messages"`
-	Tools      []OpenAITool    `json:"tools"`
-	ToolChoice any             `json:"tool_choice"`
-	Stream     bool            `json:"stream"`
+	Model         string               `json:"model"`
+	Messages      []OpenAIMessage      `json:"messages"`
+	Tools         []OpenAITool         `json:"tools,omitempty"`
+	ToolChoice    any                  `json:"tool_choice,omitempty"`
+	Stream        bool                 `json:"stream,omitempty"`
+	StreamOptions *OpenAIStreamOptions `json:"stream_options,omitempty"`
+	Temperature   *float64             `json:"temperature,omitempty"`
+	TopP          *float64             `json:"top_p,omitempty"`
+	MaxTokens     *int                 `json:"max_tokens,omitempty"`
+	User          string               `json:"user,omitempty"`
+}
+
+type OpenAIStreamOptions struct {
+	IncludeUsage bool `json:"include_usage,omitempty"`
 }
 
 type OpenAIMessage struct {
@@ -13,6 +22,7 @@ type OpenAIMessage struct {
 	Content          any              `json:"content"`
 	ReasoningContent string           `json:"reasoning_content,omitempty"`
 	Name             string           `json:"name,omitempty"`
+	ToolCallID       string           `json:"tool_call_id,omitempty"`
 	ToolCalls        []OpenAIToolCall `json:"tool_calls,omitempty"`
 }
 
@@ -44,12 +54,13 @@ type OpenAIToolCallFunction struct {
 }
 
 type OpenAIChatResponse struct {
-	ID      string         `json:"id"`
-	Object  string         `json:"object"`
-	Created int64          `json:"created"`
-	Model   string         `json:"model"`
-	Choices []OpenAIChoice `json:"choices"`
-	Usage   *OpenAIUsage   `json:"usage,omitempty"`
+	ID                string         `json:"id"`
+	Object            string         `json:"object"`
+	Created           int64          `json:"created"`
+	Model             string         `json:"model"`
+	SystemFingerprint string         `json:"system_fingerprint,omitempty"`
+	Choices           []OpenAIChoice `json:"choices"`
+	Usage             *OpenAIUsage   `json:"usage,omitempty"`
 }
 
 type OpenAIChoice struct {
@@ -60,7 +71,17 @@ type OpenAIChoice struct {
 }
 
 type OpenAIUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
+	PromptTokens            int                      `json:"prompt_tokens"`
+	CompletionTokens        int                      `json:"completion_tokens"`
+	TotalTokens             int                      `json:"total_tokens"`
+	PromptTokensDetails     *PromptTokensDetails     `json:"prompt_tokens_details,omitempty"`
+	CompletionTokensDetails *CompletionTokensDetails `json:"completion_tokens_details,omitempty"`
+}
+
+type PromptTokensDetails struct {
+	CachedTokens int `json:"cached_tokens"`
+}
+
+type CompletionTokensDetails struct {
+	ReasoningTokens int `json:"reasoning_tokens"`
 }
