@@ -89,6 +89,9 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
+	a.RequestsServed.Add(1)
+	a.TokensProcessed.Add(1000)
+
 	resp := models.OpenAIImageGenerationResponse{
 		Created: time.Now().Unix(),
 		Data:    imageObjects,

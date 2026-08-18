@@ -83,7 +83,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	msgID := fmt.Sprintf("msg_%s", format.RandHex(24))
-	promptTokens := len(prompt) / 4
+	promptTokens := format.EstimateTokens(prompt)
 	a.RequestsServed.Add(1)
 
 	if req.Stream {
@@ -207,7 +207,10 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	contentBlocks := format.ConvertToolCallsAndThinkingToAnthropicBlocks(thinking, text, toolCalls)
-	outputTokens := len(text) / 4
+	outputTokens := format.EstimateTokens(text)
+	if thinking != "" {
+		outputTokens += format.EstimateTokens(thinking)
+	}
 	if outputTokens == 0 {
 		outputTokens = 1
 	}

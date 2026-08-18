@@ -60,6 +60,20 @@ func TestCompressImageBytesIfNeeded(t *testing.T) {
 	}
 }
 
+func TestCompressImageBytesGIF(t *testing.T) {
+	gifImg := createTestImage(80, 80)
+	outBytes, mime, err := CompressImageBytesIfNeeded(gifImg, "image/gif", 50)
+	if err != nil {
+		t.Fatalf("Failed to compress GIF image: %v", err)
+	}
+	if mime != "image/jpeg" {
+		t.Errorf("Expected mime image/jpeg for re-encoded GIF, got %s", mime)
+	}
+	if len(outBytes) == 0 {
+		t.Errorf("Expected non-empty output bytes")
+	}
+}
+
 func TestCompressIfNeededBase64(t *testing.T) {
 	largeImg := createTestImage(2000, 1500)
 	b64 := base64.StdEncoding.EncodeToString(largeImg)

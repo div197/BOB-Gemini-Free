@@ -5,11 +5,13 @@ import (
 	"encoding/base64"
 	"fmt"
 	"image"
+	_ "image/gif"
 	"image/jpeg"
 	_ "image/png"
 	"math"
 
 	"golang.org/x/image/draw"
+	_ "golang.org/x/image/webp"
 )
 
 const (

@@ -92,11 +92,8 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if emitErr == nil {
-			pTokens := len(prompt) / 4
+			pTokens := format.EstimateTokens(prompt)
 			cTokens := totalDeltaChars / 4
-			if pTokens == 0 {
-				pTokens = 1
-			}
 			if cTokens == 0 {
 				cTokens = 1
 			}
@@ -177,11 +174,11 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		finish = "tool_calls"
 	}
 
-	promptTokens := len(prompt) / 4
-	completionTokens := len(text) / 4
+	promptTokens := format.EstimateTokens(prompt)
+	completionTokens := format.EstimateTokens(text)
 	var reasoningTokens int
 	if thinking != "" {
-		reasoningTokens = len(thinking) / 4
+		reasoningTokens = format.EstimateTokens(thinking)
 		completionTokens += reasoningTokens
 	}
 
