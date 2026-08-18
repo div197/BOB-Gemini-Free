@@ -189,3 +189,34 @@ func TestClaudeCodeAnthropicWorkflow(t *testing.T) {
 		t.Errorf("Unexpected status on Claude Code Anthropic endpoint: %d", rec.Code)
 	}
 }
+
+func TestImageGenerationsWorkflow(t *testing.T) {
+	cfg := config.Default()
+	app := server.New(cfg, "v0.1.0")
+	handler := app.Handler()
+
+	imgReq := models.OpenAIImageGenerationRequest{
+		Prompt:         "a futuristic glowing neon logo for BOB Gemini Free",
+		Model:          "dall-e-3",
+		N:              1,
+		ResponseFormat: "url",
+	}
+
+	bodyBytes, _ := json.Marshal(imgReq)
+	req := httptest.NewRequest("POST", "/v1/images/generations", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+	if rec.Code == http.StatusOK {
+		var res models.OpenAIImageGenerationResponse
+		if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+			t.Fatalf("Failed to parse image generation response: %v", err)
+		}
+		if len(res.Data) == 0 {
+			t.Errorf("Expected at least one image in data array")
+		}
+	} else if rec.Code != http.StatusBadGateway {
+		t.Errorf("Unexpected status on Image Generations endpoint: %d", rec.Code)
+	}
+}

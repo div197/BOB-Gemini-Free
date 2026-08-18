@@ -212,6 +212,25 @@ export OPENAI_API_KEY=none
 codex
 ```
 
+### OpenAI इमेज जेनरेशन (`POST /v1/images/generations`)
+
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://127.0.0.1:8081/v1",
+    api_key="none"
+)
+
+response = client.images.generate(
+    model="dall-e-3",
+    prompt="A futuristic neon cybernetic logo for BOB Gemini Free, digital art, 8k",
+    size="1024x1024",
+    n=1
+)
+print("Generated Image URL:", response.data[0].url)
+```
+
 ---
 
 ## विस्तृत आर्किटेक्चर तुलना: Google AI Studio बनाम BOB Gemini Free

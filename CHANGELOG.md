@@ -39,6 +39,7 @@ Part of the **BOB Series** (*Break Ordinary Boundaries*) by [**ABCsteps.com**](h
 - **Throughput & Concurrency Benchmark Runner**: Integrated `--bench` flag and `scripts/bench.sh` runner measuring requests/sec, tokens/sec, and P50/P90 latencies.
 - **Background Daemon & OS Service Units**: Included Linux Systemd unit (`scripts/bob-gemini-free.service`), macOS Launchd plist (`scripts/com.abcsteps.bob-gemini-free.plist`), and Windows batch runner (`scripts/start-service.bat`).
 - **Native Anthropic Messages API Engine (`/v1/messages`)**: Direct drop-in support for **Claude Code CLI** (`ANTHROPIC_BASE_URL=http://127.0.0.1:8081`) and Anthropic SDKs with complete SSE event streaming (`message_start`, `content_block_delta`, `message_delta`, `message_stop`).
+- **OpenAI Image Generation Engine (`/v1/images/generations`)**: Native support for DALL-E / Imagen image generation requests with automatic markdown image URL extraction and base64 encoding.
 - **Responses API `output_text` Field**: Top-level field added to Responses API output objects for direct property access across official JavaScript/Python SDKs.
 - **OpenAI Observability & Rate Limit Headers**: Automatic response injection of `x-request-id`, `openai-processing-ms`, `openai-version`, and `x-ratelimit-*` headers.
 - **Frontier & Codex Model Alias Catalog**: Complete transparent mapping for `gpt-5.6`, `gpt-5.5`, `gpt-5.4`, `gpt-5-codex`, `claude-3-7-sonnet`, `claude-code`, `o3`, `o4-mini`, and `o1`.

@@ -253,4 +253,20 @@ func TestBadRequestHandling(t *testing.T) {
 	if rec5.Code != http.StatusBadRequest {
 		t.Errorf("Expected 400 for invalid JSON in Anthropic messages, got %d", rec5.Code)
 	}
+
+	// 6. Invalid JSON in Image Generations -> 400
+	req6 := httptest.NewRequest("POST", "/v1/images/generations", strings.NewReader("invalid-json"))
+	rec6 := httptest.NewRecorder()
+	handler.ServeHTTP(rec6, req6)
+	if rec6.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON in image generations, got %d", rec6.Code)
+	}
+
+	// 7. Empty prompt in Image Generations -> 400
+	req7 := httptest.NewRequest("POST", "/v1/images/generations", strings.NewReader(`{"prompt":""}`))
+	rec7 := httptest.NewRecorder()
+	handler.ServeHTTP(rec7, req7)
+	if rec7.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for empty prompt in image generations, got %d", rec7.Code)
+	}
 }

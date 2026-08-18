@@ -92,3 +92,25 @@ type PromptTokensDetails struct {
 type CompletionTokensDetails struct {
 	ReasoningTokens int `json:"reasoning_tokens"`
 }
+
+type OpenAIImageGenerationRequest struct {
+	Prompt         string `json:"prompt"`
+	Model          string `json:"model,omitempty"`
+	N              int    `json:"n,omitempty"`
+	Quality        string `json:"quality,omitempty"`
+	ResponseFormat string `json:"response_format,omitempty"` // "url" or "b64_json"
+	Size           string `json:"size,omitempty"`
+	Style          string `json:"style,omitempty"`
+	User           string `json:"user,omitempty"`
+}
+
+type OpenAIImageObject struct {
+	URL           string `json:"url,omitempty"`
+	B64JSON       string `json:"b64_json,omitempty"`
+	RevisedPrompt string `json:"revised_prompt,omitempty"`
+}
+
+type OpenAIImageGenerationResponse struct {
+	Created int64               `json:"created"`
+	Data    []OpenAIImageObject `json:"data"`
+}
