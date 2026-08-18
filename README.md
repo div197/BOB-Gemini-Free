@@ -448,49 +448,53 @@ BOB Gemini Free bridges modern developer clients directly to Google Gemini's web
 
 ## Unlocking Pro: Gemini Advanced ($20/mo) Cookies
 
-Anonymous and standard free accounts have full access to Flash, Thinking, and Lite models. If you have an active **Google AI / Gemini Advanced** subscription, configure your session cookie to activate authentic **Pro** model routing:
+Anonymous and standard free accounts have immediate access to Flash, Thinking, and Lite models out of the box with zero cookies.
 
-### Automated Setup Helper (Recommended)
+If you have an active **Google AI / Gemini Advanced ($20/mo)** subscription or want to unlock **Imagen 3 Image Generation**, configure your session cookie to activate authentic **Pro** model routing:
 
-Run the built-in automated helper and paste your cookie string:
+### Step 1: Extract Your Cookie in 15 Seconds
+
+1. Open **Google Chrome**, **Edge**, or **Brave** and visit [**gemini.google.com**](https://gemini.google.com). Make sure you are signed in.
+2. Press **`F12`** (or **`Cmd + Option + I`** on macOS) to open Developer Tools.
+3. Click on the **Network** tab at the top.
+4. Send any short message in Gemini (e.g. *"hello"*).
+5. In the Network filter search box, type **`batchexecute`** (or click the first request in the list).
+6. Under the **Headers** tab, scroll down to **Request Headers**.
+7. Locate the **`Cookie:`** line, right-click on the value, and select **Copy Value**.
+
+---
+
+### Step 2: Configure BOB Gemini Free (3 Simple Methods)
+
+#### Method A: Interactive Automated Setup Helper (Easiest)
+
+Run the built-in setup command and paste the copied cookie string when prompted:
 
 ```bash
 ./bob-gemini-free --setup-cookie
 ```
 
-Or pass it directly on the command line:
-
-```bash
-./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
-```
-
 The setup helper automatically:
 * Extracts and verifies all essential session tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`).
 * Validates `SAPISID` for dynamic `SAPISIDHASH` generation.
-* Saves the cookie file to `~/.config/bob-gemini-free/cookie.txt` with POSIX `0600` permissions.
-* Activates Pro routing (`gemini-3.1-pro` / `gemini-pro`).
+* Saves the cookie file to `~/.config/bob-gemini-free/cookie.txt` with secure POSIX `0600` permissions.
+* Activates Pro routing (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3 generation.
 
-### Manual Setup
+#### Method B: Zero-Config Local `cookie.txt`
 
-1. Open Chrome, go to [gemini.google.com](https://gemini.google.com) and sign in with your subscribed Google account.
-2. Open DevTools (`F12`) → **Application** → **Cookies** → `https://gemini.google.com`.
-3. Copy your cookie values: `SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`.
-4. Create a secure local cookie file (`~/.config/bob-gemini-free/cookie.txt`):
-
-```text
-SID=your_sid; HSID=your_hsid; SSID=your_ssid; APISID=your_apisid; SAPISID=your_sapisid; __Secure-1PSID=your_1psid
-```
-
-5. Set restrictive POSIX permissions so only your OS user can read it:
+Simply paste your cookie string into a file named `cookie.txt` in the same directory as the executable:
 
 ```bash
-chmod 600 ~/.config/bob-gemini-free/cookie.txt
+echo "YOUR_PASTED_COOKIE_STRING" > cookie.txt
+chmod 600 cookie.txt
+./bob-gemini-free
 ```
+*(BOB Gemini Free will automatically detect and load `./cookie.txt` on startup without any flags).*
 
-6. Start the server with the cookie flag:
+#### Method C: Direct Command-Line Flag
 
 ```bash
-./bob-gemini-free --cookie-file ~/.config/bob-gemini-free/cookie.txt
+./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
 ```
 
 ---

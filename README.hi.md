@@ -393,40 +393,53 @@ export OPENAI_API_KEY=none
 
 ---
 
-## Pro मॉडल के लिए कुकी (Gemini Advanced)
+## Pro मॉडल व Imagen इमेज जेनरेशन के लिए कुकी सेटअप (Gemini Advanced)
 
-मुफ़्त जीमेल अकाउंट्स में Flash और Thinking मॉडल पहले से सक्रिय हैं। यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है, तो **Pro** मॉडल को सक्रिय करने के लिए कुकी सेट करें:
+मुफ़्त जीमेल अकाउंट्स में Flash और Thinking मॉडल बिना किसी कुकी के सीधे काम करते हैं। यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है या आप **Imagen 3 इमेज जेनरेशन** को सक्रिय करना चाहते हैं, तो अपना सेशन कुकी जोड़ें:
 
-### ऑटोमैटेड कुकी सेटअप (अनुशंसित)
+### चरण 1: 15 सेकंड में अपनी कुकी प्राप्त करें
 
-स्वचालित हेल्पर कमांड चलाएँ और अपनी कुकी पेस्ट करें:
+1. **Google Chrome**, **Edge**, या **Brave** में [**gemini.google.com**](https://gemini.google.com) खोलें (साइन इन रहें)।
+2. **`F12`** (या macOS पर **`Cmd + Option + I`**) दबाकर Developer Tools खोलें।
+3. ऊपर **Network** टैब पर क्लिक करें।
+4. जेमिनी में कोई भी छोटा मैसेज भेजें (उदा. *"hello"* )।
+5. Network फ़िल्टर बॉक्स में **`batchexecute`** टाइप करें (या लिस्ट में पहली रिक्वेस्ट पर क्लिक करें)।
+6. **Headers** टैब में नीचे **Request Headers** तक स्क्रॉल करें।
+7. **`Cookie:`** लाइन पर राइट-क्लिक करके **Copy Value** चुनें।
+
+---
+
+### चरण 2: BOB Gemini Free में कुकी सेट करें (3 आसान तरीके)
+
+#### विधि A: ऑटोमैटेड कुकी सेटअप (सबसे आसान)
+
+स्वचालित हेल्पर कमांड चलाएँ और कॉपी की गई कुकी स्ट्रिंग पेस्ट करें:
 
 ```bash
 ./bob-gemini-free --setup-cookie
 ```
 
-या सीधे कमांड लाइन पर भेजें:
+यह टूल ऑटोमैटिक रूप से:
+* आवश्यक टोकन्स (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`) को सत्यापित करता है।
+* `~/.config/bob-gemini-free/cookie.txt` में सुरक्षित रूप से सेव करता है (`chmod 600`)।
+* **Gemini Pro 3.1** और **Imagen 3 इमेज जेनरेशन** को तुरंत सक्रिय कर देता है।
+
+#### विधि B: जीरो-कॉन्फ़िग लोकल `cookie.txt`
+
+सीधे उसी फ़ोल्डर में `cookie.txt` नाम से फ़ाइल बनाकर अपनी कुकी पेस्ट कर दें:
+
+```bash
+echo "YOUR_PASTED_COOKIE_STRING" > cookie.txt
+chmod 600 cookie.txt
+./bob-gemini-free
+```
+*(BOB Gemini Free बिना किसी फ़्लैग के चालू होते ही `./cookie.txt` को ऑटोमैटिक लोड कर लेगा)।*
+
+#### विधि C: सीधे कमांड-लाइन फ़्लैग
 
 ```bash
 ./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
 ```
-
-यह टूल ऑटोमैटिक रूप से:
-* आवश्यक टोकन्स (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`) को सत्यापित करता है।
-* `~/.config/bob-gemini-free/cookie.txt` में सुरक्षित रूप से सेव करता है (`chmod 600`)।
-* **Gemini Pro** मॉडल रूटिंग को तुरंत सक्रिय कर देता है।
-
-### मैन्युअल सेटअप
-
-1. क्रोम ब्राउज़र में [gemini.google.com](https://gemini.google.com) खोलें और अपने सब्सक्राइब्ड अकाउंट से लॉगिन करें।
-2. डेवलपर टूल्स (`F12`) → **Application** → **Cookies** में जाएँ।
-3. अपनी कुकीज़ कॉपी करें: `SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`।
-4. `~/.config/bob-gemini-free/cookie.txt` में सेव करें:
-   ```text
-   SID=your_sid; HSID=your_hsid; SSID=your_ssid; APISID=your_apisid; SAPISID=your_sapisid; __Secure-1PSID=your_1psid
-   ```
-5. फ़ाइल पर सुरक्षित परमिशन लगाएँ: `chmod 600 ~/.config/bob-gemini-free/cookie.txt`।
-6. सर्वर चालू करें: `./bob-gemini-free --cookie-file ~/.config/bob-gemini-free/cookie.txt`।
 
 ---
 
