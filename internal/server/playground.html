@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Autonomous Niṣkāma Operational Precision & Meticulous Frontend Alignment
+  Autonomous Niṣkāma Operational Precision & 2026-Era Glassmorphic Modal Engine
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -994,9 +994,160 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
+
+/* 2026-Era Glassmorphic Confirmation Modal */
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 120;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.dialog-backdrop.open { display: flex; animation: fadeIn 0.15s ease-out; }
+.dialog-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  width: 440px;
+  max-width: 92vw;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: scaleIn 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
+}
+.dialog-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dialog-icon-orb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: rgba(217, 30, 38, 0.15);
+  color: #ef4444;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+}
+.dialog-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+.dialog-desc {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+.dialog-btn-cancel {
+  background: var(--bg-app);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0 16px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+.dialog-btn-cancel:hover { border-color: var(--text-muted); }
+.dialog-btn-danger {
+  background: #d91e26;
+  color: #ffffff;
+  border: none;
+  padding: 0 18px;
+  height: 36px;
+  border-radius: var(--radius-pill);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(217, 30, 38, 0.35);
+}
+.dialog-btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
+
+/* Floating Glass Toast Notification Stack */
+.toast-stack {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 150;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.toast-pill {
+  background: var(--bg-card);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  animation: toastIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.toast-pill.fade-out {
+  opacity: 0;
+  transform: translateY(-8px) scale(0.92);
+}
 </style>
 </head>
 <body>
+
+<!-- Floating Toast Container -->
+<div class="toast-stack" id="toast-stack"></div>
+
+<!-- 2026 Confirmation Modal -->
+<div class="dialog-backdrop" id="confirm-modal" onclick="if(event.target===this) closeConfirmModal()">
+  <div class="dialog-box">
+    <div class="dialog-header">
+      <div class="dialog-icon-orb" id="dialog-icon">🗑️</div>
+      <div class="dialog-title" id="dialog-title">Clear Conversation?</div>
+    </div>
+    <div class="dialog-desc" id="dialog-desc">
+      Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.
+    </div>
+    <div class="dialog-actions">
+      <button class="dialog-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+      <button class="dialog-btn-danger" id="dialog-confirm-btn" onclick="executeConfirmAction()">Clear History</button>
+    </div>
+  </div>
+</div>
 
 <!-- Command Palette Modal -->
 <div class="cmd-modal-backdrop" id="cmd-modal" onclick="if(event.target===this) toggleCmdPalette()">
@@ -1190,10 +1341,52 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 <script>
 let chatHistory = [];
 let userIsAtBottom = true;
+let pendingConfirmCallback = null;
 const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
 const PANEL_LEFT_KEY = "bob_gemini_panel_left";
 const PANEL_RIGHT_KEY = "bob_gemini_panel_right";
+
+/* Modern 2026 Toast System */
+function showToast(message, icon = "✦") {
+  const stack = document.getElementById("toast-stack");
+  const toast = document.createElement("div");
+  toast.className = "toast-pill";
+  toast.innerHTML = `<span style="color:var(--accent-primary);">${icon}</span><span>${escapeHtml(message)}</span>`;
+  stack.appendChild(toast);
+
+  setTimeout(() => {
+    toast.classList.add("fade-out");
+    setTimeout(() => toast.remove(), 250);
+  }, 2400);
+}
+
+/* Modern 2026 Confirm Modal */
+function openConfirmModal(opts) {
+  const modal = document.getElementById("confirm-modal");
+  document.getElementById("dialog-icon").innerText = opts.icon || "⚠️";
+  document.getElementById("dialog-title").innerText = opts.title || "Confirm Action";
+  document.getElementById("dialog-desc").innerText = opts.desc || "Are you sure you want to proceed?";
+  
+  const btn = document.getElementById("dialog-confirm-btn");
+  btn.innerText = opts.confirmText || "Confirm";
+  
+  pendingConfirmCallback = opts.onConfirm || null;
+  modal.classList.add("open");
+}
+
+function closeConfirmModal() {
+  const modal = document.getElementById("confirm-modal");
+  modal.classList.remove("open");
+  pendingConfirmCallback = null;
+}
+
+function executeConfirmAction() {
+  if (pendingConfirmCallback) {
+    pendingConfirmCallback();
+  }
+  closeConfirmModal();
+}
 
 function initPanels() {
   const leftOpen = localStorage.getItem(PANEL_LEFT_KEY) !== "false";
@@ -1262,6 +1455,7 @@ function selectModel(modelName) {
   updateSnippet();
   updateActiveModelBadge();
   toggleCmdPalette();
+  showToast("Selected model: " + modelName, "⚡");
 }
 
 function onKaTeXLoaded() {
@@ -1329,6 +1523,11 @@ function handleKeyDown(e) {
     return;
   }
   if (e.key === 'Escape') {
+    const confirmModal = document.getElementById("confirm-modal");
+    if (confirmModal.classList.contains("open")) {
+      closeConfirmModal();
+      return;
+    }
     const modal = document.getElementById("cmd-modal");
     if (modal.classList.contains("open")) {
       toggleCmdPalette();
@@ -1412,6 +1611,7 @@ updateActiveModelBadge();
 function copySnippet(id) {
   const text = document.getElementById(id).innerText;
   navigator.clipboard.writeText(text);
+  showToast("Code snippet copied to clipboard!", "📋");
 }
 
 function escapeHtml(str) {
@@ -1433,6 +1633,7 @@ function downloadCode(btn, lang) {
   a.download = `bob_code_${Date.now()}.${ext}`;
   a.click();
   URL.revokeObjectURL(url);
+  showToast(`Downloaded as bob_code.${ext}`, "💾");
 }
 
 function renderMarkdown(text) {
@@ -1525,6 +1726,7 @@ function copyCode(btn) {
   navigator.clipboard.writeText(code);
   const old = btn.innerText;
   btn.innerText = 'COPIED';
+  showToast("Code block copied to clipboard!", "📋");
   setTimeout(() => btn.innerText = old, 1500);
 }
 
@@ -1534,6 +1736,7 @@ function copyMessageText(btn) {
   navigator.clipboard.writeText(text);
   const old = btn.innerText;
   btn.innerText = 'COPIED';
+  showToast("Message copied to clipboard!", "📋");
   setTimeout(() => btn.innerText = old, 1500);
 }
 
@@ -1541,7 +1744,7 @@ function copyFullTranscript() {
   if (chatHistory.length === 0) return;
   const transcript = chatHistory.map(m => `### ${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}\n`).join('\n---\n\n');
   navigator.clipboard.writeText(transcript);
-  alert("Complete conversation copied to clipboard!");
+  showToast("Complete conversation copied to clipboard!", "📋");
 }
 
 function exportMarkdown() {
@@ -1554,14 +1757,22 @@ function exportMarkdown() {
   a.download = "bob-gemini-chat-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".md";
   a.click();
   URL.revokeObjectURL(url);
+  showToast("Exported conversation to Markdown file", "💾");
 }
 
 function clearChat() {
-  if (confirm("Clear current chat history?")) {
-    chatHistory = [];
-    localStorage.removeItem(STORAGE_KEY);
-    renderMessages();
-  }
+  openConfirmModal({
+    icon: "🗑️",
+    title: "Clear Conversation?",
+    desc: "Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.",
+    confirmText: "Clear History",
+    onConfirm: () => {
+      chatHistory = [];
+      localStorage.removeItem(STORAGE_KEY);
+      renderMessages();
+      showToast("Conversation cleared", "✨");
+    }
+  });
 }
 
 function saveHistory() {
