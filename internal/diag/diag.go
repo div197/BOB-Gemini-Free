@@ -264,5 +264,107 @@ func RunDiagnostics(baseURL, apiKey string) []TestResult {
 		return "response object generated", nil
 	})
 
+	// 10. Anthropic Messages Protocol
+	runTest("Anthropic Messages API Protocol (POST /v1/messages)", func() (string, error) {
+		payload := map[string]any{
+			"model": "claude-3-5-sonnet",
+			"messages": []map[string]string{
+				{"role": "user", "content": "Reply with 'Claude OK'."},
+			},
+			"max_tokens": 50,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", baseURL+"/v1/messages", bytes.NewReader(body))
+		setHeaders(req)
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+		}
+		var msgRes struct {
+			Role    string `json:"role"`
+			Content []struct {
+				Type string `json:"type"`
+				Text string `json:"text"`
+			} `json:"content"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&msgRes)
+		if len(msgRes.Content) == 0 {
+			return "", fmt.Errorf("no content blocks returned")
+		}
+		return strings.TrimSpace(msgRes.Content[0].Text), nil
+	})
+
+	// 11. OpenAI Tool / Function Calling
+	runTest("OpenAI Function Calling & Tool Invocation", func() (string, error) {
+		payload := map[string]any{
+			"model": "gemini-3.7-flash",
+			"messages": []map[string]string{
+				{"role": "user", "content": "What is the weather in Delhi? Call get_weather tool."},
+			},
+			"tools": []map[string]any{
+				{
+					"type": "function",
+					"function": map[string]any{
+						"name":        "get_weather",
+						"description": "Get current temperature for city",
+						"parameters": map[string]any{
+							"type": "object",
+							"properties": map[string]any{
+								"city": map[string]string{"type": "string"},
+							},
+							"required": []string{"city"},
+						},
+					},
+				},
+			},
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		setHeaders(req)
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+		}
+		return "tool call pipeline verified", nil
+	})
+
+	// 12. Image Generation & Gemini Nano Banana Pipeline
+	runTest("Image Generation & Gemini Nano Banana Pipeline", func() (string, error) {
+		payload := map[string]any{
+			"prompt": "A golden lotus flower blooming on calm water",
+			"model":  "gemini-nano-banana-2",
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", baseURL+"/v1/images/generations", bytes.NewReader(body))
+		setHeaders(req)
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+		}
+		var imgRes struct {
+			Data []map[string]any `json:"data"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&imgRes)
+		if len(imgRes.Data) == 0 {
+			return "", fmt.Errorf("no image data returned")
+		}
+		return "image generation pipeline verified", nil
+	})
+
 	return results
 }

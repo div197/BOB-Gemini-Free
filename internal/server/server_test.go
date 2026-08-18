@@ -270,3 +270,28 @@ func TestBadRequestHandling(t *testing.T) {
 		t.Errorf("Expected 400 for empty prompt in image generations, got %d", rec7.Code)
 	}
 }
+
+func TestObservabilityHeaders(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	req := httptest.NewRequest("GET", "/v1/models", nil)
+	req.Header.Set("X-Client-Request-Id", "custom-trace-123")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Header().Get("x-request-id") != "custom-trace-123" {
+		t.Errorf("Expected x-request-id custom-trace-123, got %s", rec.Header().Get("x-request-id"))
+	}
+	if rec.Header().Get("openai-version") != "2020-10-01" {
+		t.Errorf("Expected openai-version 2020-10-01, got %s", rec.Header().Get("openai-version"))
+	}
+	if rec.Header().Get("x-ratelimit-limit-requests") == "" {
+		t.Errorf("Missing x-ratelimit-limit-requests header")
+	}
+	if rec.Header().Get("openai-processing-ms") == "" {
+		t.Errorf("Missing openai-processing-ms header")
+	}
+}

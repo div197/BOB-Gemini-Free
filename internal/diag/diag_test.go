@@ -49,12 +49,30 @@ func TestDiagnosticsRunner(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(map[string]any{"status": "completed"})
 	})
 
+	mux.HandleFunc("POST /v1/messages", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"role": "assistant",
+			"content": []map[string]any{
+				{"type": "text", "text": "Claude OK"},
+			},
+		})
+	})
+
+	mux.HandleFunc("POST /v1/images/generations", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"created": 1700000000,
+			"data": []map[string]any{
+				{"url": "https://lh3.googleusercontent.com/test.png"},
+			},
+		})
+	})
+
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
 
 	results := RunDiagnostics(ts.URL, "test-key")
-	if len(results) != 9 {
-		t.Fatalf("expected 9 diagnostic test results, got %d", len(results))
+	if len(results) != 12 {
+		t.Fatalf("expected 12 diagnostic test results, got %d", len(results))
 	}
 
 	for _, res := range results {
