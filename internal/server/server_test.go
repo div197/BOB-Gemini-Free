@@ -33,6 +33,9 @@ func TestHealthEndpoint(t *testing.T) {
 	if body["status"] != "ok" || body["version"] != testVer {
 		t.Errorf("Unexpected health response: %v", body)
 	}
+	if _, ok := body["estimated_savings_usd"]; !ok {
+		t.Errorf("Expected estimated_savings_usd in health response")
+	}
 }
 
 func TestAuthMatrix(t *testing.T) {

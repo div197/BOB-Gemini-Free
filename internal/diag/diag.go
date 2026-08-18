@@ -366,5 +366,54 @@ func RunDiagnostics(baseURL, apiKey string) []TestResult {
 		return "image generation pipeline verified", nil
 	})
 
+	// 13. Token Counting Subsystem (Google :countTokens & OpenAI /v1/tokens/count)
+	runTest("Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count)", func() (string, error) {
+		// 1. Google Native :countTokens
+		gPayload := map[string]any{
+			"contents": []map[string]any{
+				{
+					"role": "user",
+					"parts": []map[string]string{
+						{"text": "Explain the architecture of Transformer neural networks."},
+					},
+				},
+			},
+		}
+		gBody, _ := json.Marshal(gPayload)
+		gReq, _ := http.NewRequest("POST", baseURL+"/v1beta/models/gemini-3.7-flash:countTokens", bytes.NewReader(gBody))
+		setHeaders(gReq)
+		gResp, err := client.Do(gReq)
+		if err != nil {
+			return "", err
+		}
+		defer gResp.Body.Close()
+		if gResp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(gResp.Body)
+			return "", fmt.Errorf("Google countTokens HTTP %d: %s", gResp.StatusCode, string(b))
+		}
+
+		// 2. OpenAI /v1/tokens/count
+		oPayload := map[string]any{
+			"model": "gemini-3.7-flash",
+			"messages": []map[string]string{
+				{"role": "user", "content": "Explain neural attention mechanisms."},
+			},
+		}
+		oBody, _ := json.Marshal(oPayload)
+		oReq, _ := http.NewRequest("POST", baseURL+"/v1/tokens/count", bytes.NewReader(oBody))
+		setHeaders(oReq)
+		oResp, err := client.Do(oReq)
+		if err != nil {
+			return "", err
+		}
+		defer oResp.Body.Close()
+		if oResp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(oResp.Body)
+			return "", fmt.Errorf("OpenAI tokens/count HTTP %d: %s", oResp.StatusCode, string(b))
+		}
+
+		return "token counting engine verified for Google and OpenAI protocols", nil
+	})
+
 	return results
 }

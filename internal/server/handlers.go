@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -20,10 +22,18 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 		modelNames = append(modelNames, k)
 	}
 
+	reqs := a.RequestsServed.Load()
+	tokens := a.TokensProcessed.Load()
+	savingsUSD := fmt.Sprintf("$%.2f", float64(tokens)/1_000_000.0*3.75)
+
 	writeJSON(w, http.StatusOK, map[string]any{
-		"status":  "ok",
-		"version": a.Version,
-		"models":  modelNames,
+		"status":                "ok",
+		"version":               a.Version,
+		"models":                modelNames,
+		"requests_served":       reqs,
+		"tokens_processed":      tokens,
+		"estimated_savings_usd": savingsUSD,
+		"uptime_seconds":        int(time.Since(a.StartTime).Seconds()),
 	})
 }
 

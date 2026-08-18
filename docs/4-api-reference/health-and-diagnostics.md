@@ -1,10 +1,10 @@
 # Health, Diagnostics & Concurrency Benchmarking
 
-BOB Gemini Free includes built-in automated test and diagnostic tooling to verify upstream connectivity, token parsing, and concurrency throughput.
+BOB Gemini Free includes built-in automated test and diagnostic tooling to verify upstream connectivity, token parsing, token counting, and concurrency throughput.
 
 ---
 
-## 1. Engine Health Endpoint (`GET /`)
+## 1. Engine Health & Live Telemetry Endpoint (`GET /`)
 
 ```bash
 curl http://127.0.0.1:8081/
@@ -13,6 +13,8 @@ curl http://127.0.0.1:8081/
 ### Response
 ```json
 {
+  "status": "ok",
+  "version": "v0.1.0",
   "models": [
     "gemini-3.7-flash",
     "gemini-3.7-flash-thinking",
@@ -20,16 +22,18 @@ curl http://127.0.0.1:8081/
     "gemini-nano-banana-2",
     "imagen-3"
   ],
-  "status": "ok",
-  "version": "v0.1.0"
+  "requests_served": 142,
+  "tokens_processed": 185420,
+  "estimated_savings_usd": "$0.70",
+  "uptime_seconds": 3600
 }
 ```
 
 ---
 
-## 2. Automated 12-Point Diagnostic Suite (`--test`)
+## 2. Automated 13-Point Diagnostic Suite (`--test`)
 
-Run the 12-point diagnostic test against any local or remote BOB gateway:
+Run the 13-point diagnostic test against any local or remote BOB gateway:
 
 ```bash
 ./bob-gemini-free --test --test-url http://127.0.0.1:8081
@@ -48,6 +52,7 @@ Run the 12-point diagnostic test against any local or remote BOB gateway:
 10. `Anthropic Messages API Protocol (POST /v1/messages)`
 11. `OpenAI Function Calling & Tool Invocation`
 12. `Image Generation & Gemini Nano Banana Pipeline`
+13. `Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count)`
 
 ---
 

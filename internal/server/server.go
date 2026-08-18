@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync/atomic"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
@@ -12,12 +13,15 @@ import (
 )
 
 type App struct {
-	Cfg        config.Config
-	Gem        *gemini.Client
-	Tokens     *multimodal.TokenCache
-	HTTPClient *http.Client
-	Logf       func(format string, args ...any)
-	Version    string
+	Cfg             config.Config
+	Gem             *gemini.Client
+	Tokens          *multimodal.TokenCache
+	HTTPClient      *http.Client
+	Logf            func(format string, args ...any)
+	Version         string
+	RequestsServed  atomic.Uint64
+	TokensProcessed atomic.Uint64
+	StartTime       time.Time
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {
@@ -53,6 +57,7 @@ func New(cfg config.Config, version string) *App {
 		HTTPClient: httpClient,
 		Logf:       logFn,
 		Version:    version,
+		StartTime:  time.Now(),
 	}
 
 	return app

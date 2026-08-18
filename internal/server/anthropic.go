@@ -84,6 +84,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 
 	msgID := fmt.Sprintf("msg_%s", format.RandHex(24))
 	promptTokens := len(prompt) / 4
+	a.RequestsServed.Add(1)
 
 	if req.Stream {
 		if !startSSE(w) {
@@ -168,6 +169,8 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 		_ = writeSSEEvent(w, "message_delta", evMsgDelta)
 
+		a.TokensProcessed.Add(uint64(promptTokens + outTokens))
+
 		// 5. message_stop event
 		_ = writeSSEEvent(w, "message_stop", map[string]any{
 			"type": "message_stop",
@@ -208,6 +211,8 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	if outputTokens == 0 {
 		outputTokens = 1
 	}
+
+	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
 
 	resp := models.AnthropicMessagesResponse{
 		ID:           msgID,

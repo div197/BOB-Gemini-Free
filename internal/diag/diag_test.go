@@ -67,12 +67,26 @@ func TestDiagnosticsRunner(t *testing.T) {
 		})
 	})
 
+	mux.HandleFunc("POST /v1beta/models/gemini-3.7-flash:countTokens", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"totalTokens": 12,
+		})
+	})
+
+	mux.HandleFunc("POST /v1/tokens/count", func(w http.ResponseWriter, r *http.Request) {
+		_ = json.NewEncoder(w).Encode(map[string]any{
+			"model":         "gemini-3.7-flash",
+			"prompt_tokens": 10,
+			"total_tokens":  10,
+		})
+	})
+
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
 
 	results := RunDiagnostics(ts.URL, "test-key")
-	if len(results) != 12 {
-		t.Fatalf("expected 12 diagnostic test results, got %d", len(results))
+	if len(results) != 13 {
+		t.Fatalf("expected 13 diagnostic test results, got %d", len(results))
 	}
 
 	for _, res := range results {

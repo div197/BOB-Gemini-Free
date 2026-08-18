@@ -59,6 +59,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	fileRefs := a.uploadImages(images)
 	cid := fmt.Sprintf("chatcmpl-%s", format.RandHex(12))
+	a.RequestsServed.Add(1)
 
 	strChoice, isStr := req.ToolChoice.(string)
 	isToolNone := isStr && strChoice == "none"
@@ -91,6 +92,16 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if emitErr == nil {
+			pTokens := len(prompt) / 4
+			cTokens := totalDeltaChars / 4
+			if pTokens == 0 {
+				pTokens = 1
+			}
+			if cTokens == 0 {
+				cTokens = 1
+			}
+			a.TokensProcessed.Add(uint64(pTokens + cTokens))
+
 			stopReason := "stop"
 			endChunk := models.OpenAIChatResponse{
 				ID:                cid,
@@ -109,8 +120,6 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			_ = writeSSEData(w, endChunk)
 
 			if req.StreamOptions != nil && req.StreamOptions.IncludeUsage {
-				pTokens := len(prompt) / 4
-				cTokens := totalDeltaChars / 4
 				usageChunk := models.OpenAIChatResponse{
 					ID:                cid,
 					Object:            "chat.completion.chunk",
@@ -186,6 +195,8 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			ReasoningTokens: reasoningTokens,
 		}
 	}
+
+	a.TokensProcessed.Add(uint64(usage.TotalTokens))
 
 	if req.Stream {
 		if !startSSE(w) {
