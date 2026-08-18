@@ -49,6 +49,8 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	if isCountTokens {
 		totalTokens := format.CountGoogleTokens(req)
+		a.RequestsServed.Add(1)
+		a.TokensProcessed.Add(uint64(totalTokens))
 		writeJSON(w, http.StatusOK, map[string]any{
 			"totalTokens": totalTokens,
 		})

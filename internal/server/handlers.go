@@ -125,6 +125,9 @@ func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
 	}
 
 	totalTokens := format.CountOpenAITokens(req)
+	a.RequestsServed.Add(1)
+	a.TokensProcessed.Add(uint64(totalTokens))
+
 	writeJSON(w, http.StatusOK, map[string]any{
 		"prompt_tokens": totalTokens,
 		"total_tokens":  totalTokens,
