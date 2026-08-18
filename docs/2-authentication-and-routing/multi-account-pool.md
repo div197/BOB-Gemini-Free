@@ -1,26 +1,57 @@
 # Multi-Account Cookie Pool & Auto-Rotation
 
-BOB Gemini Free includes an enterprise-grade **Multi-Account Cookie Pool Engine** (`CookiePool`) that provides high-throughput load balancing and transparent failover across multiple Google accounts.
+BOB Gemini Free includes an enterprise-grade **Multi-Account Cookie Pool Engine** (`CookiePool`) that provides high-throughput load balancing, dynamic failover, and automatic cooldown recovery across multiple Google accounts.
 
 ---
 
 ## 🌟 Why Use a Cookie Pool?
 
-1. **High Concurrency**: Distribute large batches of agent queries across multiple Google accounts.
-2. **Auto-Failover**: If an account hits a temporary rate limit (HTTP 429), BOB automatically puts that account on a 60-second cooldown and transparently retries on the next healthy account.
-3. **Zero Interruption**: The client's streaming response never breaks during failover.
+1. **High Concurrency**: Distribute hundreds of agent queries across multiple Google accounts without hitting individual account burst rate limits.
+2. **Transparent Failover (Zero Stream Drops)**: If an account encounters a burst rate-limit (HTTP 429) or session anomaly, BOB automatically backs off that account for 60 seconds and transparently retries on the next healthy account without interrupting the client connection.
+3. **Lock-Free Atomic Dispatch**: Uses atomic CPU instructions (`atomic.Uint64`) for ultra-low latency round-robin dispatching (<0.01ms overhead).
+
+---
+
+## 🔄 Lifecycle & State Flow
+
+```
+                     ┌─────────────────────────┐
+                     │ Incoming Client Request │
+                     └────────────┬────────────┘
+                                  │
+                                  ▼
+                     ┌─────────────────────────┐
+                     │ Atomic Lock-Free Select │
+                     │   (Next Healthy Acct)   │
+                     └────────────┬────────────┘
+                                  │
+                  ┌───────────────┴───────────────┐
+                  ▼                               ▼
+       ┌───────────────────────┐       ┌───────────────────────┐
+       │   Request Succeeded   │       │ Rate Limit (HTTP 429) │
+       │     (Return Stream)   │       │   or Session Anomaly  │
+       └───────────────────────┘       └──────────┬────────────┘
+                                                  │
+                                                  ▼
+                                       ┌───────────────────────┐
+                                       │ Mark 60s Backoff      │
+                                       │ Transparent Retry on  │
+                                       │ Next Healthy Account  │
+                                       └───────────────────────┘
+```
 
 ---
 
 ## 📁 Directory Setup (`cookies/`)
 
-Create a `cookies/` directory in your working folder and drop individual cookie files:
+Simply create a `cookies/` directory in your project folder and drop individual `.txt` cookie files:
 
 ```
 ./cookies/
 ├── primary_account.txt
 ├── secondary_account.txt
-└── team_backup.txt
+├── team_alpha.txt
+└── team_beta.txt
 ```
 
 BOB Gemini Free automatically scans `./cookies/*.txt` and `~/.config/bob-gemini-free/cookies/*.txt` on startup.
@@ -29,28 +60,34 @@ BOB Gemini Free automatically scans `./cookies/*.txt` and `~/.config/bob-gemini-
 
 ## ⚙️ Configuration Setup (`config.json`)
 
-You can also specify explicit paths or accounts in `config.json`:
+You can also specify explicit paths in `config.json`:
 
 ```json
 {
   "cookie_pool": [
     "./cookies/primary_account.txt",
     "./cookies/secondary_account.txt",
-    "/shared/team_cookie.txt"
+    "/shared/secrets/team_cookie.txt"
   ]
 }
 ```
 
-Or via environment variable:
+Or pass via environment variable:
+
 ```bash
-export BOB_GEMINI_FREE_COOKIE_POOL="./cookies/acc1.txt,./cookies/acc2.txt"
+export BOB_GEMINI_FREE_COOKIE_POOL="./cookies/acc1.txt,./cookies/acc2.txt,/shared/acc3.txt"
 ./bob-gemini-free
 ```
 
 ---
 
-## 🔄 Load Balancing Mechanics
+## 📊 Pool Telemetry & Logging
 
-- **Algorithm**: Thread-safe atomic round-robin (`cursor.Add(1) % total`).
-- **Health Tracking**: Accounts that trigger upstream transport or HTTP errors are placed on temporary cooldown.
-- **Auto-Recovery**: As cooldown expires or requests succeed, failure counters reset automatically.
+When accounts rotate or recover, BOB Gemini Free logs clean operational status:
+
+```text
+2026/08/18 14:06:16 [CookiePool] Loaded 3 active Google account sessions
+2026/08/18 14:06:25 [CookiePool] Session primary_account marked with failure (cooldown 60s)
+2026/08/18 14:06:25 [CookiePool] Transparently routing request to secondary_account...
+2026/08/18 14:07:25 [CookiePool] Session primary_account cooldown expired, restored to active pool
+```

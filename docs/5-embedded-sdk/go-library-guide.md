@@ -12,7 +12,7 @@ go get github.com/div197/bob-gemini-free
 
 ---
 
-## 🚀 Quick Example
+## 🚀 Quick Example (Standard `net/http`)
 
 ```go
 package main
@@ -60,3 +60,17 @@ func main() {
 | `WithProxy(proxyURL string)` | `string` | Outbound HTTP/SOCKS5 proxy |
 | `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile |
 | `WithLogRequests(enabled bool)` | `bool` | Enable request lifecycle logging |
+
+---
+
+## 🔒 Custom Context Cancellation & Timeouts
+
+The embedded handler respects standard Go `context.Context` cancellation:
+
+```go
+ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+defer cancel()
+
+req, _ := http.NewRequestWithContext(ctx, "POST", "/v1/chat/completions", body)
+handler.ServeHTTP(rec, req)
+```

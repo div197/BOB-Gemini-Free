@@ -52,7 +52,84 @@ Once started, the gateway listens at `http://127.0.0.1:8081`.
 
 ---
 
-## 🧪 Testing Your Installation
+## 💻 3-Protocol Verification in 10 Seconds
+
+### 1. OpenAI Standard (cURL)
+```bash
+curl http://127.0.0.1:8081/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gemini-3.7-flash",
+    "messages": [{"role": "user", "content": "Hello from OpenAI API!"}]
+  }'
+```
+
+### 2. Anthropic Messages (Claude Code CLI format)
+```bash
+curl http://127.0.0.1:8081/v1/messages \
+  -H "Content-Type: application/json" \
+  -H "anthropic-version: 2023-06-01" \
+  -d '{
+    "model": "claude-3-5-sonnet",
+    "messages": [{"role": "user", "content": "Hello from Claude!"}],
+    "max_tokens": 100
+  }'
+```
+
+### 3. Google Gemini Native v1beta
+```bash
+curl http://127.0.0.1:8081/v1beta/models/gemini-3.7-flash:generateContent \
+  -H "Content-Type: application/json" \
+  -d '{
+    "contents": [{"parts": [{"text": "Hello from Gemini API!"}]}]
+  }'
+```
+
+---
+
+## 🐍 Python & TypeScript SDK Examples
+
+### Python (`openai` SDK)
+```python
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="http://127.0.0.1:8081/v1",
+    api_key="none"
+)
+
+response = client.chat.completions.create(
+    model="gemini-3.7-flash",
+    messages=[{"role": "user", "content": "Explain quantum superposition in 2 sentences."}]
+)
+
+print(response.choices[0].message.content)
+```
+
+### TypeScript / Node.js (`openai` SDK)
+```typescript
+import OpenAI from "openai";
+
+const openai = new OpenAI({
+  baseURL: "http://127.0.0.1:8081/v1",
+  apiKey: "none",
+});
+
+async function main() {
+  const completion = await openai.chat.completions.create({
+    model: "gemini-3.7-flash-thinking",
+    messages: [{ role: "user", content: "Solve: 17 * 19" }],
+  });
+
+  console.log(completion.choices[0].message.content);
+}
+
+main();
+```
+
+---
+
+## 🧪 Testing & Diagnostics
 
 Run the built-in 12-point automated diagnostic suite:
 
