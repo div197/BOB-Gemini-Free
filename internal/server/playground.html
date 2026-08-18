@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  60FPS Smooth Rendering, Unobtrusive UX & High-Contrast Typography
+  60FPS Smooth Rendering, LaTeX Engine & Universal Harmonic Interaction
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -504,6 +504,12 @@ select:focus, textarea:focus {
   line-height: 1;
 }
 
+.story-header-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
 /* User Message Bubble */
 .user-row {
   display: flex;
@@ -564,6 +570,22 @@ select:focus, textarea:focus {
 @keyframes pulseOpacity {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
+}
+
+/* Streaming Blinking Cursor */
+.streaming-cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: var(--accent-primary);
+  vertical-align: middle;
+  margin-left: 4px;
+  border-radius: 1px;
+  animation: blink 0.9s infinite;
+}
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* Welcome Hero Grid */
@@ -708,7 +730,11 @@ select:focus, textarea:focus {
   background: var(--accent-primary-hover);
   transform: translateY(-1px);
 }
-.btn-pill-cta:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
+.btn-pill-cta.stop-mode {
+  background: #d91e26 !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(217, 30, 38, 0.35) !important;
+}
 
 /* Interactive Clickable Action Buttons in Input Footer */
 .input-footer {
@@ -1211,11 +1237,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <div class="cmd-palette">
     <div class="cmd-input-box">
       <span style="color:var(--accent-primary); font-size:1.1rem;">✦</span>
-      <input type="text" id="cmd-search" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)">
+      <input type="text" id="cmd-search" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)" onkeydown="handleCmdKeyDown(event)">
       <kbd>ESC</kbd>
     </div>
     <div class="cmd-list" id="cmd-items">
-      <div class="cmd-item" onclick="selectModel('gemini-3.7-flash')"><span>⚡ Select Model: gemini-3.7-flash</span><kbd>1</kbd></div>
+      <div class="cmd-item selected" onclick="selectModel('gemini-3.7-flash')"><span>⚡ Select Model: gemini-3.7-flash</span><kbd>1</kbd></div>
       <div class="cmd-item" onclick="selectModel('gemini-3.7-flash-thinking')"><span>🧠 Select Model: gemini-3.7-flash-thinking</span><kbd>2</kbd></div>
       <div class="cmd-item" onclick="selectModel('gemini-3.1-pro')"><span>👑 Select Model: gemini-3.1-pro</span><kbd>3</kbd></div>
       <div class="cmd-item" onclick="changeTheme('bob-builder'); toggleCmdPalette();"><span>🏗️ Theme: BOB Builder</span><kbd>T1</kbd></div>
@@ -1340,9 +1366,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <div class="studio-input-container">
         <div class="input-row">
           <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
-          <button class="btn-pill-cta" id="send-btn" onclick="sendMessage()">
-            <span>Send</span>
-            <span style="font-size:0.8rem;">➤</span>
+          <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
+            <span id="send-btn-label">Send</span>
+            <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
           </button>
         </div>
         <div class="input-footer">
@@ -1400,6 +1426,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 let chatHistory = [];
 let userIsAtBottom = true;
 let pendingConfirmCallback = null;
+let activeAbortController = null;
+let isGenerating = false;
 const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
 const PANEL_LEFT_KEY = "bob_gemini_panel_left";
@@ -1505,18 +1533,52 @@ function toggleCmdPalette() {
   const modal = document.getElementById("cmd-modal");
   modal.classList.toggle("open");
   if (modal.classList.contains("open")) {
-    document.getElementById("cmd-search").value = "";
+    const input = document.getElementById("cmd-search");
+    input.value = "";
     filterCmds("");
-    document.getElementById("cmd-search").focus();
+    input.focus();
   }
 }
 
 function filterCmds(query) {
   const q = query.toLowerCase();
-  document.querySelectorAll("#cmd-items .cmd-item").forEach(item => {
+  const items = document.querySelectorAll("#cmd-items .cmd-item");
+  let firstFound = false;
+  items.forEach(item => {
     const text = item.innerText.toLowerCase();
-    item.style.display = text.includes(q) ? "flex" : "none";
+    const matches = text.includes(q);
+    item.style.display = matches ? "flex" : "none";
+    item.classList.remove("selected");
+    if (matches && !firstFound) {
+      item.classList.add("selected");
+      firstFound = true;
+    }
   });
+}
+
+function handleCmdKeyDown(e) {
+  const items = Array.from(document.querySelectorAll("#cmd-items .cmd-item")).filter(it => it.style.display !== 'none');
+  let selIdx = items.findIndex(it => it.classList.contains("selected"));
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (selIdx >= 0 && selIdx < items.length - 1) {
+      items[selIdx].classList.remove("selected");
+      items[selIdx + 1].classList.add("selected");
+      items[selIdx + 1].scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (selIdx > 0) {
+      items[selIdx].classList.remove("selected");
+      items[selIdx - 1].classList.add("selected");
+      items[selIdx - 1].scrollIntoView({ block: 'nearest' });
+    }
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (selIdx >= 0) {
+      items[selIdx].click();
+    }
+  }
 }
 
 function selectModel(modelName) {
@@ -1541,6 +1603,10 @@ function renderAllMath(targetEl) {
         delimiters: [
           {left: '$$', right: '$$', display: true},
           {left: '\\[', right: '\\]', display: true},
+          {left: '\\begin{equation}', right: '\\end{equation}', display: true},
+          {left: '\\begin{align}', right: '\\end{align}', display: true},
+          {left: '\\begin{bmatrix}', right: '\\end{bmatrix}', display: true},
+          {left: '\\begin{pmatrix}', right: '\\end{pmatrix}', display: true},
           {left: '$', right: '$', display: false},
           {left: '\\(', right: '\\)', display: false}
         ],
@@ -1856,6 +1922,25 @@ function clearChat() {
   });
 }
 
+function retryLastMessage() {
+  if (chatHistory.length === 0 || isGenerating) return;
+  const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
+  if (!lastUserMsg) return;
+  
+  // Remove last assistant reply if present
+  if (chatHistory[chatHistory.length - 1].role === 'assistant') {
+    chatHistory.pop();
+  }
+  // Pop the user message as sendMessage will re-push it
+  chatHistory.pop();
+  saveHistory();
+  renderMessages();
+  
+  const inputEl = document.getElementById("user-input");
+  inputEl.value = lastUserMsg.content;
+  sendMessage();
+}
+
 function saveHistory() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
@@ -1951,7 +2036,10 @@ function renderMessages() {
           <span class="mini-orb">✦</span>
           <span>BOB AI RESPONSE</span>
         </div>
-        <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+        <div class="story-header-actions">
+          <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
+          <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+        </div>
       `;
       storyDiv.appendChild(header);
 
@@ -1981,16 +2069,35 @@ initTheme();
 initPanels();
 loadHistory();
 
+function handleSendOrStop() {
+  if (isGenerating && activeAbortController) {
+    activeAbortController.abort();
+    activeAbortController = null;
+    showToast("Generation stopped", "⏹️");
+    return;
+  }
+  sendMessage();
+}
+
 async function sendMessage() {
   const inputEl = document.getElementById("user-input");
   const text = inputEl.value.trim();
-  if (!text) return;
+  if (!text || isGenerating) return;
 
-  const btn = document.getElementById("send-btn");
+  isGenerating = true;
+  activeAbortController = new AbortController();
+
+  const sendBtn = document.getElementById("send-btn");
+  const sendLabel = document.getElementById("send-btn-label");
+  const sendIcon = document.getElementById("send-btn-icon");
+
+  sendBtn.classList.add("stop-mode");
+  sendLabel.innerText = "Stop";
+  sendIcon.innerText = "■";
+
   inputEl.value = "";
   inputEl.style.height = '44px';
   inputEl.disabled = true;
-  btn.disabled = true;
 
   const contentEl = document.getElementById("messages-content");
 
@@ -2019,7 +2126,10 @@ async function sendMessage() {
       <span class="mini-orb">✦</span>
       <span>BOB AI RESPONSE</span>
     </div>
-    <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+    <div class="story-header-actions">
+      <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
+      <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+    </div>
   `;
   storyDiv.appendChild(header);
 
@@ -2057,6 +2167,7 @@ async function sendMessage() {
   let asstFullText = "";
   let thoughtFullText = "";
   let renderRafPending = false;
+  let lastMathRenderTime = 0;
 
   function scheduleSmoothRender() {
     if (renderRafPending) return;
@@ -2068,8 +2179,17 @@ async function sendMessage() {
         thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
       }
       if (asstFullText) {
-        contentSpan.innerHTML = renderMarkdown(asstFullText);
+        contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
       }
+
+      // Progressive Live Math & Syntax Highlighting every 600ms
+      const now = Date.now();
+      if (now - lastMathRenderTime > 600) {
+        lastMathRenderTime = now;
+        renderAllMath(storyDiv);
+        highlightAllCode(storyDiv);
+      }
+
       if (userIsAtBottom) {
         msgListEl.scrollTop = msgListEl.scrollHeight;
       }
@@ -2084,7 +2204,8 @@ async function sendMessage() {
         model: model,
         stream: true,
         messages: reqMessages
-      })
+      }),
+      signal: activeAbortController.signal
     });
 
     if (!res.ok) {
@@ -2139,10 +2260,23 @@ async function sendMessage() {
     chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
     saveHistory();
   } catch(err) {
-    contentSpan.innerText = "Connection error: " + err.message;
+    if (err.name === 'AbortError') {
+      contentSpan.innerHTML = renderMarkdown(asstFullText);
+      renderAllMath(storyDiv);
+      highlightAllCode(storyDiv);
+      storyDiv.setAttribute('data-raw', asstFullText);
+      chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
+      saveHistory();
+    } else {
+      contentSpan.innerText = "Connection error: " + err.message;
+    }
   } finally {
+    isGenerating = false;
+    activeAbortController = null;
+    sendBtn.classList.remove("stop-mode");
+    sendLabel.innerText = "Send";
+    sendIcon.innerText = "➤";
     inputEl.disabled = false;
-    btn.disabled = false;
     inputEl.focus();
     refreshTelemetry();
   }
