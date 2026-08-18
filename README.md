@@ -579,6 +579,11 @@ ABCsteps provides a complete publicly readable foundation for AI engineers and d
 
 Learn more at [https://abcsteps.com/](https://abcsteps.com/).
 
+## Acknowledgements & Research Foundations
+
+- **Google Research**: For publishing the foundational Transformer architecture (*"Attention Is All You Need"*, Vaswani et al., 2017) and for providing generous public web access to state-of-the-art Gemini intelligence.
+- **Open-Source Community**: For the continuous advancements in open API tooling, agent frameworks, and cross-platform developer tools.
+
 ---
 
 ## License
