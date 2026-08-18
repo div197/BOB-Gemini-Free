@@ -395,50 +395,196 @@ export OPENAI_API_KEY=none
 
 ## Pro मॉडल व Imagen इमेज जेनरेशन के लिए कुकी सेटअप (Gemini Advanced)
 
-मुफ़्त जीमेल अकाउंट्स में Flash और Thinking मॉडल बिना किसी कुकी के सीधे काम करते हैं। यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है या आप **Imagen 3 इमेज जेनरेशन** को सक्रिय करना चाहते हैं, तो अपना सेशन कुकी जोड़ें:
+मुफ़्त जीमेल अकाउंट्स में Flash 3.7, Flash 3.6, Flash Thinking, और Flash Lite बिना किसी कुकी या कॉन्फ़िगरेशन के तुरंत काम करते हैं।
 
-### चरण 1: 15 सेकंड में अपनी कुकी प्राप्त करें
-
-1. **Google Chrome**, **Edge**, या **Brave** में [**gemini.google.com**](https://gemini.google.com) खोलें (साइन इन रहें)।
-2. **`F12`** (या macOS पर **`Cmd + Option + I`**) दबाकर Developer Tools खोलें।
-3. ऊपर **Network** टैब पर क्लिक करें।
-4. जेमिनी में कोई भी छोटा मैसेज भेजें (उदा. *"hello"* )।
-5. Network फ़िल्टर बॉक्स में **`batchexecute`** टाइप करें (या लिस्ट में पहली रिक्वेस्ट पर क्लिक करें)।
-6. **Headers** टैब में नीचे **Request Headers** तक स्क्रॉल करें।
-7. **`Cookie:`** लाइन पर राइट-क्लिक करके **Copy Value** चुनें।
+यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है (या Jio 18 महीने / कॉलेज ऑफ़र है) या आप **Imagen 3 इमेज जेनरेशन** को सक्रिय करना चाहते हैं, तो प्रामाणिक **Pro** मॉडल (`gemini-3.1-pro` / `gemini-pro`) के लिए अपना सेशन कुकी जोड़ें:
 
 ---
 
-### चरण 2: BOB Gemini Free में कुकी सेट करें (3 आसान तरीके)
+### चरण 1: 15 सेकंड में अपनी कुकी प्राप्त करें (3 आसान तरीके)
 
-#### विधि A: ऑटोमैटेड कुकी सेटअप (सबसे आसान)
+**Google Chrome**, **Arc**, **Edge**, या **Brave** में [**gemini.google.com**](https://gemini.google.com) खोलें (साइन इन रहें)।
 
-स्वचालित हेल्पर कमांड चलाएँ और कॉपी की गई कुकी स्ट्रिंग पेस्ट करें:
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Chrome DevTools (F12 या Cmd+Opt+I)                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [Network] Tab  Filter: [ app                   ] [X] Preserve log          │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Name                                  Status   Type      Size              │
+│  📄 app?eom=1&awwd=1&em=2&...          200      document  22.2 kB  <── क्लिक│
+│  ⚙️ batchexecute?rpcids=...            200      xhr       14.5 kB           │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  [Headers] [Payload] [Preview] [Response]                                   │
+│  ▼ Request Headers                                                          │
+│    :authority: gemini.google.com                                            │
+│    Cookie: __Secure-BUCKET=...; SID=...; SAPISID=...;  <── राइट क्लिक व कॉपी│
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### तरीका A: 1-क्लिक तुरंत विधि (बिना कोई चैट भेजे)
+1. **`F12`** (या macOS पर **`Cmd + Option + I`**) दबाकर Developer Tools खोलें।
+2. ऊपर **Network** टैब पर क्लिक करें।
+3. पेज को रीफ़्रेश करें (**`Cmd + R`** या **`F5`**)।
+4. डॉक्यूमेंट रिक्वेस्ट **`app?eom=1...`** (या सबसे ऊपर वाली **`batchexecute`** रिक्वेस्ट) पर क्लिक करें।
+5. दाएँ पैनल में **Headers** टैब के अंदर **Request Headers** तक स्क्रॉल करें।
+6. **`cookie:`** (या **`Cookie:`**) लाइन पर राइट-क्लिक करके **Copy value** चुनें।
+
+#### तरीका B: 1-शब्द चैट विधि (`StreamGenerate`)
+1. Network टैब में फ़िल्टर बॉक्स में **`StreamGenerate`** लिखें।
+2. जेमिनी में कोई भी 1 शब्द टाइप करके भेजें (जैसे *"hi"* )।
+3. लिस्ट में तुरंत **`StreamGenerate`** आ जाएगा $\rightarrow$ उस पर क्लिक करें $\rightarrow$ **Request Headers** में से **`cookie:`** कॉपी करें।
+
+#### तरीका C: Application स्टोरेज टैब
+1. DevTools में **Application** टैब पर जाएँ $\rightarrow$ **Storage** $\rightarrow$ **Cookies** $\rightarrow$ `https://gemini.google.com` चुनें।
+2. कुकीज़ को सेलेक्ट करके कॉपी करें।
+
+---
+
+### चरण 2: BOB Gemini Free में कुकी सेट करें (जीरो कॉपी-पेस्ट व मैनुअल विधियाँ)
+
+#### 🌟 विधि 0: 1-क्लिक इंटरैक्टिव लॉगिन विंडो (जीरो कॉपी-पेस्ट — सबसे आसान!)
+
+टर्मिनल में लॉगिन कमांड चलाएँ:
+
+```bash
+./bob-gemini-free --login
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🌐 Sign in to Google Gemini (BOB लॉगिन विंडो)             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                    Google                                   │
+│                    Sign in with Google                      │
+│                    [ your-email@gmail.com ]                 │
+│                    [ पासवर्ड / Passkey दर्ज करें ]          │
+│                                                             │
+│                    [ Next ]                                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ (केवल 1 बार सामान्य लॉगिन करें)
+┌─────────────────────────────────────────────────────────────┐
+│  [✔] 19+ सेशन टोकन्स सफलतापूर्वक प्राप्त हुए!              │
+│  [✔] ./cookie.txt और ~/.config/bob-gemini-free/ में सुरक्षित│
+│  [✔] Gemini Pro मॉडल (gemini-3.1-pro) व Imagen 3 सक्रिय!    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+1. आपकी स्क्रीन पर गूगल जेमिनी की एक स्टैंडअलोन लॉगिन विंडो खुलेगी।
+2. अपने गूगल खाते से सामान्य रूप से साइन इन करें (Passkey, 2FA, SMS समर्थित)।
+3. जैसे ही लॉगिन पूरा होगा, BOB Gemini Free **Chrome DevTools Protocol के माध्यम से ऑटोमैटिक रूप से सभी 19+ सेशन टोकन इंटरसेप्ट कर लेगा**, `cookie.txt` सुरक्षित रूप से सेव करेगा (`mode 0600`), और विंडो बंद कर देगा।
+4. **बिना DevTools, बिना कॉपी-पेस्ट, बिना किसी कीचेन पासवर्ड पॉपअप के!**
+
+---
+
+#### विधि A: ऑटोमैटेड कुकी सेटअप हेल्पर (पेस्ट प्रॉम्प्ट)
+
+टर्मिनल में स्वचालित हेल्पर कमांड चलाएँ:
 
 ```bash
 ./bob-gemini-free --setup-cookie
 ```
 
-यह टूल ऑटोमैटिक रूप से:
-* आवश्यक टोकन्स (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`) को सत्यापित करता है।
-* `~/.config/bob-gemini-free/cookie.txt` में सुरक्षित रूप से सेव करता है (`chmod 600`)।
-* **Gemini Pro 3.1** और **Imagen 3 इमेज जेनरेशन** को तुरंत सक्रिय कर देता है।
+कॉपी की गई कुकी स्ट्रिंग पेस्ट करें और **Enter** दबाएँ। यह टूल:
+* सभी 19+ सेशन टोकन्स (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`, `__Secure-3PSID`, `SIDCC`) को सत्यापित करता है।
+* डायनामिक क्रिप्टोग्राफिक SHA-1 **`SAPISIDHASH`** को सक्रिय करता है।
+* सुरक्षित रूप से `~/.config/bob-gemini-free/cookie.txt` में सेव करता है (`chmod 600`)।
+* Pro मॉडल (`gemini-3.1-pro`) और Imagen 3 इमेज जेनरेशन को तुरंत सक्रिय कर देता है।
 
 #### विधि B: जीरो-कॉन्फ़िग लोकल `cookie.txt`
 
-सीधे उसी फ़ोल्डर में `cookie.txt` नाम से फ़ाइल बनाकर अपनी कुकी पेस्ट कर दें:
+सीधे गेटवे फ़ोल्डर में `cookie.txt` बनाकर अपनी कुकी पेस्ट कर दें:
 
 ```bash
-echo "YOUR_PASTED_COOKIE_STRING" > cookie.txt
+cat << 'EOF' > cookie.txt
+PASTE_YOUR_COOKIE_STRING_HERE
+EOF
 chmod 600 cookie.txt
 ./bob-gemini-free
 ```
-*(BOB Gemini Free बिना किसी फ़्लैग के चालू होते ही `./cookie.txt` को ऑटोमैटिक लोड कर लेगा)।*
+*(BOB Gemini Free बिना किसी फ़्लैग के `./cookie.txt` को स्टार्टअप पर ऑटोमैटिक लोड कर लेता है)।*
 
-#### विधि C: सीधे कमांड-लाइन फ़्लैग
+#### विधि C: सीधे CLI फ़्लैग या एनवायरनमेंट वेरिएबल
 
 ```bash
+# सीधे फ़्लैग द्वारा
 ./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
+
+# या एनवायरनमेंट वेरिएबल द्वारा
+export BOB_GEMINI_FREE_COOKIE_FILE="/path/to/cookie.txt"
+./bob-gemini-free
+```
+
+---
+
+### चरण 3: मल्टी-अकाउंट प्रोफ़ाइल हैंडलिंग (`auth_user`)
+
+यदि आप एक ही ब्राउज़र में कई जीमेल खातों में लॉग इन हैं (उदा. खाता 0 = व्यक्तिगत, खाता 1 = व्यावसायिक):
+
+1. अपने जेमिनी ब्राउज़र URL की जाँच करें:
+   * `https://gemini.google.com/app` $\rightarrow$ खाता इंडेक्स `0` है (डिफ़ॉल्ट)।
+   * `https://gemini.google.com/u/1/app` $\rightarrow$ खाता इंडेक्स `1` है।
+2. `config.json` में खाता इंडेक्स सेट करें:
+   ```json
+   {
+     "auth_user": "1",
+     "cookie_file": "./cookie.txt"
+   }
+   ```
+   यह सुनिश्चित करता है कि BOB Gemini Free सही गूगल प्रोफ़ाइल पर रिक्वेस्ट भेजे (`X-Goog-AuthUser: 1`)।
+
+---
+
+### चरण 4: मल्टी-अकाउंट कुकी पूल व ऑटो-रोटेशन (`cookie_pool`)
+
+उच्च समवर्ती (High-Concurrency) टीमों या AI एजेंट पाइपलाइनों के लिए:
+
+1. `cookies/` फ़ोल्डर बनाएँ और कई कुकी फ़ाइलें रखें:
+   ```
+   ./cookies/
+   ├── account_primary.txt
+   ├── account_secondary.txt
+   └── account_team.txt
+   ```
+2. या `config.json` में `"cookie_pool"` कॉन्फ़िगर करें:
+   ```json
+   {
+     "cookie_pool": [
+       "./cookies/account_primary.txt",
+       "./cookies/account_secondary.txt"
+     ]
+   }
+   ```
+3. **स्वचालित लोड बैलेंसिंग व फ़ेलओवर**: BOB Gemini Free स्वचालित रूप से सभी खातों में अनुरोध वितरित करता है। यदि कोई खाता अस्थायी दर सीमा (HTTP 429) पर पहुँचता है, तो BOB **उसे 60 सेकंड के लिए बैकऑफ़ करता है और अगले स्वस्थ खाते पर पारदर्शी रूप से पुनः प्रयास करता है**।
+
+---
+
+### चरण 5: Docker और OrbStack के साथ चलाना
+
+Docker या **OrbStack** में कुकी के साथ कंटेनर चलाने के लिए:
+
+```bash
+# 1. डॉकर इमेज बनाएँ
+docker build -t bob-gemini-free:local .
+
+# 2. कुकी माउंट करके कंटेनर चलाएँ
+docker run -d \
+  --name bob-gemini-free \
+  -p 8081:8081 \
+  -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
+  -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
+  bob-gemini-free:local
+```
+
+कंटेनर स्टेटस देखें:
+```bash
+docker logs bob-gemini-free
+# Output:
+#   Cookie: yes (/app/cookie.txt)
+#   Listening: http://0.0.0.0:8081
 ```
 
 ---

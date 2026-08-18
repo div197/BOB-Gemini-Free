@@ -446,55 +446,198 @@ BOB Gemini Free bridges modern developer clients directly to Google Gemini's web
 
 ---
 
-## Unlocking Pro: Gemini Advanced ($20/mo) Cookies
+## Unlocking Pro: Gemini Advanced ($20/mo) Cookies & Session Setup
 
-Anonymous and standard free accounts have immediate access to Flash, Thinking, and Lite models out of the box with zero cookies.
+Anonymous and standard free accounts have immediate access to Flash 3.7, Flash 3.6, Flash Thinking, and Flash Lite out of the box with zero cookies or setup.
 
-If you have an active **Google AI / Gemini Advanced ($20/mo)** subscription or want to unlock **Imagen 3 Image Generation**, configure your session cookie to activate authentic **Pro** model routing:
-
-### Step 1: Extract Your Cookie in 15 Seconds
-
-1. Open **Google Chrome**, **Edge**, or **Brave** and visit [**gemini.google.com**](https://gemini.google.com). Make sure you are signed in.
-2. Press **`F12`** (or **`Cmd + Option + I`** on macOS) to open Developer Tools.
-3. Click on the **Network** tab at the top.
-4. Send any short message in Gemini (e.g. *"hello"*).
-5. In the Network filter search box, type **`batchexecute`** (or click the first request in the list).
-6. Under the **Headers** tab, scroll down to **Request Headers**.
-7. Locate the **`Cookie:`** line, right-click on the value, and select **Copy Value**.
+If you have an active **Google AI / Gemini Advanced ($20/mo)** subscription (or 18 months free via Reliance Jio / university partnership offers) or want to unlock **Imagen 3 Image Generation**, configure your session cookie to activate authentic **Pro** model routing (`gemini-3.1-pro` / `gemini-pro`).
 
 ---
 
-### Step 2: Configure BOB Gemini Free (3 Simple Methods)
+### Step 1: Extract Your Cookie in 15 Seconds (3 Visual Paths)
 
-#### Method A: Interactive Automated Setup Helper (Easiest)
+Open **Google Chrome**, **Arc**, **Edge**, or **Brave** and visit [**gemini.google.com**](https://gemini.google.com). Make sure you are signed in.
 
-Run the built-in setup command and paste the copied cookie string when prompted:
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  Chrome DevTools (F12 or Cmd+Opt+I)                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  [Network] Tab  Filter: [ app                   ] [X] Preserve log          │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Name                                  Status   Type      Size              │
+│  📄 app?eom=1&awwd=1&em=2&...          200      document  22.2 kB  <── CLICK│
+│  ⚙️ batchexecute?rpcids=...            200      xhr       14.5 kB           │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  [Headers] [Payload] [Preview] [Response]                                   │
+│  ▼ Request Headers                                                          │
+│    :authority: gemini.google.com                                            │
+│    Cookie: __Secure-BUCKET=...; SID=...; SAPISID=...;  <── RIGHT CLICK & COPY│
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Path A: The Instant 1-Click Method (No Chat Needed)
+1. Press **`F12`** (or **`Cmd + Option + I`** on macOS) to open Developer Tools.
+2. Click the **Network** tab at the top.
+3. Refresh the page (**`Cmd + R`** or **`F5`**).
+4. Click on the document request named **`app?eom=1...`** (or any top **`batchexecute`** request).
+5. In the right panel, ensure **Headers** is selected and scroll to **Request Headers**.
+6. Right-click on the **`cookie:`** (or **`Cookie:`**) value and click **Copy value**.
+
+#### Path B: The 1-Word Chat Method (`StreamGenerate`)
+1. In DevTools **Network** tab, type **`StreamGenerate`** in the filter search box.
+2. In Gemini, type any 1-word prompt (e.g. *"hi"*) and press Enter.
+3. The request **`StreamGenerate`** will instantly appear in the Network list.
+4. Click **`StreamGenerate`** $\rightarrow$ **Headers** $\rightarrow$ **Request Headers** $\rightarrow$ right-click **`cookie:`** $\rightarrow$ **Copy value**.
+
+#### Path C: Application Storage Tab
+1. In DevTools, click the **Application** tab (or click `>>` to find Application).
+2. Expand **Storage** $\rightarrow$ **Cookies** $\rightarrow$ select `https://gemini.google.com`.
+3. Highlight the cookie rows and copy.
+
+---
+
+### Step 2: Configure BOB Gemini Free (Zero Copy-Paste or Manual Methods)
+
+#### 🌟 Method 0: 1-Click Interactive Sign-In Window (Zero Copy-Paste — Easiest for Everyone!)
+
+Run the login command in your terminal:
+
+```bash
+./bob-gemini-free --login
+```
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  🌐 Sign in to Google Gemini (BOB Login Window)             │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│                    Google                                   │
+│                    Sign in with Google                      │
+│                    [ your-email@gmail.com ]                 │
+│                    [ Enter Password / Passkey ]             │
+│                                                             │
+│                    [ Next ]                                 │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+                              │
+                              ▼ (User signs in once)
+┌─────────────────────────────────────────────────────────────┐
+│  [✔] Verified 19 session tokens!                            │
+│  [✔] Saved to ./cookie.txt and ~/.config/bob-gemini-free/   │
+│  [✔] Gemini Pro model (gemini-3.1-pro) & Imagen 3 unlocked! │
+└─────────────────────────────────────────────────────────────┘
+```
+
+1. A standalone Google Gemini sign-in window will open on your screen.
+2. Sign in to your Google Account (supports Passkeys, 2FA, SMS).
+3. As soon as login completes, BOB Gemini Free **automatically captures all 19+ session tokens via the Chrome DevTools Protocol**, saves `cookie.txt` (`mode 0600`), and closes the window.
+4. **Zero DevTools, zero copy-pasting, zero Keychain password prompts!**
+
+---
+
+#### Method A: Interactive Automated Setup Helper (Paste Prompt)
 
 ```bash
 ./bob-gemini-free --setup-cookie
 ```
 
-The setup helper automatically:
-* Extracts and verifies all essential session tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`).
-* Validates `SAPISID` for dynamic `SAPISIDHASH` generation.
-* Saves the cookie file to `~/.config/bob-gemini-free/cookie.txt` with secure POSIX `0600` permissions.
-* Activates Pro routing (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3 generation.
+Paste your copied cookie string and press **Enter**. The helper automatically:
+* Extracts and cryptographically verifies all 19+ session tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`, `__Secure-3PSID`, `SIDCC`).
+* Activates dynamic SHA-1 **`SAPISIDHASH`** generation (`SAPISIDHASH <timestamp>_<sha1>`).
+* Securely writes to `~/.config/bob-gemini-free/cookie.txt` with locked POSIX `0600` permissions.
+* Instantly activates Pro routing (`gemini-3.1-pro`) and Imagen 3 synthesis.
 
 #### Method B: Zero-Config Local `cookie.txt`
 
-Simply paste your cookie string into a file named `cookie.txt` in the same directory as the executable:
+Paste your cookie directly into `./cookie.txt` in the gateway folder:
 
 ```bash
-echo "YOUR_PASTED_COOKIE_STRING" > cookie.txt
+cat << 'EOF' > cookie.txt
+PASTE_YOUR_COOKIE_STRING_HERE
+EOF
 chmod 600 cookie.txt
 ./bob-gemini-free
 ```
-*(BOB Gemini Free will automatically detect and load `./cookie.txt` on startup without any flags).*
+*(BOB Gemini Free automatically discovers `./cookie.txt` on startup without requiring any CLI flags).*
 
-#### Method C: Direct Command-Line Flag
+#### Method C: Direct Command-Line Flag or Environment Variable
 
 ```bash
+# Non-interactive CLI flag
 ./bob-gemini-free --cookie-string "SID=...; HSID=...; SAPISID=...; __Secure-1PSID=..."
+
+# Or via environment variable
+export BOB_GEMINI_FREE_COOKIE_FILE="/path/to/cookie.txt"
+./bob-gemini-free
+```
+
+---
+
+### Step 3: Multi-Account Profile Handling (`auth_user`)
+
+If you are signed into multiple Google accounts in the same browser (e.g. Account 0 = Personal, Account 1 = Work):
+
+1. Check your Gemini browser URL:
+   * `https://gemini.google.com/app` $\rightarrow$ Account Index is `0` (default).
+   * `https://gemini.google.com/u/1/app` $\rightarrow$ Account Index is `1`.
+2. Specify your account index in `config.json` or pass via CLI:
+   ```json
+   {
+     "auth_user": "1",
+     "cookie_file": "./cookie.txt"
+   }
+   ```
+   This ensures BOB Gemini Free dispatches `X-Goog-AuthUser: 1` and prefixes `/u/1/` to route to the correct Google profile.
+
+---
+
+### Step 4: Multi-Account Cookie Pool & Auto-Rotation (`cookie_pool`)
+
+For high-concurrency teams, AI labs, or automated pipelines requiring massive throughput:
+
+1. Create a `cookies/` folder and place multiple cookie files:
+   ```
+   ./cookies/
+   ├── account_primary.txt
+   ├── account_secondary.txt
+   └── account_team.txt
+   ```
+2. Or configure `"cookie_pool"` in `config.json`:
+   ```json
+   {
+     "cookie_pool": [
+       "./cookies/account_primary.txt",
+       "./cookies/account_secondary.txt"
+     ]
+   }
+   ```
+3. **Automated Round-Robin & Failover**: BOB Gemini Free automatically load-balances requests across all active accounts. If one account encounters a temporary burst rate-limit (HTTP 429), BOB **automatically backs off that account for 60 seconds and transparently retries on the next healthy account** without interrupting the client connection!
+
+---
+
+### Step 5: Running with Docker & OrbStack
+
+To run your authenticated container in Docker or **OrbStack**:
+
+```bash
+# 1. Build local container image
+docker build -t bob-gemini-free:local .
+
+# 2. Run container with cookie mounted
+docker run -d \
+  --name bob-gemini-free \
+  -p 8081:8081 \
+  -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
+  -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
+  bob-gemini-free:local
+```
+
+Verify container status:
+```bash
+docker logs bob-gemini-free
+# Output:
+#   Cookie: yes (/app/cookie.txt)
+#   Listening: http://0.0.0.0:8081
 ```
 
 ---

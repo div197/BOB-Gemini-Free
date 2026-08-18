@@ -51,3 +51,14 @@ export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
 export ANTHROPIC_API_KEY=none
 claude
 ```
+
+---
+
+## 4. Cookie Configuration & Pro Routing
+
+- **1-Click Interactive Sign-In**: Run `./bob-gemini-free --login` to open a standalone window, sign in once, and auto-capture session cookies without DevTools.
+- **Automatic Discovery**: BOB Gemini Free automatically scans `./cookie.txt` and `~/.config/bob-gemini-free/cookie.txt` on startup.
+- **Manual Extraction**: In Chrome DevTools Network tab, copy `Cookie:` from the `app?eom=1...` document request or `StreamGenerate`.
+- **Multi-Account**: Set `"auth_user": "1"` in `config.json` if using a secondary account (`/u/1/app`).
+- **Permissions**: Cookie files are created with mode `0600` for security.
+

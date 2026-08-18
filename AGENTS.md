@@ -105,3 +105,36 @@ export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
 export OPENAI_API_KEY=none
 codex
 ```
+
+---
+
+## 6. Cookie Authentication & Multi-Account Guidelines
+
+For AI agents managing or configuring authenticated Pro routing (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3 synthesis:
+
+### Session Extraction
+1. **1-Click Interactive Sign-In Window (Recommended)**:
+   ```bash
+   ./bob-gemini-free --login
+   ```
+   Opens a standalone window $\rightarrow$ user logs in once $\rightarrow$ automatically extracts cookies via CDP and saves `./cookie.txt`.
+2. **Manual DevTools Copy**:
+   - **Instant**: Open `gemini.google.com/app` $\rightarrow$ DevTools Network tab $\rightarrow$ click `app?eom=1...` (or `batchexecute`) $\rightarrow$ copy `Cookie:` from Request Headers.
+   - **Chat**: Send `"hi"` in Gemini web $\rightarrow$ click `StreamGenerate` in Network list $\rightarrow$ copy `Cookie:`.
+   - Save via `./bob-gemini-free --setup-cookie` or write directly to `./cookie.txt` (`chmod 600`).
+
+### Multi-Account Profiles (`auth_user`)
+- Primary profile (`https://gemini.google.com/app`): `auth_user: "0"` (default).
+- Secondary profile (`https://gemini.google.com/u/1/app`): `auth_user: "1"`.
+- Set via `"auth_user": "1"` in `config.json` or CLI flag.
+
+### Docker & OrbStack Container Usage
+```bash
+docker run -d \
+  --name bob-gemini-free \
+  -p 8081:8081 \
+  -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
+  -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
+  bob-gemini-free:local
+```
+
