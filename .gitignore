@@ -1,0 +1,37 @@
+# Binaries and build artifacts
+bob-gemini-free
+gemini-web2api
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+dist/
+
+# Sensitive Configuration & Credentials
+config.json
+cookie.txt
+cookies.txt
+*.cookie
+*.secret
+
+# Test artifacts & coverage
+*.out
+*.test
+coverage.txt
+
+# OS metadata
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~

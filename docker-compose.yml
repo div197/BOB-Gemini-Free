@@ -1,0 +1,9 @@
+services:
+  bob-gemini-free:
+    build: .
+    container_name: bob-gemini-free
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./config.json:/app/config.json
+    restart: unless-stopped
