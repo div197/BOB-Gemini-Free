@@ -2568,46 +2568,66 @@ function downloadImage(btn) {
 
 function renderMarkdown(text) {
   if (!text) return "";
+  
+  const codeBlocks = [];
+  const inlineCodes = [];
   let html = text;
 
-  // Code blocks: ```lang ... ```
+  // 1. Extract and protect CLOSED code blocks: ```lang\n...```
   html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
+    const idx = codeBlocks.length;
+    const safeCode = escapeHtml(code.trimEnd());
+    const langLabel = lang || 'code';
+    const prismClass = lang ? 'language-' + lang : 'language-none';
+    const blockHtml = '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+    codeBlocks.push(blockHtml);
+    return `@@@BOB_CODE_BLOCK_${idx}@@@`;
+  });
+
+  // 2. Extract and protect UNCLOSED streaming code blocks: ```lang\n... (until end of text)
+  html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*)$/g, function(match, lang, code) {
+    const idx = codeBlocks.length;
     const safeCode = escapeHtml(code);
     const langLabel = lang || 'code';
     const prismClass = lang ? 'language-' + lang : 'language-none';
-    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+    const blockHtml = '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+    codeBlocks.push(blockHtml);
+    return `@@@BOB_CODE_BLOCK_${idx}@@@`;
   });
 
-  // Images: ![alt](url)
+  // 3. Extract and protect inline code: `code`
+  html = html.replace(/`([^`\n]+)`/g, function(match, code) {
+    const idx = inlineCodes.length;
+    inlineCodes.push('<code>' + escapeHtml(code) + '</code>');
+    return `@@@BOB_INLINE_CODE_${idx}@@@`;
+  });
+
+  // 4. Extract Images: ![alt](url)
   html = html.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
     return `<div class="assistant-image-card"><img src="${url}" alt="${escapeHtml(alt)}" loading="lazy"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(alt || 'Generated Image')}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
   });
 
-  // Inline code: `code`
-  html = html.replace(/`([^`]+)`/g, function(match, code) {
-    return '<code>' + escapeHtml(code) + '</code>';
-  });
+  // 5. Links: [text](url)
+  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
 
-  // Headings
+  // 6. Headings
   html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
   html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
   html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
   html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
 
-  // Horizontal rules
+  // 7. Horizontal rules
   html = html.replace(/^\s*---\s*$/gim, '<hr>');
 
-  // Standard Blockquotes
-  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
-
-  // GitHub Alert Callouts
+  // 8. Alerts & Blockquotes
   html = html.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
   html = html.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
   html = html.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
   html = html.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
   html = html.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
+  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
 
-  // Tables
+  // 9. Tables
   html = html.replace(/((?:\|[^\n]+\|\r?\n)+)/g, function(tableBlock) {
     const rows = tableBlock.trim().split('\n').map(r => r.trim()).filter(r => r);
     if (rows.length < 2) return tableBlock;
@@ -2628,32 +2648,38 @@ function renderMarkdown(text) {
     return tableHtml;
   });
 
-  // Checkboxes
+  // 10. Checkboxes
   html = html.replace(/^\s*-\s*\[ \]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" disabled class="task-checkbox"><span>$1</span></div>');
   html = html.replace(/^\s*-\s*\[[xX]\]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" checked disabled class="task-checkbox"><span>$1</span></div>');
 
-  // Strikethrough
+  // 11. Strikethrough
   html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
 
-  // Bold & Italic
+  // 12. Bold & Italic (Respect word boundaries to avoid mangling underscores in identifiers)
   html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
-  html = html.replace(/\*([^*]+)\*/g, '<i>$1</i>');
   html = html.replace(/__([^_]+)__/g, '<b>$1</b>');
-  html = html.replace(/_([^_]+)_/g, '<i>$1</i>');
+  html = html.replace(/(^|[^\w*])\*([^*\n]+)\*([^\w*]|$)/g, '$1<i>$2</i>$3');
+  html = html.replace(/(^|[^\w_])_([^_\n]+)_([^\w_]|$)/g, '$1<i>$2</i>$3');
 
-  // Lists
+  // 13. Lists
   html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
   html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
   html = html.replace(/<\/ul>\s*<ul>/gim, '');
 
-  // Line breaks
-  const parts = html.split(/(<pre[\s\S]*?<\/pre>|<table[\s\S]*?<\/table>|<div class="assistant-image-card"[\s\S]*?<\/div><\/div>)/g);
-  for (let i = 0; i < parts.length; i++) {
-    if (!parts[i].startsWith('<pre') && !parts[i].startsWith('<table') && !parts[i].startsWith('<div class="assistant-image-card"')) {
-      parts[i] = parts[i].replace(/\n/g, '<br>');
-    }
+  // 14. Convert newlines to <br> outside code blocks
+  html = html.replace(/\n/g, '<br>');
+
+  // 15. Restore protected inline code
+  for (let i = 0; i < inlineCodes.length; i++) {
+    html = html.replaceAll(`@@@BOB_INLINE_CODE_${i}@@@`, inlineCodes[i]);
   }
-  return parts.join('');
+
+  // 16. Restore protected code blocks
+  for (let i = 0; i < codeBlocks.length; i++) {
+    html = html.replaceAll(`@@@BOB_CODE_BLOCK_${i}@@@`, codeBlocks[i]);
+  }
+
+  return html;
 }
 
 function copyCode(btn) {
