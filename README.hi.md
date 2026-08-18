@@ -739,13 +739,20 @@ claude
 
 अधिक जानकारी के लिए देखें: [**https://abcsteps.com/**](https://abcsteps.com/)।
 
-## आभार व शोध आधार (Acknowledgements)
+## आभार व शोध आधार (Acknowledgements & Foundations)
 
-- **Google Research**: ट्रांसफॉर्मर आर्किटेक्चर (*"Attention Is All You Need"*, Vaswani et al., 2017) के मूलभूत शोध और वेब के माध्यम से विश्वस्तरीय जेमिनी इंटेलिजेंस की व्यापक सार्वजनिक उपलब्धता के लिए।
-- **ओपन-सोर्स कम्युनिटी**: ओपन एपीआई टूलींग, एजेंट फ़्रेमवर्क्स और आधुनिक डेवलपर टूल्स के निरंतर विकास के लिए।
+BOB Gemini Free वैश्विक एआई और ओपन-सोर्स समुदाय के सामूहिक ज्ञान और तकनीकी सफलताओं की नींव पर खड़ा है:
+
+1. **Google Research और DeepMind**: ट्रांसफॉर्मर आर्किटेक्चर (*"Attention Is All You Need"*, Vaswani et al., 2017) के मूलभूत शोध तथा विश्वस्तरीय Gemini 3.7 Flash, Flash Thinking, 3.1 Pro और Imagen 3 मॉडल्स की मुफ़्त सार्वजनिक वेब उपलब्धता के लिए।
+2. **OpenAI और Anthropic**: ओपन एपीआई स्टैंडर्ड्स, Messages स्कीमा, रीज़निंग ब्लॉक्स और कोडिंग एजेंट CLI पैटर्न स्थापित करने के लिए जिसने पूरी दुनिया के डेवलपर टूल्स को एक सूत्र में पिरोया।
+3. **The Go Language Team और Chromium Engineers**: सिस्टम-स्तरीय इंजीनियरिंग (Go मानक लाइब्रेरी, ज़ीरो-डिपेंडेंसी स्टैटिक बाइनरी, और Chrome DevTools Protocol) के लिए जिसने इसे हाई-परफ़ॉर्मेंस, सुरक्षित और लोकल-फर्स्ट बनाया।
+4. **वैश्विक ओपन-सोर्स समुदाय**: Cursor, Windsurf, Aider, Continue.dev, OpenWebUI, Cherry Studio, ChatBox के रचनाकारों और स्वतंत्र हैकर्स के लिए जो सॉफ़्टवेयर इंजीनियरिंग की सीमाओं को निरंतर आगे बढ़ा रहे हैं।
+5. **ABCsteps Technologies (जोधपुर, राजस्थान)**: निष्काम कर्म योग, सत्यवादी इंजीनियरिंग शिक्षा और **Break Ordinary Boundaries (BOB)** के अंतर्गत हर डेवलपर को सशक्त बनाने के संकल्प के लिए।
 
 ---
 
-## लाइसेंस
+## लाइसेंस (License)
+
+MIT License. Developed with pride by [ABCsteps.com](https://abcsteps.com/) & [दिव्यांशु सिंह चौहान](https://github.com/div197).
 
 MIT लाइसेंस। [ABCsteps.com](https://abcsteps.com/) द्वारा विकसित।

@@ -833,11 +833,16 @@ Explore the complete learning platform at [**https://abcsteps.com/**](https://ab
 
 ## Acknowledgements & Research Foundations
 
-- **Google Research**: For publishing the foundational Transformer architecture (*"Attention Is All You Need"*, Vaswani et al., 2017) and for providing generous public web access to state-of-the-art Gemini intelligence.
-- **Open-Source Community**: For the continuous advancements in open API tooling, agent frameworks, and cross-platform developer tools.
+BOB Gemini Free stands on the collective wisdom and engineering breakthroughs of the global AI and open-source communities:
+
+1. **Google Research & DeepMind**: For publishing the foundational Transformer architecture (*"Attention Is All You Need"*, Vaswani et al., 2017) and for engineering the state-of-the-art Gemini 3.7 Flash, Flash Thinking, 3.1 Pro, and Imagen 3 models with generous public web accessibility.
+2. **OpenAI & Anthropic**: For establishing the open API standards, Messages schemas, reasoning block conventions, and coding agent CLI patterns that unite modern developer workflows.
+3. **The Go Language Team & Chromium Engineers**: For the systems-level foundations (Go standard library concurrency, zero-dependency static compilation, and Chrome DevTools Protocol) enabling high-performance, local-first, zero-friction execution.
+4. **The Global Open-Source Community**: The creators and maintainers of Cursor, Windsurf, Aider, Continue.dev, OpenWebUI, Cherry Studio, ChatBox, and the global indie hacker ecosystem pushing the frontiers of software engineering.
+5. **ABCsteps Technologies (Jodhpur, Rajasthan)**: For championing truthful, first-principles AI engineering education, open learning foundations, and the **Break Ordinary Boundaries (BOB)** developer empowerment mission.
 
 ---
 
 ## License
 
-MIT License. Developed with pride by [ABCsteps.com](https://abcsteps.com/).
+MIT License. Developed with pride by [ABCsteps.com](https://abcsteps.com/) & [Divyanshu Singh Chouhan](https://github.com/div197).
