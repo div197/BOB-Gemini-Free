@@ -578,15 +578,15 @@ claude
 
 ## About ABCsteps
 
-[**ABCsteps**](https://abcsteps.com/) is an online AI engineering school founded by **Divyanshu Singh Chouhan** in Jodhpur, Rajasthan, India.
+[**ABCsteps**](https://abcsteps.com/) is an online AI engineering school founded by **Divyanshu Singh Chouhan** in Jodhpur, Rajasthan, India (operated by ABC Steps Technologies Pvt Ltd).
 
-ABCsteps provides a complete publicly readable foundation for AI engineers and developers, featuring:
-* [**20-Lesson AI Engineering Curriculum**](https://abcsteps.com/offerings/)
-* [**Practical Engineering Blog & Tutorials**](https://abcsteps.com/blog/)
-* [**Curated Reading Paths & Glossary**](https://abcsteps.com/blog/paths/)
-* Founder-led mentorship, architecture reviews, and institutional workshops.
+Its mission is to provide an open, practical engineering education for builders, students, and software developers:
+* 📚 [**20-Lesson AI Engineering Curriculum**](https://abcsteps.com/offerings/) — A connected, project-based foundation spanning AI copilots, Docker, APIs, SQLite/PostgreSQL, prompt engineering, and full-stack AI architectures.
+* ✍️ [**Practical Engineering Blog**](https://abcsteps.com/blog/) — Deep-dive tutorials on LLM internals, coding agents, containerization, and systems design.
+* 🧭 [**Curated Reading Paths & Glossary**](https://abcsteps.com/blog/paths/) — Structured reference guides and technical definitions for self-directed learners.
+* 🎓 [**Founder-Led Programs**](https://abcsteps.com/enroll/compare/) — Guided tracks, live cohorts, 1:1 mentorship, architecture reviews, and institutional workshops.
 
-Learn more at [https://abcsteps.com/](https://abcsteps.com/).
+Explore the complete learning platform at [**https://abcsteps.com/**](https://abcsteps.com/).
 
 ## Acknowledgements & Research Foundations
 
