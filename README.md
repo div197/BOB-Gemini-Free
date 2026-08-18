@@ -55,6 +55,19 @@ The **BOB Series** by **ABCsteps** is a developer-first suite of high-impact run
 * **Zero Cost & Local First**: Single static binary with near-zero memory footprint (<15MB RAM baseline), safe local-first binding (`127.0.0.1`), and high concurrency throughput.
 * **TLS Browser Impersonation**: Built-in support to mimic Chrome/Firefox/Safari TLS fingerprints via `tls-client` for network environments facing WAF restrictions.
 
+## Supported Tools & Ecosystem
+
+BOB Gemini Free works out of the box with modern AI tools across coding, automation, and conversational workflows:
+
+| Category | Supported Clients & Frameworks | Connection Endpoint |
+| :--- | :--- | :--- |
+| **Code Editors & IDEs** | Cursor, Windsurf, VS Code (Continue, Cline, Roo Code, Aider) | `http://127.0.0.1:8081/v1` |
+| **CLI Coding Engines** | Claude Code CLI (`claude`), OpenAI Codex CLI (`codex`), Gemini CLI (`gemini`) | Native Base URLs |
+| **GUI Chat Apps** | Cherry Studio, ChatBox, OpenWebUI, NextChat, LibreChat | `http://127.0.0.1:8081/v1` |
+| **Agent Frameworks** | LangChain, LlamaIndex, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
+| **Routers & Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **Official SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | Local Base URLs |
+
 ---
 
 ## Quick Start (Zero-Friction for All Users)

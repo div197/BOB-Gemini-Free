@@ -52,7 +52,18 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **OpenAI ड्रॉप-इन रिप्लेसमेंट**: Cherry Studio, ChatBox, Codex CLI, Cursor, Claude Code, तथा OpenAI / Anthropic के Python / Node.js SDKs के साथ सीधे इस्तेमाल करें।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — यह टूल ऑटोमैटिक कम्प्रेशन और गूगल के स्कॉटी रेज़्युमेबल अपलोड का उपयोग करता है।
 * **रीज़निंग कंट्रोल (`@think=N`)**: मॉडल नाम के आगे `@think=N` लगाकर सोचने की गहराई को नियंत्रित करें (`@think=0` = सबसे गहरी सोच, `@think=4` = तेज़ व संक्षिप्त उत्तर)।
-* **सुरक्षित व लोकल-फर्स्ट**: डिफ़ॉल्ट रूप से `127.0.0.1` पर बाइंड होता है, जिससे आपके क्रेडेंशियल्स पूरी तरह से आपके कंप्यूटर पर ही सुरक्षित रहते हैं।
+## समर्थित टूल्स और इकोसिस्टम (Supported Tools & Ecosystem)
+
+BOB Gemini Free बिना किसी अतिरिक्त कॉन्फ़िगरेशन के सभी प्रमुख AI टूल्स और फ़्रेमवर्क्स के साथ काम करता है:
+
+| श्रेणी (Category) | समर्थित टूल्स व क्लाइंट्स | कनेक्शन एंडपॉइंट |
+| :--- | :--- | :--- |
+| **कोड एडिटर्स व IDEs** | Cursor, Windsurf, VS Code (Continue, Cline, Roo Code, Aider) | `http://127.0.0.1:8081/v1` |
+| **CLI कोडिंग इंजन** | Claude Code CLI (`claude`), OpenAI Codex CLI (`codex`), Gemini CLI (`gemini`) | नेटिव बेस यूआरएल (Base URLs) |
+| **GUI चैट ऍप्लिकेशन्स** | Cherry Studio, ChatBox, OpenWebUI, NextChat, LibreChat | `http://127.0.0.1:8081/v1` |
+| **एजेंट फ़्रेमवर्क्स** | LangChain, LlamaIndex, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
+| **रूटर्स व प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **ऑफिशियल SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | लोकल बेस यूआरएल |
 
 ---
 
