@@ -51,8 +51,8 @@ Think of **BOB Gemini Free** as a fast, private **Universal Translator** that ru
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  Your AI Coding Tools & Apps                                │
-│  (Cursor, Windsurf, Claude Code CLI, Codex CLI, OpenWebUI)  │
+│  Deep Agentic Coding Tools & Autonomous Frameworks          │
+│  (Codex CLI, Claude Code CLI, Cursor, Grok Build, OpenHands)│
 └──────────────────────────────┬──────────────────────────────┘
                                │ Speaks standard OpenAI / Anthropic API
                                ▼
@@ -64,10 +64,10 @@ Think of **BOB Gemini Free** as a fast, private **Universal Translator** that ru
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  🌐 Google Gemini Web (Flash 3.7 / Thinking / Pro / Images)  │
-└─────────────────────────────────────────────────────────────┘
+└─────────────────────────────┘
 ```
 
-When **Cursor**, **Claude Code**, or **Codex CLI** asks for an API response, it sends a request to BOB. BOB translates that request into Gemini's format, fetches the response with full reasoning and vision support, and hands it back in milliseconds.
+When **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, or **Grok Build** asks for an API response, it sends a request to BOB. BOB translates that request into Gemini's format, fetches the response with full reasoning and vision support, and hands it back in milliseconds.
 
 ---
 
@@ -94,15 +94,14 @@ The **BOB Series** by **ABCsteps** is a developer-first collection of open-sourc
 
 ## Supported Tools & Ecosystem
 
-BOB Gemini Free works out of the box with modern AI tools across coding, automation, and conversational workflows:
+BOB Gemini Free works out of the box with modern AI tools across deep coding, automation, and agentic workflows:
 
 | Category | Supported Clients & Frameworks | Connection Endpoint |
 | :--- | :--- | :--- |
-| **Code Editors & IDEs** | Cursor, Windsurf, VS Code (Continue, Cline, Roo Code, Aider) | `http://127.0.0.1:8081/v1` |
-| **CLI Coding Engines** | Claude Code CLI (`claude`), OpenAI Codex CLI (`codex`), Gemini CLI (`gemini`) | Native Base URLs |
-| **GUI Chat Apps** | Cherry Studio, ChatBox, OpenWebUI, NextChat, LibreChat | `http://127.0.0.1:8081/v1` |
-| **Agent Frameworks** | LangChain, LlamaIndex, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
-| **Routers & Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **Terminal Coding Agents** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Aider CLI (`aider`), Gemini CLI (`gemini`) | Native Base URLs |
+| **Agentic IDEs & Extensions** | Cursor (Agent Mode), Roo Code, Cline, Continue.dev, Windsurf | `http://127.0.0.1:8081/v1` |
+| **Autonomous Agent Runtimes** | Grok Build, OpenHands, SWE-agent, Goose, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
+| **Routers & Local Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
 | **Official SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | Local Base URLs |
 
 ---

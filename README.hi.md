@@ -51,8 +51,8 @@
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  आपके एआई टूल्स व ऐप्स                                      │
-│  (Cursor, Windsurf, Claude Code CLI, Codex CLI, OpenWebUI)  │
+│  डीप एजेंटिक कोडिंग टूल्स व स्वायत्त फ़्रेमवर्क्स           │
+│  (Codex CLI, Claude Code CLI, Cursor, Grok Build, Agent SDK)│
 └──────────────────────────────┬──────────────────────────────┘
                                │ OpenAI / Anthropic स्टैंडर्ड में बात करता है
                                ▼
@@ -64,10 +64,10 @@
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  🌐 Google Gemini Web (Flash 3.7 / Thinking / Pro / Images)  │
-└─────────────────────────────────────────────────────────────┘
+└─────────────────────────────┘
 ```
 
-जब **Cursor**, **Claude Code**, या **Codex CLI** किसी जवाब की माँग करता है, तो BOB उसे जेमिनी के वेब फ़ॉर्मेट में बदलता है, पूरा रीज़निंग और विज़न उत्तर लाता है, और मिलीसेकंड्स में वापस सौंप देता है।
+जब **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, या **Grok Build** किसी जवाब की माँग करता है, तो BOB उसे जेमिनी के वेब फ़ॉर्मेट में बदलता है, पूरा रीज़निंग और विज़न उत्तर लाता है, और मिलीसेकंड्स में वापस सौंप देता है।
 
 ---
 
@@ -92,15 +92,14 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **शून्य लागत, पूर्ण प्राइवेसी**: सिंगल स्टैटिक बाइनरी, <15MB मेमोरी, और ज़ीरो टेलीमेट्री (`127.0.0.1`)।
 ## समर्थित टूल्स और इकोसिस्टम (Supported Tools & Ecosystem)
 
-BOB Gemini Free बिना किसी अतिरिक्त कॉन्फ़िगरेशन के सभी प्रमुख AI टूल्स और फ़्रेमवर्क्स के साथ काम करता है:
+BOB Gemini Free बिना किसी अतिरिक्त कॉन्फ़िगरेशन के सभी प्रमुख AI कोडिंग टूल्स और एजेंटिक फ़्रेमवर्क्स के साथ काम करता है:
 
 | श्रेणी (Category) | समर्थित टूल्स व क्लाइंट्स | कनेक्शन एंडपॉइंट |
 | :--- | :--- | :--- |
-| **कोड एडिटर्स व IDEs** | Cursor, Windsurf, VS Code (Continue, Cline, Roo Code, Aider) | `http://127.0.0.1:8081/v1` |
-| **CLI कोडिंग इंजन** | Claude Code CLI (`claude`), OpenAI Codex CLI (`codex`), Gemini CLI (`gemini`) | नेटिव बेस यूआरएल (Base URLs) |
-| **GUI चैट ऍप्लिकेशन्स** | Cherry Studio, ChatBox, OpenWebUI, NextChat, LibreChat | `http://127.0.0.1:8081/v1` |
-| **एजेंट फ़्रेमवर्क्स** | LangChain, LlamaIndex, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
-| **रूटर्स व प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **टर्मिनल कोडिंग एजेंट्स** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Gemini CLI (`gemini`) | नेटिव बेस यूआरएल (Base URLs) |
+| **एजेंटिक IDEs व एक्सटेंशन्स** | Cursor (Agent Mode), Windsurf, VS Code (Continue, Roo Code, Cline) | `http://127.0.0.1:8081/v1` |
+| **स्वायत्त एजेंट फ़्रेमवर्क्स** | Grok Build, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
+| **रूटर्स व लोकल प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
 | **ऑफिशियल SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | लोकल बेस यूआरएल |
 
 ---

@@ -9,10 +9,35 @@ BOB Gemini Free implements Anthropic's **Messages API** (`POST /v1/messages`) na
 Set the environment variables and run `claude`:
 
 ```bash
+# macOS / Linux (Terminal)
 export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"
 export ANTHROPIC_API_KEY="none"
 claude
 ```
+
+### Windows (PowerShell)
+```powershell
+$env:ANTHROPIC_BASE_URL="http://127.0.0.1:8081"
+$env:ANTHROPIC_API_KEY="none"
+claude
+```
+
+---
+
+## 🔍 Verifying the Connection
+
+Once inside Claude Code, verify that traffic is routing locally through BOB:
+
+```bash
+claude /status
+```
+*(Confirms that `ANTHROPIC_BASE_URL` is pointing to `http://127.0.0.1:8081`).*
+
+> **Tip**: If you were previously logged in via OAuth subscription and want to force local routing, run:
+> ```bash
+> claude /logout
+> ```
+> Then relaunch with `ANTHROPIC_BASE_URL` and `ANTHROPIC_API_KEY` set.
 
 ---
 
@@ -37,7 +62,7 @@ Claude Code CLI uses tool calls to inspect files, edit code, and run bash comman
                                │ POST /v1/messages
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
-│  BOB Gateway: Injects schema & extracts tool call           │
+│  ⚡ BOB Gateway: Injects schema & extracts tool call         │
 └──────────────────────────────┬──────────────────────────────┘
                                │ Emits tool_use block
                                ▼
@@ -48,14 +73,23 @@ Claude Code CLI uses tool calls to inspect files, edit code, and run bash comman
 
 ---
 
-## 💻 Shell Aliases & Permanent Configuration
+## 💻 Permanent Shell Configuration
 
-### For Zsh (`~/.zshrc`) or Bash (`~/.bashrc`):
+### For Zsh (`~/.zshrc`):
 ```bash
-alias claude-free='ANTHROPIC_BASE_URL=http://127.0.0.1:8081 ANTHROPIC_API_KEY=none claude'
+echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"' >> ~/.zshrc
+echo 'export ANTHROPIC_API_KEY="none"' >> ~/.zshrc
+source ~/.zshrc
 ```
 
-### For Fish Shell (`~/.config/fish/config.fish`):
-```fish
-alias claude-free='env ANTHROPIC_BASE_URL=http://127.0.0.1:8081 ANTHROPIC_API_KEY=none claude'
+### For Bash (`~/.bashrc`):
+```bash
+echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"' >> ~/.bashrc
+echo 'export ANTHROPIC_API_KEY="none"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Handy One-Word Alias:
+```bash
+alias claude-free='ANTHROPIC_BASE_URL=http://127.0.0.1:8081 ANTHROPIC_API_KEY=none claude'
 ```

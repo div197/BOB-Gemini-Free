@@ -1,20 +1,22 @@
-# Connecting Cursor, Windsurf, Aider & Continue.dev
+# Connecting Cursor, Windsurf, & Agentic IDEs
 
-Connect modern AI coding IDEs, agents, and extensions directly to BOB Gemini Free using standard OpenAI protocol formatting.
+Connect modern AI coding editors and agentic IDE extensions directly to BOB Gemini Free using standard OpenAI protocol formatting.
 
 ---
 
-## 🛠️ 1. Cursor IDE Setup
+## 🛠️ 1. Cursor IDE Setup (Agent & Composer Mode)
+
+Cursor is the leading AI-first code editor. Connecting BOB enables full **Agent Mode** and multi-file reasoning for free:
 
 1. Open **Cursor Settings** (`Cmd + ,` or `Ctrl + ,`) $\rightarrow$ **Models**.
 2. Under **OpenAI API Key**, configure:
    * **OpenAI Base URL**: `http://127.0.0.1:8081/v1`
    * **API Key**: `none` (or your configured `api_keys`)
-3. Click **Add Model** and enter the following models:
-   * `gemini-3.7-flash` (Fast code edits, autocomplete, and chat)
-   * `gemini-3.7-flash-thinking` (Multi-file reasoning and complex bug triage)
-   * `gemini-3.1-pro` (Flagship Pro model for architectural planning)
-4. Toggle them **ON** and disable any default remote models you do not wish to use.
+3. Click **Add Model** and add the following models:
+   * `gemini-3.7-flash` (Ultra-fast code edits, Composer, and autocomplete)
+   * `gemini-3.7-flash-thinking` (Deep multi-file reasoning and complex bug triage)
+   * `gemini-3.1-pro` (Flagship Pro model for architectural refactors)
+4. Enable the models in your Cursor dropdown.
 
 ---
 
@@ -29,21 +31,7 @@ Connect modern AI coding IDEs, agents, and extensions directly to BOB Gemini Fre
 
 ---
 
-## 💻 3. Aider CLI Setup
-
-Aider is a popular terminal-based pair programming assistant:
-
-```bash
-# Run Aider with Gemini 3.7 Flash Thinking
-aider \
-  --openai-api-base http://127.0.0.1:8081/v1 \
-  --openai-api-key none \
-  --model openai/gemini-3.7-flash-thinking
-```
-
----
-
-## 🚀 4. Continue.dev Setup (`config.json`)
+## 🚀 3. Continue.dev & VS Code Extensions
 
 In `~/.continue/config.json`:
 

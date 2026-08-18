@@ -21,7 +21,7 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 - [**Connecting Cursor, Windsurf, & Continue.dev**](./3-ai-client-integrations/cursor-and-windsurf.md): Modern AI coding IDE setup.
 - [**Claude Code CLI (Anthropic Protocol)**](./3-ai-client-integrations/claude-code-cli.md): Anthropic Messages SSE streaming & reasoning blocks.
 - [**OpenAI Codex CLI (Responses API)**](./3-ai-client-integrations/openai-codex-cli.md): Terminal coding agent integration.
-- [**OpenWebUI, Cherry Studio, & ChatBox**](./3-ai-client-integrations/openwebui-and-chatbox.md): Graphical chat client setup.
+- [**Deep Agentic Tools & Open-Source Agent Frameworks**](./3-ai-client-integrations/open-source-agents.md): Grok Build, OpenHands, Roo Code, Cline, Aider, and Goose.
 
 ### 4. API Reference
 - [**OpenAI Standard Endpoints**](./4-api-reference/openai-endpoints.md): `/v1/chat/completions`, `/v1/models`, reasoning effort.
@@ -42,5 +42,5 @@ BOB Gemini Free stands on the collective wisdom and engineering breakthroughs of
 1. **Google Research & DeepMind**: For publishing the foundational Transformer architecture (*"Attention Is All You Need"*, Vaswani et al., 2017) and for engineering the state-of-the-art Gemini 3.7 Flash, Flash Thinking, 3.1 Pro, and Imagen 3 models with generous public web accessibility.
 2. **OpenAI & Anthropic**: For establishing the open API standards, Messages schemas, reasoning block conventions, and coding agent CLI patterns that unite modern developer workflows.
 3. **The Go Language Team & Chromium Engineers**: For the systems-level foundations (Go standard library concurrency, zero-dependency static compilation, and Chrome DevTools Protocol) enabling high-performance, local-first, zero-friction execution.
-4. **The Global Open-Source Community**: The creators and maintainers of Cursor, Windsurf, Aider, Continue.dev, OpenWebUI, Cherry Studio, ChatBox, and the global indie hacker ecosystem pushing the frontiers of software engineering.
+4. **The Global Open-Source Community**: The creators and maintainers of OpenAI Codex CLI, Claude Code CLI, Cursor, Grok Build, OpenHands, Roo Code, Cline, Aider, and the global indie hacker ecosystem pushing the frontiers of software engineering.
 5. **ABCsteps Technologies (Jodhpur, Rajasthan)**: For championing truthful, first-principles AI engineering education, open learning foundations, and the **Break Ordinary Boundaries (BOB)** developer empowerment mission.
