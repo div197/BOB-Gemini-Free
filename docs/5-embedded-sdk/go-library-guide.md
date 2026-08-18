@@ -26,15 +26,12 @@ import (
 
 func main() {
 	// Create embedded handler with functional options
-	handler, err := gateway.NewHandler(
+	handler := gateway.NewHandler(
 		gateway.WithDefaultModel("gemini-3.7-flash"),
 		gateway.WithCookieFile("./cookie.txt"),
 		gateway.WithLogRequests(true),
 		gateway.WithAPIKeys("sk-internal-secret"),
 	)
-	if err != nil {
-		log.Fatalf("Failed to initialize gateway: %v", err)
-	}
 
 	// Mount into your existing HTTP server
 	http.Handle("/v1/", handler)
@@ -52,13 +49,15 @@ func main() {
 
 | Option | Type | Description |
 | :--- | :--- | :--- |
-| `WithConfigFile(path string)` | `string` | Load base settings from `config.json` |
+| `WithPort(port int)` | `int` | Default server listening port |
+| `WithHost(host string)` | `string` | Local network binding interface (default: `127.0.0.1`) |
 | `WithCookieFile(path string)` | `string` | Specify authenticated session `cookie.txt` |
+| `WithCookiePool(paths ...string)` | `...string` | Configure round-robin pool of multiple account cookie files |
 | `WithAuthUser(index string)` | `string` | Multi-account Google profile index (`"0"`, `"1"`) |
 | `WithDefaultModel(model string)` | `string` | Fallback model if omitted by client |
 | `WithAPIKeys(keys ...string)` | `...string` | Enforce API key authorization |
 | `WithProxy(proxyURL string)` | `string` | Outbound HTTP/SOCKS5 proxy |
-| `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile |
+| `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
 | `WithLogRequests(enabled bool)` | `bool` | Enable request lifecycle logging |
 
 ---

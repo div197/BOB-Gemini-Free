@@ -185,6 +185,7 @@ func Resolve(modelName, defaultName string) (Resolved, error) {
 	if defaultName == "" {
 		defaultName = DefaultModelName
 	}
+	modelName = strings.TrimPrefix(modelName, "models/")
 
 	var thinkOverride *int
 	if idx := strings.LastIndex(modelName, "@think="); idx != -1 {

@@ -11,6 +11,12 @@ func TestNewHandlerEmbedded(t *testing.T) {
 		WithPort(9999),
 		WithDefaultModel("gemini-3.7-flash"),
 		WithAPIKeys("sk-embed-key"),
+		WithHost("127.0.0.1"),
+		WithCookieFile("cookie.txt"),
+		WithCookiePool("cookies/acc1.txt", "cookies/acc2.txt"),
+		WithAuthUser("1"),
+		WithImpersonate("chrome"),
+		WithProxy("http://127.0.0.1:8080"),
 	)
 
 	if handler == nil {
