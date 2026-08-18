@@ -59,8 +59,56 @@ event: content_block_stop
 data: {"type":"content_block_stop","index":1}
 
 event: message_delta
-data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":85}}
+data: {"type":"message_delta","delta":{"stop_reason":"end_turn","stop_sequence":null},"usage":{"output_tokens":85,"cache_read_input_tokens":0,"cache_creation_input_tokens":0}}
 
 event: message_stop
 data: {"type":"message_stop"}
+```
+
+---
+
+## 🖼️ Multimodal Vision Support
+
+BOB Gemini Free natively accepts Anthropic image content blocks and streams them directly to Google Gemini's Scotty upload pipeline:
+
+```json
+{
+  "model": "claude-3-7-sonnet",
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "image",
+          "source": {
+            "type": "base64",
+            "media_type": "image/png",
+            "data": "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII="
+          }
+        },
+        {
+          "type": "text",
+          "text": "What does this image contain?"
+        }
+      ]
+    }
+  ]
+}
+```
+
+---
+
+## ⚡ Prompt Caching Counters
+
+For compatibility with **Claude Code CLI** token consumption tracking, BOB Gemini Free returns explicit prompt caching fields:
+
+```json
+{
+  "usage": {
+    "input_tokens": 42,
+    "output_tokens": 128,
+    "cache_read_input_tokens": 0,
+    "cache_creation_input_tokens": 0
+  }
+}
 ```

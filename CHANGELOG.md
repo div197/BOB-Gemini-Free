@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.1] - 2026-08-18
+
+### "API-Less AI" Architecture, Token Counting Engine & Multimodal Vision
+
+#### Added
+- **"API-Less AI" Architecture**: Articulated and implemented the zero-cloud-bill, zero-credit-card, zero-API-key-leak paradigm across English and Hindi documentation.
+- **Native Multi-Script Token Counting Engine**: Added drop-in `POST /v1beta/models/{model}:countTokens` (Google GenAI SDK standard) and `POST /v1/tokens/count` (OpenAI format) with subword, Devanagari/Indic, CJK, Emoji, and multimodal tile calculation.
+- **Anthropic Multimodal Vision Translation**: Added native support in `/v1/messages` for Anthropic `type: "image"` content blocks (base64 PNG/JPEG/WEBP) seamlessly translated to Google's Scotty upload protocol.
+- **Prompt Caching Usage Telemetry**: Added `cache_read_input_tokens` and `cache_creation_input_tokens` fields to streaming SSE and non-streaming Anthropic responses for complete Claude Code CLI token tracking.
+- **Live Financial Savings Telemetry (`GET /`)**: Real-time atomic metrics for `requests_served`, `tokens_processed`, `estimated_savings_usd`, and `uptime_seconds`.
+- **13-Point Automated Diagnostic Suite**: Expanded the built-in diagnostic test runner (`--test`) to 13 comprehensive checks.
+- **Authenticated Scotty Token Recovery**: Attached `Authorization: SAPISIDHASH` to page token discovery for authenticated session resilience.
+
+---
+
 ## [0.1.0] - 2026-08-18
 
 ### Initial Release of BOB Gemini Free
