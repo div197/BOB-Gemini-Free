@@ -2,6 +2,7 @@ package gemini
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"io"
 	"log"
@@ -138,13 +139,23 @@ func (c *Client) triageStatus(resp *http.Response) error {
 }
 
 func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
+	return c.GenerateContext(context.Background(), prompt, modelID, thinkMode, fileRefs, extra)
+}
+
+func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
 	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
 	reqURL := BuildURL(c.Cfg)
 	headers := c.buildHeaders()
 
 	var lastErr error
 	for attempt := 0; attempt < c.Cfg.RetryAttempts; attempt++ {
-		req, err := http.NewRequest("POST", reqURL, strings.NewReader(bodyStr))
+		select {
+		case <-ctx.Done():
+			return "", ctx.Err()
+		default:
+		}
+
+		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {
 			return "", err
 		}
@@ -152,6 +163,9 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 
 		resp, err := c.HTTP.Do(req)
 		if err != nil {
+			if ctx.Err() != nil {
+				return "", ctx.Err()
+			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
 		} else {
 			if err := c.triageStatus(resp); err != nil {
@@ -175,7 +189,11 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 
 		if attempt < c.Cfg.RetryAttempts-1 {
 			c.Logf("Retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
-			time.Sleep(time.Duration(c.Cfg.RetryDelaySec) * time.Second)
+			select {
+			case <-ctx.Done():
+				return "", ctx.Err()
+			case <-time.After(time.Duration(c.Cfg.RetryDelaySec) * time.Second):
+			}
 		}
 	}
 
@@ -183,6 +201,10 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 }
 
 func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
+	return c.GenerateStreamContext(context.Background(), prompt, modelID, thinkMode, fileRefs, extra, emit)
+}
+
+func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
 	reqURL := BuildURL(c.Cfg)
 	headers := c.buildHeaders()
@@ -191,11 +213,17 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 	var lastErr error
 
 	for attempt := 0; attempt < c.Cfg.RetryAttempts; attempt++ {
+		select {
+		case <-ctx.Done():
+			return ctx.Err()
+		default:
+		}
+
 		// Reset the chunk buffer on each retry, but preserve the prevText state.
 		// This ensures we don't emit duplicate deltas to the client if a stream connection drops halfway.
 		parser.ResetBuffer()
 
-		req, err := http.NewRequest("POST", reqURL, strings.NewReader(bodyStr))
+		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {
 			return err
 		}
@@ -203,6 +231,9 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 
 		resp, err := c.HTTP.Do(req)
 		if err != nil {
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
 		} else {
 			if err := c.triageStatus(resp); err != nil {
@@ -214,7 +245,7 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 				if err == nil {
 					return nil
 				}
-				if isClientDisconnect(err) {
+				if isClientDisconnect(err) || ctx.Err() != nil {
 					return err
 				}
 				lastErr = err
@@ -223,7 +254,11 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 
 		if attempt < c.Cfg.RetryAttempts-1 {
 			c.Logf("Stream retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
-			time.Sleep(time.Duration(c.Cfg.RetryDelaySec) * time.Second)
+			select {
+			case <-ctx.Done():
+				return ctx.Err()
+			case <-time.After(time.Duration(c.Cfg.RetryDelaySec) * time.Second):
+			}
 		}
 	}
 

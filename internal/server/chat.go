@@ -69,7 +69,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var totalDeltaChars int
-		emitErr := a.Gem.GenerateStream(prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
 			totalDeltaChars += len(delta)
 			chunk := models.OpenAIChatResponse{
 				ID:                cid,
@@ -134,7 +134,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	text, err := a.Gem.Generate(prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
+	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
 		return

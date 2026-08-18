@@ -88,7 +88,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	text, err := a.Gem.Generate(prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
 		return

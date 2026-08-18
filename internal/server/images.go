@@ -42,7 +42,7 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 	imagePrompt := fmt.Sprintf("Generate an image of: %s. Return the generated image directly.", req.Prompt)
 	resolved, _ := models.Resolve("gemini-3.7-flash", a.Cfg.DefaultModel)
 
-	text, err := a.Gem.Generate(imagePrompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+	text, err := a.Gem.GenerateContext(r.Context(), imagePrompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{
 			"error": map[string]any{

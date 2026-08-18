@@ -118,7 +118,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		_ = writeSSEEvent(w, "content_block_start", evBlockStart)
 
 		var fullText string
-		streamErr := a.Gem.GenerateStream(prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
 			fullText += delta
 			evDelta := map[string]any{
 				"type":  "content_block_delta",
@@ -149,22 +149,22 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			"index": 0,
 		})
 
-		outputTokens := len(fullText) / 4
-		if outputTokens == 0 {
-			outputTokens = 1
-		}
-
 		// 4. message_delta event
-		_ = writeSSEEvent(w, "message_delta", map[string]any{
+		outTokens := len(fullText) / 4
+		if outTokens == 0 {
+			outTokens = 1
+		}
+		evMsgDelta := map[string]any{
 			"type": "message_delta",
 			"delta": map[string]any{
 				"stop_reason":   "end_turn",
 				"stop_sequence": nil,
 			},
 			"usage": map[string]any{
-				"output_tokens": outputTokens,
+				"output_tokens": outTokens,
 			},
-		})
+		}
+		_ = writeSSEEvent(w, "message_delta", evMsgDelta)
 
 		// 5. message_stop event
 		_ = writeSSEEvent(w, "message_stop", map[string]any{
@@ -174,7 +174,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Non-streaming response
-	text, err := a.Gem.Generate(prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
+	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{
 			"type": "error",
