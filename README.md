@@ -228,7 +228,7 @@ Open `http://127.0.0.1:8081/playground` (or `/ui`) in any web browser to access 
 * 📊 **Interactive Architecture Diagrams (Mermaid.js)**: Automatically renders ````mermaid ```` blocks into live interactive SVG flowcharts and sequence diagrams.
 * ⌨️ **Spotlight Command Palette (`⌘K` / `Ctrl+K`) & Keybindings**:
   * `1`–`5`: Switch between flagship models (`gemini-3.7-flash`, `thinking`, `gemini-3.1-pro`, `imagen-3`).
-  * `T1`–`T4`: Switch Sacred Themes (BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum).
+  * `T1`–`T5`: Switch Sacred Themes (BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum, Apple Design).
   * `N`: Start a new chat session • `[` / `]`: Toggle sidebars • `E`: Export conversation to Markdown.
 * 📊 **Live On-Device Telemetry & Savings**: Real-time ticker tracking uptime, requests served, token throughput, and estimated USD financial savings.
 
@@ -286,7 +286,7 @@ client = OpenAI(
 
 # Text Chat Completion with Deep Thinking
 response = client.chat.completions.create(
-    model="gemini-3.5-flash-thinking",
+    model="gemini-3.7-flash-thinking",
     messages=[
         {"role": "user", "content": "Explain quantum error correction step by step."}
     ]
@@ -838,12 +838,12 @@ Google provides access to Gemini (Flash 3.7, Flash 3.6, Flash Lite, and Flash Th
 </details>
 
 <details>
-<summary><strong>4. How do I unlock Google's flagship Pro models (`gemini-3.1-pro` / `gemini-pro`)?</strong></summary>
+<summary><strong>4. How do I unlock Google's flagship Pro models (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3?</strong></summary>
 
 Out of the box, Free tier accounts access Flash 3.7, Flash 3.6, Flash Thinking, and Flash Lite. If you have an active Gemini Advanced ($20/mo) subscription (or 18 months free via Reliance Jio / college partnership offers):
-1. Run `./bob-gemini-free --setup-cookie`
-2. Paste your session cookie string.
-3. The helper automatically extracts required tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`), computes dynamic `SAPISIDHASH` per request, and unlocks `gemini-3.1-pro` / `gemini-pro`.
+1. Run `./bob-gemini-free --login` (Recommended 1-click native interactive sign-in).
+2. Or run `./bob-gemini-free --setup-cookie` and paste your session cookie string.
+3. The helper automatically extracts required tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`, `__Secure-1PSIDTS`), computes dynamic `SAPISIDHASH` per request, and unlocks `gemini-3.1-pro` / `gemini-pro` and `imagen-3`.
 </details>
 
 <details>
@@ -867,9 +867,12 @@ Yes. BOB Gemini Free automatically injects tool schemas into system instructions
 </details>
 
 <details>
-<summary><strong>8. How do I use Vision and multimodal image inputs?</strong></summary>
+<summary><strong>8. How do I use Vision and multimodal image inputs? Why is a session cookie required for images?</strong></summary>
 
-Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or base64 strings. BOB Gemini Free automatically optimizes oversized images (downscaling to max 1024px, 75% JPEG quality, <1MB) and uploads them via Google's Scotty Resumable Upload protocol to obtain authentic WIZ file references.
+Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or image files. BOB Gemini Free optimizes oversized images (downscaling to max 1024px, 75% JPEG quality, <1MB) and uploads them via Google's Scotty Resumable Upload protocol (`content-push.googleapis.com`). 
+
+* **Session Requirement**: Google strictly binds Scotty file uploads to authenticated Google account sessions (`SAPISIDHASH` + `__Secure-1PSIDTS`). Unauthenticated requests will fail with `BardErrorInfo [1003]`.
+* **Resolution**: Run `./bob-gemini-free --login` once to authenticate your session and permanently unlock vision.
 </details>
 
 <details>

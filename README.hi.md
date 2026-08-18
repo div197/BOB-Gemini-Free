@@ -733,12 +733,12 @@ docker logs bob-gemini-free
 </details>
 
 <details>
-<summary><strong>4. मैं Google Pro मॉडल (`gemini-3.1-pro` / `gemini-pro`) को कैसे अनलॉक करूँ?</strong></summary>
+<summary><strong>4. मैं Google Pro मॉडल (`gemini-3.1-pro` / `gemini-pro`) और Imagen 3 को कैसे अनलॉक करूँ?</strong></summary>
 
 मुफ़्त जीमेल पर Flash और Thinking पहले से उपलब्ध हैं। यदि आपके पास Gemini Advanced ($20/माह) या Reliance Jio 18 महीने / कॉलेज ऑफ़र है:
-1. `./bob-gemini-free --setup-cookie` चलाएँ।
-2. अपनी सेशन कुकी पेस्ट करें।
-3. टूल ऑटोमैटिक रूप से `SAPISIDHASH` जनरेट कर Pro मॉडल को सक्रिय कर देगा।
+1. `./bob-gemini-free --login` चलाएँ (सुझाया गया 1-क्लिक स्टैंडअलोन लॉगिन)।
+2. या `./bob-gemini-free --setup-cookie` चलाकर अपनी सेशन कुकी पेस्ट करें।
+3. टूल ऑटोमैटिक रूप से `SAPISIDHASH` जनरेट कर Pro मॉडल और Imagen 3 को सक्रिय कर देगा।
 </details>
 
 <details>
@@ -762,9 +762,12 @@ docker logs bob-gemini-free
 </details>
 
 <details>
-<summary><strong>8. मल्टीमॉडल विज़न और इमेज अपलोड कैसे काम करता है?</strong></summary>
+<summary><strong>8. मल्टीमॉडल विज़न और इमेज अपलोड कैसे काम करता है? इमेजेस के लिए सेशन कुकी क्यों आवश्यक है?</strong></summary>
 
-OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भेजें। BOB Gemini Free बड़ी छवियों को ऑटोमैटिक रूप से कंप्रेस करता है (अधिकतम 1024px, 75% JPEG क्वालिटी, 1MB से कम) और गूगल के Scotty Resumable Upload प्रोटोकॉल से अपलोड करता है।
+OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भेजें। BOB Gemini Free बड़ी छवियों को कंप्रेस करके गूगल के Scotty Resumable Upload प्रोटोकॉल (`content-push.googleapis.com`) पर अपलोड करता है।
+
+* **सेशन अनिवार्यता**: गूगल Scotty स्टोरेज अपलोड्स को प्रामाणिक गूगल खाते (`SAPISIDHASH` + `__Secure-1PSIDTS`) से जोड़ता है। बिना लॉगिन वाले अनुरोधों पर गूगल `BardErrorInfo [1003]` रिटर्न करता है।
+* **समाधान**: केवल एक बार `./bob-gemini-free --login` चलाकर लॉगिन करें; विज़न हमेशा के लिए सक्रिय हो जाएगा।
 </details>
 
 <details>
