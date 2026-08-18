@@ -137,6 +137,85 @@
   --shadow-main: 0 4px 22px rgba(0, 240, 255, 0.1);
   --shadow-cta: 0 4px 16px rgba(0, 240, 255, 0.32);
   --shadow-celestial: 0 24px 70px rgba(0, 0, 0, 0.85), 0 0 35px rgba(0, 240, 255, 0.15);
+[data-theme="apple"] {
+  --bg-app: #f5f5f7;              /* Signature Apple Parchment */
+  --bg-header: #000000;           /* Pure Black Global Nav */
+  --bg-sidebar: #f5f5f7;          /* Parchment */
+  --bg-workspace: #ffffff;        /* Pure White Canvas */
+  --bg-card: #ffffff;             /* Pure White Tile */
+  --bg-card-hover: #fafafc;       /* Pearl Surface */
+  --bg-modal: #ffffff;            /* White Modal */
+  --bg-input: #f5f5f7;            /* Parchment Input */
+  --border-color: #e5e5ea;        /* Subtle Hairline */
+  --border-focus: #0071e3;        /* Focus Blue */
+  --border-glow: rgba(0, 102, 204, 0.28);
+  --text-main: #1d1d1f;           /* Near-Black Ink */
+  --text-muted: #6e6e73;          /* Ink Muted */
+  --text-subdued: #86868b;        /* Ink Muted 48 */
+  --accent-primary: #0066cc;      /* Action Blue */
+  --accent-primary-hover: #0071e3; /* Focus Blue */
+  --accent-primary-text: #ffffff;
+  --accent-badge: #0066cc;
+  --accent-badge-text: #ffffff;
+  --accent-secondary: #1d1d1f;    /* Near-Black Ink */
+  --shadow-main: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-cta: 0 4px 14px rgba(0, 102, 204, 0.25);
+  --shadow-celestial: 0 20px 60px rgba(0, 0, 0, 0.12), 0 3px 30px rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="apple"] header {
+  background: #000000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+[data-theme="apple"] header .brand-title,
+[data-theme="apple"] header .brand-bob,
+[data-theme="apple"] header .brand-gemini,
+[data-theme="apple"] header .brand-free {
+  color: #ffffff;
+}
+[data-theme="apple"] header .brand-tagline {
+  color: #86868b;
+}
+[data-theme="apple"] header .stat-pill {
+  background: #1d1d1f;
+  color: #d2d2d7;
+  border-color: rgba(255, 255, 255, 0.15);
+}
+[data-theme="apple"] header .stat-pill b {
+  color: #2997ff;
+}
+[data-theme="apple"] header .nav-pill-btn {
+  background: #1d1d1f;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+[data-theme="apple"] header .nav-pill-btn:hover {
+  background: #272729;
+  border-color: #2997ff;
+}
+[data-theme="apple"] header .theme-selector {
+  background: #1d1d1f;
+  color: #ffffff;
+  border-color: rgba(255, 255, 255, 0.18);
+}
+[data-theme="apple"] .user-bubble {
+  background: #0066cc;
+  color: #ffffff;
+  border-radius: 18px 18px 4px 18px;
+}
+[data-theme="apple"] .btn-pill-primary-action,
+[data-theme="apple"] .btn-send {
+  background: #0066cc;
+  color: #ffffff;
+  border-radius: 9999px;
+}
+[data-theme="apple"] .btn-send:hover {
+  background: #0071e3;
+}
+[data-theme="apple"] .starter-card-title,
+[data-theme="apple"] h1, [data-theme="apple"] h2, [data-theme="apple"] h3 {
+  letter-spacing: -0.28px;
+  font-weight: 600;
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1792,6 +1871,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>T4</kbd>
       </div>
+      <div class="cmd-item" data-type="theme" onclick="changeTheme('apple'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🍎</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Apple Design</span>
+            <span class="cmd-item-desc">SF Pro Typography, Parchment & Action Blue</span>
+          </div>
+        </div>
+        <kbd>T5</kbd>
+      </div>
 
       <div class="cmd-section-label" data-section="workspace">⚙️ Workspace Controls</div>
       <div class="cmd-item" data-type="action" onclick="newChat(); toggleCmdPalette();">
@@ -1901,6 +1990,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <option value="vodafone">🔴 Vodafone Editorial</option>
       <option value="spotify">🟢 Spotify Dark</option>
       <option value="quantum">🌌 Gemini Quantum</option>
+      <option value="apple">🍎 Apple Design</option>
     </select>
   </div>
 </header>
