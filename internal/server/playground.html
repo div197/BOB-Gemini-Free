@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Pure Typographic Identity & Multi-Theme Harmonic Cosmology
+  Pure Typographic Identity & High-Contrast Multi-Theme Harmonic Cosmology
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -46,26 +46,26 @@
 }
 
 [data-theme="vodafone"] {
-  --bg-app: #f5f6f8;
-  --bg-header: #1a1c1e;
-  --bg-sidebar: #f5f6f8;
+  --bg-app: #f4f5f8;
+  --bg-header: #ffffff;
+  --bg-sidebar: #f4f5f8;
   --bg-workspace: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #f9fafb;
-  --bg-input: #f5f6f8;
+  --bg-card-hover: #f8f9fa;
+  --bg-input: #f4f5f8;
   --border-color: #e2e5e9;
   --border-focus: #e60000;
-  --text-main: #1a1c1e;
-  --text-muted: #64748b;
-  --text-subdued: #94a3b8;
+  --text-main: #111418;
+  --text-muted: #4b5563;
+  --text-subdued: #6b7280;
   --accent-primary: #e60000;
   --accent-primary-hover: #cc0000;
   --accent-primary-text: #ffffff;
   --accent-badge: #e60000;
   --accent-badge-text: #ffffff;
-  --accent-secondary: #25282b;
-  --shadow-main: 0 2px 10px rgba(0, 0, 0, 0.05);
-  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.3);
+  --accent-secondary: #111418;
+  --shadow-main: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.32);
 }
 
 [data-theme="spotify"] {
@@ -137,7 +137,7 @@ body {
 /* Master Header */
 header {
   background: var(--bg-header);
-  color: #ffffff;
+  color: var(--text-main);
   padding: 8px 18px;
   display: flex;
   justify-content: space-between;
@@ -147,6 +147,7 @@ header {
   z-index: 40;
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-main);
+  transition: background 0.25s ease, border-color 0.25s ease;
 }
 .brand-anchor {
   display: flex;
@@ -201,7 +202,7 @@ header {
   align-items: center;
 }
 .stat-pill {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   padding: 0 10px;
   height: 28px;
@@ -219,7 +220,7 @@ header {
   font-weight: 700;
 }
 .stat-pill.savings b {
-  color: #34d399;
+  color: #10b981;
 }
 
 /* Header Controls & Sidebar Toggles (Sleek 32px Height) */
@@ -631,7 +632,7 @@ select:focus, textarea:focus {
   padding: 10px 18px 10px 18px;
   display: flex;
   justify-content: center;
-  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.15);
   z-index: 30;
 }
 .studio-input-container {
@@ -711,7 +712,7 @@ select:focus, textarea:focus {
   align-items: center;
 }
 .footer-action-btn {
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-muted);
   padding: 2px 8px;
@@ -726,7 +727,7 @@ select:focus, textarea:focus {
   font-family: inherit;
 }
 .footer-action-btn:hover {
-  background: var(--bg-card);
+  background: var(--bg-card-hover);
   border-color: var(--accent-primary);
   color: var(--text-main);
   transform: translateY(-1px);
@@ -1133,7 +1134,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
   backdrop-filter: blur(8px);
   animation: toastIn 0.22s cubic-bezier(0.25, 1, 0.5, 1);
   transition: opacity 0.25s ease, transform 0.25s ease;
