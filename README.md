@@ -274,6 +274,9 @@ response = client.images.generate(
 print("Generated Image URL:", response.data[0].url)
 ```
 
+> [!NOTE]
+> **Imagen Tool Authentication**: Google requires an active signed-in Google account for Imagen image generation. When running without cookies in anonymous mode, Gemini returns an informative policy response. To unlock Imagen generation, attach your session cookie via `--cookie-file cookie.txt` or `--setup-cookie`.
+
 ### Gemini CLI (Native Google API)
 
 ```bash

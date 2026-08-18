@@ -231,6 +231,9 @@ response = client.images.generate(
 print("Generated Image URL:", response.data[0].url)
 ```
 
+> [!NOTE]
+> **Imagen इमेज जेनरेशन प्रमाणीकरण**: गूगल इमेज जेनरेशन के लिए सक्रिय रूप से साइन-इन किए गए गूगल खाते की मांग करता है। अनाम (बिना कुकी) मोड में चलने पर जेमिनी नीति स्पष्टीकरण लौटाता है। इमेज जेनरेशन का उपयोग करने के लिए `--cookie-file cookie.txt` या `--setup-cookie` द्वारा अपना सेशन कुकी जोड़ें।
+
 ---
 
 ## विस्तृत आर्किटेक्चर तुलना: Google AI Studio बनाम BOB Gemini Free
