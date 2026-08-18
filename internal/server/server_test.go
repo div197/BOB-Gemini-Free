@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 
 	"github.com/div197/bob-gemini-free/internal/config"
@@ -182,5 +183,66 @@ func TestSingleModelEndpoint(t *testing.T) {
 	handler.ServeHTTP(rec2, req2)
 	if rec2.Code != http.StatusNotFound {
 		t.Errorf("Expected 404 for unknown model, got %d", rec2.Code)
+	}
+}
+
+func TestGoogleModelsEndpoint(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	req := httptest.NewRequest("GET", "/v1beta/models", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected 200 for Google models, got %d", rec.Code)
+	}
+
+	var res map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &res); err != nil {
+		t.Fatalf("Failed to parse JSON: %v", err)
+	}
+	modelsList, ok := res["models"].([]any)
+	if !ok || len(modelsList) == 0 {
+		t.Errorf("Expected non-empty models array in Google models response")
+	}
+}
+
+func TestBadRequestHandling(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	// 1. Invalid JSON in chat completions -> 400
+	req1 := httptest.NewRequest("POST", "/v1/chat/completions", strings.NewReader("invalid-json"))
+	rec1 := httptest.NewRecorder()
+	handler.ServeHTTP(rec1, req1)
+	if rec1.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON in chat completions, got %d", rec1.Code)
+	}
+
+	// 2. Empty prompt in chat completions -> 400
+	req2 := httptest.NewRequest("POST", "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[]}`))
+	rec2 := httptest.NewRecorder()
+	handler.ServeHTTP(rec2, req2)
+	if rec2.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for empty prompt in chat completions, got %d", rec2.Code)
+	}
+
+	// 3. Invalid JSON in responses API -> 400
+	req3 := httptest.NewRequest("POST", "/v1/responses", strings.NewReader("invalid-json"))
+	rec3 := httptest.NewRecorder()
+	handler.ServeHTTP(rec3, req3)
+	if rec3.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON in responses API, got %d", rec3.Code)
+	}
+
+	// 4. Invalid JSON in Google generateContent -> 400
+	req4 := httptest.NewRequest("POST", "/v1beta/models/gemini-3.7-flash:generateContent", strings.NewReader("invalid-json"))
+	rec4 := httptest.NewRecorder()
+	handler.ServeHTTP(rec4, req4)
+	if rec4.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON in Google generateContent, got %d", rec4.Code)
 	}
 }

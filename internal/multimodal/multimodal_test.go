@@ -6,7 +6,13 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"net/http"
+	"net/http/httptest"
 	"testing"
+	"time"
+
+	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/gemini"
 )
 
 func createTestImage(width, height int) []byte {
@@ -76,9 +82,37 @@ func TestCompressIfNeededBase64(t *testing.T) {
 	}
 }
 
-func TestFetchImageBytesInvalidScheme(t *testing.T) {
+func TestFetchImageBytes(t *testing.T) {
 	_, err := FetchImageBytes(nil, "file:///etc/passwd")
 	if err == nil {
 		t.Error("Expected error for file:// scheme, got nil")
+	}
+
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write([]byte("fake-png-data"))
+	}))
+	defer ts.Close()
+
+	b, err := FetchImageBytes(ts.Client(), ts.URL)
+	if err != nil || string(b) != "fake-png-data" {
+		t.Errorf("Expected fake-png-data, got err=%v, data=%q", err, string(b))
+	}
+}
+
+func TestTokenCache(t *testing.T) {
+	cfg := config.Default()
+	cookie := gemini.NewCookieCache(cfg.CookieFile)
+	client := &http.Client{Timeout: 5 * time.Second}
+
+	tc := NewTokenCache(cfg, cookie, client)
+	if tc == nil {
+		t.Fatalf("Expected non-nil TokenCache")
+	}
+
+	// Without network, should return default fallback tokens
+	tokens := tc.Get()
+	if tokens.PushID != DefaultPushID || tokens.Pctx != DefaultPctx {
+		t.Errorf("Expected fallback default tokens, got: %+v", tokens)
 	}
 }

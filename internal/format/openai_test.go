@@ -140,10 +140,10 @@ func TestExtractThinking(t *testing.T) {
 	expectedClean := "Here is the final answer."
 
 	if thinking != expectedThinking {
-		t.Errorf("got thinking %q, want %q", thinking, expectedThinking)
+		t.Errorf("Got thinking %q, want %q", thinking, expectedThinking)
 	}
 	if clean != expectedClean {
-		t.Errorf("got clean %q, want %q", clean, expectedClean)
+		t.Errorf("Got clean text %q, want %q", clean, expectedClean)
 	}
 
 	// Plain text without thought blocks
@@ -154,5 +154,59 @@ func TestExtractThinking(t *testing.T) {
 	}
 	if plainClean != plain {
 		t.Errorf("expected plain text unchanged, got %q", plainClean)
+	}
+}
+
+func TestBuildToolChoiceInstruction(t *testing.T) {
+	if BuildToolChoiceInstruction("none") != "\n\nIMPORTANT: Do NOT call any tools. Respond with text only." {
+		t.Errorf("Unexpected tool choice instruction for 'none'")
+	}
+	if BuildToolChoiceInstruction("required") != "\n\nIMPORTANT: You MUST call at least one tool. Do not respond with text only." {
+		t.Errorf("Unexpected tool choice instruction for 'required'")
+	}
+	specificChoice := map[string]any{
+		"type": "function",
+		"function": map[string]any{
+			"name": "lookup_user",
+		},
+	}
+	if !strings.Contains(BuildToolChoiceInstruction(specificChoice), "lookup_user") {
+		t.Errorf("Expected specific choice to mention 'lookup_user'")
+	}
+}
+
+func TestBuildResponseOutput(t *testing.T) {
+	toolCalls := []models.OpenAIToolCall{
+		{
+			ID:   "call_123",
+			Type: "function",
+			Function: models.OpenAIToolCallFunction{
+				Name:      "calc",
+				Arguments: `{"expr":"2+2"}`,
+			},
+		},
+	}
+	output := BuildResponseOutput("Done calculating", toolCalls, "msg_abc")
+	if len(output) != 2 {
+		t.Fatalf("Expected 2 output items (1 tool call + 1 message), got %d", len(output))
+	}
+	if output[0]["type"] != "function_call" || output[0]["name"] != "calc" {
+		t.Errorf("Unexpected function call item: %v", output[0])
+	}
+	if output[1]["type"] != "message" || output[1]["id"] != "msg_abc" {
+		t.Errorf("Unexpected message item: %v", output[1])
+	}
+}
+
+func TestResponsesInputString(t *testing.T) {
+	msgs, err := ResponsesInputToMessages("Simple query string", "Be concise")
+	if err != nil {
+		t.Fatalf("ResponsesInputToMessages failed: %v", err)
+	}
+	if len(msgs) != 2 {
+		t.Fatalf("Expected 2 messages (system + user), got %d", len(msgs))
+	}
+	if msgs[0]["role"] != "system" || msgs[1]["role"] != "user" {
+		t.Errorf("Unexpected roles: %v", msgs)
 	}
 }
