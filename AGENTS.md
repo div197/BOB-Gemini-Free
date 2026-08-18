@@ -9,9 +9,9 @@ Welcome, AI Agent! This document provides technical architecture, build instruct
 **BOB Gemini Free** (*Break Ordinary Boundaries*) by **ABCsteps** ([abcsteps.com](https://abcsteps.com/)) and **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)) is a high-performance, single-binary local AI gateway written in Go.
 
 It translates three major protocol standards into Google's internal web RPC protocol (`batchexecute` / `streamGenerateContent`):
-1. **OpenAI Standard**: `POST /v1/chat/completions`, `POST /v1/responses` (with `output_text`), `GET /v1/models`, `GET /v1/models/{model}`, `POST /v1/images/generations`
-2. **Anthropic Standard**: `POST /v1/messages` (Claude Code CLI with complete SSE stream lifecycle)
-3. **Google Gemini Standard**: `GET /v1beta/models`, `POST /v1beta/models/{target}`
+1. **OpenAI Standard**: `POST /v1/chat/completions`, `POST /v1/responses` (with `output_text`), `POST /v1/tokens/count`, `GET /v1/models`, `GET /v1/models/{model}`, `POST /v1/images/generations`
+2. **Anthropic Standard**: `POST /v1/messages` (Claude Code CLI with complete SSE stream lifecycle and prompt caching counters)
+3. **Google Gemini Standard**: `GET /v1beta/models`, `POST /v1beta/models/{target}` (including `generateContent`, `streamGenerateContent`, and `:countTokens`)
 4. **Embedded Go Library**: `pkg/gateway` (`import "github.com/div197/bob-gemini-free/pkg/gateway"`)
 
 ---
@@ -30,8 +30,8 @@ It translates three major protocol standards into Google's internal web RPC prot
 └── internal/
     ├── browser/                # 1-click native interactive login window (CDP WebSocket)
     ├── config/                 # Configuration loader & cookie auto-discovery
-    ├── diag/                   # 12-point diagnostic test kit, bench runner & e2e tests
-    ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images, Citations)
+    ├── diag/                   # 13-point diagnostic test kit, bench runner & e2e tests
+    ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images, Citations, Tokens)
     ├── gemini/                 # Upstream client, auth, cookie pool load-balancer, parser
     ├── models/                 # Model registry & alias catalog (Imagen 3, Nano Banana 2/Pro)
     ├── multimodal/             # Image compression, Scotty upload, token cache, dynamic refresh
