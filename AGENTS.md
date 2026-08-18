@@ -28,12 +28,13 @@ It translates three major protocol standards into Google's internal web RPC prot
 ├── pkg/
 │   └── gateway/                # Exported embedded Go library (pkg/gateway)
 └── internal/
+    ├── browser/                # 1-click native interactive login window (CDP WebSocket)
     ├── config/                 # Configuration loader & cookie auto-discovery
-    ├── diag/                   # Diagnostic test kit, bench runner & e2e tests
-    ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images)
-    ├── gemini/                 # Upstream client, authentication, cookie cache, parser
-    ├── models/                 # Model registry & alias catalog
-    ├── multimodal/             # Image compression, Scotty upload, token cache
+    ├── diag/                   # 12-point diagnostic test kit, bench runner & e2e tests
+    ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images, Citations)
+    ├── gemini/                 # Upstream client, auth, cookie pool load-balancer, parser
+    ├── models/                 # Model registry & alias catalog (Imagen 3, Nano Banana 2/Pro)
+    ├── multimodal/             # Image compression, Scotty upload, token cache, dynamic refresh
     └── server/                 # HTTP mux, middleware, SSE streamer, handlers
 ```
 

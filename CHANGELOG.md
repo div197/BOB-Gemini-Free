@@ -48,3 +48,13 @@ Part of the **BOB Series** (*Break Ordinary Boundaries*) by [**ABCsteps.com**](h
 - **Unit Test Suite**: 100% passing automated test suite covering all 7 packages, including agentic multi-turn tool loops and Codex Responses API.
 - **13-Question Builder FAQ**: Comprehensive troubleshooting and architectural comparison across English and Hindi documentation.
 - **Acknowledgements & Research Foundations**: Added formal citations crediting Google Research for the Transformer architecture (*"Attention Is All You Need"*).
+- **1-Click Native Interactive Login Window (`--login`)**: Standalone browser window captures Google session tokens via Chrome DevTools Protocol (CDP) WebSocket, bypassing manual DevTools copying and macOS Keychain dialogs.
+- **Multi-Account Cookie Pool Engine (`cookie_pool`)**: High-concurrency round-robin dispatcher supporting multiple accounts (`./cookies/*.txt`), atomic lock-free cursors, 60s failure backoff, and transparent 429 rate-limit failover.
+- **Dynamic Token Self-Healing**: Live extraction of `SNlM0e` (XSRF token) and `cfb2h` (Google build version) directly from session HTML for zero-maintenance resilience.
+- **Claude 3.7 / 3.5 Extended Thinking Support**: Intercepts `thinking: { type: "enabled", budget_tokens: N }` in `/v1/messages` and emits official `type: "thinking"` blocks alongside text and tool blocks.
+- **Search Grounding & Web Citation Extraction**: Structured extraction and markdown footnoting of live Google search grounding sources.
+- **Google Imagen 3 & Gemini Nano Banana 2 / Pro Models**: Full registration and mode routing for `imagen-3`, `imagen-3-fast`, `gemini-nano-banana`, `gemini-nano-banana-2`, `gemini-nano-banana-pro`, `dall-e-3`, and `dall-e-2`.
+- **Zero-Dependency Universal Installers**: Enhanced `install.sh` and `install.ps1` with automated OS/architecture detection and fallback downloading of pre-compiled binaries from GitHub Releases for machines with no Go or Python.
+- **12-Point Enterprise Diagnostic Suite**: Expanded diagnostic verification suite (`--test`) covering all 12 live end-to-end capabilities with millisecond latency logging.
+- **Docker & OrbStack Native Healthchecks**: Injected native Docker `HEALTHCHECK` with 20s interval and <3ms cold-boot optimization on OrbStack.
+- **Comprehensive Master Documentation Suite (`docs/`)**: 5 structured chapters (18 dedicated markdown guides) covering quickstart, zero-dependency setups, authentication pools, IDE integrations, API references, and embedded Go SDK.
