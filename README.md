@@ -26,21 +26,57 @@
 
 ---
 
-**BOB Gemini Free** is part of the **BOB Series** (*Break Ordinary Boundaries*) developed by [**ABCsteps.com**](https://abcsteps.com/) — an online AI engineering school founded by **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)).
+**BOB Gemini Free** is part of the **BOB Series** (*Break Ordinary Boundaries*) developed by [**ABCsteps.com**](https://abcsteps.com/) — an online AI engineering school founded by **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)) in Jodhpur, Rajasthan, India.
 
-It is a high-performance, single-binary Go gateway that converts Google Gemini's web interface into a **Universal 3-in-1 AI Gateway Engine** supporting:
-* **OpenAI Standard**: `/v1/chat/completions`, `/v1/models`, `/v1/models/{model}`, and `/v1/responses` (OpenAI Codex CLI & Agents).
-* **Anthropic Standard**: `/v1/messages` (Claude Code CLI & Anthropic SDKs).
-* **Google Gemini Standard**: `/v1beta/models` and `/v1beta/models/{target}` (Gemini CLI & Google GenAI SDKs).
+---
+
+## 🌟 The Philosophy: Why "Break Ordinary Boundaries"?
+
+In the modern AI landscape, learners, independent creators, and developers constantly hit **three ordinary boundaries**:
+
+1. 💸 **The Economic Boundary (Cost Barrier)**: Frontier AI models often require expensive monthly subscriptions or high pay-per-token API credit cards. A student or solo builder experimenting with multi-agent coding can burn through hundreds of dollars in a few days.
+2. 🔒 **The Ecosystem Boundary (Platform Lock-in)**: Closed ecosystems trap developers — Anthropic tools only talk to Anthropic, OpenAI tools only talk to OpenAI, and Google Gemini's web power remains trapped inside a browser tab.
+3. ⚙️ **The Complexity Boundary (Friction & Setup Hell)**: Most proxy tools require compiling dependencies, installing runtimes (Python, Go, Node), or copy-pasting cryptic tokens with confusing error dialogs.
+
+**BOB breaks all three boundaries at once**:
+- ✨ **Zero Cost**: Unlocks Google's flagship **Gemini 3.7 Flash**, **Flash Thinking**, **3.1 Pro**, **Imagen 3**, and **Gemini Nano Banana** for every Google account.
+- 🌉 **Universal 3-in-1 Protocol**: One single local gateway translates Google's web stream simultaneously into **OpenAI Standard** (`/v1/chat/completions`, `/v1/responses`), **Anthropic Standard** (`/v1/messages` for Claude Code CLI), and **Google Gemini Standard** (`/v1beta/models`).
+- ⚡ **Zero-Friction Simplicity**: Runs as a single, self-contained native binary with **No Go, No Python, and No runtime required**. Includes a **1-Click Native Login Window (`--login`)** that sets up everything in seconds.
+
+---
+
+## 💡 How It Works (In Plain English)
+
+Think of **BOB Gemini Free** as a fast, private **Universal Translator** that runs quietly in the background on your laptop:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│  Your AI Coding Tools & Apps                                │
+│  (Cursor, Windsurf, Claude Code CLI, Codex CLI, OpenWebUI)  │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Speaks standard OpenAI / Anthropic API
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│  ⚡ BOB Gemini Free (Local Gateway on your machine)          │
+│  Translates requests instantly with zero cloud tracking     │
+└──────────────────────────────┬──────────────────────────────┘
+                               │ Speaks Google Web RPC Stream
+                               ▼
+┌─────────────────────────────────────────────────────────────┐
+│  🌐 Google Gemini Web (Flash 3.7 / Thinking / Pro / Images)  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+When **Cursor**, **Claude Code**, or **Codex CLI** asks for an API response, it sends a request to BOB. BOB translates that request into Gemini's format, fetches the response with full reasoning and vision support, and hands it back in milliseconds.
 
 ---
 
 ## The BOB Series (*Break Ordinary Boundaries*)
 
-The **BOB Series** by **ABCsteps** is a developer-first suite of high-impact runtimes, proxies, and automation engines designed to remove paywalls and artificial constraints from modern AI workflows:
+The **BOB Series** by **ABCsteps** is a developer-first collection of open-source runtimes and engines designed to remove paywalls and artificial constraints from modern software workflows:
 
-* 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — Docker-first YouTube ingestion runtime for developers, products, bulk workflows, and AI agents.
-* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — High-performance OpenAI, Anthropic, and Gemini gateway unlocking Google Gemini Web for agents, IDEs, and developer tools.
+* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — Universal 3-in-1 local gateway unlocking Google Gemini Web for coding agents, IDEs, and developer tools.
+* 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — Docker-first YouTube ingestion and transcription runtime for developers, products, and AI agents.
 
 ---
 
@@ -48,12 +84,13 @@ The **BOB Series** by **ABCsteps** is a developer-first suite of high-impact run
 
 * **Free for Every Gmail User**: Out of the box, every Google account includes free Gemini access with high-speed Flash, adaptive Flash Lite, and deep Flash Thinking (up to 20,000+ characters of reasoning).
 * **Universal 3-in-1 Protocol**: Drop-in compatible with OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, and Google GenAI SDKs.
-* **Gemini Advanced ($20/mo) Integration**: Attach your session cookie to legitimately route to Google's flagship **Pro** model for deep mathematical and coding capabilities.
-* **OpenAI Drop-In Replacement**: Seamlessly works with Cherry Studio, ChatBox, Codex CLI, Cursor, Claude Code, OpenAI/Anthropic Python/TypeScript SDKs, and custom AI agents.
+* **1-Click Native Login Window (`--login`)**: Standalone Google sign-in window automatically captures session tokens without Developer Tools or scary Keychain prompts.
+* **Multi-Account Cookie Pool (`cookie_pool`)**: Distribute requests across multiple Google accounts with automatic 60-second backoff and transparent failover on rate limits.
+* **Gemini Advanced ($20/mo) Integration**: Attach your session cookie to legitimately route to Google's flagship **Pro** model (`gemini-3.1-pro`) for deep mathematical and coding capabilities.
+* **Imagen 3 & Gemini Nano Banana 2/Pro**: Standard OpenAI image generation endpoint (`/v1/images/generations`) with photorealistic and native visual rendering.
+* **Claude 3.7 / 3.5 Native Thinking Support**: Accepts `thinking: { type: "enabled" }` and emits structured reasoning blocks for Claude Code CLI.
 * **Full Multimodal Vision**: Send base64 images or image URLs via standard OpenAI payloads — automatically uploaded via Google's Scotty Resumable Upload protocol with automatic compression.
-* **Reasoning Control**: Tune thinking depth dynamically via `@think=N` (0 = deepest reasoning, 4 = fast concise output).
-* **Zero Cost & Local First**: Single static binary with near-zero memory footprint (<15MB RAM baseline), safe local-first binding (`127.0.0.1`), and high concurrency throughput.
-* **TLS Browser Impersonation**: Built-in support to mimic Chrome/Firefox/Safari TLS fingerprints via `tls-client` for network environments facing WAF restrictions.
+* **Zero Cost, Privacy First & Local Only**: Single static binary with near-zero memory footprint (<15MB RAM baseline), safe local-first binding (`127.0.0.1`), and zero external telemetry.
 
 ## Supported Tools & Ecosystem
 
