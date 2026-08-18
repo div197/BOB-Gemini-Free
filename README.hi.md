@@ -152,6 +152,46 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
+### Claude Code CLI और Anthropic SDK (सीधा सपोर्ट)
+
+BOB Gemini Free में Anthropic Messages API प्रोटोकॉल (`POST /v1/messages`) का इनबिल्ट नेटिव सपोर्ट है।
+
+#### Claude Code CLI सेटअप
+
+```bash
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_API_KEY=none
+claude
+```
+
+#### Anthropic Python SDK
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="http://127.0.0.1:8081",
+    api_key="none"
+)
+
+message = client.messages.create(
+    model="gemini-3.7-flash-thinking",
+    max_tokens=4096,
+    messages=[
+        {"role": "user", "content": "एक समवर्ती Go वर्कर पूल लिखें।"}
+    ]
+)
+print(message.content[0].text)
+```
+
+### OpenAI Codex CLI
+
+```bash
+export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_API_KEY=none
+codex
+```
+
 ---
 
 ## विस्तृत आर्किटेक्चर तुलना: Google AI Studio बनाम BOB Gemini Free
@@ -402,6 +442,26 @@ OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भ�
 * **सिंगल स्टैटिक बाइनरी**: कोई virtualenv या `node_modules` की झंझट नहीं।
 * **तुरंत स्टार्टअप**: <5ms में शुरू और <15MB RAM की न्यूनतम खपत।
 * **अभूतपूर्व कंकरेंसी**: एक साथ कई SSE स्ट्रीमिंग डेल्टा कनेक्शन बिना किसी रुकावट के।
+</details>
+
+<details>
+<summary><strong>12. क्या मैं बिना LiteLLM या प्रॉक्सी के Claude Code CLI को सीधे BOB Gemini Free से जोड़ सकता हूँ?</strong></summary>
+
+**हाँ, 100% सीधे।** BOB Gemini Free में आधिकारिक **Anthropic Messages API प्रोटोकॉल (`POST /v1/messages`)** का पूर्ण इनबिल्ट सपोर्ट है, जिसमें सभी SSE इवेंट्स (`message_start`, `content_block_start`, `content_block_delta`, `message_delta`, `message_stop`) और bash टूल कॉलिंग शामिल हैं।
+
+बस अपने टर्मिनल में ये वैरिएबल्स सेट करें और Claude Code शुरू करें:
+```bash
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_API_KEY=none
+claude
+```
+</details>
+
+<details>
+<summary><strong>13. क्या यह OpenAI Codex CLI (`openai/codex`) और AI Routers (LiteLLM / OpenRouter / Portkey) के साथ काम करता है?</strong></summary>
+
+* **OpenAI Codex CLI**: नेटिव `/v1/responses` और `/v1/chat/completions` एंडपॉइंट्स द्वारा पूर्ण समर्थित। बस `OPENAI_BASE_URL=http://127.0.0.1:8081/v1` सेट करें।
+* **LiteLLM / OpenRouter / Portkey / OneAPI**: `http://127.0.0.1:8081/v1` को कस्टम OpenAI अपस्ट्रीम के रूप में जोड़ें। गेटवे बिना किसी समस्या के सभी SSE डेल्टा चंक्स, रीज़निंग टोकन्स और यूसेज मीट्रिक्स रिटर्न करता है।
 </details>
 
 ---

@@ -144,3 +144,42 @@ func TestSingleModelRetrieve(t *testing.T) {
 		t.Errorf("Expected thinking model name")
 	}
 }
+
+func TestClaudeCodeAnthropicWorkflow(t *testing.T) {
+	cfg := config.Default()
+	app := server.New(cfg, "v0.1.0")
+	handler := app.Handler()
+
+	claudeReq := models.AnthropicMessagesRequest{
+		Model:     "gemini-3.7-flash",
+		System:    "You are Claude Code assistant.",
+		MaxTokens: 4096,
+		Messages: []models.AnthropicMessage{
+			{Role: "user", Content: "Hello Claude Code! How do I build this codebase?"},
+		},
+		Tools: []models.AnthropicTool{
+			{
+				Name:        "bash",
+				Description: "Execute bash command",
+				InputSchema: map[string]any{
+					"type": "object",
+					"properties": map[string]any{
+						"command": map[string]string{"type": "string"},
+					},
+					"required": []string{"command"},
+				},
+			},
+		},
+		Stream: false,
+	}
+
+	bodyBytes, _ := json.Marshal(claudeReq)
+	req := httptest.NewRequest("POST", "/v1/messages", bytes.NewReader(bodyBytes))
+	req.Header.Set("Content-Type", "application/json")
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK && rec.Code != http.StatusBadGateway {
+		t.Errorf("Unexpected status on Claude Code Anthropic endpoint: %d", rec.Code)
+	}
+}

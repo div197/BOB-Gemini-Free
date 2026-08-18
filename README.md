@@ -182,16 +182,53 @@ response = client.chat.completions.create(
         }
     ]
 )
-print(response.choices[0].message.content)
+### Claude Code CLI & Anthropic SDK (Native Direct Support)
+
+BOB Gemini Free includes native support for Anthropic's Messages API protocol (`POST /v1/messages`).
+
+#### Claude Code CLI Setup
+
+```bash
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_API_KEY=none
+claude
 ```
 
-### cURL
+#### Anthropic Python SDK
+
+```python
+from anthropic import Anthropic
+
+client = Anthropic(
+    base_url="http://127.0.0.1:8081",
+    api_key="none"
+)
+
+message = client.messages.create(
+    model="gemini-3.7-flash-thinking",
+    max_tokens=4096,
+    messages=[
+        {"role": "user", "content": "Write a concurrent Go worker pool."}
+    ]
+)
+print(message.content[0].text)
+```
+
+### OpenAI Codex CLI
+
+```bash
+export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_API_KEY=none
+codex
+```
+
+### cURL (OpenAI Chat Completions)
 
 ```bash
 curl http://127.0.0.1:8081/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
-    "model": "gemini-3.6-flash",
+    "model": "gemini-3.7-flash",
     "messages": [{"role": "user", "content": "Hello BOB Gemini Free!"}]
   }'
 ```
@@ -506,6 +543,26 @@ Zero. BOB Gemini Free is 100% open source under the MIT License, written in pure
 * **Single Static Binary**: No Python virtual environments, pip dependencies, or heavy `node_modules` folders.
 * **Instant Startup**: Cold boots in <5ms with <15MB baseline RAM usage.
 * **High Concurrency**: Handles multiple concurrent SSE streaming delta connections effortlessly with zero garbage collection pauses.
+</details>
+
+<details>
+<summary><strong>12. Can I use Claude Code CLI directly with BOB Gemini Free without LiteLLM or an external router?</strong></summary>
+
+**Yes, 100% natively.** BOB Gemini Free implements the complete **Anthropic Messages API protocol (`POST /v1/messages`)** with standard SSE lifecycle events (`message_start`, `content_block_start`, `content_block_delta`, `message_delta`, `message_stop`) and bash/tool execution.
+
+Simply export the official environment variables and launch Claude Code:
+```bash
+export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_API_KEY=none
+claude
+```
+</details>
+
+<details>
+<summary><strong>13. How do I use BOB Gemini Free with OpenAI Codex CLI (`openai/codex`) and AI Router Proxies (LiteLLM / OpenRouter / Portkey)?</strong></summary>
+
+* **OpenAI Codex CLI**: Supported via native `/v1/responses` and `/v1/chat/completions`. Set `OPENAI_BASE_URL=http://127.0.0.1:8081/v1` and `OPENAI_API_KEY=none`.
+* **LiteLLM / OpenRouter / Portkey / OneAPI**: Configure `http://127.0.0.1:8081/v1` as your custom OpenAI upstream provider. The gateway returns standard SSE delta chunks, `reasoning_content` thinking blocks, and token usage accounting.
 </details>
 
 ---

@@ -245,4 +245,12 @@ func TestBadRequestHandling(t *testing.T) {
 	if rec4.Code != http.StatusBadRequest {
 		t.Errorf("Expected 400 for invalid JSON in Google generateContent, got %d", rec4.Code)
 	}
+
+	// 5. Invalid JSON in Anthropic Messages -> 400
+	req5 := httptest.NewRequest("POST", "/v1/messages", strings.NewReader("invalid-json"))
+	rec5 := httptest.NewRecorder()
+	handler.ServeHTTP(rec5, req5)
+	if rec5.Code != http.StatusBadRequest {
+		t.Errorf("Expected 400 for invalid JSON in Anthropic messages, got %d", rec5.Code)
+	}
 }
