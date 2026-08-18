@@ -154,6 +154,72 @@ print(response.choices[0].message.content)
 
 ---
 
+## रेट लिमिट्स, थ्रूपुट और कंकरेंसी गाइड
+
+### Google AI Studio (Free Tier) बनाम BOB Gemini Free
+
+| विशेषता / पैमाना | Google AI Studio (Free Tier) | **BOB Gemini Free (लोकल गेटवे)** |
+| :--- | :--- | :--- |
+| **दैनिक अनुरोध सीमा** | सख्त दैनिक कोटा (सीमा पार होने पर बंद) | **व्यावहारिक रूप से असीमित इंटरैक्टिव प्रश्न** |
+| **प्रति मिनट अनुरोध (RPM)** | 15 RPM | हाई-स्पीड वेब सत्र |
+| **रीज़निंग टोकन** | मुफ़्त टियर में प्रतिबंधित | **20,000+ अक्षरों का गहन रीज़निंग आउटपुट** |
+| **API लागत** | महँगे पेड टोकन | **100% मुफ़्त** |
+| **OpenAI कम्पैटिबिलिटी** | कस्टम कोड लिखना पड़ता है | **100% स्टैंडर्ड OpenAI और Responses API** |
+| **डेटा प्राइवेसी** | क्लाउड लॉगिंग | **लोकल बाइनरी (सीधे आपके कंप्यूटर पर)** |
+
+### अनुशंसित कंकरेंसी दिशानिर्देश
+
+- **फ़्लैश मॉडल्स (`gemini-3.7-flash`, `gemini-3.6-flash`)**: **3 से 5 समवर्ती स्ट्रीम्स (Concurrent Streams)**।
+- **डीप रीज़निंग मॉडल्स (`gemini-3.7-flash-thinking`, `gemini-pro`)**: **2 से 3 समवर्ती स्ट्रीम्स**।
+
+---
+
+## लाइव परफॉर्मेंस व स्ट्रेस बेंचमार्क
+
+गेटवे की गति और थ्रूपुट मापने के लिए इनबिल्ट बेंचमार्क चलाएँ:
+
+```bash
+# 3 वर्कर्स और 6 प्रश्नों के साथ बेंचमार्क चलाएँ
+./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
+
+# या स्क्रिप्ट चलाएँ
+./scripts/bench.sh http://127.0.0.1:8081 3 6 your_api_key
+```
+
+---
+
+## बैकग्राउंड डेमन और ऑटो-स्टार्ट सर्विसेज
+
+BOB Gemini Free को अपने सिस्टम पर बैकग्राउंड में लगातार चालू रखने के लिए:
+
+### Linux (Systemd सर्विस)
+
+```bash
+# 1. बाइनरी और सर्विस फ़ाइल कॉपी करें
+sudo cp bob-gemini-free /usr/local/bin/
+sudo cp scripts/bob-gemini-free.service /etc/systemd/system/
+
+# 2. सर्विस चालू करें
+sudo systemctl daemon-reload
+sudo systemctl enable --now bob-gemini-free
+```
+
+### macOS (Launchd डेमन)
+
+```bash
+sudo cp bob-gemini-free /usr/local/bin/
+cp scripts/com.abcsteps.bob-gemini-free.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.abcsteps.bob-gemini-free.plist
+```
+
+### Windows (बैकग्राउंड ऑटो-स्टार्ट)
+
+```cmd
+scripts\start-service.bat
+```
+
+---
+
 ## यूनिवर्सल टूल व ऍप्लिकेशन्स इंटीग्रेशन
 
 चूँकि **BOB Gemini Free** आधिकारिक OpenAI API मानक का 100% पालन करता है, **कोई भी AI एप्लिकेशन, एजेंट फ़्रेमवर्क, या डेवलपर टूल** जो कस्टम OpenAI Base URL का समर्थन करता है, तुरंत काम करता है।

@@ -1,0 +1,16 @@
+[Unit]
+Description=BOB Gemini Free - Local OpenAI & Gemini Gateway
+Documentation=https://github.com/div197/BOB-Gemini-Free
+After=network.target
+
+[Service]
+Type=simple
+User=%i
+ExecStart=/usr/local/bin/bob-gemini-free --port 8081
+Restart=on-failure
+RestartSec=5s
+Environment=BOB_GEMINI_FREE_HOST=127.0.0.1
+Environment=BOB_GEMINI_FREE_PORT=8081
+
+[Install]
+WantedBy=multi-user.target

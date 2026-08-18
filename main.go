@@ -74,6 +74,39 @@ func handleDiagnostics(targetURL, apiKey string) {
 	os.Exit(0)
 }
 
+func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
+	fmt.Println("==================================================================")
+	fmt.Println("    BOB Gemini Free - Performance & Stress Benchmark Runner       ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
+	fmt.Println("==================================================================")
+	fmt.Printf("Target Gateway URL:   %s\n", targetURL)
+	fmt.Printf("Concurrency Level:    %d workers\n", concurrency)
+	fmt.Printf("Total Batch Requests: %d queries\n\n", requests)
+	fmt.Println("[*] Benchmarking live throughput and latencies against upstream...")
+
+	report := diag.RunBenchmark(targetURL, apiKey, concurrency, requests)
+
+	fmt.Println()
+	fmt.Println("------------------------------------------------------------------")
+	fmt.Println("                    BENCHMARK RESULTS & METRICS                   ")
+	fmt.Println("------------------------------------------------------------------")
+	fmt.Printf("  • Completed Requests:   %d / %d (%.1f%% Success)\n", report.Successful, report.TotalRequests, float64(report.Successful)*100/float64(report.TotalRequests))
+	fmt.Printf("  • Total Elapsed Time:   %v\n", report.TotalDuration.Round(time.Millisecond))
+	fmt.Printf("  • Average Latency:      %v\n", report.AverageLatency.Round(time.Millisecond))
+	fmt.Printf("  • Median Latency (P50): %v\n", report.P50Latency.Round(time.Millisecond))
+	fmt.Printf("  • 90th Percentile (P90):%v\n", report.P90Latency.Round(time.Millisecond))
+	fmt.Printf("  • 99th Percentile (P99):%v\n", report.P99Latency.Round(time.Millisecond))
+	fmt.Printf("  • Request Throughput:   %.2f req/sec\n", report.RequestsPerSec)
+	fmt.Printf("  • Token Throughput:     %.1f tokens/sec\n", report.TokensPerSecond)
+	fmt.Println("==================================================================")
+	fmt.Println()
+
+	if report.Failed > 0 {
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
 func handleCookieSetup(rawInput string) {
 	fmt.Println("================================================================")
 	fmt.Println("    BOB Gemini Free - Automated Cookie Setup Helper             ")
@@ -158,6 +191,9 @@ func main() {
 	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
 	testURLFlag := flag.String("test-url", "http://127.0.0.1:8081", "Target gateway URL for diagnostic tests")
 	testKeyFlag := flag.String("test-key", "", "API key to use for diagnostic tests")
+	benchFlag := flag.Bool("bench", false, "Run performance and throughput benchmark against a running gateway")
+	benchConcurrencyFlag := flag.Int("bench-concurrency", 3, "Number of concurrent workers for benchmarking")
+	benchRequestsFlag := flag.Int("bench-requests", 6, "Total number of requests for benchmarking")
 	versionFlag := flag.Bool("version", false, "Show version")
 	flag.Parse()
 
@@ -168,6 +204,10 @@ func main() {
 
 	if *testFlag {
 		handleDiagnostics(*testURLFlag, *testKeyFlag)
+	}
+
+	if *benchFlag {
+		handleBenchmark(*testURLFlag, *testKeyFlag, *benchConcurrencyFlag, *benchRequestsFlag)
 	}
 
 	if *setupCookieFlag || *cookieStringFlag != "" {

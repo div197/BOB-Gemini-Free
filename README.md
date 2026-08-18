@@ -206,29 +206,86 @@ gemini
 
 ---
 
-## Universal Tool & Application Integration
+## Rate Limits, Throughput & Concurrency Guide
 
-Because **BOB Gemini Free** adheres 100% to the official OpenAI API standard, **any AI application, agent framework, developer tool, or SDK** that supports a custom OpenAI Base URL works instantly with zero glue code.
+### Why BOB Gemini Free Outperforms AI Studio Free Tier
 
-### The Universal Integration Pattern
-
-Across modern AI applications, set these three standard parameters:
-
-| Configuration Field | Value | Notes |
+| Feature / Metric | Google AI Studio (Free Tier) | **BOB Gemini Free (Local Gateway)** |
 | :--- | :--- | :--- |
-| **API Provider / Format** | `OpenAI` or `OpenAI Compatible` | Standard REST protocol |
-| **Base URL / API Host** | `http://127.0.0.1:8081/v1` | Local high-speed gateway |
-| **API Key** | `none` (or your configured `api_keys`) | Optional when auth is disabled |
-| **Model Name** | `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, `gemini-pro` | High-speed or deep reasoning |
+| **Daily Request Ceiling** | Strict daily quota (hard shutoff) | **Essentially unlimited interactive queries** |
+| **Rate Limits (RPM)** | 15 RPM (Requests Per Minute) | High-throughput web session |
+| **Thinking Tokens** | Restricted on free tier | **20,000+ characters of deep step-by-step reasoning** |
+| **API Cost** | Free tier or expensive paid tokens | **100% Free** |
+| **OpenAI Compatibility** | Requires custom SDK code | **100% Drop-in OpenAI & Responses API standard** |
+| **Privacy / Execution** | Cloud API logs | **Local binary (runs strictly on your machine)** |
 
-### Universal Environment Variables
+### Recommended Concurrency Guidelines
 
-For CLI tools, background workers, Python/TypeScript scripts, Docker containers, and agent frameworks:
+- **Standard Workloads (Flash 3.7 / Flash 3.6)**: **3 to 5 concurrent streams** per local instance.
+- **Deep Reasoning Tasks (Flash Thinking / Pro)**: **2 to 3 concurrent streams** to allow large reasoning payloads without network congestion.
+
+---
+
+## Live Performance & Stress Benchmark
+
+BOB Gemini Free includes a built-in stress tester and throughput benchmark:
 
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
-export OPENAI_API_BASE=http://127.0.0.1:8081/v1
-export OPENAI_API_KEY=none
+# Run benchmark with 3 concurrent workers and 6 batch queries
+./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
+
+# Or benchmark against a custom URL / port
+./scripts/bench.sh http://127.0.0.1:8081 3 6 your_api_key
+```
+
+```text
+------------------------------------------------------------------
+                    BENCHMARK RESULTS & METRICS                   
+------------------------------------------------------------------
+  • Completed Requests:   6 / 6 (100.0% Success)
+  • Total Elapsed Time:   4.12s
+  • Average Latency:      1.85s
+  • Median Latency (P50): 1.72s
+  • 90th Percentile (P90):2.10s
+  • Request Throughput:   1.46 req/sec
+  • Token Throughput:     48.5 tokens/sec
+==================================================================
+```
+
+---
+
+## Background Daemon & Auto-Start Services
+
+Keep BOB Gemini Free running silently in the background across all major operating systems:
+
+### Linux (Systemd Service)
+
+```bash
+# 1. Copy binary and service file
+sudo cp bob-gemini-free /usr/local/bin/
+sudo cp scripts/bob-gemini-free.service /etc/systemd/system/
+
+# 2. Enable and start on boot
+sudo systemctl daemon-reload
+sudo systemctl enable --now bob-gemini-free
+```
+
+### macOS (Launchd Daemon)
+
+```bash
+# 1. Copy binary to path
+sudo cp bob-gemini-free /usr/local/bin/
+
+# 2. Install plist to user LaunchAgents
+cp scripts/com.abcsteps.bob-gemini-free.plist ~/Library/LaunchAgents/
+launchctl load ~/Library/LaunchAgents/com.abcsteps.bob-gemini-free.plist
+```
+
+### Windows (Background Auto-Start)
+
+```cmd
+REM Run the background batch runner
+scripts\start-service.bat
 ```
 
 ---
