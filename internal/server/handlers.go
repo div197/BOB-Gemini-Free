@@ -24,7 +24,15 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 	reqs := a.RequestsServed.Load()
 	tokens := a.TokensProcessed.Load()
-	savingsUSD := fmt.Sprintf("$%.2f", float64(tokens)/1_000_000.0*3.75)
+	savingsVal := float64(tokens) / 1_000_000.0 * 3.75
+	var savingsUSD string
+	if savingsVal == 0 {
+		savingsUSD = "$0.00"
+	} else if savingsVal < 0.01 {
+		savingsUSD = fmt.Sprintf("$%.4f", savingsVal)
+	} else {
+		savingsUSD = fmt.Sprintf("$%.2f", savingsVal)
+	}
 	poolTotal := a.Gem.Pool.Count()
 	poolHealthy := a.Gem.Pool.CountHealthy()
 
