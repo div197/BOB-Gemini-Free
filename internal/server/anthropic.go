@@ -153,7 +153,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		})
 
 		// 4. message_delta event
-		outTokens := len(fullText) / 4
+		outTokens := format.EstimateTokens(fullText)
 		if outTokens == 0 {
 			outTokens = 1
 		}
