@@ -167,6 +167,53 @@ gemini
 
 ---
 
+### Client Integration Recipes
+
+#### 1. Cursor IDE
+* Open **Cursor Settings** → **Models** → **Add Custom Model**.
+* Add model: `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, or `gemini-pro`.
+* Under **OpenAI API Key**, toggle **Override OpenAI Base URL** to:
+  `http://127.0.0.1:8081/v1`
+* Set API Key to `none` (or your configured `api_keys`).
+
+#### 2. Cherry Studio / ChatBox
+* **Provider**: OpenAI
+* **API Key**: `none` (or your configured key)
+* **Base URL / API Host**: `http://127.0.0.1:8081/v1`
+* **Models**: Select `gemini-3.7-flash` (Fast) or `gemini-3.7-flash-thinking` (Deep Reasoning).
+
+#### 3. OpenWebUI (Docker)
+In your OpenWebUI container environment:
+```yaml
+environment:
+  - OPENAI_API_BASE_URL=http://bob-gemini-free:8081/v1
+  - OPENAI_API_KEY=none
+```
+
+#### 4. Continue.dev (`config.json`)
+```json
+{
+  "models": [
+    {
+      "title": "BOB Gemini 3.7 Flash",
+      "provider": "openai",
+      "model": "gemini-3.7-flash",
+      "apiBase": "http://127.0.0.1:8081/v1",
+      "apiKey": "none"
+    },
+    {
+      "title": "BOB Gemini 3.7 Thinking",
+      "provider": "openai",
+      "model": "gemini-3.7-flash-thinking",
+      "apiBase": "http://127.0.0.1:8081/v1",
+      "apiKey": "none"
+    }
+  ]
+}
+```
+
+---
+
 ## Model Matrix & Reasoning Controls
 
 | Local Model Alias | Backend Mode | Default Think Depth | Output Profile | Auth Requirement |

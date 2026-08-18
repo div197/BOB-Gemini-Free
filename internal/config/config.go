@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 )
 
 type Config struct {
@@ -118,6 +120,36 @@ func Load(path string) (Config, error) {
 	}
 	if aux.Impersonate != nil {
 		cfg.Impersonate = *aux.Impersonate
+	}
+
+	// Environment variable overrides (useful for Docker & cloud environments)
+	if envHost := os.Getenv("BOB_GEMINI_FREE_HOST"); envHost != "" {
+		cfg.Host = envHost
+	}
+	if envPort := os.Getenv("BOB_GEMINI_FREE_PORT"); envPort != "" {
+		if p, err := strconv.Atoi(envPort); err == nil && p > 0 {
+			cfg.Port = p
+		}
+	}
+	if envCookie := os.Getenv("BOB_GEMINI_FREE_COOKIE_FILE"); envCookie != "" {
+		cfg.CookieFile = envCookie
+	}
+	if envProxy := os.Getenv("BOB_GEMINI_FREE_PROXY"); envProxy != "" {
+		cfg.Proxy = envProxy
+	}
+	if envImpersonate := os.Getenv("BOB_GEMINI_FREE_IMPERSONATE"); envImpersonate != "" {
+		cfg.Impersonate = envImpersonate
+	}
+	if envKeys := os.Getenv("BOB_GEMINI_FREE_API_KEYS"); envKeys != "" {
+		var keys []string
+		for _, k := range strings.Split(envKeys, ",") {
+			if trimmed := strings.TrimSpace(k); trimmed != "" {
+				keys = append(keys, trimmed)
+			}
+		}
+		if len(keys) > 0 {
+			cfg.APIKeys = keys
+		}
 	}
 
 	return cfg, nil

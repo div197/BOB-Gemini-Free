@@ -107,6 +107,7 @@ func main() {
 	currentVersion := resolveVersion()
 
 	portFlag := flag.Int("port", 0, "Server port")
+	hostFlag := flag.String("host", "", "Server host address")
 	configFlag := flag.String("config", "", "Config file path")
 	cookieFlag := flag.String("cookie-file", "", "Cookie file path")
 	proxyFlag := flag.String("proxy", "", "HTTP proxy URL")
@@ -138,6 +139,9 @@ func main() {
 		log.Printf("Warning: failed to load config from %s: %v", configPath, err)
 	}
 
+	if *hostFlag != "" {
+		cfg.Host = *hostFlag
+	}
 	if *portFlag != 0 {
 		cfg.Port = *portFlag
 	}

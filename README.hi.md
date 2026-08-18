@@ -134,6 +134,29 @@ print(response.choices[0].message.content)
 
 ---
 
+### क्लाइंट इंटीग्रेशन गाइड
+
+#### 1. Cursor IDE
+* **Cursor Settings** → **Models** → **Add Custom Model** खोलें।
+* मॉडल जोड़ें: `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, या `gemini-pro`।
+* **Override OpenAI Base URL** को सेट करें: `http://127.0.0.1:8081/v1`।
+* API Key को `none` (या अपनी सेट की गई Key) रखें।
+
+#### 2. Cherry Studio / ChatBox
+* **प्रदाता (Provider)**: OpenAI
+* **API Key**: `none`
+* **Base URL / API Host**: `http://127.0.0.1:8081/v1`
+* **मॉडल**: `gemini-3.7-flash` या `gemini-3.7-flash-thinking` चुनें।
+
+#### 3. OpenWebUI (Docker)
+```yaml
+environment:
+  - OPENAI_API_BASE_URL=http://bob-gemini-free:8081/v1
+  - OPENAI_API_KEY=none
+```
+
+---
+
 ## मॉडल सूची और रीज़निंग स्तर
 
 | मॉडल नाम | बैकएंड मोड | डिफ़ॉल्ट रीज़निंग | विवरण | आवश्यक खाता |
