@@ -100,6 +100,7 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 			reqID = fmt.Sprintf("req_%s", format.RandHex(16))
 		}
 		w.Header().Set("x-request-id", reqID)
+		w.Header().Set("x-powered-by", "BOB-Gemini-Free / ABCsteps (div197)")
 		w.Header().Set("openai-version", "2020-10-01")
 		w.Header().Set("x-ratelimit-limit-requests", "1000")
 		w.Header().Set("x-ratelimit-remaining-requests", "999")

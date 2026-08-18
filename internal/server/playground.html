@@ -1,8 +1,15 @@
 <!DOCTYPE html>
+<!--
+  BOB GEMINI FREE — Universal Local AI Gateway Studio
+  Engineered by Divyanshu Singh Chouhan (@div197) & ABCsteps (abcsteps.com)
+  Autonomous Pure Local RPC Bridge for Developers & Agents
+-->
 <html lang="en" data-theme="bob-builder">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
+<meta name="generator" content="BOB Gemini Free by ABCsteps">
 <title>BOB GEMINI FREE — Universal AI Gateway Studio</title>
 <!-- KaTeX for High-Precision Mathematical & Scientific Typography -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
@@ -14,8 +21,8 @@
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
 <style>
 /* 
-  Sacred Harmonic Golden Ratio Design System (Phi = 1.618)
-  Celestial Glassmorphic Architecture, Luminous Radiance & 60FPS Streaming Engine
+  Sacred Harmonic Golden Ratio Architecture (Phi = 1.618)
+  Celestial Glassmorphic Workspace, Vision Multimodal Engine & 60FPS Streaming
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -243,7 +250,7 @@ header {
   color: #10b981;
 }
 
-/* Header Controls & Sidebar Toggles (Sleek 32px Height) */
+/* Header Controls & Sidebar Toggles */
 .header-controls {
   display: flex;
   align-items: center;
@@ -365,7 +372,9 @@ main {
   box-shadow: var(--shadow-main);
 }
 .control-card label {
-  display: block;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   font-size: 0.72rem;
   color: var(--text-main);
   margin-bottom: 5px;
@@ -373,7 +382,11 @@ main {
   text-transform: uppercase;
   letter-spacing: 0.4px;
 }
-select, textarea {
+.control-card label span.val-badge {
+  color: var(--accent-primary);
+  font-family: var(--font-mono);
+}
+select, textarea, input[type="range"] {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -389,6 +402,11 @@ select, textarea {
 select:focus, textarea:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 1px var(--border-focus);
+}
+input[type="range"] {
+  accent-color: var(--accent-primary);
+  padding: 0;
+  height: 6px;
 }
 
 /* Central Workspace Area */
@@ -469,11 +487,11 @@ select:focus, textarea:focus {
   transform: translateY(-1px);
 }
 
-/* Messages Scroll Container (Spacious Vertical Flow with Centered Width) */
+/* Messages Scroll Container */
 .messages-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 20px 160px 20px;
+  padding: 20px 20px 170px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -558,7 +576,9 @@ select:focus, textarea:focus {
 /* User Message Bubble */
 .user-row {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
   width: 100%;
 }
 .user-bubble {
@@ -572,6 +592,18 @@ select:focus, textarea:focus {
   white-space: pre-wrap;
   box-shadow: var(--shadow-main);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.user-attached-thumb {
+  max-width: 240px;
+  max-height: 180px;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: var(--shadow-main);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+.user-attached-thumb:hover {
+  transform: scale(1.02);
 }
 
 /* Thought Card */
@@ -702,7 +734,7 @@ select:focus, textarea:focus {
 
 /* 
   Spacious Sacred Geometry Studio Input Dock
-  Interactive Footer Action Buttons & Multi-Device Accessibility
+  Vision Multimodal Upload & Attachment Previews
 */
 .studio-input-area {
   position: absolute;
@@ -725,11 +757,69 @@ select:focus, textarea:focus {
   gap: 6px;
   position: relative;
 }
+
+/* Image Attachment Staging Pill */
+.attachment-preview-bar {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+}
+.attachment-preview-bar.active { display: inline-flex; }
+.attachment-thumb {
+  width: 28px;
+  height: 28px;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid var(--border-color);
+}
+.attachment-name {
+  font-size: 0.74rem;
+  color: var(--text-main);
+  font-weight: 600;
+  max-width: 240px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.btn-remove-attachment {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.8rem;
+  padding: 0 4px;
+}
+.btn-remove-attachment:hover { color: #ef4444; }
+
 .input-row {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 8px;
 }
+.btn-attachment-pill {
+  background: var(--bg-card);
+  color: var(--text-muted);
+  border: 1px solid var(--border-color);
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+.btn-attachment-pill:hover {
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+}
+
 #user-input {
   flex: 1;
   min-height: 44px;
@@ -737,7 +827,7 @@ select:focus, textarea:focus {
   resize: none;
   line-height: 1.45;
   padding: 10px 14px;
-  border-radius: 6px;
+  border-radius: 8px;
   font-size: 0.92rem;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -781,7 +871,7 @@ select:focus, textarea:focus {
   box-shadow: 0 4px 14px rgba(217, 30, 38, 0.35) !important;
 }
 
-/* Interactive Clickable Action Buttons in Input Footer */
+/* Minimalist Non-Noisy Input Footer */
 .input-footer {
   display: flex;
   justify-content: space-between;
@@ -819,9 +909,12 @@ select:focus, textarea:focus {
   transform: translateY(-1px);
 }
 
-.footer-credits {
+.footer-status-pill {
   font-size: 0.68rem;
   color: var(--text-subdued);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 /* Subtle Unobtrusive Bottom-Right Scroll Floating Action Button */
@@ -899,6 +992,31 @@ select:focus, textarea:focus {
   border: none;
   border-top: 1px solid var(--border-color);
   margin: 14px 0;
+}
+
+/* Rendered Images in Assistant Responses */
+.assistant-image-card {
+  margin: 12px 0;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  background: var(--bg-app);
+  max-width: 480px;
+}
+.assistant-image-card img {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+  transition: transform 0.2s ease;
+}
+.assistant-image-card img:hover { transform: scale(1.015); }
+.assistant-image-footer {
+  padding: 6px 12px;
+  background: var(--bg-card);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border-color);
 }
 
 /* Code Blocks in Assistant Story */
@@ -1043,10 +1161,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   color: var(--text-main);
 }
 
-/* 
-  Command Palette Modal (Raycast / Spotlight Architecture)
-  Categorized Sections, High Contrast Typography & Smooth Keyboard Flow
-*/
+/* Command Palette Modal (Raycast / Spotlight Architecture) */
 .cmd-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1149,7 +1264,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   border: 1px solid var(--border-color);
 }
 
-/* 2026-Era Glassmorphic Confirmation Modal */
+/* Glassmorphic Confirmation Modal */
 .dialog-backdrop {
   position: fixed;
   inset: 0;
@@ -1249,10 +1364,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 }
 .dialog-btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
 
-/* 
-  Celestial Temple-Grade About & Credits Modal 
-  Sacred Geometric Harmony, Ethereal Aura & Typographic Elegance
-*/
+/* Celestial Temple-Grade About Modal */
 .about-dialog-box {
   background: linear-gradient(180deg, rgba(255, 202, 0, 0.04) 0%, var(--bg-modal) 100%);
   border: 1px solid var(--border-glow);
@@ -1467,7 +1579,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 /* Responsive Breakpoints for Mobile & Tablet */
 @media (max-width: 1080px) {
   .telemetry-bar { display: none; }
-  .footer-credits { display: none; }
+  .footer-status-pill { display: none; }
   .creators-grid { grid-template-columns: 1fr; }
   .sidebar-panel {
     position: absolute;
@@ -1492,6 +1604,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 <!-- Mobile Drawer Overlay Backdrop -->
 <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllSidebars()"></div>
 
+<!-- Hidden File Picker for Image Multimodal Attachment -->
+<input type="file" id="image-file-input" accept="image/*" style="display:none" onchange="handleImageFileSelect(event)">
+
 <!-- 2026 Confirmation Modal -->
 <div class="dialog-backdrop" id="confirm-modal" onclick="if(event.target===this) closeConfirmModal()">
   <div class="dialog-box">
@@ -1509,7 +1624,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </div>
 </div>
 
-<!-- Celestial Temple-Grade About & Credits Modal -->
+<!-- Celestial Temple-Grade About Modal -->
 <div class="dialog-backdrop" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
   <div class="about-dialog-box">
     <div class="about-header-band">
@@ -1659,6 +1774,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       </div>
 
       <div class="cmd-section-label" data-section="workspace">⚙️ Workspace Controls</div>
+      <div class="cmd-item" data-type="action" onclick="newChat(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">✦</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Start New Chat</span>
+            <span class="cmd-item-desc">Fresh canvas and clean conversation</span>
+          </div>
+        </div>
+        <kbd>N</kbd>
+      </div>
       <div class="cmd-item" data-type="action" onclick="toggleSidebar('left'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">◧</span>
@@ -1725,7 +1850,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 <header>
   <div class="brand-anchor" onclick="openAboutModal()" title="View About & Credits">
-    <!-- Pure Typographic Wordmark (Zero Static Icon Clutter) -->
+    <!-- Pure Typographic Wordmark -->
     <div class="brand-headings">
       <div class="brand-title">
         <span class="brand-bob">BOB</span>
@@ -1791,6 +1916,24 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
 
     <div class="control-card">
+      <label>
+        <span>Sampling Temperature</span>
+        <span class="val-badge" id="temp-val-badge">1.0</span>
+      </label>
+      <input type="range" id="temp-range" min="0.0" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('temp-val-badge').innerText = this.value; updateSnippet();">
+    </div>
+
+    <div class="control-card">
+      <label>Max Output Tokens</label>
+      <select id="max-tokens-select" onchange="updateSnippet()">
+        <option value="8192" selected>8,192 Tokens (Balanced)</option>
+        <option value="4096">4,096 Tokens (Fast)</option>
+        <option value="16384">16,384 Tokens (Extended)</option>
+        <option value="32768">32,768 Tokens (Maximum)</option>
+      </select>
+    </div>
+
+    <div class="control-card">
       <label>Protocol Endpoint</label>
       <select id="proto-select" onchange="updateSnippet()">
         <option value="openai" selected>OpenAI Standard (/v1/chat/completions)</option>
@@ -1805,10 +1948,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
   </aside>
 
-  <!-- Central Editorial Chat Workspace (Expansive Zen Canvas by Default) -->
-  <section class="chat-workspace">
+  <!-- Central Editorial Chat Workspace (Expansive Zen Canvas) -->
+  <section class="chat-workspace" id="workspace-drop-zone">
     <div class="sub-bar">
       <div class="sub-bar-left">
+        <button class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">✦ New Chat</button>
         <div class="active-model-chip" onclick="toggleCmdPalette('model')" title="Click to change model">
           <div class="live-dot"></div>
           <span id="active-model-label">gemini-3.7-flash</span>
@@ -1829,11 +1973,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <!-- Subtle Unobtrusive Bottom-Right Floating Action Button -->
     <button class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom">↓</button>
 
-    <!-- Sacred Geometry Studio Input Dock -->
+    <!-- Sacred Geometry Studio Input Dock with Multimodal Vision Engine -->
     <div class="studio-input-area">
       <div class="studio-input-container">
+        <!-- Staged Image Attachment Chip -->
+        <div class="attachment-preview-bar" id="attachment-preview">
+          <img class="attachment-thumb" id="attachment-img" src="" alt="Attached image">
+          <span class="attachment-name" id="attachment-name">screenshot.png</span>
+          <button class="btn-remove-attachment" onclick="removeAttachedImage()" title="Remove attachment">✕</button>
+        </div>
+
         <div class="input-row">
-          <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
+          <button class="btn-attachment-pill" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
+          <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
             <span id="send-btn-label">Send</span>
             <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
@@ -1854,8 +2006,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <span>ⓘ About</span>
             </button>
           </div>
-          <div class="footer-credits">
-            <span>Crafted with devotion by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); text-decoration:none; font-weight:700;">ABCsteps.com</a> & <a href="https://github.com/div197/bob-gemini-free" target="_blank" style="color:var(--text-main); text-decoration:none; font-weight:700;">@div197</a> • Independent local research gateway. Not affiliated with Google or Gemini.</span>
+          <div class="footer-status-pill">
+            <span>🔒 Pure Local RPC • Private & Free • v0.1.2</span>
           </div>
         </div>
       </div>
@@ -1901,6 +2053,8 @@ let userIsAtBottom = true;
 let pendingConfirmCallback = null;
 let activeAbortController = null;
 let isGenerating = false;
+let currentAttachedImage = null; // Base64 data URL
+
 const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
 const PANEL_LEFT_KEY = "bob_gemini_panel_left";
@@ -1931,6 +2085,63 @@ function showToast(message, icon = "✦") {
     setTimeout(() => toast.remove(), 250);
   }, 2400);
 }
+
+/* Multimodal Image Attachment Handlers */
+function handleImageFileSelect(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  attachImageFile(file);
+}
+
+function attachImageFile(file) {
+  if (!file.type.startsWith("image/")) {
+    showToast("Please upload an image file", "⚠️");
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(evt) {
+    currentAttachedImage = {
+      dataUrl: evt.target.result,
+      name: file.name
+    };
+    const bar = document.getElementById("attachment-preview");
+    document.getElementById("attachment-img").src = currentAttachedImage.dataUrl;
+    document.getElementById("attachment-name").innerText = currentAttachedImage.name;
+    bar.classList.add("active");
+    showToast("Image attached: " + file.name, "📎");
+  };
+  reader.readAsDataURL(file);
+}
+
+function removeAttachedImage() {
+  currentAttachedImage = null;
+  const bar = document.getElementById("attachment-preview");
+  bar.classList.remove("active");
+  document.getElementById("image-file-input").value = "";
+}
+
+function handleClipboardPaste(e) {
+  const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+  for (let index in items) {
+    const item = items[index];
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      const blob = item.getAsFile();
+      attachImageFile(blob);
+      e.preventDefault();
+      break;
+    }
+  }
+}
+
+// Drag & Drop onto Workspace
+const dropZone = document.getElementById("workspace-drop-zone");
+dropZone.addEventListener("dragover", (e) => { e.preventDefault(); });
+dropZone.addEventListener("drop", (e) => {
+  e.preventDefault();
+  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+    attachImageFile(e.dataTransfer.files[0]);
+  }
+});
 
 /* Modern 2026 Confirm Modal with Auto-Focus and Key Binding */
 function openConfirmModal(opts) {
@@ -1980,10 +2191,8 @@ function closeAllSidebars() {
 }
 
 function initPanels() {
-  // Default to Zen Focus (hidden) mode by default
   const leftOpen = localStorage.getItem(PANEL_LEFT_KEY) === "true";
   const rightOpen = localStorage.getItem(PANEL_RIGHT_KEY) === "true";
-  
   setSidebarState('left', leftOpen);
   setSidebarState('right', rightOpen);
 }
@@ -2295,12 +2504,14 @@ function updateSnippet() {
   if (thinkMod !== "default") {
     model = model + thinkMod;
   }
+  const temp = parseFloat(document.getElementById("temp-range").value);
 
   document.getElementById("code-python").innerText = 
 `from openai import OpenAI
 client = OpenAI(base_url="http://127.0.0.1:8081/v1", api_key="none")
 res = client.chat.completions.create(
     model="${model}",
+    temperature=${temp},
     messages=[{"role": "user", "content": "Hello!"}]
 )
 print(res.choices[0].message.content)`;
@@ -2313,7 +2524,7 @@ claude`;
   document.getElementById("code-curl").innerText = 
 `curl http://127.0.0.1:8081/v1/chat/completions \\
   -H "Content-Type: application/json" \\
-  -d '{"model":"${model}","stream":true,"messages":[{"role":"user","content":"Hi"}]}'`;
+  -d '{"model":"${model}","temperature":${temp},"stream":true,"messages":[{"role":"user","content":"Hi"}]}'`;
 }
 updateSnippet();
 updateActiveModelBadge();
@@ -2346,6 +2557,15 @@ function downloadCode(btn, lang) {
   showToast(`Downloaded as bob_code.${ext}`, "💾");
 }
 
+function downloadImage(btn) {
+  const img = btn.closest('.assistant-image-card').querySelector('img');
+  const a = document.createElement('a');
+  a.href = img.src;
+  a.download = `bob_image_${Date.now()}.png`;
+  a.click();
+  showToast("Image downloaded", "🎨");
+}
+
 function renderMarkdown(text) {
   if (!text) return "";
   let html = text;
@@ -2356,6 +2576,11 @@ function renderMarkdown(text) {
     const langLabel = lang || 'code';
     const prismClass = lang ? 'language-' + lang : 'language-none';
     return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+  });
+
+  // Images: ![alt](url)
+  html = html.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
+    return `<div class="assistant-image-card"><img src="${url}" alt="${escapeHtml(alt)}" loading="lazy"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(alt || 'Generated Image')}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
   });
 
   // Inline code: `code`
@@ -2422,9 +2647,9 @@ function renderMarkdown(text) {
   html = html.replace(/<\/ul>\s*<ul>/gim, '');
 
   // Line breaks
-  const parts = html.split(/(<pre[\s\S]*?<\/pre>|<table[\s\S]*?<\/table>)/g);
+  const parts = html.split(/(<pre[\s\S]*?<\/pre>|<table[\s\S]*?<\/table>|<div class="assistant-image-card"[\s\S]*?<\/div><\/div>)/g);
   for (let i = 0; i < parts.length; i++) {
-    if (!parts[i].startsWith('<pre') && !parts[i].startsWith('<table')) {
+    if (!parts[i].startsWith('<pre') && !parts[i].startsWith('<table') && !parts[i].startsWith('<div class="assistant-image-card"')) {
       parts[i] = parts[i].replace(/\n/g, '<br>');
     }
   }
@@ -2452,14 +2677,14 @@ function copyMessageText(btn) {
 
 function copyFullTranscript() {
   if (chatHistory.length === 0) return;
-  const transcript = chatHistory.map(m => `### ${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}\n`).join('\n---\n\n');
+  const transcript = chatHistory.map(m => `### ${m.role === 'user' ? 'User' : 'Assistant'}:\n${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}\n`).join('\n---\n\n');
   navigator.clipboard.writeText(transcript);
   showToast("Complete conversation copied to clipboard!", "📋");
 }
 
 function exportMarkdown() {
   if (chatHistory.length === 0) return;
-  const transcript = "# BOB Gemini Free — Chat Export\n\n" + chatHistory.map(m => `### ${m.role === 'user' ? 'User' : 'Assistant'}:\n${m.content}\n`).join('\n---\n\n');
+  const transcript = "# BOB Gemini Free — Chat Export\n\n" + chatHistory.map(m => `### ${m.role === 'user' ? 'User' : 'Assistant'}:\n${typeof m.content === 'string' ? m.content : JSON.stringify(m.content)}\n`).join('\n---\n\n');
   const blob = new Blob([transcript], { type: 'text/markdown' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2470,6 +2695,17 @@ function exportMarkdown() {
   showToast("Exported conversation to Markdown file", "💾");
 }
 
+function newChat() {
+  if (isGenerating) return;
+  removeAttachedImage();
+  chatHistory = [];
+  localStorage.removeItem(STORAGE_KEY);
+  renderMessages();
+  showToast("Started new chat session", "✦");
+  const input = document.getElementById("user-input");
+  if (input) input.focus();
+}
+
 function clearChat() {
   openConfirmModal({
     icon: "🗑️",
@@ -2477,10 +2713,7 @@ function clearChat() {
     desc: "Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.",
     confirmText: "Clear History",
     onConfirm: () => {
-      chatHistory = [];
-      localStorage.removeItem(STORAGE_KEY);
-      renderMessages();
-      showToast("Conversation cleared", "✨");
+      newChat();
     }
   });
 }
@@ -2490,17 +2723,22 @@ function retryLastMessage() {
   const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
   if (!lastUserMsg) return;
   
-  // Remove last assistant reply if present
   if (chatHistory[chatHistory.length - 1].role === 'assistant') {
     chatHistory.pop();
   }
-  // Pop the user message as sendMessage will re-push it
   chatHistory.pop();
   saveHistory();
   renderMessages();
   
   const inputEl = document.getElementById("user-input");
-  inputEl.value = lastUserMsg.content;
+  inputEl.value = typeof lastUserMsg.content === 'string' ? lastUserMsg.content : (lastUserMsg.content[0]?.text || '');
+  if (lastUserMsg.attachedImage) {
+    currentAttachedImage = lastUserMsg.attachedImage;
+    const bar = document.getElementById("attachment-preview");
+    document.getElementById("attachment-img").src = currentAttachedImage.dataUrl;
+    document.getElementById("attachment-name").innerText = currentAttachedImage.name;
+    bar.classList.add("active");
+  }
   sendMessage();
 }
 
@@ -2585,7 +2823,21 @@ function renderMessages() {
     if (m.role === 'user') {
       const userDiv = document.createElement("div");
       userDiv.className = "user-row";
-      userDiv.innerHTML = `<div class="user-bubble">${escapeHtml(m.content)}</div>`;
+      
+      let userText = "";
+      if (typeof m.content === 'string') {
+        userText = m.content;
+      } else if (Array.isArray(m.content)) {
+        const textObj = m.content.find(c => c.type === 'text');
+        userText = textObj ? textObj.text : "";
+      }
+
+      let imgHtml = "";
+      if (m.attachedImage) {
+        imgHtml = `<img src="${m.attachedImage.dataUrl}" class="user-attached-thumb" alt="Attached user image" onclick="window.open(this.src)">`;
+      }
+
+      userDiv.innerHTML = `${imgHtml}<div class="user-bubble">${escapeHtml(userText)}</div>`;
       content.appendChild(userDiv);
     } else {
       const storyDiv = document.createElement("div");
@@ -2651,7 +2903,7 @@ function handleSendOrStop() {
 async function sendMessage() {
   const inputEl = document.getElementById("user-input");
   const text = inputEl.value.trim();
-  if (!text || isGenerating) return;
+  if ((!text && !currentAttachedImage) || isGenerating) return;
 
   isGenerating = true;
   activeAbortController = new AbortController();
@@ -2670,19 +2922,38 @@ async function sendMessage() {
 
   const contentEl = document.getElementById("messages-content");
 
-  // Clean transition: if welcome hero was visible, clear it before first message
   if (chatHistory.length === 0) {
     contentEl.innerHTML = "";
   }
 
-  // User bubble
+  // Format message payload (multimodal or text)
+  let userPayloadContent = text;
+  let attachedImgCopy = currentAttachedImage ? {...currentAttachedImage} : null;
+
+  if (attachedImgCopy) {
+    userPayloadContent = [
+      { type: "text", text: text || "Please analyze this image." },
+      { type: "image_url", image_url: { url: attachedImgCopy.dataUrl } }
+    ];
+  }
+
+  // User row
   const userDiv = document.createElement("div");
   userDiv.className = "user-row";
-  userDiv.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+  let imgHtml = "";
+  if (attachedImgCopy) {
+    imgHtml = `<img src="${attachedImgCopy.dataUrl}" class="user-attached-thumb" alt="Attached user image" onclick="window.open(this.src)">`;
+  }
+  userDiv.innerHTML = `${imgHtml}<div class="user-bubble">${escapeHtml(text || "Please analyze this image.")}</div>`;
   contentEl.appendChild(userDiv);
 
-  chatHistory.push({role: "user", content: text});
+  chatHistory.push({
+    role: "user",
+    content: userPayloadContent,
+    attachedImage: attachedImgCopy
+  });
   saveHistory();
+  removeAttachedImage();
 
   // Assistant story card
   const storyDiv = document.createElement("div");
@@ -2716,7 +2987,6 @@ async function sendMessage() {
 
   contentEl.appendChild(storyDiv);
 
-  // Smooth scroll to view user's new message
   userIsAtBottom = true;
   storyDiv.scrollIntoView({ behavior: "smooth", block: "start" });
 
@@ -2727,7 +2997,10 @@ async function sendMessage() {
     model = model + thinkMod;
   }
 
+  const temp = parseFloat(document.getElementById("temp-range").value) || 1.0;
+  const maxTokens = parseInt(document.getElementById("max-tokens-select").value, 10) || 8192;
   const sysPrompt = document.getElementById("system-prompt").value.trim();
+
   const reqMessages = [];
   if (sysPrompt) {
     reqMessages.push({role: "system", content: sysPrompt});
@@ -2774,6 +3047,8 @@ async function sendMessage() {
       headers: {"Content-Type": "application/json"},
       body: JSON.stringify({
         model: model,
+        temperature: temp,
+        max_tokens: maxTokens,
         stream: true,
         messages: reqMessages
       }),
@@ -2848,7 +3123,6 @@ async function sendMessage() {
       storyDiv.setAttribute('data-raw', asstFullText);
       
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
-      const finalTokens = Math.round(finalWords * 1.33);
       const statsEl = storyDiv.querySelector("#live-stream-stats");
       if (statsEl) {
         statsEl.innerText = `${finalWords} words (stopped)`;

@@ -38,6 +38,9 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":                "ok",
+		"engine":                "BOB Gemini Free",
+		"author":                "Divyanshu Singh Chouhan (@div197)",
+		"organization":          "ABCsteps (abcsteps.com)",
 		"version":               a.Version,
 		"models":                modelNames,
 		"requests_served":       reqs,
