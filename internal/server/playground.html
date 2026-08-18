@@ -2606,8 +2606,15 @@ if (window.marked) {
     if (langLabel.toLowerCase() === 'mermaid') {
       return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${code}</div></div>`;
     }
-    const prismClass = lang ? 'language-' + lang : 'language-none';
-    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${langLabel}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${langLabel}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${safeCode}</code></pre>`;
+    const cleanLang = (lang || '').toLowerCase().trim();
+    let highlightedCode = safeCode;
+    if (window.Prism && Prism.languages && Prism.languages[cleanLang]) {
+      try {
+        highlightedCode = Prism.highlight(code, Prism.languages[cleanLang], cleanLang);
+      } catch(e) {}
+    }
+    const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
+    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${langLabel}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${langLabel}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
 
   customRenderer.image = function(href, title, text) {
@@ -2669,17 +2676,44 @@ function renderMarkdown(text) {
     html = escapeHtml(processed);
   }
 
-  // 5. Restore protected LaTeX Math blocks
-  for (let i = 0; i < mathBlocks.length; i++) {
-    html = html.replaceAll(`@@@BOB_MATH_${i}@@@`, mathBlocks[i]);
-  }
-
-  // 6. Universal DOMPurify Sanitization
+  // 5. Universal DOMPurify Sanitization
   if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
     html = DOMPurify.sanitize(html, {
       ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input'],
-      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel']
+      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel', 'referrerpolicy', 'onerror']
     });
+  }
+
+  // 6. Synchronously render protected LaTeX Math blocks with KaTeX
+  for (let i = 0; i < mathBlocks.length; i++) {
+    const rawMath = mathBlocks[i];
+    let renderedMath = rawMath;
+    if (window.katex && typeof katex.renderToString === 'function') {
+      try {
+        let cleanMath = rawMath;
+        let isDisplay = false;
+        if (cleanMath.startsWith('$$') && cleanMath.endsWith('$$')) {
+          cleanMath = cleanMath.slice(2, -2).trim();
+          isDisplay = true;
+        } else if (cleanMath.startsWith('\\[') && cleanMath.endsWith('\\]')) {
+          cleanMath = cleanMath.slice(2, -2).trim();
+          isDisplay = true;
+        } else if (cleanMath.startsWith('$') && cleanMath.endsWith('$')) {
+          cleanMath = cleanMath.slice(1, -1).trim();
+          isDisplay = false;
+        } else if (cleanMath.startsWith('\\(') && cleanMath.endsWith('\\)')) {
+          cleanMath = cleanMath.slice(2, -2).trim();
+          isDisplay = false;
+        }
+        renderedMath = katex.renderToString(cleanMath, {
+          displayMode: isDisplay,
+          throwOnError: false
+        });
+      } catch (e) {
+        renderedMath = escapeHtml(rawMath);
+      }
+    }
+    html = html.replaceAll(`@@@BOB_MATH_${i}@@@`, renderedMath);
   }
 
   return html;
@@ -3055,14 +3089,6 @@ async function sendMessage() {
       }
       if (asstFullText) {
         contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
-      }
-
-      // Progressive Live Math & Syntax Highlighting every 600ms
-      const now = Date.now();
-      if (now - lastMathRenderTime > 600) {
-        lastMathRenderTime = now;
-        renderAllMath(storyDiv);
-        highlightAllCode(storyDiv);
       }
 
       if (userIsAtBottom) {
