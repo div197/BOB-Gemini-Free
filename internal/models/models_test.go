@@ -38,6 +38,22 @@ func TestResolve(t *testing.T) {
 			wantErr:     false,
 		},
 		{
+			input:       "gemini-pro",
+			defaultName: "gemini-3.6-flash",
+			wantName:    "gemini-pro",
+			wantMode:    3,
+			wantThink:   4,
+			wantErr:     false,
+		},
+		{
+			input:       "gemini-thinking",
+			defaultName: "gemini-3.6-flash",
+			wantName:    "gemini-thinking",
+			wantMode:    2,
+			wantThink:   0,
+			wantErr:     false,
+		},
+		{
 			input:       "unknown-model",
 			defaultName: "gemini-3.6-flash",
 			wantName:    "gemini-3.6-flash",

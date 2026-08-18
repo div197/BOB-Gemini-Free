@@ -59,6 +59,47 @@ var MODELS = map[string]Model{
 		Think: 4,
 		Desc:  "Lightweight fast model",
 	},
+	// Developer Convenience Aliases
+	"gemini-pro": {
+		Mode:  3,
+		Think: 4,
+		Desc:  "Alias for gemini-3.1-pro",
+	},
+	"gemini-flash": {
+		Mode:  1,
+		Think: 4,
+		Desc:  "Alias for gemini-3.6-flash",
+	},
+	"gemini-thinking": {
+		Mode:  2,
+		Think: 0,
+		Desc:  "Alias for gemini-3.5-flash-thinking",
+	},
+	"gemini-lite": {
+		Mode:  6,
+		Think: 4,
+		Desc:  "Alias for gemini-flash-lite",
+	},
+	"gemini-2.5-pro": {
+		Mode:  3,
+		Think: 4,
+		Desc:  "Alias for gemini-3.1-pro",
+	},
+	"gemini-2.5-flash": {
+		Mode:  1,
+		Think: 4,
+		Desc:  "Alias for gemini-3.6-flash",
+	},
+	"gemini-2.0-flash-thinking": {
+		Mode:  2,
+		Think: 0,
+		Desc:  "Alias for gemini-3.5-flash-thinking",
+	},
+	"gemini-2.0-flash": {
+		Mode:  1,
+		Think: 4,
+		Desc:  "Alias for gemini-3.6-flash",
+	},
 }
 
 type Resolved struct {

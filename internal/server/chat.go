@@ -110,9 +110,15 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		text, toolCalls = format.ParseToolCalls(text)
 	}
 
+	thinking, cleanText := format.ExtractThinking(text)
+	if thinking != "" {
+		text = cleanText
+	}
+
 	msg := models.OpenAIMessage{
-		Role:    "assistant",
-		Content: text,
+		Role:             "assistant",
+		Content:          text,
+		ReasoningContent: thinking,
 	}
 	if text == "" {
 		msg.Content = nil

@@ -113,3 +113,27 @@ func TestMessagesToPromptAndImages(t *testing.T) {
 		t.Errorf("Expected non-empty image bytes")
 	}
 }
+
+func TestExtractThinking(t *testing.T) {
+	raw := "```thought\n1. Analyze input\n2. Compute step\n```\nHere is the final answer."
+	thinking, clean := ExtractThinking(raw)
+	expectedThinking := "1. Analyze input\n2. Compute step"
+	expectedClean := "Here is the final answer."
+
+	if thinking != expectedThinking {
+		t.Errorf("got thinking %q, want %q", thinking, expectedThinking)
+	}
+	if clean != expectedClean {
+		t.Errorf("got clean %q, want %q", clean, expectedClean)
+	}
+
+	// Plain text without thought blocks
+	plain := "Just a direct response"
+	noThinking, plainClean := ExtractThinking(plain)
+	if noThinking != "" {
+		t.Errorf("expected empty thinking, got %q", noThinking)
+	}
+	if plainClean != plain {
+		t.Errorf("expected plain text unchanged, got %q", plainClean)
+	}
+}

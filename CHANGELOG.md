@@ -28,4 +28,9 @@ Part of the **BOB Series** (*Break Ordinary Boundaries*) by [**ABCsteps.com**](h
   - Constant-time API key verification (`crypto/subtle`).
   - Comprehensive `.gitignore` protecting credentials (`cookie.txt`, `config.json`).
 - **High-Performance Static Binary**: Built with pure Go, zero runtime dependencies, and <15MB baseline RAM consumption.
-- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, and security middleware.
+- **Native Reasoning Content Extraction**: Isolated `reasoning_content` extraction for OpenAI Thinking models, powering collapsible reasoning visualizers in Cursor, Cherry Studio, ChatBox, and OpenWebUI.
+- **Developer Convenience Model Aliases**: Added intuitive shortcuts (`gemini-pro`, `gemini-flash`, `gemini-thinking`, `gemini-lite`, `gemini-2.5-pro`, `gemini-2.5-flash`).
+- **High-Resolution Visual Assets**: Added official cybernetic hero banner and app icon in `./assets/`.
+- **Zero-Friction Cross-Platform Installers**: Added `install.sh` for macOS/Linux, `install.ps1` for Windows, and automated `Makefile` with multi-arch cross-compilation (`make dist`).
+- **Multilingual Documentation**: Added comprehensive Hindi guide ([`README.hi.md`](README.hi.md)).
+- **Unit Test Suite**: 100% passing automated test suite covering format conversion, parsing, model resolution, multimodal processing, config loading, auth caching, and security middleware.
