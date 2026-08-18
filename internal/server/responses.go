@@ -36,6 +36,17 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if reStr, ok := req["reasoning_effort"].(string); ok && reStr != "" {
+		switch strings.ToLower(reStr) {
+		case "high", "xhigh":
+			resolved.Think = 0
+		case "medium":
+			resolved.Think = 2
+		case "low", "minimal", "none":
+			resolved.Think = 4
+		}
+	}
+
 	inputRaw := req["input"]
 	instructions, _ := req["instructions"].(string)
 

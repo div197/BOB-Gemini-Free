@@ -49,9 +49,14 @@ func TestNewHandlerEmbedded(t *testing.T) {
 }
 
 func TestNewEngine(t *testing.T) {
+	tmpDir := t.TempDir()
 	engine := NewEngine(
 		WithDefaultModel("gemini-3.7-flash"),
 		WithLogRequests(false),
+		WithVersion("v1.0.0-test"),
+		WithRetry(5, 3),
+		WithTimeout(120),
+		WithCookiePoolDir(tmpDir),
 	)
 	if engine == nil {
 		t.Fatalf("Expected non-nil Engine")
@@ -67,5 +72,15 @@ func TestNewEngine(t *testing.T) {
 	h.ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK {
 		t.Errorf("Expected 200 on health check via Engine handler, got %d", rec.Code)
+	}
+
+	if engine.app.Cfg.RetryAttempts != 5 {
+		t.Errorf("Expected retry attempts 5, got %d", engine.app.Cfg.RetryAttempts)
+	}
+	if engine.app.Cfg.RequestTimeoutSec != 120 {
+		t.Errorf("Expected request timeout 120, got %d", engine.app.Cfg.RequestTimeoutSec)
+	}
+	if engine.app.Version != "v1.0.0-test" {
+		t.Errorf("Expected version v1.0.0-test, got %s", engine.app.Version)
 	}
 }

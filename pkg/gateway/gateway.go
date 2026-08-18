@@ -3,7 +3,10 @@ package gateway
 import (
 	"context"
 	"net/http"
+	"os"
+	"path/filepath"
 	"runtime/debug"
+	"strings"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -80,6 +83,40 @@ func WithImpersonate(profile string) Option {
 func WithLogRequests(enabled bool) Option {
 	return func(c *config.Config) {
 		c.LogRequests = enabled
+	}
+}
+
+// WithRetry configures the maximum upstream retry attempts and delay in seconds.
+func WithRetry(attempts int, delaySec int) Option {
+	return func(c *config.Config) {
+		if attempts >= 0 {
+			c.RetryAttempts = attempts
+		}
+		if delaySec >= 0 {
+			c.RetryDelaySec = delaySec
+		}
+	}
+}
+
+// WithTimeout sets the upstream HTTP client per-request timeout in seconds.
+func WithTimeout(timeoutSec int) Option {
+	return func(c *config.Config) {
+		if timeoutSec > 0 {
+			c.RequestTimeoutSec = timeoutSec
+		}
+	}
+}
+
+// WithCookiePoolDir scans a directory for *.txt cookie files to populate the pool.
+func WithCookiePoolDir(dir string) Option {
+	return func(c *config.Config) {
+		if entries, err := os.ReadDir(dir); err == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+					c.CookiePool = append(c.CookiePool, filepath.Join(dir, e.Name()))
+				}
+			}
+		}
 	}
 }
 

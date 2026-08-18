@@ -133,3 +133,20 @@ func TestEnvVarRequestTimeout(t *testing.T) {
 		t.Errorf("expected request_timeout_sec 300, got %d", cfg.RequestTimeoutSec)
 	}
 }
+
+func TestEnvVarCookiePoolDir(t *testing.T) {
+	tmpDir := t.TempDir()
+	c1 := filepath.Join(tmpDir, "account1.txt")
+	c2 := filepath.Join(tmpDir, "account2.txt")
+	_ = os.WriteFile(c1, []byte("cookie1"), 0600)
+	_ = os.WriteFile(c2, []byte("cookie2"), 0600)
+
+	t.Setenv("BOB_GEMINI_FREE_COOKIE_POOL_DIR", tmpDir)
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if len(cfg.CookiePool) < 2 {
+		t.Errorf("expected at least 2 cookie pool files from dir, got %d", len(cfg.CookiePool))
+	}
+}

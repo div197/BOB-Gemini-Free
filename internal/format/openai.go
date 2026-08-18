@@ -221,16 +221,3 @@ func ParseToolCalls(text string) (string, []models.OpenAIToolCall) {
 	clean := strings.TrimSpace(strings.Join(cleanParts, ""))
 	return clean, toolCalls
 }
-
-// ExtractThinking extracts reasoning/thinking traces (e.g. ```thought\n...\n```) from Gemini responses,
-// separating internal thinking tokens from the clean user-facing response.
-func ExtractThinking(text string) (thinking string, cleanContent string) {
-	re := regexp.MustCompile("(?s)```(?:thought|thinking)\n(.*?)\n```")
-	matches := re.FindStringSubmatch(text)
-	if len(matches) == 2 {
-		thinking = strings.TrimSpace(matches[1])
-		cleanContent = strings.TrimSpace(re.ReplaceAllString(text, ""))
-		return thinking, cleanContent
-	}
-	return "", text
-}

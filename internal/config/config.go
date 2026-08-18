@@ -142,6 +142,15 @@ func Load(path string) (Config, error) {
 			}
 		}
 	}
+	if envPoolDir := os.Getenv("BOB_GEMINI_FREE_COOKIE_POOL_DIR"); envPoolDir != "" {
+		if entries, err := os.ReadDir(envPoolDir); err == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+					cfg.CookiePool = append(cfg.CookiePool, filepath.Join(envPoolDir, e.Name()))
+				}
+			}
+		}
+	}
 	if cfg.CookieFile == "" {
 		cfg.CookieFile = FindCookie()
 	}

@@ -52,6 +52,20 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if req.Thinking != nil {
+		if req.Thinking.Type == "enabled" {
+			if req.Thinking.BudgetTokens > 4000 {
+				resolved.Think = 0
+			} else if req.Thinking.BudgetTokens > 0 {
+				resolved.Think = 2
+			} else {
+				resolved.Think = 0
+			}
+		} else if req.Thinking.Type == "disabled" {
+			resolved.Think = 4
+		}
+	}
+
 	chatReq := format.AnthropicToOpenAIChatRequest(req)
 	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
 	if err != nil {
@@ -112,51 +126,91 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 		_ = writeSSEEvent(w, "message_start", evStart)
 
-		// 2. content_block_start event
-		evBlockStart := map[string]any{
-			"type":          "content_block_start",
-			"index":         0,
-			"content_block": map[string]any{"type": "text", "text": ""},
-		}
-		_ = writeSSEEvent(w, "content_block_start", evBlockStart)
+		splitter := format.NewThinkingStreamSplitter()
+		var startedThinkingBlock bool
+		var startedTextBlock bool
+		var currentBlockIndex int
 
-		var fullText string
-		var emittedClean int // bytes of clean content already sent in text_delta events
+		startThinkingBlock := func() error {
+			if !startedThinkingBlock {
+				startedThinkingBlock = true
+				return writeSSEEvent(w, "content_block_start", map[string]any{
+					"type":          "content_block_start",
+					"index":         currentBlockIndex,
+					"content_block": map[string]any{"type": "thinking", "thinking": ""},
+				})
+			}
+			return nil
+		}
+
+		startTextBlock := func() error {
+			if !startedTextBlock {
+				startedTextBlock = true
+				return writeSSEEvent(w, "content_block_start", map[string]any{
+					"type":          "content_block_start",
+					"index":         currentBlockIndex,
+					"content_block": map[string]any{"type": "text", "text": ""},
+				})
+			}
+			return nil
+		}
+
+		stopCurrentBlock := func() error {
+			return writeSSEEvent(w, "content_block_stop", map[string]any{
+				"type":  "content_block_stop",
+				"index": currentBlockIndex,
+			})
+		}
+
+		emitChunk := func(ch format.StreamChunk) error {
+			if ch.TransitionToContent {
+				if startedThinkingBlock && !startedTextBlock {
+					if err := stopCurrentBlock(); err != nil {
+						return err
+					}
+					currentBlockIndex++
+				}
+			}
+
+			if ch.Type == format.DeltaThinking {
+				if err := startThinkingBlock(); err != nil {
+					return err
+				}
+				if ch.Text != "" {
+					return writeSSEEvent(w, "content_block_delta", map[string]any{
+						"type":  "content_block_delta",
+						"index": currentBlockIndex,
+						"delta": map[string]any{
+							"type":     "thinking_delta",
+							"thinking": ch.Text,
+						},
+					})
+				}
+			} else if ch.Type == format.DeltaContent {
+				if err := startTextBlock(); err != nil {
+					return err
+				}
+				if ch.Text != "" {
+					return writeSSEEvent(w, "content_block_delta", map[string]any{
+						"type":  "content_block_delta",
+						"index": currentBlockIndex,
+						"delta": map[string]any{
+							"type": "text_delta",
+							"text": ch.Text,
+						},
+					})
+				}
+			}
+			return nil
+		}
 
 		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
-			fullText += delta
-
-			// Inline thinking-block suppression: same state machine as chat.go
-			thinking, cleanText := format.ExtractThinking(fullText)
-
-			var toEmit string
-			if thinking != "" {
-				if len(cleanText) > emittedClean {
-					toEmit = cleanText[emittedClean:]
-					emittedClean = len(cleanText)
-				}
-			} else {
-				trimmed := strings.TrimSpace(fullText)
-				if strings.HasPrefix(trimmed, "```thought") || strings.HasPrefix(trimmed, "```thinking") {
-					return nil // inside incomplete thinking block — suppress
-				}
-				if len(fullText) > emittedClean {
-					toEmit = fullText[emittedClean:]
-					emittedClean = len(fullText)
+			for _, ch := range splitter.Feed(delta) {
+				if err := emitChunk(ch); err != nil {
+					return err
 				}
 			}
-
-			if toEmit == "" {
-				return nil
-			}
-			return writeSSEEvent(w, "content_block_delta", map[string]any{
-				"type":  "content_block_delta",
-				"index": 0,
-				"delta": map[string]any{
-					"type": "text_delta",
-					"text": toEmit,
-				},
-			})
+			return nil
 		})
 
 		if streamErr != nil {
@@ -170,36 +224,30 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// Extract thinking from full accumulated text
-		thinking, cleanText := format.ExtractThinking(fullText)
-
-		// If thinking found, emit a Anthropic thinking_block delta
-		if thinking != "" {
-			_ = writeSSEEvent(w, "content_block_delta", map[string]any{
-				"type":  "content_block_delta",
-				"index": 0,
-				"delta": map[string]any{
-					"type":    "thinking_delta",
-					"thinking": thinking,
-				},
-			})
+		// Flush remaining tokens
+		for _, ch := range splitter.Flush() {
+			_ = emitChunk(ch)
 		}
 
-		// 3. content_block_stop event
-		_ = writeSSEEvent(w, "content_block_stop", map[string]any{
-			"type":  "content_block_stop",
-			"index": 0,
-		})
+		// Stop active block
+		if startedTextBlock || startedThinkingBlock {
+			_ = stopCurrentBlock()
+		} else {
+			_ = startTextBlock()
+			_ = stopCurrentBlock()
+		}
 
-		// 4. message_delta event
-		finalText := cleanText
-		outTokens := format.EstimateTokens(finalText)
-		if thinking != "" {
-			outTokens += format.EstimateTokens(thinking)
+		fullThinking := splitter.GetFullThinking()
+		fullContent := splitter.GetFullContent()
+
+		outTokens := format.EstimateTokens(fullContent)
+		if fullThinking != "" {
+			outTokens += format.EstimateTokens(fullThinking)
 		}
 		if outTokens == 0 {
 			outTokens = 1
 		}
+
 		_ = writeSSEEvent(w, "message_delta", map[string]any{
 			"type": "message_delta",
 			"delta": map[string]any{
@@ -213,7 +261,6 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 
 		a.TokensProcessed.Add(uint64(promptTokens + outTokens))
 
-		// 5. message_stop event
 		_ = writeSSEEvent(w, "message_stop", map[string]any{
 			"type": "message_stop",
 		})

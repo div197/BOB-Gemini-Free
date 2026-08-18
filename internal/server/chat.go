@@ -69,40 +69,18 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var fullStreamText string
-		var emittedClean int // bytes of clean (non-thinking) content already sent to client
+		splitter := format.NewThinkingStreamSplitter()
 
-		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
-			fullStreamText += delta
-
-			// Determine what clean content is available after each delta.
-			// If we have a complete thinking block, ExtractThinking gives us clean text.
-			// If we're inside an incomplete thinking block, suppress all output.
-			// If there is no thinking block, emit all new text normally.
-			thinking, cleanText := format.ExtractThinking(fullStreamText)
-
-			var toEmit string
-			if thinking != "" {
-				// Complete thinking block extracted — only emit new clean text portion
-				if len(cleanText) > emittedClean {
-					toEmit = cleanText[emittedClean:]
-					emittedClean = len(cleanText)
-				}
-			} else {
-				// No complete thinking block — check if we're inside an incomplete one
-				trimmed := strings.TrimSpace(fullStreamText)
-				if strings.HasPrefix(trimmed, "```thought") || strings.HasPrefix(trimmed, "```thinking") {
-					// Inside an incomplete thinking block — suppress all output
-					return nil
-				}
-				// Pure content — emit all new text
-				if len(fullStreamText) > emittedClean {
-					toEmit = fullStreamText[emittedClean:]
-					emittedClean = len(fullStreamText)
-				}
+		emitChunk := func(ch format.StreamChunk) error {
+			if ch.Text == "" {
+				return nil
 			}
-
-			if toEmit == "" {
+			var msg *models.OpenAIMessage
+			if ch.Type == format.DeltaThinking {
+				msg = &models.OpenAIMessage{ReasoningContent: ch.Text}
+			} else if ch.Type == format.DeltaContent {
+				msg = &models.OpenAIMessage{Content: ch.Text}
+			} else {
 				return nil
 			}
 			chunk := models.OpenAIChatResponse{
@@ -113,47 +91,38 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 				SystemFingerprint: "fp_bob_gemini",
 				Choices: []models.OpenAIChoice{
 					{
-						Index: 0,
-						Delta: &models.OpenAIMessage{
-							Content: toEmit,
-						},
+						Index:        0,
+						Delta:        msg,
 						FinishReason: nil,
 					},
 				},
 			}
 			return writeSSEData(w, chunk)
+		}
+
+		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+			for _, ch := range splitter.Feed(delta) {
+				if err := emitChunk(ch); err != nil {
+					return err
+				}
+			}
+			return nil
 		})
 
 		if emitErr == nil {
-			// Final thinking extraction on full accumulated text
-			thinking, cleanStreamText := format.ExtractThinking(fullStreamText)
-
-			// Emit thinking as reasoning_content delta chunk if present
-			if thinking != "" {
-				thinkChunk := models.OpenAIChatResponse{
-					ID:                cid,
-					Object:            "chat.completion.chunk",
-					Created:           time.Now().Unix(),
-					Model:             resolved.Name,
-					SystemFingerprint: "fp_bob_gemini",
-					Choices: []models.OpenAIChoice{
-						{
-							Index: 0,
-							Delta: &models.OpenAIMessage{
-								ReasoningContent: thinking,
-							},
-							FinishReason: nil,
-						},
-					},
-				}
-				_ = writeSSEData(w, thinkChunk)
+			// Flush any remaining buffered tokens
+			for _, ch := range splitter.Flush() {
+				_ = emitChunk(ch)
 			}
 
+			fullThinking := splitter.GetFullThinking()
+			fullContent := splitter.GetFullContent()
+
 			pTokens := format.EstimateTokens(prompt)
-			cTokens := format.EstimateTokens(cleanStreamText)
+			cTokens := format.EstimateTokens(fullContent)
 			var rTokens int
-			if thinking != "" {
-				rTokens = format.EstimateTokens(thinking)
+			if fullThinking != "" {
+				rTokens = format.EstimateTokens(fullThinking)
 				cTokens += rTokens
 			}
 			if cTokens == 0 {
