@@ -171,13 +171,15 @@ gemini
 
 | Local Model Alias | Backend Mode | Default Think Depth | Output Profile | Auth Requirement |
 | :--- | :---: | :---: | :--- | :--- |
-| `gemini-3.6-flash` | Mode 1 | `@think=4` | Fast all-around model (~12k chars) | Free / Anonymous |
-| `gemini-3.5-flash` | Mode 1 | `@think=4` | Alias for `gemini-3.6-flash` | Free / Anonymous |
-| `gemini-3.5-flash-thinking` | Mode 2 | `@think=0` | **Deep thinking mode** (~20k+ chars) | Free / Anonymous |
+| `gemini-3.7-flash` | Mode 1 | `@think=4` | **Latest flagship fast model** (~12k chars) | Free / Anonymous |
+| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | **Latest flagship deep thinking mode** (~20k+ chars) | Free / Anonymous |
+| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | High-speed all-around model | Free / Anonymous |
+| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | **Deep thinking mode** (~20k+ chars reasoning) | Free / Anonymous |
 | `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | Adaptive thinking depth (~15k chars) | Free / Anonymous |
-| `gemini-flash-lite` | Mode 6 | `@think=4` | Ultra-low latency responses | Free / Anonymous |
+| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | Ultra-low latency responses | Free / Anonymous |
 | `gemini-auto` | Mode 4 | `@think=4` | Google server-side auto routing | Free / Anonymous |
-| `gemini-3.1-pro` | Mode 3 | `@think=4` | Flagship Pro reasoning & code | **Gemini Advanced Cookie** |
+| `gemini-3.1-pro` / `gemini-pro` | Mode 3 | `@think=4` | Flagship Pro reasoning & code | **Gemini Advanced Cookie** |
+| `gemini-3.1-pro-enhanced` | Mode 3 | `@think=4` | Pro with enhanced output (experimental) | **Gemini Advanced Cookie** |
 
 ### Dynamic Thinking Depth Override
 

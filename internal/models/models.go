@@ -18,15 +18,25 @@ type Model struct {
 }
 
 var MODELS = map[string]Model{
+	"gemini-3.7-flash": {
+		Mode:  1,
+		Think: 4,
+		Desc:  "Latest flagship fast model (Gemini 3.7 Flash)",
+	},
+	"gemini-3.7-flash-thinking": {
+		Mode:  2,
+		Think: 0,
+		Desc:  "Latest flagship deep thinking mode (Gemini 3.7 Flash Thinking)",
+	},
 	"gemini-3.6-flash": {
 		Mode:  1,
 		Think: 4,
-		Desc:  "Latest all-around model (Gemini 3.6 Flash)",
+		Desc:  "All-around model (Gemini 3.6 Flash)",
 	},
 	"gemini-3.5-flash": {
 		Mode:  1,
 		Think: 4,
-		Desc:  "Alias for gemini-3.6-flash (backend upgraded)",
+		Desc:  "Alias for gemini-3.6-flash",
 	},
 	"gemini-3.5-flash-thinking": {
 		Mode:  2,
@@ -96,6 +106,16 @@ var MODELS = map[string]Model{
 		Desc:  "Alias for gemini-3.5-flash-thinking",
 	},
 	"gemini-2.0-flash": {
+		Mode:  1,
+		Think: 4,
+		Desc:  "Alias for gemini-3.6-flash",
+	},
+	"gemini-1.5-pro": {
+		Mode:  3,
+		Think: 4,
+		Desc:  "Alias for gemini-3.1-pro",
+	},
+	"gemini-1.5-flash": {
 		Mode:  1,
 		Think: 4,
 		Desc:  "Alias for gemini-3.6-flash",

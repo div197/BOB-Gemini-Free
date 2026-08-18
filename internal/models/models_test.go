@@ -14,6 +14,22 @@ func TestResolve(t *testing.T) {
 		wantErr     bool
 	}{
 		{
+			input:       "gemini-3.7-flash",
+			defaultName: "gemini-3.6-flash",
+			wantName:    "gemini-3.7-flash",
+			wantMode:    1,
+			wantThink:   4,
+			wantErr:     false,
+		},
+		{
+			input:       "gemini-3.7-flash-thinking",
+			defaultName: "gemini-3.6-flash",
+			wantName:    "gemini-3.7-flash-thinking",
+			wantMode:    2,
+			wantThink:   0,
+			wantErr:     false,
+		},
+		{
 			input:       "gemini-3.6-flash",
 			defaultName: "gemini-3.6-flash",
 			wantName:    "gemini-3.6-flash",

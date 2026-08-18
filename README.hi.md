@@ -138,13 +138,15 @@ print(response.choices[0].message.content)
 
 | मॉडल नाम | बैकएंड मोड | डिफ़ॉल्ट रीज़निंग | विवरण | आवश्यक खाता |
 | :--- | :---: | :---: | :--- | :--- |
-| `gemini-3.6-flash` | Mode 1 | `@think=4` | तेज़ ऑल-राउंडर मॉडल (~12k अक्षर) | मुफ़्त जीमेल |
-| `gemini-3.5-flash` | Mode 1 | `@think=4` | `gemini-3.6-flash` का उपनाम | मुफ़्त जीमेल |
-| `gemini-3.5-flash-thinking` | Mode 2 | `@think=0` | **विस्तृत सोच (Deep Thinking)** (~20k+ अक्षर) | मुफ़्त जीमेल |
+| `gemini-3.7-flash` | Mode 1 | `@think=4` | **नवीनतम फ्लैगशिप फास्ट मॉडल** (~12k अक्षर) | मुफ़्त जीमेल |
+| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | **नवीनतम फ्लैगशिप डीप थिंकिंग मॉडल** (~20k+ अक्षर) | मुफ़्त जीमेल |
+| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | तेज़ ऑल-राउंडर मॉडल | मुफ़्त जीमेल |
+| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | **विस्तृत सोच (Deep Thinking)** (~20k+ अक्षर) | मुफ़्त जीमेल |
 | `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | अनुकूलनीय रीज़निंग (~15k अक्षर) | मुफ़्त जीमेल |
-| `gemini-flash-lite` | Mode 6 | `@think=4` | अल्ट्रा-फास्ट कम लेटेंसी मॉडल | मुफ़्त जीमेल |
+| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | अल्ट्रा-फास्ट कम लेटेंसी मॉडल | मुफ़्त जीमेल |
 | `gemini-auto` | Mode 4 | `@think=4` | ऑटोमैटिक मॉडल चयन | मुफ़्त जीमेल |
-| `gemini-3.1-pro` | Mode 3 | `@think=4` | फ्लैगशिप प्रो कोडिंग व गणित मॉडल | **Gemini Advanced कुकी** |
+| `gemini-3.1-pro` / `gemini-pro` | Mode 3 | `@think=4` | फ्लैगशिप प्रो कोडिंग व गणित मॉडल | **Gemini Advanced कुकी** |
+| `gemini-3.1-pro-enhanced` | Mode 3 | `@think=4` | प्रो एन्हांस्ड आउटपुट (प्रायोगिक) | **Gemini Advanced कुकी** |
 
 ---
 
