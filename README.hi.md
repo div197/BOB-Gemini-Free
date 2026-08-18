@@ -191,6 +191,10 @@ chmod +x install.sh
 * 📊 **लाइव टेलीमेट्री व डॉलर बचत ट्रैकर**: अपटाइम, प्रोसेस्ड टोकन्स और कुल डॉलर बचत का लाइव मीटर।
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
 
+<p align="center">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड" width="100%">
+</p>
+
 ---
 
 ### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.22+)

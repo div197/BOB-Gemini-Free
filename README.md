@@ -226,6 +226,10 @@ Open `http://127.0.0.1:8081/playground` in any web browser to access the built-i
 * 📊 **Live Telemetry & Dollar Savings**: Real-time ticker showing server uptime, tokens processed, and estimated USD savings.
 * 📋 **Multi-Protocol Snippet Generator**: Instantly generate and copy ready-to-run Python, Claude Code CLI, and cURL snippets.
 
+<p align="center">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard" width="100%">
+</p>
+
 ---
 
 ### Option 5: Build from Source with Make or Go (Go 1.22+)
