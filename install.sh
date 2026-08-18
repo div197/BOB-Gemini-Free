@@ -32,23 +32,41 @@ if [ ! -f "$CONFIG_DIR/config.json" ]; then
     fi
 fi
 
-# 2. Check if Go is installed
-if command -v go >/dev/null 2>&1; then
+# 2. Check if local binary already exists
+if [ -f "./$APP_NAME" ]; then
+    echo -e "${GREEN}[✔] Existing $APP_NAME binary found locally.${NC}"
+# 3. Check if Go is installed to compile from source
+elif command -v go >/dev/null 2>&1; then
     echo -e "${BLUE}[*] Go detected ($(go version)). Compiling from source...${NC}"
     CGO_ENABLED=0 go build -ldflags="-s -w" -o "$APP_NAME" .
     echo -e "${GREEN}[+] Successfully built $APP_NAME binary!${NC}"
+# 4. Check if Docker is installed
+elif command -v docker >/dev/null 2>&1; then
+    echo -e "${YELLOW}[!] Go is not installed, but Docker was detected.${NC}"
+    echo -e "${BLUE}[*] Building local Docker image: $APP_NAME...${NC}"
+    docker build -t "$APP_NAME" .
+    echo -e "${GREEN}[+] Docker container built successfully!${NC}"
+    echo -e "${GREEN}[*] Run anytime with:${NC} docker run -d --name $APP_NAME -p 8081:8081 $APP_NAME"
+    exit 0
+# 5. Zero-dependency fallback: Auto-download pre-compiled binary for OS & Architecture
 else
-    # Check if Docker is installed
-    if command -v docker >/dev/null 2>&1; then
-        echo -e "${YELLOW}[!] Go is not installed, but Docker was detected.${NC}"
-        echo -e "${BLUE}[*] Building local Docker image: $APP_NAME...${NC}"
-        docker build -t "$APP_NAME" .
-        echo -e "${GREEN}[+] Docker container built successfully!${NC}"
-        echo -e "${GREEN}[*] Run anytime with:${NC} docker run -d --name $APP_NAME -p 8081:8081 $APP_NAME"
-        exit 0
+    echo -e "${BLUE}[*] No Go or Docker detected. Fetching pre-compiled standalone binary...${NC}"
+    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+    ARCH=$(uname -m)
+    case "$ARCH" in
+        x86_64|amd64) ARCH="amd64" ;;
+        arm64|aarch64) ARCH="arm64" ;;
+        *) echo -e "${YELLOW}[!] Unsupported architecture: $ARCH. Please build from source.${NC}"; exit 1 ;;
+    esac
+
+    DOWNLOAD_URL="https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-${OS}-${ARCH}"
+    echo -e "${BLUE}[*] Downloading from: $DOWNLOAD_URL${NC}"
+    if curl -fsSL "$DOWNLOAD_URL" -o "$APP_NAME" 2>/dev/null || wget -qO "$APP_NAME" "$DOWNLOAD_URL" 2>/dev/null; then
+        chmod +x "$APP_NAME"
+        echo -e "${GREEN}[+] Standalone binary installed successfully!${NC}"
     else
-        echo -e "${YELLOW}[!] Neither Go nor Docker is installed.${NC}"
-        echo -e "${BLUE}[*] Please install Go (https://go.dev/dl/) or Docker (https://docker.com) to run BOB Gemini Free.${NC}"
+        echo -e "${YELLOW}[!] Pre-compiled binary not yet available on GitHub Releases.${NC}"
+        echo -e "${BLUE}[*] Please install Go (https://go.dev/dl/) to build locally, or download a release binary.${NC}"
         exit 1
     fi
 fi

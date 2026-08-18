@@ -24,7 +24,10 @@ if (!(Test-Path "$ConfigDir\config.json")) {
     }
 }
 
-if (Get-Command go -ErrorAction SilentlyContinue) {
+if (Test-Path ".\$AppName") {
+    Write-Host "[✔] Existing $AppName binary found locally." -ForegroundColor Green
+    Write-Host "Start with: .\$AppName --port 8081" -ForegroundColor Yellow
+} elseif (Get-Command go -ErrorAction SilentlyContinue) {
     Write-Host "[*] Go detected. Compiling $AppName from source..." -ForegroundColor Cyan
     $env:CGO_ENABLED = "0"
     go build -ldflags="-s -w" -o $AppName .
@@ -38,8 +41,16 @@ if (Get-Command go -ErrorAction SilentlyContinue) {
     Write-Host "[✔] Docker container built!" -ForegroundColor Green
     Write-Host "Run with: docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free" -ForegroundColor Yellow
 } else {
-    Write-Host "[!] Neither Go nor Docker was found." -ForegroundColor Yellow
-    Write-Host "[*] Please install Go (https://go.dev/dl/) or Docker Desktop to run BOB Gemini Free." -ForegroundColor Cyan
+    Write-Host "[*] No Go or Docker detected. Fetching pre-compiled Windows 64-bit binary..." -ForegroundColor Cyan
+    $DownloadUrl = "https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-windows-amd64.exe"
+    try {
+        Invoke-WebRequest -Uri $DownloadUrl -OutFile $AppName
+        Write-Host "[✔] Standalone binary downloaded successfully!" -ForegroundColor Green
+        Write-Host "Start with: .\$AppName --port 8081" -ForegroundColor Yellow
+    } catch {
+        Write-Host "[!] Pre-compiled binary not yet available on GitHub Releases." -ForegroundColor Yellow
+        Write-Host "[*] Please install Go (https://go.dev/dl/) or download a release binary." -ForegroundColor Cyan
+    }
 }
 
 Write-Host ""
