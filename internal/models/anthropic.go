@@ -2,14 +2,14 @@ package models
 
 // Anthropic Messages API Request Structures
 type AnthropicMessagesRequest struct {
-	Model       string                 `json:"model"`
-	Messages    []AnthropicMessage     `json:"messages"`
-	System      any                    `json:"system,omitempty"` // string or array of text blocks
-	MaxTokens   int                    `json:"max_tokens,omitempty"`
-	Stream      bool                   `json:"stream,omitempty"`
-	Temperature *float64               `json:"temperature,omitempty"`
-	Tools       []AnthropicTool        `json:"tools,omitempty"`
-	ToolChoice  any                    `json:"tool_choice,omitempty"`
+	Model       string             `json:"model"`
+	Messages    []AnthropicMessage `json:"messages"`
+	System      any                `json:"system,omitempty"` // string or array of text blocks
+	MaxTokens   int                `json:"max_tokens,omitempty"`
+	Stream      bool               `json:"stream,omitempty"`
+	Temperature *float64           `json:"temperature,omitempty"`
+	Tools       []AnthropicTool    `json:"tools,omitempty"`
+	ToolChoice  any                `json:"tool_choice,omitempty"`
 }
 
 type AnthropicMessage struct {
@@ -25,14 +25,14 @@ type AnthropicTool struct {
 
 // Anthropic Messages API Response Structures
 type AnthropicMessagesResponse struct {
-	ID           string                 `json:"id"`
-	Type         string                 `json:"type"` // "message"
-	Role         string                 `json:"role"` // "assistant"
-	Model        string                 `json:"model"`
+	ID           string                  `json:"id"`
+	Type         string                  `json:"type"` // "message"
+	Role         string                  `json:"role"` // "assistant"
+	Model        string                  `json:"model"`
 	Content      []AnthropicContentBlock `json:"content"`
-	StopReason   string                 `json:"stop_reason"` // "end_turn", "tool_use", "max_tokens"
-	StopSequence *string                `json:"stop_sequence"`
-	Usage        AnthropicUsage         `json:"usage"`
+	StopReason   string                  `json:"stop_reason"` // "end_turn", "tool_use", "max_tokens"
+	StopSequence *string                 `json:"stop_sequence"`
+	Usage        AnthropicUsage          `json:"usage"`
 }
 
 type AnthropicContentBlock struct {

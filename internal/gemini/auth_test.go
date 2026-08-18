@@ -138,4 +138,3 @@ func TestSaveCookieFile(t *testing.T) {
 		t.Errorf("expected 0600 permissions, got %o", perm)
 	}
 }
-
