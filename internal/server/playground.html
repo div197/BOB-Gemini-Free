@@ -385,12 +385,13 @@ header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 10px;
   z-index: 40;
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-main);
   transition: background 0.25s ease, border-color 0.25s ease;
+  min-height: 48px;
 }
 .brand-anchor {
   display: flex;
@@ -1848,31 +1849,48 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 @media (max-width: 640px) {
   header {
-    padding: 8px 12px;
+    padding: 6px 10px;
+    min-height: 44px;
   }
   .brand-title {
-    font-size: 1.05rem;
+    font-size: 0.98rem;
+  }
+  .brand-sep {
+    display: inline-block;
+  }
+  .nav-btn-text {
+    display: none;
+  }
+  .footer-desktop-only {
+    display: none !important;
   }
   .header-controls {
-    gap: 6px;
+    gap: 4px;
   }
   .nav-pill-btn {
     padding: 0 8px;
-    font-size: 0.68rem;
-    height: 30px;
+    font-size: 0.75rem;
+    height: 28px;
   }
   .theme-selector {
     padding: 0 6px;
-    font-size: 0.7rem;
-    height: 30px;
-    max-width: 110px;
+    font-size: 0.68rem;
+    height: 28px;
+    max-width: 100px;
   }
   .sub-bar {
     padding: 6px 10px;
-    gap: 8px;
+    gap: 6px;
   }
   .messages-scroll {
     padding: 12px 10px 170px 10px;
+  }
+  .story-card-header {
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .story-meta-stats {
+    display: none;
   }
   .hero-title-band {
     padding: 16px 16px;
@@ -1896,13 +1914,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     gap: 6px;
   }
   .btn-attachment-pill {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
   }
   .btn-pill-cta {
     padding: 0 16px;
-    height: 40px;
+    height: 38px;
     font-size: 0.75rem;
   }
   .input-footer {
@@ -2224,8 +2242,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   </div>
 
   <div class="header-controls">
-    <button class="nav-pill-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">◧ Config</button>
-    <button class="nav-pill-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">◨ Code</button>
+    <button class="nav-pill-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
+      <span>◧</span> <span class="nav-btn-text">Config</span>
+    </button>
+    <button class="nav-pill-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
+      <span>◨</span> <span class="nav-btn-text">Code</span>
+    </button>
     <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette">
       <span id="cmd-menu-label">⌘K Menu</span>
     </button>
@@ -2348,10 +2370,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <div class="input-footer">
           <div class="footer-badges">
-            <button class="footer-action-btn" type="button" onclick="insertNewline()" title="Insert line break into prompt">
+            <button class="footer-action-btn footer-desktop-only" type="button" onclick="insertNewline()" title="Insert line break into prompt">
               <span>Shift+Enter ↵</span> <span>Newline</span>
             </button>
-            <button class="footer-action-btn" type="button" onclick="sendMessage()" title="Send prompt message">
+            <button class="footer-action-btn footer-desktop-only" type="button" onclick="sendMessage()" title="Send prompt message">
               <span>Enter ↵</span> <span>Send</span>
             </button>
             <button class="footer-action-btn" type="button" onclick="toggleCmdPalette()" title="Open quick command palette">
