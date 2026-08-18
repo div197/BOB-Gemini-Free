@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Dynamic Collapsible Panels, Zen Focus Mode, and Non-Dual Harmonic Geometry
+  Autonomous Niṣkāma Operational Precision & Meticulous Frontend Alignment
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -37,9 +37,9 @@
   --accent-badge: #d91e26;
   --accent-badge-text: #ffffff;
   --accent-secondary: #024ca1;
-  --shadow-main: 0 4px 24px rgba(0, 0, 0, 0.45);
-  --shadow-cta: 0 4px 20px rgba(255, 202, 0, 0.38);
-  --radius-card: 10px;
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.4);
+  --shadow-cta: 0 4px 16px rgba(255, 202, 0, 0.32);
+  --radius-card: 8px;
   --radius-pill: 9999px;
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
@@ -64,8 +64,8 @@
   --accent-badge: #e60000;
   --accent-badge-text: #ffffff;
   --accent-secondary: #212427;
-  --shadow-main: 0 2px 12px rgba(0, 0, 0, 0.05);
-  --shadow-cta: 0 4px 18px rgba(230, 0, 0, 0.32);
+  --shadow-main: 0 2px 10px rgba(0, 0, 0, 0.05);
+  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.28);
 }
 
 [data-theme="spotify"] {
@@ -87,8 +87,8 @@
   --accent-badge: #1ed760;
   --accent-badge-text: #000000;
   --accent-secondary: #282828;
-  --shadow-main: 0 4px 24px rgba(0, 0, 0, 0.55);
-  --shadow-cta: 0 4px 18px rgba(30, 215, 96, 0.38);
+  --shadow-main: 0 4px 20px rgba(0, 0, 0, 0.5);
+  --shadow-cta: 0 4px 16px rgba(30, 215, 96, 0.32);
 }
 
 [data-theme="quantum"] {
@@ -110,8 +110,8 @@
   --accent-badge: #a855f7;
   --accent-badge-text: #ffffff;
   --accent-secondary: #3b82f6;
-  --shadow-main: 0 4px 26px rgba(0, 240, 255, 0.12);
-  --shadow-cta: 0 4px 20px rgba(0, 240, 255, 0.4);
+  --shadow-main: 0 4px 22px rgba(0, 240, 255, 0.1);
+  --shadow-cta: 0 4px 16px rgba(0, 240, 255, 0.32);
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -128,16 +128,22 @@ body {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
-/* Master Navigation Bar */
+/* Minimalist Scrollbars */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.12); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-primary); }
+
+/* Master Header */
 header {
   background: var(--bg-header);
   color: #ffffff;
-  padding: 10px 20px;
+  padding: 8px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
   z-index: 40;
   border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-main);
@@ -145,14 +151,14 @@ header {
 .brand-anchor {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   text-decoration: none;
 }
 .brand-logo-svg {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
-  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.3));
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
 }
 .brand-headings {
   display: flex;
@@ -160,22 +166,22 @@ header {
 }
 .brand-title {
   font-weight: 900;
-  font-size: 1.2rem;
-  letter-spacing: -0.5px;
+  font-size: 1.12rem;
+  letter-spacing: -0.4px;
   text-transform: uppercase;
   color: var(--text-main);
   line-height: 1.1;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .brand-title .accent {
   color: var(--accent-primary);
 }
 .brand-tagline {
-  font-size: 0.64rem;
+  font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 1.1px;
+  letter-spacing: 1px;
   text-transform: uppercase;
   color: var(--text-muted);
 }
@@ -183,20 +189,21 @@ header {
 /* Telemetry Pills */
 .telemetry-bar {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .stat-pill {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
-  padding: 4px 12px;
+  padding: 0 10px;
+  height: 28px;
   border-radius: var(--radius-pill);
   color: var(--text-muted);
   font-size: 0.72rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
 .stat-pill b {
   color: var(--text-main);
@@ -207,7 +214,7 @@ header {
   color: #34d399;
 }
 
-/* Header Controls & Sidebar Toggles */
+/* Header Controls & Sidebar Toggles (Sleek 32px Height) */
 .header-controls {
   display: flex;
   align-items: center;
@@ -217,13 +224,16 @@ header {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 5px 12px;
+  padding: 0 10px;
+  height: 32px;
   border-radius: var(--radius-pill);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   font-weight: 700;
   outline: none;
   cursor: pointer;
   font-family: inherit;
+  display: inline-flex;
+  align-items: center;
 }
 .nav-pill-btn {
   background: var(--bg-card);
@@ -232,13 +242,15 @@ header {
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 5px 12px;
+  letter-spacing: 0.5px;
+  padding: 0 12px;
+  height: 32px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  gap: 5px;
   transition: all 0.15s ease;
 }
 .nav-pill-btn:hover {
@@ -263,43 +275,43 @@ main {
 /* Sidebars (Collapsible on Desktop & Mobile) */
 .sidebar-panel {
   background: var(--bg-sidebar);
-  width: 290px;
-  min-width: 290px;
-  max-width: 290px;
-  padding: 16px;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
+  padding: 14px;
   overflow-y: auto;
   border-right: 1px solid var(--border-color);
-  transition: margin-left 0.3s cubic-bezier(0.25, 1, 0.5, 1), margin-right 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.25s ease;
+  transition: margin-left 0.28s cubic-bezier(0.25, 1, 0.5, 1), margin-right 0.28s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.22s ease;
   z-index: 20;
 }
 .sidebar-panel.left.collapsed {
-  margin-left: -290px;
+  margin-left: -280px;
   opacity: 0;
   pointer-events: none;
 }
 .sidebar-panel.right {
   border-right: none;
   border-left: 1px solid var(--border-color);
-  width: 320px;
-  min-width: 320px;
-  max-width: 320px;
+  width: 310px;
+  min-width: 310px;
+  max-width: 310px;
 }
 .sidebar-panel.right.collapsed {
-  margin-right: -320px;
+  margin-right: -310px;
   opacity: 0;
   pointer-events: none;
 }
 .panel-header {
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.1px;
   color: var(--text-main);
-  margin-bottom: 14px;
+  margin-bottom: 12px;
   font-weight: 800;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 8px;
+  padding-bottom: 6px;
   border-bottom: 2px solid var(--accent-primary);
 }
 
@@ -307,28 +319,28 @@ main {
 .control-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 12px 14px;
+  padding: 10px 12px;
   border-radius: var(--radius-card);
-  margin-bottom: 12px;
+  margin-bottom: 10px;
   box-shadow: var(--shadow-main);
 }
 .control-card label {
   display: block;
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: var(--text-main);
-  margin-bottom: 6px;
+  margin-bottom: 5px;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 select, textarea {
   width: 100%;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
   color: var(--text-main);
-  padding: 8px 10px;
-  border-radius: 6px;
-  font-size: 0.86rem;
+  padding: 7px 9px;
+  border-radius: 5px;
+  font-size: 0.84rem;
   outline: none;
   font-family: inherit;
   font-weight: 500;
@@ -350,9 +362,9 @@ select:focus, textarea:focus {
   background: var(--bg-workspace);
 }
 
-/* Top Sub-Bar */
+/* Top Sub-Bar (Aligned & Balanced) */
 .sub-bar {
-  padding: 8px 20px;
+  padding: 6px 18px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -362,26 +374,27 @@ select:focus, textarea:focus {
 .sub-bar-left {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
 .active-model-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 4px 14px;
+  padding: 0 12px;
+  height: 28px;
   border-radius: var(--radius-pill);
-  font-size: 0.76rem;
+  font-size: 0.74rem;
   font-weight: 700;
   color: var(--text-main);
 }
 .active-model-chip .live-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: var(--accent-primary);
-  box-shadow: 0 0 8px var(--accent-primary);
+  box-shadow: 0 0 6px var(--accent-primary);
 }
 .sub-bar-actions {
   display: flex;
@@ -391,16 +404,18 @@ select:focus, textarea:focus {
   background: var(--bg-card);
   color: var(--text-main);
   border: 1px solid var(--border-color);
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 4px 12px;
+  letter-spacing: 0.4px;
+  padding: 0 10px;
+  height: 28px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  justify-content: center;
+  gap: 4px;
   transition: all 0.15s ease;
 }
 .btn-pill-subtle:hover {
@@ -412,21 +427,21 @@ select:focus, textarea:focus {
 .messages-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 24px 170px 24px;
+  padding: 20px 20px 160px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   scroll-behavior: smooth;
   position: relative;
   background: var(--bg-workspace);
 }
 .messages-content-wrapper {
   width: 100%;
-  max-width: 900px;
+  max-width: 880px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 /* Story Card (Assistant Message) */
@@ -434,9 +449,9 @@ select:focus, textarea:focus {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 22px 26px;
+  padding: 20px 22px;
   box-shadow: var(--shadow-main);
-  animation: fadeIn 0.22s ease-out;
+  animation: fadeIn 0.2s ease-out;
   position: relative;
   width: 100%;
 }
@@ -448,34 +463,34 @@ select:focus, textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
   border-bottom: 1px solid var(--border-color);
 }
 .badge-chip {
   background: var(--bg-app);
   color: var(--text-main);
-  padding: 4px 14px;
+  padding: 3px 10px;
   border-radius: var(--radius-pill);
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.7px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   border: 1px solid var(--border-color);
 }
 .badge-chip .mini-orb {
   background: var(--accent-primary);
   color: var(--accent-primary-text);
-  width: 14px;
-  height: 14px;
-  border-radius: 3px;
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 900;
   line-height: 1;
 }
@@ -489,11 +504,11 @@ select:focus, textarea:focus {
 .user-bubble {
   background: var(--accent-secondary);
   color: #ffffff;
-  padding: 14px 22px;
-  border-radius: 18px 18px 4px 18px;
-  font-size: 0.95rem;
-  line-height: 1.6;
-  max-width: 84%;
+  padding: 12px 18px;
+  border-radius: 14px 14px 3px 14px;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  max-width: 82%;
   white-space: pre-wrap;
   box-shadow: var(--shadow-main);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -503,25 +518,25 @@ select:focus, textarea:focus {
 .thought-card {
   background: var(--bg-app);
   border: 1px solid var(--border-color);
-  border-left: 4px solid var(--accent-primary);
-  padding: 12px 16px;
-  margin-bottom: 16px;
-  border-radius: 6px;
-  font-size: 0.84rem;
+  border-left: 3px solid var(--accent-primary);
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  border-radius: 5px;
+  font-size: 0.82rem;
   color: var(--text-muted);
   font-family: var(--font-mono);
   white-space: pre-wrap;
   display: none;
-  max-height: 280px;
+  max-height: 260px;
   overflow-y: auto;
 }
 .thought-card.active { display: block; }
 .thought-card-header {
   color: var(--accent-primary);
   font-weight: 800;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
@@ -529,71 +544,74 @@ select:focus, textarea:focus {
 
 /* Welcome Hero Grid */
 .welcome-hero {
-  margin: 10px auto;
+  margin: 6px auto;
   width: 100%;
 }
 .hero-title-band {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 26px 30px;
-  margin-bottom: 18px;
+  padding: 22px 26px;
+  margin-bottom: 14px;
   box-shadow: var(--shadow-main);
 }
 .hero-headline {
-  font-size: 2.1rem;
+  font-size: 1.85rem;
   font-weight: 900;
-  letter-spacing: -1px;
+  letter-spacing: -0.8px;
   text-transform: uppercase;
   color: var(--text-main);
-  line-height: 1.1;
-  margin-bottom: 8px;
+  line-height: 1.15;
+  margin-bottom: 6px;
 }
 .hero-headline span {
   color: var(--accent-primary);
 }
 .hero-subline {
-  font-size: 0.96rem;
+  font-size: 0.92rem;
   color: var(--text-muted);
   line-height: 1.5;
 }
 .starters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
 }
 .starter-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 18px 20px;
+  padding: 14px 16px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   box-shadow: var(--shadow-main);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 .starter-card:hover {
   border-color: var(--accent-primary);
   transform: translateY(-2px);
   background: var(--bg-card-hover);
 }
-.starter-card .badge-chip { margin-bottom: 12px; }
+.starter-card .badge-chip { margin-bottom: 10px; align-self: flex-start; }
 .starter-card-title {
   font-weight: 800;
   color: var(--text-main);
-  font-size: 1.02rem;
-  letter-spacing: -0.3px;
+  font-size: 0.96rem;
+  letter-spacing: -0.2px;
   margin-bottom: 4px;
-  line-height: 1.3;
+  line-height: 1.25;
 }
 .starter-card-desc {
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.45;
+  line-height: 1.4;
 }
 
 /* 
   Spacious Sacred Geometry Studio Input Dock
-  Harmonic center alignment, no text clipping, and distinct jump-to-bottom pill
+  Harmonic center alignment, sleek 44px button & input balance
 */
 .studio-input-area {
   position: absolute;
@@ -602,34 +620,34 @@ select:focus, textarea:focus {
   right: 0;
   background: var(--bg-workspace);
   border-top: 1px solid var(--border-color);
-  padding: 14px 24px 12px 24px;
+  padding: 10px 18px 10px 18px;
   display: flex;
   justify-content: center;
-  box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.25);
   z-index: 30;
 }
 .studio-input-container {
   width: 100%;
-  max-width: 900px;
+  max-width: 880px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
   position: relative;
 }
 .input-row {
   display: flex;
   align-items: flex-end;
-  gap: 12px;
+  gap: 10px;
 }
 #user-input {
   flex: 1;
-  min-height: 52px;
-  max-height: 180px;
+  min-height: 44px;
+  max-height: 160px;
   resize: none;
-  line-height: 1.5;
-  padding: 13px 18px;
-  border-radius: 8px;
-  font-size: 0.95rem;
+  line-height: 1.45;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 0.92rem;
   background: var(--bg-input);
   border: 1px solid var(--border-color);
   outline: none;
@@ -647,17 +665,17 @@ select:focus, textarea:focus {
   color: var(--accent-primary-text);
   border: none;
   font-weight: 800;
-  font-size: 0.86rem;
+  font-size: 0.82rem;
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 0 28px;
-  height: 52px;
+  letter-spacing: 0.6px;
+  padding: 0 22px;
+  height: 44px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
   transition: all 0.15s ease;
   box-shadow: var(--shadow-cta);
   flex-shrink: 0;
@@ -672,41 +690,46 @@ select:focus, textarea:focus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   color: var(--text-subdued);
-  padding: 0 4px;
+  padding: 0 2px;
+  flex-wrap: wrap;
+  gap: 6px;
 }
 .input-footer .footer-badges {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 .footer-badge {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
-  padding: 2px 8px;
-  border-radius: 4px;
-  font-size: 0.68rem;
+  padding: 1px 7px;
+  border-radius: 3px;
+  font-size: 0.66rem;
   font-weight: 600;
   color: var(--text-muted);
 }
 
 .scroll-bottom-pill {
   position: absolute;
-  top: -50px;
+  top: -42px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--accent-primary);
   color: var(--accent-primary-text);
   border: none;
-  padding: 7px 18px;
+  padding: 0 14px;
+  height: 30px;
   border-radius: var(--radius-pill);
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
+  letter-spacing: 0.5px;
   cursor: pointer;
   display: none;
+  align-items: center;
+  justify-content: center;
   box-shadow: var(--shadow-cta);
   transition: all 0.15s ease;
   z-index: 35;
@@ -719,27 +742,27 @@ select:focus, textarea:focus {
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
   overflow: hidden;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 .code-card-header {
   background: #080c14;
-  padding: 8px 14px;
+  padding: 6px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
 }
 .code-card-header span {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 800;
   color: var(--accent-primary);
   text-transform: uppercase;
   font-family: var(--font-mono);
 }
 .code-card-body {
-  padding: 12px 14px;
+  padding: 10px 12px;
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   color: #f3f4f6;
   overflow-x: auto;
   white-space: pre;
@@ -748,18 +771,18 @@ select:focus, textarea:focus {
 /* Markdown Typography */
 .markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
   color: var(--text-main);
-  margin: 18px 0 8px 0;
+  margin: 14px 0 6px 0;
   font-weight: 800;
   letter-spacing: -0.3px;
 }
-.markdown-body h1 { font-size: 1.4rem; border-bottom: 2px solid var(--accent-primary); padding-bottom: 6px; }
-.markdown-body h2 { font-size: 1.2rem; border-bottom: 1px solid var(--border-color); padding-bottom: 4px; }
-.markdown-body h3 { font-size: 1.05rem; }
-.markdown-body h4 { font-size: 0.95rem; }
+.markdown-body h1 { font-size: 1.3rem; border-bottom: 2px solid var(--accent-primary); padding-bottom: 4px; }
+.markdown-body h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border-color); padding-bottom: 3px; }
+.markdown-body h3 { font-size: 1.02rem; }
+.markdown-body h4 { font-size: 0.92rem; }
 .markdown-body hr {
   border: none;
   border-top: 1px solid var(--border-color);
-  margin: 18px 0;
+  margin: 14px 0;
 }
 
 /* Code Blocks in Assistant Story */
@@ -767,26 +790,26 @@ select:focus, textarea:focus {
   background: #0f1522 !important;
   border: 1px solid var(--border-color) !important;
   border-radius: var(--radius-card) !important;
-  margin: 16px 0 !important;
+  margin: 14px 0 !important;
   padding: 0 !important;
   overflow: hidden;
   position: relative;
 }
 .code-window-header {
   background: #080c14;
-  padding: 8px 14px;
+  padding: 6px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-color);
 }
 .window-dots { display: flex; gap: 5px; }
-.window-dot { width: 9px; height: 9px; border-radius: 50%; }
+.window-dot { width: 8px; height: 8px; border-radius: 50%; }
 .dot-red { background: #ff5f56; }
 .dot-yellow { background: #ffbd2e; }
 .dot-green { background: #27c93f; }
 .lang-badge {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   color: var(--accent-primary);
   text-transform: uppercase;
   font-weight: 800;
@@ -795,23 +818,23 @@ select:focus, textarea:focus {
 }
 .code-action-btns {
   display: flex;
-  gap: 6px;
+  gap: 5px;
 }
 .markdown-body pre code {
   display: block;
-  padding: 14px 18px !important;
+  padding: 12px 16px !important;
   overflow-x: auto;
   color: #f3f4f6;
   background: transparent !important;
   font-family: var(--font-mono) !important;
-  font-size: 0.86rem !important;
+  font-size: 0.84rem !important;
   line-height: 1.55;
 }
 .markdown-body code:not(pre code) {
   background: rgba(255, 202, 0, 0.12);
   color: var(--accent-primary);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
   font-family: var(--font-mono);
   font-size: 0.88em;
   font-weight: 600;
@@ -819,32 +842,32 @@ select:focus, textarea:focus {
 
 /* Quotes */
 .markdown-body blockquote:not(.callout) {
-  border-left: 4px solid var(--accent-primary);
+  border-left: 3px solid var(--accent-primary);
   background: var(--bg-app);
-  padding: 12px 18px;
-  margin: 14px 0;
+  padding: 10px 14px;
+  margin: 12px 0;
   color: var(--text-muted);
   font-style: italic;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 5px 5px 0;
 }
 
 /* Callouts */
 .callout {
-  border-left: 4px solid;
-  padding: 12px 16px;
-  margin: 14px 0;
-  border-radius: 0 6px 6px 0;
-  font-size: 0.9rem;
+  border-left: 3px solid;
+  padding: 10px 14px;
+  margin: 12px 0;
+  border-radius: 0 5px 5px 0;
+  font-size: 0.88rem;
 }
 .callout-title {
   font-weight: 800;
-  margin-bottom: 4px;
+  margin-bottom: 3px;
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
+  gap: 5px;
+  font-size: 0.74rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.4px;
 }
 .callout-note { border-color: #2563eb; background: rgba(37, 99, 235, 0.1); color: #93c5fd; }
 .callout-tip { border-color: #16a34a; background: rgba(22, 163, 74, 0.1); color: #86efac; }
@@ -855,28 +878,28 @@ select:focus, textarea:focus {
 /* Tables */
 .table-wrapper {
   overflow-x: auto;
-  margin: 16px 0;
-  border-radius: 6px;
+  margin: 14px 0;
+  border-radius: 5px;
   border: 1px solid var(--border-color);
 }
 table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   text-align: left;
 }
 th {
   background: var(--bg-card);
-  padding: 10px 14px;
+  padding: 8px 12px;
   color: var(--accent-primary);
   border-bottom: 1px solid var(--border-color);
   font-weight: 800;
   text-transform: uppercase;
-  font-size: 0.76rem;
-  letter-spacing: 0.5px;
+  font-size: 0.72rem;
+  letter-spacing: 0.4px;
 }
 td {
-  padding: 10px 14px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-color);
   color: var(--text-main);
 }
@@ -885,22 +908,22 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 /* Task list */
 .task-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
-.task-checkbox { margin-top: 5px; accent-color: var(--accent-primary); }
+.task-checkbox { margin-top: 4px; accent-color: var(--accent-primary); }
 
-.markdown-body p { margin-bottom: 10px; }
+.markdown-body p { margin-bottom: 8px; }
 .markdown-body p:last-child { margin-bottom: 0; }
-.markdown-body ul, .markdown-body ol { margin: 8px 0 10px 22px; }
-.markdown-body li { margin-bottom: 4px; }
+.markdown-body ul, .markdown-body ol { margin: 6px 0 8px 20px; }
+.markdown-body li { margin-bottom: 3px; }
 .markdown-body a { color: var(--accent-primary); text-decoration: none; font-weight: 600; }
 .markdown-body a:hover { text-decoration: underline; }
 .markdown-body del { color: var(--text-subdued); }
 
 /* KaTeX Math Styling */
 .katex-display {
-  margin: 14px 0 !important;
+  margin: 12px 0 !important;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 6px 0;
+  padding: 4px 0;
   color: var(--text-main);
 }
 
@@ -921,41 +944,41 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 .cmd-palette {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  width: 540px;
+  width: 500px;
   max-width: 90vw;
   border-radius: var(--radius-card);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
   overflow: hidden;
 }
 .cmd-input-box {
-  padding: 16px 20px;
+  padding: 14px 18px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
 }
 .cmd-input-box input {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
-  font-size: 1.05rem;
+  font-size: 0.98rem;
   color: var(--text-main);
   font-family: inherit;
 }
 .cmd-list {
-  max-height: 320px;
+  max-height: 300px;
   overflow-y: auto;
-  padding: 8px;
+  padding: 6px;
 }
 .cmd-item {
-  padding: 10px 14px;
-  border-radius: 6px;
+  padding: 8px 12px;
+  border-radius: 5px;
   cursor: pointer;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: var(--text-main);
   transition: all 0.1s ease;
 }
@@ -964,10 +987,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   color: var(--accent-primary);
 }
 .cmd-item kbd {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   background: rgba(255, 255, 255, 0.08);
-  padding: 2px 6px;
-  border-radius: 4px;
+  padding: 2px 5px;
+  border-radius: 3px;
   font-family: var(--font-mono);
   color: var(--text-muted);
 }
@@ -979,7 +1002,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 <div class="cmd-modal-backdrop" id="cmd-modal" onclick="if(event.target===this) toggleCmdPalette()">
   <div class="cmd-palette">
     <div class="cmd-input-box">
-      <span style="color:var(--accent-primary); font-size:1.2rem;">✦</span>
+      <span style="color:var(--accent-primary); font-size:1.1rem;">✦</span>
       <input type="text" id="cmd-search" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)">
       <kbd>ESC</kbd>
     </div>
@@ -1032,7 +1055,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <div class="header-controls">
     <button class="nav-pill-btn active" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">◧ Config</button>
     <button class="nav-pill-btn active" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">◨ Code</button>
-    <button class="nav-pill-btn" onclick="toggleCmdPalette()" title="Command Palette (Cmd+K)">⌘K Quick Menu</button>
+    <button class="nav-pill-btn" onclick="toggleCmdPalette()" title="Command Palette (Cmd+K)">⌘K Menu</button>
 
     <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
       <option value="bob-builder" selected>🏗️ BOB Builder</option>
@@ -1048,7 +1071,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <aside class="sidebar-panel left" id="sidebar-left">
     <div class="panel-header">
       <span>Model Configuration</span>
-      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
+      <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
     </div>
 
     <div class="control-card">
@@ -1084,7 +1107,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
     <div class="control-card">
       <label>System Prompt (Optional)</label>
-      <textarea id="system-prompt" rows="4" placeholder="Set custom instructions for the model..."></textarea>
+      <textarea id="system-prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
     </div>
   </aside>
 
@@ -1116,7 +1139,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="sendMessage()">
             <span>Send</span>
-            <span style="font-size:0.85rem;">➤</span>
+            <span style="font-size:0.8rem;">➤</span>
           </button>
         </div>
         <div class="input-footer">
@@ -1135,13 +1158,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <aside class="sidebar-panel right" id="sidebar-right">
     <div class="panel-header">
       <span>Drop-in Integration</span>
-      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
+      <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
     </div>
 
     <div class="code-card-box">
       <div class="code-card-header">
         <span>Python SDK</span>
-        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
+        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
       </div>
       <div class="code-card-body" id="code-python"></div>
     </div>
@@ -1149,7 +1172,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <div class="code-card-box">
       <div class="code-card-header">
         <span>Claude Code CLI</span>
-        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
+        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
       </div>
       <div class="code-card-body" id="code-claude"></div>
     </div>
@@ -1157,7 +1180,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <div class="code-card-box">
       <div class="code-card-header">
         <span>cURL Stream</span>
-        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
+        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
       </div>
       <div class="code-card-body" id="code-curl"></div>
     </div>
@@ -1282,7 +1305,7 @@ msgListEl.addEventListener("scroll", () => {
 
   const btn = document.getElementById("scroll-bottom-btn");
   if (!userIsAtBottom && chatHistory.length > 0) {
-    btn.style.display = "block";
+    btn.style.display = "flex";
   } else {
     btn.style.display = "none";
   }
@@ -1296,7 +1319,7 @@ function scrollToBottom() {
 
 function autoResize(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(Math.max(el.scrollHeight, 52), 180) + 'px';
+  el.style.height = Math.min(Math.max(el.scrollHeight, 44), 160) + 'px';
 }
 
 function handleKeyDown(e) {
@@ -1421,7 +1444,7 @@ function renderMarkdown(text) {
     const safeCode = escapeHtml(code);
     const langLabel = lang || 'code';
     const prismClass = lang ? 'language-' + lang : 'language-none';
-    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
   });
 
   // Inline code: `code`
@@ -1672,7 +1695,7 @@ async function sendMessage() {
 
   const btn = document.getElementById("send-btn");
   inputEl.value = "";
-  inputEl.style.height = '52px';
+  inputEl.style.height = '44px';
   inputEl.disabled = true;
   btn.disabled = true;
 
