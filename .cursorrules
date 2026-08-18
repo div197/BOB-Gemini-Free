@@ -1,0 +1,10 @@
+# BOB Gemini Free — Cursor Rules & Codebase Context
+
+You are working on BOB Gemini Free, a high-performance Go-based 3-in-1 local gateway for Google Gemini.
+
+Key Rules:
+1. Pure Go 1.22+ standard library where possible; keep external dependencies minimal.
+2. Maintain 100% test passing rate across all packages with `go test -count=1 ./...`.
+3. Format all code with `gofmt -s -w .`.
+4. Ensure cross-platform compatibility across Windows, macOS, and Linux using `filepath.Join` and standard OS abstractions.
+5. All credentials (cookies, config) must be excluded in `.gitignore` and default host locked to `127.0.0.1`.
