@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>BOB Gemini Free — Universal AI Gateway</title>
+<title>BOB GEMINI FREE — Universal AI Gateway</title>
 <!-- KaTeX for Scientific & Mathematical Typography -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -18,19 +18,22 @@
   --color-primary-hover: #cc0000;
   --color-on-primary: #ffffff;
   --color-ink: #25282b;
-  --color-body: #7e7e7e;
-  --color-mute: #bebebe;
+  --color-body: #55595d;
+  --color-mute: #8e959c;
   --color-canvas: #ffffff;
-  --color-canvas-soft: #f2f2f2;
-  --color-canvas-card: #f9f9f9;
+  --color-canvas-soft: #f4f5f7;
+  --color-canvas-card: #ffffff;
   --color-on-dark: #ffffff;
-  --border-hairline: #e2e4e8;
-  --font-display: "Vodafone", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
+  --border-hairline: #e2e5e9;
+  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.10);
+  --shadow-floating: 0 16px 48px rgba(0, 0, 0, 0.14);
+  --font-display: "Inter", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
-  background: var(--color-canvas);
+  background: var(--color-canvas-soft);
   color: var(--color-ink);
   font-family: var(--font-display);
   line-height: 1.6;
@@ -41,113 +44,193 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Nav Bar (Ink Dark) */
+/* 2026 Editorial Header (Ink Band) */
 header {
   background: var(--color-ink);
   color: var(--color-on-dark);
-  padding: 12px 24px;
+  padding: 14px 28px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
-  gap: 12px;
-  z-index: 20;
+  gap: 14px;
+  z-index: 30;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
-.brand { display: flex; align-items: center; gap: 12px; }
-.speechmark-icon {
+.brand-group {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.speechmark-orb {
   background: var(--color-primary);
-  color: #fff;
+  color: #ffffff;
   font-weight: 900;
-  font-size: 1.2rem;
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
+  font-size: 1.3rem;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
+  box-shadow: 0 4px 12px rgba(230, 0, 0, 0.35);
+  flex-shrink: 0;
 }
-.logo {
-  font-weight: 800;
-  font-size: 1.2rem;
-  letter-spacing: -0.5px;
-  text-transform: uppercase;
-  color: var(--color-on-dark);
-}
-.badge-chip {
-  font-size: 0.72rem;
-  background: rgba(255, 255, 255, 0.12);
-  color: var(--color-on-dark);
-  padding: 3px 12px;
-  border-radius: 32px;
-  font-weight: 700;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
-}
-.telemetry {
+.brand-text {
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+}
+.logo-title {
+  font-weight: 800;
+  font-size: 1.25rem;
+  letter-spacing: -0.8px;
+  text-transform: uppercase;
+  color: #ffffff;
+  line-height: 1.1;
+}
+.logo-title span {
+  color: var(--color-primary);
+}
+.logo-subtitle {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: #9ba1a6;
+}
+
+/* Header Telemetry Pills */
+.telemetry-row {
+  display: flex;
+  gap: 10px;
   font-size: 0.78rem;
-  color: #a0a4a8;
   align-items: center;
 }
-.stat-pill {
+.telemetry-chip {
   background: rgba(255, 255, 255, 0.08);
-  padding: 4px 12px;
-  border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 5px 14px;
+  border-radius: 60px;
+  color: #c5cbd0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
 }
-.stat-pill b { color: #ffffff; font-weight: 700; font-family: var(--font-mono); }
+.telemetry-chip b {
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-weight: 700;
+}
+.telemetry-chip.savings b {
+  color: #4ade80;
+}
 
-/* Main 3-Column Shell */
+/* Header Navigation Actions */
+.header-actions {
+  display: flex;
+  gap: 8px;
+}
+.btn-pill-dark {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  padding: 6px 14px;
+  border-radius: 60px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+.btn-pill-dark:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+/* Main Container Layout */
 main {
   flex: 1;
-  display: grid;
-  grid-template-columns: 290px 1fr 330px;
+  display: flex;
   overflow: hidden;
   position: relative;
-  background: var(--color-canvas);
+  max-width: 1600px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.sidebar-left, .sidebar-right {
-  background: var(--color-canvas-soft);
-  padding: 18px 20px;
-  overflow-y: auto;
+/* Collapsible Floating Drawers */
+.drawer {
+  background: var(--color-canvas);
   border-right: 1px solid var(--border-hairline);
+  width: 320px;
+  padding: 20px;
+  overflow-y: auto;
+  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
+  z-index: 20;
 }
-.sidebar-right { border-right: none; border-left: 1px solid var(--border-hairline); }
-.section-title {
-  font-size: 0.72rem;
+.drawer-right {
+  border-right: none;
+  border-left: 1px solid var(--border-hairline);
+}
+.drawer-header {
+  font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.2px;
   color: var(--color-ink);
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   font-weight: 800;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--color-ink);
 }
-.control-group { margin-bottom: 16px; }
-label { display: block; font-size: 0.8rem; color: var(--color-ink); margin-bottom: 6px; font-weight: 700; }
-select, input, textarea {
+
+.control-card {
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--border-hairline);
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 14px;
+}
+.control-card label {
+  display: block;
+  font-size: 0.76rem;
+  color: var(--color-ink);
+  margin-bottom: 6px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+select, textarea {
   width: 100%;
   background: var(--color-canvas);
-  border: 1px solid var(--color-mute);
+  border: 1px solid #d1d5db;
   color: var(--color-ink);
   padding: 9px 12px;
   border-radius: 6px;
   font-size: 0.88rem;
   outline: none;
   font-family: inherit;
-  transition: all 0.2s ease;
+  font-weight: 500;
+  transition: all 0.15s ease;
 }
-select:focus, input:focus, textarea:focus {
+select:focus, textarea:focus {
   border-color: var(--color-ink);
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
-/* Chat Central Canvas */
-.chat-container {
+/* Central Editorial Chat Workspace */
+.chat-workspace {
+  flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
@@ -155,127 +238,146 @@ select:focus, input:focus, textarea:focus {
   position: relative;
   overflow: hidden;
 }
-.chat-toolbar {
-  padding: 10px 20px;
-  background: var(--color-canvas-soft);
+
+/* Top Mini Toolbar */
+.workspace-toolbar {
+  padding: 10px 28px;
+  background: var(--color-canvas);
   border-bottom: 1px solid var(--border-hairline);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
 }
-.toolbar-title { font-weight: 700; color: var(--color-ink); display: flex; align-items: center; gap: 6px; }
-
-.messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 24px 28px;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  scroll-behavior: smooth;
-  position: relative;
-  background: var(--color-canvas);
-}
-.msg {
-  max-width: 86%;
-  padding: 16px 20px;
-  border-radius: 6px;
-  font-size: 0.95rem;
-  line-height: 1.65;
-  position: relative;
-  word-break: break-word;
-  overflow-wrap: break-word;
-  animation: fadeIn 0.2s ease-out;
-}
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.msg-user {
-  background: var(--color-ink);
-  align-self: flex-end;
-  color: var(--color-on-dark);
-  border-radius: 16px 16px 2px 16px;
-  white-space: pre-wrap;
-}
-.msg-assistant {
-  background: var(--color-canvas);
-  align-self: flex-start;
-  border: 1px solid var(--border-hairline);
-  color: var(--color-ink);
-  width: 100%;
-  max-width: 94%;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-}
-.msg-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid var(--color-canvas-soft);
-}
-
-/* Pill Buttons */
-.btn-pill-primary {
-  background: var(--color-primary);
-  color: var(--color-on-primary);
-  border: 1px solid var(--color-primary);
-  font-weight: 700;
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  padding: 10px 26px;
-  border-radius: 60px;
-  cursor: pointer;
+.active-model-badge {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  transition: background-color 0.15s ease;
+  gap: 8px;
+  background: var(--color-canvas-soft);
+  padding: 5px 14px;
+  border-radius: 60px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  border: 1px solid var(--border-hairline);
 }
-.btn-pill-primary:hover { background: var(--color-primary-hover); }
-.btn-pill-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+.active-model-badge .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
 
-.btn-pill-outline {
+.toolbar-btn-group {
+  display: flex;
+  gap: 8px;
+}
+.btn-pill-subtle {
   background: var(--color-canvas);
   color: var(--color-ink);
-  border: 1px solid var(--color-mute);
-  font-size: 0.74rem;
+  border: 1px solid var(--border-hairline);
+  font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 5px 14px;
-  border-radius: 32px;
+  border-radius: 60px;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
   transition: all 0.15s ease;
 }
-.btn-pill-outline:hover {
+.btn-pill-subtle:hover {
   border-color: var(--color-ink);
-  color: var(--color-ink);
   background: var(--color-canvas-soft);
 }
 
-.thought-box {
-  background: var(--color-canvas-soft);
-  border-left: 4px solid var(--color-ink);
-  padding: 12px 16px;
+/* Messages Scroll Area */
+.messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 30px 48px 120px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  scroll-behavior: smooth;
+  position: relative;
+}
+
+/* Editorial Story Card for Assistant */
+.msg-story {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  background: var(--color-canvas);
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  padding: 24px 30px;
+  box-shadow: var(--shadow-subtle);
+  animation: fadeIn 0.25s ease-out;
+  position: relative;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.story-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   margin-bottom: 14px;
-  border-radius: 4px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+.story-tag {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--color-primary);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* User Message */
+.msg-user-container {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: flex-end;
+}
+.msg-user-bubble {
+  background: var(--color-ink);
+  color: #ffffff;
+  padding: 14px 22px;
+  border-radius: 18px 18px 4px 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  max-width: 80%;
+  white-space: pre-wrap;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+}
+
+/* Thought Box */
+.thought-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 3px solid var(--color-ink);
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border-radius: 6px;
   font-size: 0.84rem;
-  color: var(--color-ink);
+  color: #334155;
   font-family: var(--font-mono);
   white-space: pre-wrap;
   display: none;
-  max-height: 260px;
+  max-height: 280px;
   overflow-y: auto;
 }
-.thought-box.active { display: block; }
-.thought-header {
+.thought-card.active { display: block; }
+.thought-card-header {
   color: var(--color-ink);
   font-weight: 800;
   font-size: 0.72rem;
@@ -284,168 +386,244 @@ select:focus, input:focus, textarea:focus {
   margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
-  align-items: center;
 }
 
-.scroll-bottom-pill {
-  position: absolute;
-  bottom: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--color-ink);
-  color: var(--color-on-dark);
-  border: none;
-  padding: 8px 18px;
-  border-radius: 60px;
-  font-size: 0.75rem;
-  font-weight: 700;
+/* Starters Hero Card */
+.welcome-hero {
+  max-width: 900px;
+  width: 100%;
+  margin: 20px auto 0 auto;
+  text-align: left;
+}
+.hero-headline {
+  font-size: 2.2rem;
+  font-weight: 800;
+  letter-spacing: -1.2px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  cursor: pointer;
-  display: none;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
-  z-index: 15;
-  transition: all 0.2s ease;
+  color: var(--color-ink);
+  line-height: 1.1;
+  margin-bottom: 8px;
 }
-.scroll-bottom-pill:hover { background: #000; transform: translateX(-50%) scale(1.03); }
-
-/* Starters */
+.hero-headline span {
+  color: var(--color-primary);
+}
+.hero-subhead {
+  font-size: 1.05rem;
+  color: var(--color-body);
+  margin-bottom: 24px;
+  line-height: 1.5;
+}
 .starters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-  margin-top: 18px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
 }
-.starter-card {
+.starter-tile {
   background: var(--color-canvas);
   border: 1px solid var(--border-hairline);
-  padding: 16px;
-  border-radius: 6px;
+  padding: 18px 20px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s ease;
-  font-size: 0.84rem;
-  color: var(--color-body);
+  box-shadow: var(--shadow-subtle);
 }
-.starter-card:hover {
+.starter-tile:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 4px 14px rgba(230, 0, 0, 0.08);
   transform: translateY(-2px);
+  box-shadow: var(--shadow-elevated);
 }
-.starter-icon { font-size: 1.2rem; margin-bottom: 6px; }
-.starter-title { font-weight: 800; color: var(--color-ink); margin-bottom: 3px; }
+.starter-tile-icon { font-size: 1.3rem; margin-bottom: 8px; }
+.starter-tile-title { font-weight: 800; color: var(--color-ink); font-size: 0.95rem; margin-bottom: 4px; }
+.starter-tile-desc { font-size: 0.82rem; color: var(--color-body); line-height: 1.4; }
 
-/* Input Container */
-.input-container {
-  padding: 14px 20px 8px 20px;
-  background: var(--color-canvas);
-  border-top: 1px solid var(--border-hairline);
+/* Floating 2026 Dock */
+.dock-container {
+  position: absolute;
+  bottom: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 64px);
+  max-width: 900px;
+  z-index: 25;
+}
+.dock-bar {
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #d1d5db;
+  border-radius: 12px;
+  padding: 10px 14px;
+  box-shadow: var(--shadow-floating);
   display: flex;
-  gap: 12px;
+  flex-direction: column;
+  gap: 8px;
+}
+.dock-input-row {
+  display: flex;
   align-items: flex-end;
+  gap: 10px;
 }
 #user-input {
   flex: 1;
-  min-height: 48px;
-  max-height: 180px;
+  min-height: 44px;
+  max-height: 160px;
   resize: none;
   line-height: 1.45;
-  padding: 12px 16px;
-  border-radius: 6px;
-  font-size: 0.92rem;
-  background: var(--color-canvas);
-  border: 1px solid var(--color-ink);
-}
-#user-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px var(--color-primary);
-}
-
-/* Micro Disclaimer */
-.privacy-footer {
-  padding: 4px 20px 8px 20px;
-  background: var(--color-canvas);
-  text-align: center;
-  font-size: 0.68rem;
-  color: var(--color-body);
-}
-.privacy-footer b { color: var(--color-ink); }
-
-/* Integration Snippet Box */
-.snippet-box {
-  background: #1e2227;
-  border: 1px solid #2d3139;
-  border-radius: 6px;
-  padding: 12px 14px;
-  font-family: var(--font-mono);
-  font-size: 0.74rem;
-  color: #e5e7eb;
-  overflow-x: auto;
-  white-space: pre;
-  margin-bottom: 12px;
-}
-
-/* Markdown Typography */
-.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
-  color: var(--color-ink);
-  margin: 16px 0 8px 0;
-  font-weight: 800;
-}
-.markdown-body h1 { font-size: 1.35rem; border-bottom: 2px solid var(--color-ink); padding-bottom: 6px; }
-.markdown-body h2 { font-size: 1.15rem; border-bottom: 1px solid var(--border-hairline); padding-bottom: 4px; }
-.markdown-body h3 { font-size: 1.02rem; }
-.markdown-body h4 { font-size: 0.92rem; }
-.markdown-body hr {
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.94rem;
+  background: transparent;
   border: none;
-  border-top: 1px solid var(--border-hairline);
-  margin: 16px 0;
+  outline: none;
+  font-family: inherit;
+  color: var(--color-ink);
 }
+.btn-pill-cta {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  border: none;
+  font-weight: 800;
+  font-size: 0.84rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 0 24px;
+  height: 44px;
+  border-radius: 60px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+  box-shadow: 0 4px 14px rgba(230, 0, 0, 0.25);
+  flex-shrink: 0;
+}
+.btn-pill-cta:hover {
+  background: var(--color-primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(230, 0, 0, 0.35);
+}
+.btn-pill-cta:active { transform: translateY(0); }
+.btn-pill-cta:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
-/* Code Blocks in Chat */
-.markdown-body pre {
-  background: #1e2227 !important;
-  border-radius: 6px !important;
-  margin: 14px 0 !important;
-  padding: 0 !important;
-  overflow: hidden;
-  position: relative;
+.dock-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.68rem;
+  color: var(--color-mute);
+  padding: 0 6px;
 }
-.code-window-header {
+.dock-footer a { color: var(--color-ink); text-decoration: none; font-weight: 600; }
+
+.scroll-bottom-pill {
+  position: absolute;
+  top: -46px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-ink);
+  color: #ffffff;
+  border: none;
+  padding: 7px 18px;
+  border-radius: 60px;
+  font-size: 0.74rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  cursor: pointer;
+  display: none;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.2);
+  transition: all 0.15s ease;
+}
+.scroll-bottom-pill:hover { background: #000000; transform: translateX(-50%) scale(1.03); }
+
+/* Code Cards in Right Drawer */
+.code-box {
   background: #181b20;
-  padding: 6px 14px;
+  border: 1px solid #2d3139;
+  border-radius: 8px;
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+.code-box-header {
+  background: #121418;
+  padding: 8px 12px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid #2d3139;
 }
-.window-dots {
+.code-box-header span {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #9ca3af;
+  text-transform: uppercase;
+  font-family: var(--font-mono);
+}
+.code-box-body {
+  padding: 12px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: #f3f4f6;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+/* Markdown Typography */
+.markdown-body h1, .markdown-body h2, .markdown-body h3, .markdown-body h4 {
+  color: var(--color-ink);
+  margin: 18px 0 8px 0;
+  font-weight: 800;
+}
+.markdown-body h1 { font-size: 1.4rem; border-bottom: 2px solid var(--color-ink); padding-bottom: 6px; }
+.markdown-body h2 { font-size: 1.2rem; border-bottom: 1px solid var(--border-hairline); padding-bottom: 4px; }
+.markdown-body h3 { font-size: 1.05rem; }
+.markdown-body h4 { font-size: 0.95rem; }
+.markdown-body hr {
+  border: none;
+  border-top: 1px solid var(--border-hairline);
+  margin: 18px 0;
+}
+
+/* Code Blocks inside Assistant Stories */
+.markdown-body pre {
+  background: #181b20 !important;
+  border: 1px solid #282c34 !important;
+  border-radius: 8px !important;
+  margin: 16px 0 !important;
+  padding: 0 !important;
+  overflow: hidden;
+  position: relative;
+}
+.code-window-header {
+  background: #121418;
+  padding: 8px 14px;
   display: flex;
-  gap: 5px;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #282c34;
 }
-.window-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+.window-dots { display: flex; gap: 5px; }
+.window-dot { width: 9px; height: 9px; border-radius: 50%; }
 .dot-red { background: #ff5f56; }
 .dot-yellow { background: #ffbd2e; }
 .dot-green { background: #27c93f; }
-
 .lang-badge {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: #9ca3af;
   text-transform: uppercase;
-  font-weight: 700;
+  font-weight: 800;
   font-family: var(--font-mono);
   letter-spacing: 0.5px;
 }
 .markdown-body pre code {
   display: block;
-  padding: 14px 16px !important;
+  padding: 14px 18px !important;
   overflow-x: auto;
   color: #f3f4f6;
   background: transparent !important;
   font-family: var(--font-mono) !important;
-  font-size: 0.84rem !important;
+  font-size: 0.86rem !important;
   line-height: 1.55;
 }
 .markdown-body code:not(pre code) {
@@ -456,6 +634,17 @@ select:focus, input:focus, textarea:focus {
   font-family: var(--font-mono);
   font-size: 0.88em;
   font-weight: 600;
+}
+
+/* Blockquotes */
+.markdown-body blockquote:not(.callout) {
+  border-left: 4px solid var(--color-ink);
+  background: var(--color-canvas-soft);
+  padding: 12px 18px;
+  margin: 14px 0;
+  color: #374151;
+  font-style: italic;
+  border-radius: 0 6px 6px 0;
 }
 
 /* Callouts */
@@ -514,25 +703,9 @@ tr:last-child td { border-bottom: none; }
 tr:hover td { background: #fafafa; }
 
 /* Task list */
-.task-item {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-.task-checkbox {
-  margin-top: 5px;
-  accent-color: var(--color-primary);
-}
+.task-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 4px; }
+.task-checkbox { margin-top: 5px; accent-color: var(--color-primary); }
 
-.markdown-body blockquote:not(.callout) {
-  border-left: 4px solid var(--color-primary);
-  background: #fef2f2;
-  padding: 8px 14px;
-  margin: 12px 0;
-  color: var(--color-ink);
-  border-radius: 0 6px 6px 0;
-}
 .markdown-body p { margin-bottom: 10px; }
 .markdown-body p:last-child { margin-bottom: 0; }
 .markdown-body ul, .markdown-body ol { margin: 8px 0 10px 22px; }
@@ -550,47 +723,58 @@ tr:hover td { background: #fafafa; }
   color: var(--color-ink);
 }
 
-/* Responsive Drawer for Mobile */
-.mobile-tabs { display: none; }
-@media (max-width: 900px) {
-  header { padding: 10px 14px; }
-  .telemetry { display: none; }
-  main { grid-template-columns: 1fr; }
-  .sidebar-left, .sidebar-right { display: none; position: absolute; inset: 0; z-index: 30; }
-  .sidebar-left.active, .sidebar-right.active { display: block; }
-  .mobile-tabs { display: flex; gap: 6px; }
-  .msg { max-width: 96%; }
+/* Responsive Drawer for Mobile/Tablet */
+@media (max-width: 1100px) {
+  .drawer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    box-shadow: 0 0 30px rgba(0,0,0,0.25);
+    transform: translateX(-100%);
+  }
+  .drawer.open { transform: translateX(0); }
+  .drawer-right { right: 0; transform: translateX(100%); }
+  .drawer-right.open { transform: translateX(0); }
+  .messages-area { padding: 20px 20px 120px 20px; }
+  .dock-container { width: calc(100% - 32px); }
+  .telemetry-row { display: none; }
 }
 </style>
 </head>
 <body>
 <header>
-  <div class="brand">
-    <div class="speechmark-icon">“</div>
-    <div class="logo">BOB GEMINI FREE</div>
-    <div class="badge-chip">Universal AI Gateway</div>
+  <div class="brand-group">
+    <div class="speechmark-orb">“</div>
+    <div class="brand-text">
+      <div class="logo-title">BOB <span>GEMINI FREE</span></div>
+      <div class="logo-subtitle">Universal AI Gateway • Web RPC Bridge</div>
+    </div>
   </div>
-  <div class="telemetry">
-    <div class="stat-pill">Uptime: <b id="stat-uptime">0s</b></div>
-    <div class="stat-pill">Requests: <b id="stat-requests">0</b></div>
-    <div class="stat-pill">Tokens: <b id="stat-tokens">0</b></div>
-    <div class="stat-pill">Savings: <b id="stat-savings">$0.00</b></div>
+  
+  <div class="telemetry-row">
+    <div class="telemetry-chip">Uptime: <b id="stat-uptime">0s</b></div>
+    <div class="telemetry-chip">Requests: <b id="stat-requests">0</b></div>
+    <div class="telemetry-chip">Tokens: <b id="stat-tokens">0</b></div>
+    <div class="telemetry-chip savings">Saved: <b id="stat-savings">$0.00</b></div>
   </div>
-  <div class="mobile-tabs">
-    <button class="btn-pill-outline" onclick="toggleSidebar('left')">⚙️ Config</button>
-    <button class="btn-pill-outline" onclick="toggleSidebar('right')">💻 Code</button>
+
+  <div class="header-actions">
+    <button class="btn-pill-dark" onclick="toggleDrawer('left')">⚙️ Configuration</button>
+    <button class="btn-pill-dark" onclick="toggleDrawer('right')">💻 Integration</button>
   </div>
 </header>
 
 <main>
-  <div class="sidebar-left" id="sidebar-left">
-    <div class="section-title">
+  <!-- Left Settings Drawer -->
+  <aside class="drawer" id="drawer-left">
+    <div class="drawer-header">
       <span>Model Configuration</span>
-      <button class="btn-pill-outline" style="display:none;" id="close-left-btn" onclick="toggleSidebar('left')">✕</button>
+      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleDrawer('left')">✕ Close</button>
     </div>
-    <div class="control-group">
+
+    <div class="control-card">
       <label>Target Model</label>
-      <select id="model-select" onchange="updateSnippet()">
+      <select id="model-select" onchange="updateSnippet(); updateActiveModelBadge();">
         <option value="gemini-3.7-flash" selected>⚡ gemini-3.7-flash (Flagship Fast)</option>
         <option value="gemini-3.7-flash-thinking">🧠 gemini-3.7-flash-thinking (Deep Reasoning)</option>
         <option value="gemini-3.6-flash">⚡ gemini-3.6-flash</option>
@@ -599,16 +783,18 @@ tr:hover td { background: #fafafa; }
         <option value="imagen-3">🎨 imagen-3 (Image Synthesis)</option>
       </select>
     </div>
-    <div class="control-group">
+
+    <div class="control-card">
       <label>Reasoning Depth (@think)</label>
-      <select id="think-select" onchange="updateSnippet()">
+      <select id="think-select" onchange="updateSnippet(); updateActiveModelBadge();">
         <option value="default" selected>Model Default</option>
         <option value="@think=0">Deep Thinking (@think=0)</option>
         <option value="@think=2">Medium Thinking (@think=2)</option>
         <option value="@think=4">Fast / Zero Thinking (@think=4)</option>
       </select>
     </div>
-    <div class="control-group">
+
+    <div class="control-card">
       <label>Protocol Endpoint</label>
       <select id="proto-select" onchange="updateSnippet()">
         <option value="openai" selected>OpenAI Standard (/v1/chat/completions)</option>
@@ -616,61 +802,79 @@ tr:hover td { background: #fafafa; }
         <option value="google">Google Gemini (/v1beta/models/...)</option>
       </select>
     </div>
-    <div class="control-group">
+
+    <div class="control-card">
       <label>System Prompt (Optional)</label>
-      <textarea id="system-prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
+      <textarea id="system-prompt" rows="4" placeholder="Set custom system instructions..."></textarea>
     </div>
-  </div>
+  </aside>
 
-  <div class="chat-container">
-    <div class="chat-toolbar">
-      <div class="toolbar-title">
-        <span>⚡ Zero-Cost Gateway</span>
-        <span style="color:var(--color-mute);">•</span>
-        <span style="color:var(--color-body); font-size:0.75rem;">Google Gemini Web RPC</span>
+  <!-- Central Editorial Chat Workspace -->
+  <section class="chat-workspace">
+    <div class="workspace-toolbar">
+      <div class="active-model-badge">
+        <div class="dot"></div>
+        <span id="active-model-label">gemini-3.7-flash</span>
       </div>
-      <div style="display:flex; gap:8px;">
-        <button class="btn-pill-outline" onclick="copyFullTranscript()" title="Copy entire chat transcript">📋 Copy Chat</button>
-        <button class="btn-pill-outline" onclick="exportMarkdown()" title="Download conversation as .md">💾 Export .md</button>
-        <button class="btn-pill-outline" onclick="clearChat()" title="Reset conversation">🗑️ Clear</button>
+      <div class="toolbar-btn-group">
+        <button class="btn-pill-subtle" onclick="copyFullTranscript()" title="Copy entire chat transcript">📋 Copy Chat</button>
+        <button class="btn-pill-subtle" onclick="exportMarkdown()" title="Download conversation as Markdown">💾 Export .md</button>
+        <button class="btn-pill-subtle" onclick="clearChat()" title="Reset conversation">🗑️ Clear</button>
       </div>
     </div>
-    <div class="messages" id="messages-list"></div>
-    <button class="scroll-bottom-pill" id="scroll-bottom-btn" onclick="scrollToBottom()">⬇️ Jump to Bottom</button>
-    <div class="input-container">
-      <textarea id="user-input" placeholder="Type your message or paste large code... (Shift+Enter for newline, Enter to send)" rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
-      <button class="btn-pill-primary" id="send-btn" onclick="sendMessage()">
-        <span>Send</span>
-        <span style="font-size:0.9rem;">➤</span>
-      </button>
+
+    <div class="messages-area" id="messages-list"></div>
+
+    <!-- Floating 2026 Prompt Dock -->
+    <div class="dock-container">
+      <button class="scroll-bottom-pill" id="scroll-bottom-btn" onclick="scrollToBottom()">⬇️ Jump to Bottom</button>
+      <div class="dock-bar">
+        <div class="dock-input-row">
+          <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste code... (Shift+Enter for newline, Enter to send)" rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
+          <button class="btn-pill-cta" id="send-btn" onclick="sendMessage()">
+            <span>Send</span>
+            <span style="font-size:0.85rem;">➤</span>
+          </button>
+        </div>
+        <div class="dock-footer">
+          <span>🔒 <b>Responsible Privacy:</b> Prompts routed upstream to Google Gemini web RPC under Google safety screening. Avoid submitting private credentials.</span>
+          <span><b>Zero Cloud Bill</b> • 100% Free</span>
+        </div>
+      </div>
     </div>
-    <div class="privacy-footer">
-      <span>🔒 <b>Privacy Notice:</b> Prompts are routed upstream to Google Gemini web RPC under Google safety screening. Avoid submitting private credentials.</span>
+  </section>
+
+  <!-- Right Code Integration Drawer -->
+  <aside class="drawer drawer-right" id="drawer-right">
+    <div class="drawer-header">
+      <span>Drop-in Integration</span>
+      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleDrawer('right')">✕ Close</button>
     </div>
-  </div>
 
-  <div class="sidebar-right" id="sidebar-right">
-    <div class="section-title">
-      <span>Drop-in Integration Code</span>
-      <button class="btn-pill-outline" style="display:none;" id="close-right-btn" onclick="toggleSidebar('right')">✕</button>
+    <div class="code-box">
+      <div class="code-box-header">
+        <span>Python SDK</span>
+        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
+      </div>
+      <div class="code-box-body" id="code-python"></div>
     </div>
-    
-    <label>Python SDK (OpenAI Standard)</label>
-    <div class="snippet-box" id="code-python"></div>
-    <button class="btn-pill-outline" onclick="copySnippet('code-python')">Copy Python</button>
 
-    <div style="height: 16px;"></div>
+    <div class="code-box">
+      <div class="code-box-header">
+        <span>Claude Code CLI</span>
+        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
+      </div>
+      <div class="code-box-body" id="code-claude"></div>
+    </div>
 
-    <label>Claude Code CLI (Anthropic)</label>
-    <div class="snippet-box" id="code-claude"></div>
-    <button class="btn-pill-outline" onclick="copySnippet('code-claude')">Copy Claude Code</button>
-
-    <div style="height: 16px;"></div>
-
-    <label>cURL Real-Time Stream</label>
-    <div class="snippet-box" id="code-curl"></div>
-    <button class="btn-pill-outline" onclick="copySnippet('code-curl')">Copy cURL</button>
-  </div>
+    <div class="code-box">
+      <div class="code-box-header">
+        <span>cURL Stream</span>
+        <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
+      </div>
+      <div class="code-box-body" id="code-curl"></div>
+    </div>
+  </aside>
 </main>
 
 <script>
@@ -712,7 +916,7 @@ function highlightAllCode(targetEl) {
 
 const msgListEl = document.getElementById("messages-list");
 msgListEl.addEventListener("scroll", () => {
-  const threshold = 90;
+  const threshold = 100;
   const pos = msgListEl.scrollTop + msgListEl.clientHeight;
   const height = msgListEl.scrollHeight;
   userIsAtBottom = (height - pos) <= threshold;
@@ -733,7 +937,7 @@ function scrollToBottom() {
 
 function autoResize(el) {
   el.style.height = 'auto';
-  el.style.height = Math.min(el.scrollHeight, 180) + 'px';
+  el.style.height = Math.min(el.scrollHeight, 160) + 'px';
 }
 
 function handleKeyDown(e) {
@@ -743,15 +947,19 @@ function handleKeyDown(e) {
   }
 }
 
-function toggleSidebar(side) {
-  const el = document.getElementById('sidebar-' + side);
-  const closeBtn = document.getElementById('close-' + side + '-btn');
-  const isActive = el.classList.contains('active');
-  document.querySelectorAll('.sidebar-left, .sidebar-right').forEach(s => s.classList.remove('active'));
-  if (!isActive) {
-    el.classList.add('active');
-    if (closeBtn) closeBtn.style.display = 'inline';
+function toggleDrawer(side) {
+  const drawer = document.getElementById('drawer-' + side);
+  drawer.classList.toggle('open');
+}
+
+function updateActiveModelBadge() {
+  let model = document.getElementById("model-select").value;
+  const thinkMod = document.getElementById("think-select").value;
+  let label = model;
+  if (thinkMod !== "default") {
+    label += " (" + thinkMod + ")";
   }
+  document.getElementById("active-model-label").innerText = label;
 }
 
 async function refreshTelemetry() {
@@ -797,6 +1005,7 @@ claude`;
   -d '{"model":"${model}","stream":true,"messages":[{"role":"user","content":"Hi"}]}'`;
 }
 updateSnippet();
+updateActiveModelBadge();
 
 function copySnippet(id) {
   const text = document.getElementById(id).innerText;
@@ -816,7 +1025,7 @@ function renderMarkdown(text) {
     const safeCode = escapeHtml(code);
     const langLabel = lang || 'code';
     const prismClass = lang ? 'language-' + lang : 'language-none';
-    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><button class="btn-pill-outline" style="padding:2px 10px; font-size:0.68rem;" onclick="copyCode(this)">Copy</button></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
+    return '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
   });
 
   // Inline code: `code`
@@ -833,15 +1042,15 @@ function renderMarkdown(text) {
   // Horizontal rules
   html = html.replace(/^\s*---\s*$/gim, '<hr>');
 
+  // Standard Blockquotes (Editorial style)
+  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
+
   // GitHub Alert Callouts
   html = html.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
   html = html.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
   html = html.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
   html = html.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
   html = html.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
-
-  // Standard Blockquotes
-  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
 
   // Tables
   html = html.replace(/((?:\|[^\n]+\|\r?\n)+)/g, function(tableBlock) {
@@ -882,7 +1091,7 @@ function renderMarkdown(text) {
   html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
   html = html.replace(/<\/ul>\s*<ul>/gim, '');
 
-  // Line breaks in non-pre, non-table blocks
+  // Line breaks
   const parts = html.split(/(<pre[\s\S]*?<\/pre>|<table[\s\S]*?<\/table>)/g);
   for (let i = 0; i < parts.length; i++) {
     if (!parts[i].startsWith('<pre') && !parts[i].startsWith('<table')) {
@@ -901,7 +1110,7 @@ function copyCode(btn) {
 }
 
 function copyMessageText(btn) {
-  const msgEl = btn.closest('.msg');
+  const msgEl = btn.closest('.msg-story');
   const text = msgEl.getAttribute('data-raw') || msgEl.innerText;
   navigator.clipboard.writeText(text);
   const old = btn.innerText;
@@ -964,34 +1173,34 @@ function renderMessages() {
   list.innerHTML = "";
   if (chatHistory.length === 0) {
     const welcome = document.createElement("div");
-    welcome.className = "msg msg-assistant markdown-body";
+    welcome.className = "welcome-hero";
     welcome.innerHTML = `
-      <div style="font-size:1.4rem; font-weight:800; color:var(--color-ink); margin-bottom:4px; letter-spacing:-0.5px; text-transform:uppercase;">
-        Welcome to BOB Gemini Free
+      <div class="hero-headline">
+        STAY <span>CONNECTED</span>. BUILT FOR <span>SPEED</span>.
       </div>
-      <p style="color:var(--color-body); font-size:0.92rem; margin-bottom:12px;">
+      <div class="hero-subhead">
         High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
-      </p>
+      </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
-          <div class="starter-icon">🚀</div>
-          <div class="starter-title">Go HTTP Server</div>
-          <div>Concurrent, graceful shutdown</div>
+        <div class="starter-tile" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
+          <div class="starter-tile-icon">🚀</div>
+          <div class="starter-tile-title">Go HTTP Server</div>
+          <div class="starter-tile-desc">Concurrent, production-ready, graceful shutdown architecture</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
-          <div class="starter-icon">🧠</div>
-          <div class="starter-title">Quantum Reasoning</div>
-          <div>Step-by-step deep thought</div>
+        <div class="starter-tile" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
+          <div class="starter-tile-icon">🧠</div>
+          <div class="starter-tile-title">Quantum Reasoning</div>
+          <div class="starter-tile-desc">Step-by-step deep mathematical thought & Dirac bra-kets</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
-          <div class="starter-icon">🐍</div>
-          <div class="starter-title">Python Integration</div>
-          <div>Connect with OpenAI SDK</div>
+        <div class="starter-tile" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
+          <div class="starter-tile-icon">🐍</div>
+          <div class="starter-tile-title">Python Integration</div>
+          <div class="starter-tile-desc">Connect with OpenAI SDK for zero-latency streaming</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
-          <div class="starter-icon">🏗️</div>
-          <div class="starter-title">System Design</div>
-          <div>Real-time architecture</div>
+        <div class="starter-tile" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
+          <div class="starter-tile-icon">🏗️</div>
+          <div class="starter-tile-title">System Architecture</div>
+          <div class="starter-tile-desc">Fault-tolerant distributed queue & streaming pipeline</div>
         </div>
       </div>
     `;
@@ -1000,27 +1209,40 @@ function renderMessages() {
   }
 
   for (const m of chatHistory) {
-    const div = document.createElement("div");
-    div.className = m.role === 'user' ? 'msg msg-user' : 'msg msg-assistant markdown-body';
-    div.setAttribute('data-raw', m.content);
+    if (m.role === 'user') {
+      const userContainer = document.createElement("div");
+      userContainer.className = "msg-user-container";
+      userContainer.innerHTML = `<div class="msg-user-bubble">${escapeHtml(m.content)}</div>`;
+      list.appendChild(userContainer);
+    } else {
+      const storyDiv = document.createElement("div");
+      storyDiv.className = "msg-story markdown-body";
+      storyDiv.setAttribute('data-raw', m.content);
 
-    if (m.thought) {
-      const tb = document.createElement("div");
-      tb.className = "thought-box active";
-      tb.innerHTML = '<div class="thought-header"><span>🧠 Reasoning Process</span></div>' + renderMarkdown(m.thought);
-      div.appendChild(tb);
+      const header = document.createElement("div");
+      header.className = "story-header";
+      header.innerHTML = `
+        <div class="story-tag">
+          <div class="speechmark-orb" style="width:18px; height:18px; font-size:0.8rem; border-radius:4px;">“</div>
+          <span>BOB AI Response</span>
+        </div>
+        <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy Text</button>
+      `;
+      storyDiv.appendChild(header);
+
+      if (m.thought) {
+        const tb = document.createElement("div");
+        tb.className = "thought-card active";
+        tb.innerHTML = '<div class="thought-card-header"><span>🧠 Step-by-Step Reasoning</span></div>' + renderMarkdown(m.thought);
+        storyDiv.appendChild(tb);
+      }
+
+      const contentDiv = document.createElement("div");
+      contentDiv.innerHTML = renderMarkdown(m.content);
+      storyDiv.appendChild(contentDiv);
+
+      list.appendChild(storyDiv);
     }
-
-    const contentDiv = document.createElement("div");
-    contentDiv.innerHTML = m.role === 'user' ? escapeHtml(m.content) : renderMarkdown(m.content);
-    div.appendChild(contentDiv);
-
-    const actions = document.createElement("div");
-    actions.className = "msg-actions";
-    actions.innerHTML = '<button class="btn-pill-outline" onclick="copyMessageText(this)">Copy</button>';
-    div.appendChild(actions);
-
-    list.appendChild(div);
   }
   renderAllMath(list);
   highlightAllCode(list);
@@ -1038,44 +1260,49 @@ async function sendMessage() {
 
   const btn = document.getElementById("send-btn");
   inputEl.value = "";
-  inputEl.style.height = '48px';
+  inputEl.style.height = '44px';
   inputEl.disabled = true;
   btn.disabled = true;
 
   const msgList = document.getElementById("messages-list");
 
   // User bubble
-  const userDiv = document.createElement("div");
-  userDiv.className = "msg msg-user";
-  userDiv.setAttribute('data-raw', text);
-  userDiv.innerText = text;
-  msgList.appendChild(userDiv);
+  const userContainer = document.createElement("div");
+  userContainer.className = "msg-user-container";
+  userContainer.innerHTML = `<div class="msg-user-bubble">${escapeHtml(text)}</div>`;
+  msgList.appendChild(userContainer);
 
   chatHistory.push({role: "user", content: text});
   saveHistory();
 
-  // Assistant bubble
-  const asstDiv = document.createElement("div");
-  asstDiv.className = "msg msg-assistant markdown-body";
+  // Assistant story card
+  const storyDiv = document.createElement("div");
+  storyDiv.className = "msg-story markdown-body";
+
+  const header = document.createElement("div");
+  header.className = "story-header";
+  header.innerHTML = `
+    <div class="story-tag">
+      <div class="speechmark-orb" style="width:18px; height:18px; font-size:0.8rem; border-radius:4px;">“</div>
+      <span>BOB AI Response</span>
+    </div>
+    <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy Text</button>
+  `;
+  storyDiv.appendChild(header);
 
   const thoughtBox = document.createElement("div");
-  thoughtBox.className = "thought-box";
-  thoughtBox.innerHTML = '<div class="thought-header"><span>🧠 Reasoning Process</span></div><div class="thought-content"></div>';
-  asstDiv.appendChild(thoughtBox);
+  thoughtBox.className = "thought-card";
+  thoughtBox.innerHTML = '<div class="thought-card-header"><span>🧠 Step-by-Step Reasoning</span></div><div class="thought-content"></div>';
+  storyDiv.appendChild(thoughtBox);
 
   const contentSpan = document.createElement("div");
-  asstDiv.appendChild(contentSpan);
+  storyDiv.appendChild(contentSpan);
 
-  const actions = document.createElement("div");
-  actions.className = "msg-actions";
-  actions.innerHTML = '<button class="btn-pill-outline" onclick="copyMessageText(this)">Copy</button>';
-  asstDiv.appendChild(actions);
+  msgList.appendChild(storyDiv);
 
-  msgList.appendChild(asstDiv);
-
-  // Smoothly scroll the start of new response into view
+  // Smooth scroll
   userIsAtBottom = true;
-  asstDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+  storyDiv.scrollIntoView({ behavior: "smooth", block: "start" });
 
   let model = document.getElementById("model-select").value;
   if (model.includes(" ")) model = model.split(" ")[1];
@@ -1147,16 +1374,14 @@ async function sendMessage() {
         }
       }
 
-      // Smart reading scroll: only auto-scroll if user is following at bottom
       if (userIsAtBottom) {
         msgList.scrollTop = msgList.scrollHeight;
       }
     }
 
-    // Final math and code highlighting on complete response
-    renderAllMath(asstDiv);
-    highlightAllCode(asstDiv);
-    asstDiv.setAttribute('data-raw', asstFullText);
+    renderAllMath(storyDiv);
+    highlightAllCode(storyDiv);
+    storyDiv.setAttribute('data-raw', asstFullText);
     chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
     saveHistory();
   } catch(err) {
