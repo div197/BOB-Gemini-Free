@@ -4,11 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>BOB GEMINI FREE — Universal AI Gateway</title>
-<!-- KaTeX for Scientific & Mathematical Typography -->
+<!-- KaTeX for High-Precision Scientific & Mathematical Typography -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js" onload="onKaTeXLoaded()"></script>
-<!-- PrismJS for Syntax Highlighting (Tomorrow Dark) -->
+<!-- PrismJS for Terminal & Code Highlighting (Tomorrow Dark) -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css">
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/prism.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
@@ -16,26 +16,28 @@
 :root {
   --color-primary: #e60000;
   --color-primary-hover: #cc0000;
+  --color-primary-active: #b30000;
   --color-on-primary: #ffffff;
   --color-ink: #25282b;
-  --color-body: #55595d;
-  --color-mute: #8e959c;
+  --color-ink-subdued: #4b5563;
+  --color-body: #6b7280;
+  --color-mute: #9ca3af;
   --color-canvas: #ffffff;
   --color-canvas-soft: #f4f5f7;
-  --color-canvas-card: #ffffff;
-  --color-on-dark: #ffffff;
-  --border-hairline: #e2e5e9;
-  --shadow-subtle: 0 4px 20px rgba(0, 0, 0, 0.05);
-  --shadow-elevated: 0 12px 36px rgba(0, 0, 0, 0.10);
-  --shadow-floating: 0 16px 48px rgba(0, 0, 0, 0.14);
-  --font-display: "Inter", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
+  --color-card-border: #e5e7eb;
+  --color-card-hover: #f9fafb;
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+  --shadow-elevated: 0 12px 28px rgba(0, 0, 0, 0.08), 0 4px 10px rgba(0, 0, 0, 0.04);
+  --shadow-floating: 0 20px 40px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.3);
+  --font-sans: "Inter", "Helvetica Neue", -apple-system, BlinkMacSystemFont, Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
 body {
   background: var(--color-canvas-soft);
   color: var(--color-ink);
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   line-height: 1.6;
   display: flex;
   flex-direction: column;
@@ -44,104 +46,105 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* 2026 Editorial Header (Ink Band) */
+/* Vodafone Hero Nav (Ink Band) */
 header {
   background: var(--color-ink);
-  color: var(--color-on-dark);
-  padding: 14px 28px;
+  color: #ffffff;
+  padding: 12px 32px;
   display: flex;
   justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  z-index: 30;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
+  z-index: 40;
+  border-bottom: 1px solid #1a1c1e;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
-.brand-group {
+.brand-anchor {
   display: flex;
   align-items: center;
   gap: 14px;
+  text-decoration: none;
 }
 .speechmark-orb {
   background: var(--color-primary);
   color: #ffffff;
   font-weight: 900;
-  font-size: 1.3rem;
-  width: 34px;
-  height: 34px;
+  font-size: 1.4rem;
+  width: 36px;
+  height: 36px;
   border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-  box-shadow: 0 4px 12px rgba(230, 0, 0, 0.35);
+  box-shadow: var(--shadow-cta);
   flex-shrink: 0;
 }
-.brand-text {
+.brand-headings {
   display: flex;
   flex-direction: column;
 }
-.logo-title {
+.brand-title {
   font-weight: 800;
-  font-size: 1.25rem;
-  letter-spacing: -0.8px;
+  font-size: 1.3rem;
+  letter-spacing: -0.6px;
   text-transform: uppercase;
   color: #ffffff;
   line-height: 1.1;
 }
-.logo-title span {
+.brand-title span {
   color: var(--color-primary);
 }
-.logo-subtitle {
+.brand-tagline {
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: #9ba1a6;
+  color: #a0a6ad;
 }
 
 /* Header Telemetry Pills */
-.telemetry-row {
+.telemetry-bar {
   display: flex;
-  gap: 10px;
-  font-size: 0.78rem;
+  gap: 8px;
   align-items: center;
 }
-.telemetry-chip {
+.stat-pill {
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.12);
-  padding: 5px 14px;
+  padding: 4px 12px;
   border-radius: 60px;
-  color: #c5cbd0;
-  font-size: 0.75rem;
+  color: #c9d0d6;
+  font-size: 0.76rem;
   font-weight: 600;
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-.telemetry-chip b {
+.stat-pill b {
   color: #ffffff;
   font-family: var(--font-mono);
   font-weight: 700;
 }
-.telemetry-chip.savings b {
-  color: #4ade80;
+.stat-pill.savings b {
+  color: #34d399;
 }
 
-/* Header Navigation Actions */
-.header-actions {
+/* Header Action Buttons */
+.nav-actions {
   display: flex;
   gap: 8px;
 }
-.btn-pill-dark {
-  background: rgba(255, 255, 255, 0.1);
+.nav-btn {
+  background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.15);
-  font-size: 0.72rem;
+  font-size: 0.74rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  padding: 6px 14px;
+  padding: 7px 16px;
   border-radius: 60px;
   cursor: pointer;
   display: inline-flex;
@@ -149,57 +152,91 @@ header {
   gap: 6px;
   transition: all 0.15s ease;
 }
-.btn-pill-dark:hover {
-  background: rgba(255, 255, 255, 0.2);
+.nav-btn:hover {
+  background: rgba(255, 255, 255, 0.18);
   border-color: rgba(255, 255, 255, 0.3);
   transform: translateY(-1px);
 }
+.nav-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #ffffff;
+  box-shadow: var(--shadow-cta);
+}
 
-/* Main Container Layout */
+/* Main Workspace Layout */
 main {
   flex: 1;
   display: flex;
-  overflow: hidden;
   position: relative;
-  max-width: 1600px;
-  margin: 0 auto;
-  width: 100%;
+  overflow: hidden;
+  background: var(--color-canvas-soft);
 }
 
-/* Collapsible Floating Drawers */
-.drawer {
+/* Modal Drawer Overlay */
+.drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(18, 20, 24, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 45;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+.drawer-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.slide-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 380px;
+  max-width: 90vw;
   background: var(--color-canvas);
-  border-right: 1px solid var(--border-hairline);
-  width: 320px;
-  padding: 20px;
+  box-shadow: var(--shadow-floating);
+  z-index: 50;
+  padding: 24px;
   overflow-y: auto;
-  transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.25s ease;
-  z-index: 20;
+  transition: transform 0.28s cubic-bezier(0.32, 0.72, 0, 1);
+}
+.drawer-left {
+  left: 0;
+  transform: translateX(-100%);
+  border-right: 1px solid var(--color-card-border);
 }
 .drawer-right {
-  border-right: none;
-  border-left: 1px solid var(--border-hairline);
+  right: 0;
+  transform: translateX(100%);
+  border-left: 1px solid var(--color-card-border);
+}
+.slide-drawer.open {
+  transform: translateX(0);
 }
 .drawer-header {
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   text-transform: uppercase;
-  letter-spacing: 1.2px;
+  letter-spacing: 1.4px;
   color: var(--color-ink);
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   font-weight: 800;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-bottom: 8px;
+  padding-bottom: 12px;
   border-bottom: 2px solid var(--color-ink);
 }
 
+/* Drawer Card Controls */
 .control-card {
   background: var(--color-canvas-soft);
-  border: 1px solid var(--border-hairline);
-  padding: 12px 14px;
-  border-radius: 8px;
-  margin-bottom: 14px;
+  border: 1px solid var(--color-card-border);
+  padding: 14px 16px;
+  border-radius: 6px;
+  margin-bottom: 16px;
 }
 .control-card label {
   display: block;
@@ -228,53 +265,56 @@ select:focus, textarea:focus {
   box-shadow: 0 0 0 1px var(--color-ink);
 }
 
-/* Central Editorial Chat Workspace */
+/* Central Workspace Area */
 .chat-workspace {
   flex: 1;
   display: flex;
   flex-direction: column;
   height: 100%;
-  background: var(--color-canvas);
   position: relative;
   overflow: hidden;
+  max-width: 1040px;
+  margin: 0 auto;
+  width: 100%;
+  padding: 0 20px;
 }
 
-/* Top Mini Toolbar */
-.workspace-toolbar {
-  padding: 10px 28px;
-  background: var(--color-canvas);
-  border-bottom: 1px solid var(--border-hairline);
+/* Top Sub-Bar */
+.sub-bar {
+  padding: 12px 0;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-bottom: 1px solid var(--color-card-border);
 }
-.active-model-badge {
+.active-model-chip {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  background: var(--color-canvas-soft);
-  padding: 5px 14px;
+  background: var(--color-canvas);
+  border: 1px solid var(--color-card-border);
+  padding: 5px 16px;
   border-radius: 60px;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--color-ink);
-  border: 1px solid var(--border-hairline);
+  box-shadow: var(--shadow-card);
 }
-.active-model-badge .dot {
+.active-model-chip .live-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
   background: #10b981;
+  box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
 }
-
-.toolbar-btn-group {
+.sub-bar-actions {
   display: flex;
   gap: 8px;
 }
 .btn-pill-subtle {
   background: var(--color-canvas);
   color: var(--color-ink);
-  border: 1px solid var(--border-hairline);
+  border: 1px solid var(--color-card-border);
   font-size: 0.72rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -286,90 +326,101 @@ select:focus, textarea:focus {
   align-items: center;
   gap: 5px;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-card);
 }
 .btn-pill-subtle:hover {
   border-color: var(--color-ink);
-  background: var(--color-canvas-soft);
+  transform: translateY(-1px);
 }
 
-/* Messages Scroll Area */
-.messages-area {
+/* Messages Scroll Container */
+.messages-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 30px 48px 120px 48px;
+  padding: 24px 4px 130px 4px;
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
   scroll-behavior: smooth;
   position: relative;
 }
 
-/* Editorial Story Card for Assistant */
-.msg-story {
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
+/* Vodafone Story Card (Assistant Message) */
+.story-card {
   background: var(--color-canvas);
-  border: 1px solid var(--border-hairline);
-  border-radius: 8px;
-  padding: 24px 30px;
-  box-shadow: var(--shadow-subtle);
-  animation: fadeIn 0.25s ease-out;
+  border: 1px solid var(--color-card-border);
+  border-radius: 6px;
+  padding: 24px 28px;
+  box-shadow: var(--shadow-card);
+  animation: fadeIn 0.22s ease-out;
   position: relative;
 }
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(6px); }
+  from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.story-header {
+.story-card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 14px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-hairline);
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-card-border);
 }
-.story-tag {
+.badge-chip {
+  background: var(--color-canvas-soft);
+  color: var(--color-ink);
+  padding: 4px 14px;
+  border-radius: 32px;
   font-size: 0.72rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--color-primary);
-  display: flex;
+  letter-spacing: 0.8px;
+  display: inline-flex;
   align-items: center;
   gap: 6px;
 }
+.badge-chip .mini-speechmark {
+  background: var(--color-primary);
+  color: #fff;
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.65rem;
+  font-weight: 900;
+  line-height: 1;
+}
 
-/* User Message */
-.msg-user-container {
-  max-width: 900px;
-  width: 100%;
-  margin: 0 auto;
+/* User Message Bubble */
+.user-row {
   display: flex;
   justify-content: flex-end;
 }
-.msg-user-bubble {
+.user-bubble {
   background: var(--color-ink);
   color: #ffffff;
   padding: 14px 22px;
   border-radius: 18px 18px 4px 18px;
   font-size: 0.95rem;
   line-height: 1.6;
-  max-width: 80%;
+  max-width: 82%;
   white-space: pre-wrap;
-  box-shadow: 0 4px 14px rgba(0,0,0,0.08);
+  box-shadow: var(--shadow-card);
 }
 
-/* Thought Box */
+/* Thought Card */
 .thought-card {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-left: 3px solid var(--color-ink);
+  background: var(--color-canvas-soft);
+  border: 1px solid var(--color-card-border);
+  border-left: 4px solid var(--color-ink);
   padding: 12px 16px;
   margin-bottom: 16px;
-  border-radius: 6px;
+  border-radius: 4px;
   font-size: 0.84rem;
-  color: #334155;
+  color: #374151;
   font-family: var(--font-mono);
   white-space: pre-wrap;
   display: none;
@@ -388,70 +439,86 @@ select:focus, textarea:focus {
   justify-content: space-between;
 }
 
-/* Starters Hero Card */
+/* Welcome Hero Grid */
 .welcome-hero {
-  max-width: 900px;
+  margin: 10px auto 0 auto;
   width: 100%;
-  margin: 20px auto 0 auto;
-  text-align: left;
+}
+.hero-title-band {
+  background: var(--color-canvas);
+  border: 1px solid var(--color-card-border);
+  border-radius: 6px;
+  padding: 32px 36px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow-card);
 }
 .hero-headline {
-  font-size: 2.2rem;
+  font-size: 2.3rem;
   font-weight: 800;
   letter-spacing: -1.2px;
   text-transform: uppercase;
   color: var(--color-ink);
-  line-height: 1.1;
-  margin-bottom: 8px;
+  line-height: 1.08;
+  margin-bottom: 10px;
 }
 .hero-headline span {
   color: var(--color-primary);
 }
-.hero-subhead {
-  font-size: 1.05rem;
+.hero-subline {
+  font-size: 1rem;
   color: var(--color-body);
-  margin-bottom: 24px;
   line-height: 1.5;
 }
 .starters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 16px;
 }
-.starter-tile {
+.starter-card {
   background: var(--color-canvas);
-  border: 1px solid var(--border-hairline);
-  padding: 18px 20px;
-  border-radius: 8px;
+  border: 1px solid var(--color-card-border);
+  border-radius: 6px;
+  padding: 20px 22px;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: var(--shadow-subtle);
+  box-shadow: var(--shadow-card);
 }
-.starter-tile:hover {
+.starter-card:hover {
   border-color: var(--color-primary);
   transform: translateY(-2px);
   box-shadow: var(--shadow-elevated);
 }
-.starter-tile-icon { font-size: 1.3rem; margin-bottom: 8px; }
-.starter-tile-title { font-weight: 800; color: var(--color-ink); font-size: 0.95rem; margin-bottom: 4px; }
-.starter-tile-desc { font-size: 0.82rem; color: var(--color-body); line-height: 1.4; }
+.starter-card .badge-chip { margin-bottom: 12px; }
+.starter-card-title {
+  font-weight: 800;
+  color: var(--color-ink);
+  font-size: 1.05rem;
+  letter-spacing: -0.3px;
+  margin-bottom: 6px;
+  line-height: 1.3;
+}
+.starter-card-desc {
+  font-size: 0.84rem;
+  color: var(--color-body);
+  line-height: 1.45;
+}
 
-/* Floating 2026 Dock */
-.dock-container {
+/* Floating 2026 Prompt Dock */
+.floating-dock {
   position: absolute;
   bottom: 18px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 64px);
-  max-width: 900px;
-  z-index: 25;
+  left: 20px;
+  right: 20px;
+  max-width: 1000px;
+  margin: 0 auto;
+  z-index: 30;
 }
-.dock-bar {
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+.dock-card {
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
   border: 1px solid #d1d5db;
-  border-radius: 12px;
+  border-radius: 8px;
   padding: 10px 14px;
   box-shadow: var(--shadow-floating);
   display: flex;
@@ -461,22 +528,23 @@ select:focus, textarea:focus {
 .dock-input-row {
   display: flex;
   align-items: flex-end;
-  gap: 10px;
+  gap: 12px;
 }
 #user-input {
   flex: 1;
-  min-height: 44px;
+  min-height: 46px;
   max-height: 160px;
   resize: none;
   line-height: 1.45;
   padding: 10px 14px;
-  border-radius: 8px;
+  border-radius: 6px;
   font-size: 0.94rem;
   background: transparent;
   border: none;
   outline: none;
   font-family: inherit;
   color: var(--color-ink);
+  font-weight: 500;
 }
 .btn-pill-cta {
   background: var(--color-primary);
@@ -487,7 +555,7 @@ select:focus, textarea:focus {
   text-transform: uppercase;
   letter-spacing: 0.8px;
   padding: 0 24px;
-  height: 44px;
+  height: 46px;
   border-radius: 60px;
   cursor: pointer;
   display: inline-flex;
@@ -495,15 +563,17 @@ select:focus, textarea:focus {
   justify-content: center;
   gap: 6px;
   transition: all 0.15s ease;
-  box-shadow: 0 4px 14px rgba(230, 0, 0, 0.25);
+  box-shadow: var(--shadow-cta);
   flex-shrink: 0;
 }
 .btn-pill-cta:hover {
   background: var(--color-primary-hover);
   transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(230, 0, 0, 0.35);
 }
-.btn-pill-cta:active { transform: translateY(0); }
+.btn-pill-cta:active {
+  background: var(--color-primary-active);
+  transform: translateY(0);
+}
 .btn-pill-cta:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
 .dock-footer {
@@ -514,7 +584,6 @@ select:focus, textarea:focus {
   color: var(--color-mute);
   padding: 0 6px;
 }
-.dock-footer a { color: var(--color-ink); text-decoration: none; font-weight: 600; }
 
 .scroll-bottom-pill {
   position: absolute;
@@ -537,15 +606,15 @@ select:focus, textarea:focus {
 }
 .scroll-bottom-pill:hover { background: #000000; transform: translateX(-50%) scale(1.03); }
 
-/* Code Cards in Right Drawer */
-.code-box {
+/* Right Drawer Code Windows */
+.code-card-box {
   background: #181b20;
   border: 1px solid #2d3139;
-  border-radius: 8px;
+  border-radius: 6px;
   overflow: hidden;
   margin-bottom: 16px;
 }
-.code-box-header {
+.code-card-header {
   background: #121418;
   padding: 8px 12px;
   display: flex;
@@ -553,14 +622,14 @@ select:focus, textarea:focus {
   align-items: center;
   border-bottom: 1px solid #2d3139;
 }
-.code-box-header span {
+.code-card-header span {
   font-size: 0.72rem;
   font-weight: 800;
   color: #9ca3af;
   text-transform: uppercase;
   font-family: var(--font-mono);
 }
-.code-box-body {
+.code-card-body {
   padding: 12px 14px;
   font-family: var(--font-mono);
   font-size: 0.74rem;
@@ -574,22 +643,23 @@ select:focus, textarea:focus {
   color: var(--color-ink);
   margin: 18px 0 8px 0;
   font-weight: 800;
+  letter-spacing: -0.3px;
 }
 .markdown-body h1 { font-size: 1.4rem; border-bottom: 2px solid var(--color-ink); padding-bottom: 6px; }
-.markdown-body h2 { font-size: 1.2rem; border-bottom: 1px solid var(--border-hairline); padding-bottom: 4px; }
+.markdown-body h2 { font-size: 1.2rem; border-bottom: 1px solid var(--color-card-border); padding-bottom: 4px; }
 .markdown-body h3 { font-size: 1.05rem; }
 .markdown-body h4 { font-size: 0.95rem; }
 .markdown-body hr {
   border: none;
-  border-top: 1px solid var(--border-hairline);
+  border-top: 1px solid var(--color-card-border);
   margin: 18px 0;
 }
 
-/* Code Blocks inside Assistant Stories */
+/* Code Blocks in Assistant Story */
 .markdown-body pre {
   background: #181b20 !important;
   border: 1px solid #282c34 !important;
-  border-radius: 8px !important;
+  border-radius: 6px !important;
   margin: 16px 0 !important;
   padding: 0 !important;
   overflow: hidden;
@@ -636,7 +706,7 @@ select:focus, textarea:focus {
   font-weight: 600;
 }
 
-/* Blockquotes */
+/* Quotes */
 .markdown-body blockquote:not(.callout) {
   border-left: 4px solid var(--color-ink);
   background: var(--color-canvas-soft);
@@ -676,7 +746,7 @@ select:focus, textarea:focus {
   overflow-x: auto;
   margin: 16px 0;
   border-radius: 6px;
-  border: 1px solid var(--border-hairline);
+  border: 1px solid var(--color-card-border);
 }
 table {
   width: 100%;
@@ -688,7 +758,7 @@ th {
   background: var(--color-canvas-soft);
   padding: 10px 14px;
   color: var(--color-ink);
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--color-card-border);
   font-weight: 800;
   text-transform: uppercase;
   font-size: 0.76rem;
@@ -696,7 +766,7 @@ th {
 }
 td {
   padding: 10px 14px;
-  border-bottom: 1px solid var(--border-hairline);
+  border-bottom: 1px solid var(--color-card-border);
   color: var(--color-ink);
 }
 tr:last-child td { border-bottom: none; }
@@ -723,53 +793,48 @@ tr:hover td { background: #fafafa; }
   color: var(--color-ink);
 }
 
-/* Responsive Drawer for Mobile/Tablet */
-@media (max-width: 1100px) {
-  .drawer {
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    box-shadow: 0 0 30px rgba(0,0,0,0.25);
-    transform: translateX(-100%);
-  }
-  .drawer.open { transform: translateX(0); }
-  .drawer-right { right: 0; transform: translateX(100%); }
-  .drawer-right.open { transform: translateX(0); }
-  .messages-area { padding: 20px 20px 120px 20px; }
-  .dock-container { width: calc(100% - 32px); }
-  .telemetry-row { display: none; }
+@media (max-width: 768px) {
+  header { padding: 10px 16px; }
+  .telemetry-bar { display: none; }
+  .chat-workspace { padding: 0 10px; }
+  .floating-dock { left: 10px; right: 10px; }
+  .hero-headline { font-size: 1.6rem; }
 }
 </style>
 </head>
 <body>
+
+<!-- Backdrop Overlay for Drawers -->
+<div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllDrawers()"></div>
+
 <header>
-  <div class="brand-group">
+  <div class="brand-anchor">
     <div class="speechmark-orb">“</div>
-    <div class="brand-text">
-      <div class="logo-title">BOB <span>GEMINI FREE</span></div>
-      <div class="logo-subtitle">Universal AI Gateway • Web RPC Bridge</div>
+    <div class="brand-headings">
+      <div class="brand-title">BOB <span>GEMINI FREE</span></div>
+      <div class="brand-tagline">Universal AI Gateway • Web RPC Bridge</div>
     </div>
   </div>
   
-  <div class="telemetry-row">
-    <div class="telemetry-chip">Uptime: <b id="stat-uptime">0s</b></div>
-    <div class="telemetry-chip">Requests: <b id="stat-requests">0</b></div>
-    <div class="telemetry-chip">Tokens: <b id="stat-tokens">0</b></div>
-    <div class="telemetry-chip savings">Saved: <b id="stat-savings">$0.00</b></div>
+  <div class="telemetry-bar">
+    <div class="stat-pill">Uptime: <b id="stat-uptime">0s</b></div>
+    <div class="stat-pill">Requests: <b id="stat-requests">0</b></div>
+    <div class="stat-pill">Tokens: <b id="stat-tokens">0</b></div>
+    <div class="stat-pill savings">Saved: <b id="stat-savings">$0.00</b></div>
   </div>
 
-  <div class="header-actions">
-    <button class="btn-pill-dark" onclick="toggleDrawer('left')">⚙️ Configuration</button>
-    <button class="btn-pill-dark" onclick="toggleDrawer('right')">💻 Integration</button>
+  <div class="nav-actions">
+    <button class="nav-btn" id="btn-toggle-left" onclick="toggleDrawer('left')">⚙️ Configuration</button>
+    <button class="nav-btn" id="btn-toggle-right" onclick="toggleDrawer('right')">💻 Integration</button>
   </div>
 </header>
 
 <main>
-  <!-- Left Settings Drawer -->
-  <aside class="drawer" id="drawer-left">
+  <!-- Left Settings Slide-Over Drawer -->
+  <aside class="slide-drawer drawer-left" id="drawer-left">
     <div class="drawer-header">
       <span>Model Configuration</span>
-      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleDrawer('left')">✕ Close</button>
+      <button class="btn-pill-subtle" style="padding:2px 10px; font-size:0.68rem;" onclick="closeAllDrawers()">✕ Close</button>
     </div>
 
     <div class="control-card">
@@ -805,35 +870,35 @@ tr:hover td { background: #fafafa; }
 
     <div class="control-card">
       <label>System Prompt (Optional)</label>
-      <textarea id="system-prompt" rows="4" placeholder="Set custom system instructions..."></textarea>
+      <textarea id="system-prompt" rows="4" placeholder="Set custom instructions for the model..."></textarea>
     </div>
   </aside>
 
   <!-- Central Editorial Chat Workspace -->
   <section class="chat-workspace">
-    <div class="workspace-toolbar">
-      <div class="active-model-badge">
-        <div class="dot"></div>
+    <div class="sub-bar">
+      <div class="active-model-chip">
+        <div class="live-dot"></div>
         <span id="active-model-label">gemini-3.7-flash</span>
       </div>
-      <div class="toolbar-btn-group">
+      <div class="sub-bar-actions">
         <button class="btn-pill-subtle" onclick="copyFullTranscript()" title="Copy entire chat transcript">📋 Copy Chat</button>
         <button class="btn-pill-subtle" onclick="exportMarkdown()" title="Download conversation as Markdown">💾 Export .md</button>
         <button class="btn-pill-subtle" onclick="clearChat()" title="Reset conversation">🗑️ Clear</button>
       </div>
     </div>
 
-    <div class="messages-area" id="messages-list"></div>
+    <div class="messages-scroll" id="messages-list"></div>
 
     <!-- Floating 2026 Prompt Dock -->
-    <div class="dock-container">
+    <div class="floating-dock">
       <button class="scroll-bottom-pill" id="scroll-bottom-btn" onclick="scrollToBottom()">⬇️ Jump to Bottom</button>
-      <div class="dock-bar">
+      <div class="dock-card">
         <div class="dock-input-row">
           <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste code... (Shift+Enter for newline, Enter to send)" rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="sendMessage()">
             <span>Send</span>
-            <span style="font-size:0.85rem;">➤</span>
+            <span style="font-size:0.9rem;">➤</span>
           </button>
         </div>
         <div class="dock-footer">
@@ -844,35 +909,35 @@ tr:hover td { background: #fafafa; }
     </div>
   </section>
 
-  <!-- Right Code Integration Drawer -->
-  <aside class="drawer drawer-right" id="drawer-right">
+  <!-- Right Integration Slide-Over Drawer -->
+  <aside class="slide-drawer drawer-right" id="drawer-right">
     <div class="drawer-header">
       <span>Drop-in Integration</span>
-      <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="toggleDrawer('right')">✕ Close</button>
+      <button class="btn-pill-subtle" style="padding:2px 10px; font-size:0.68rem;" onclick="closeAllDrawers()">✕ Close</button>
     </div>
 
-    <div class="code-box">
-      <div class="code-box-header">
+    <div class="code-card-box">
+      <div class="code-card-header">
         <span>Python SDK</span>
         <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
       </div>
-      <div class="code-box-body" id="code-python"></div>
+      <div class="code-card-body" id="code-python"></div>
     </div>
 
-    <div class="code-box">
-      <div class="code-box-header">
+    <div class="code-card-box">
+      <div class="code-card-header">
         <span>Claude Code CLI</span>
         <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
       </div>
-      <div class="code-box-body" id="code-claude"></div>
+      <div class="code-card-body" id="code-claude"></div>
     </div>
 
-    <div class="code-box">
-      <div class="code-box-header">
+    <div class="code-card-box">
+      <div class="code-card-header">
         <span>cURL Stream</span>
         <button class="btn-pill-subtle" style="padding:2px 8px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
       </div>
-      <div class="code-box-body" id="code-curl"></div>
+      <div class="code-card-body" id="code-curl"></div>
     </div>
   </aside>
 </main>
@@ -949,7 +1014,23 @@ function handleKeyDown(e) {
 
 function toggleDrawer(side) {
   const drawer = document.getElementById('drawer-' + side);
-  drawer.classList.toggle('open');
+  const backdrop = document.getElementById('drawer-backdrop');
+  const btn = document.getElementById('btn-toggle-' + side);
+  const isOpen = drawer.classList.contains('open');
+
+  closeAllDrawers();
+
+  if (!isOpen) {
+    drawer.classList.add('open');
+    backdrop.classList.add('show');
+    if (btn) btn.classList.add('active');
+  }
+}
+
+function closeAllDrawers() {
+  document.querySelectorAll('.slide-drawer').forEach(d => d.classList.remove('open'));
+  document.getElementById('drawer-backdrop').classList.remove('show');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 }
 
 function updateActiveModelBadge() {
@@ -1042,7 +1123,7 @@ function renderMarkdown(text) {
   // Horizontal rules
   html = html.replace(/^\s*---\s*$/gim, '<hr>');
 
-  // Standard Blockquotes (Editorial style)
+  // Standard Blockquotes
   html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
 
   // GitHub Alert Callouts
@@ -1073,7 +1154,7 @@ function renderMarkdown(text) {
     return tableHtml;
   });
 
-  // Checkboxes / Task lists
+  // Checkboxes
   html = html.replace(/^\s*-\s*\[ \]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" disabled class="task-checkbox"><span>$1</span></div>');
   html = html.replace(/^\s*-\s*\[[xX]\]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" checked disabled class="task-checkbox"><span>$1</span></div>');
 
@@ -1110,7 +1191,7 @@ function copyCode(btn) {
 }
 
 function copyMessageText(btn) {
-  const msgEl = btn.closest('.msg-story');
+  const msgEl = btn.closest('.story-card');
   const text = msgEl.getAttribute('data-raw') || msgEl.innerText;
   navigator.clipboard.writeText(text);
   const old = btn.innerText;
@@ -1175,32 +1256,46 @@ function renderMessages() {
     const welcome = document.createElement("div");
     welcome.className = "welcome-hero";
     welcome.innerHTML = `
-      <div class="hero-headline">
-        STAY <span>CONNECTED</span>. BUILT FOR <span>SPEED</span>.
-      </div>
-      <div class="hero-subhead">
-        High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
+      <div class="hero-title-band">
+        <div class="hero-headline">
+          TOGETHER WE CAN <span>DO MORE</span>
+        </div>
+        <div class="hero-subline">
+          High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
+        </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-tile" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
-          <div class="starter-tile-icon">🚀</div>
-          <div class="starter-tile-title">Go HTTP Server</div>
-          <div class="starter-tile-desc">Concurrent, production-ready, graceful shutdown architecture</div>
+        <div class="starter-card" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
+          <div class="badge-chip">
+            <span class="mini-speechmark">“</span>
+            <span>SYSTEM ENGINE</span>
+          </div>
+          <div class="starter-card-title">Go HTTP Server</div>
+          <div class="starter-card-desc">Production-grade concurrent server architecture with zero allocations and graceful shutdown.</div>
         </div>
-        <div class="starter-tile" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
-          <div class="starter-tile-icon">🧠</div>
-          <div class="starter-tile-title">Quantum Reasoning</div>
-          <div class="starter-tile-desc">Step-by-step deep mathematical thought & Dirac bra-kets</div>
+        <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
+          <div class="badge-chip">
+            <span class="mini-speechmark">“</span>
+            <span>DEEP THOUGHT</span>
+          </div>
+          <div class="starter-card-title">Quantum Reasoning</div>
+          <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
         </div>
-        <div class="starter-tile" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
-          <div class="starter-tile-icon">🐍</div>
-          <div class="starter-tile-title">Python Integration</div>
-          <div class="starter-tile-desc">Connect with OpenAI SDK for zero-latency streaming</div>
+        <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
+          <div class="badge-chip">
+            <span class="mini-speechmark">“</span>
+            <span>INTEGRATION</span>
+          </div>
+          <div class="starter-card-title">Python Stream</div>
+          <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
         </div>
-        <div class="starter-tile" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
-          <div class="starter-tile-icon">🏗️</div>
-          <div class="starter-tile-title">System Architecture</div>
-          <div class="starter-tile-desc">Fault-tolerant distributed queue & streaming pipeline</div>
+        <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
+          <div class="badge-chip">
+            <span class="mini-speechmark">“</span>
+            <span>ARCHITECTURE</span>
+          </div>
+          <div class="starter-card-title">Microservices Pipeline</div>
+          <div class="starter-card-desc">Distributed event-driven pipeline design with Kafka and edge compute nodes.</div>
         </div>
       </div>
     `;
@@ -1210,23 +1305,23 @@ function renderMessages() {
 
   for (const m of chatHistory) {
     if (m.role === 'user') {
-      const userContainer = document.createElement("div");
-      userContainer.className = "msg-user-container";
-      userContainer.innerHTML = `<div class="msg-user-bubble">${escapeHtml(m.content)}</div>`;
-      list.appendChild(userContainer);
+      const userDiv = document.createElement("div");
+      userDiv.className = "user-row";
+      userDiv.innerHTML = `<div class="user-bubble">${escapeHtml(m.content)}</div>`;
+      list.appendChild(userDiv);
     } else {
       const storyDiv = document.createElement("div");
-      storyDiv.className = "msg-story markdown-body";
+      storyDiv.className = "story-card markdown-body";
       storyDiv.setAttribute('data-raw', m.content);
 
       const header = document.createElement("div");
-      header.className = "story-header";
+      header.className = "story-card-header";
       header.innerHTML = `
-        <div class="story-tag">
-          <div class="speechmark-orb" style="width:18px; height:18px; font-size:0.8rem; border-radius:4px;">“</div>
-          <span>BOB AI Response</span>
+        <div class="badge-chip">
+          <span class="mini-speechmark">“</span>
+          <span>BOB AI RESPONSE</span>
         </div>
-        <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy Text</button>
+        <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
       `;
       storyDiv.appendChild(header);
 
@@ -1260,33 +1355,33 @@ async function sendMessage() {
 
   const btn = document.getElementById("send-btn");
   inputEl.value = "";
-  inputEl.style.height = '44px';
+  inputEl.style.height = '46px';
   inputEl.disabled = true;
   btn.disabled = true;
 
   const msgList = document.getElementById("messages-list");
 
   // User bubble
-  const userContainer = document.createElement("div");
-  userContainer.className = "msg-user-container";
-  userContainer.innerHTML = `<div class="msg-user-bubble">${escapeHtml(text)}</div>`;
-  msgList.appendChild(userContainer);
+  const userDiv = document.createElement("div");
+  userDiv.className = "user-row";
+  userDiv.innerHTML = `<div class="user-bubble">${escapeHtml(text)}</div>`;
+  msgList.appendChild(userDiv);
 
   chatHistory.push({role: "user", content: text});
   saveHistory();
 
   // Assistant story card
   const storyDiv = document.createElement("div");
-  storyDiv.className = "msg-story markdown-body";
+  storyDiv.className = "story-card markdown-body";
 
   const header = document.createElement("div");
-  header.className = "story-header";
+  header.className = "story-card-header";
   header.innerHTML = `
-    <div class="story-tag">
-      <div class="speechmark-orb" style="width:18px; height:18px; font-size:0.8rem; border-radius:4px;">“</div>
-      <span>BOB AI Response</span>
+    <div class="badge-chip">
+      <span class="mini-speechmark">“</span>
+      <span>BOB AI RESPONSE</span>
     </div>
-    <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy Text</button>
+    <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
   `;
   storyDiv.appendChild(header);
 
