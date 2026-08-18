@@ -142,3 +142,23 @@ docker run -d \
   bob-gemini-free:local
 ```
 
+### Complete Environment Variable Reference
+
+All configuration fields can be set without mounting a `config.json` file:
+
+| Environment Variable | Type | Default | Description |
+|---|---|---|---|
+| `BOB_GEMINI_FREE_HOST` | string | `127.0.0.1` | Binding host interface |
+| `BOB_GEMINI_FREE_PORT` | int | `8081` | Listening port |
+| `BOB_GEMINI_FREE_COOKIE_FILE` | string | `./cookie.txt` | Path to primary session cookie file |
+| `BOB_GEMINI_FREE_COOKIE_POOL` | string | `` | Comma-separated pool of cookie files |
+| `BOB_GEMINI_FREE_COOKIE_POOL_DIR` | string | `` | Directory of `*.txt` cookie files for auto-discovery |
+| `BOB_GEMINI_FREE_DEFAULT_MODEL` | string | `gemini-3.6-flash` | Default model when none is specified in request |
+| `BOB_GEMINI_FREE_AUTH_USER` | string | `""` | Multi-account index (`"0"`, `"1"`, etc.) |
+| `BOB_GEMINI_FREE_API_KEYS` | string | `` | Comma-separated authorized API keys |
+| `BOB_GEMINI_FREE_PROXY` | string | `` | HTTP/SOCKS5 proxy URL |
+| `BOB_GEMINI_FREE_IMPERSONATE` | string | `` | TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
+| `BOB_GEMINI_FREE_LOG_REQUESTS` | bool | `false` | Enable request lifecycle logging (`true`/`1`/`yes`) |
+| `BOB_GEMINI_FREE_RETRY_ATTEMPTS` | int | `3` | Max upstream retry attempts per request |
+| `BOB_GEMINI_FREE_RETRY_DELAY_SEC` | int | `2` | Seconds between retry attempts |
+| `BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC` | int | `180` | Per-request upstream timeout in seconds |

@@ -94,27 +94,11 @@ func resolveEngineVersion(override string) string {
 	return "dev"
 }
 
-// EngineConfig holds engine-level settings that go beyond config.Config.
-type EngineConfig struct {
-	cfg     config.Config
-	version string
-}
-
-// EngineOption configures the engine at creation time (superset of Option).
-// All existing Option values remain compatible via ApplyOption.
-type EngineOption func(*EngineConfig)
-
-// applyOption wraps a plain Option as an EngineOption.
-func applyOption(opt Option) EngineOption {
-	return func(ec *EngineConfig) { opt(&ec.cfg) }
-}
-
 // WithVersion sets an explicit version string reported by the health endpoint.
 // When omitted, the version is resolved from Go build info automatically.
 func WithVersion(v string) Option {
 	return func(c *config.Config) {
-		// Marker: version stored separately in NewEngine via EngineConfig.
-		// Encode as a no-op config mutation; the actual capture happens below.
+		// Encode version as a sentinel in XSRFToken; decoded and cleared in NewEngine.
 		c.XSRFToken = "__version__:" + v
 	}
 }

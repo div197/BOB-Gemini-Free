@@ -70,8 +70,41 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var fullStreamText string
+		var emittedClean int // bytes of clean (non-thinking) content already sent to client
+
 		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
 			fullStreamText += delta
+
+			// Determine what clean content is available after each delta.
+			// If we have a complete thinking block, ExtractThinking gives us clean text.
+			// If we're inside an incomplete thinking block, suppress all output.
+			// If there is no thinking block, emit all new text normally.
+			thinking, cleanText := format.ExtractThinking(fullStreamText)
+
+			var toEmit string
+			if thinking != "" {
+				// Complete thinking block extracted — only emit new clean text portion
+				if len(cleanText) > emittedClean {
+					toEmit = cleanText[emittedClean:]
+					emittedClean = len(cleanText)
+				}
+			} else {
+				// No complete thinking block — check if we're inside an incomplete one
+				trimmed := strings.TrimSpace(fullStreamText)
+				if strings.HasPrefix(trimmed, "```thought") || strings.HasPrefix(trimmed, "```thinking") {
+					// Inside an incomplete thinking block — suppress all output
+					return nil
+				}
+				// Pure content — emit all new text
+				if len(fullStreamText) > emittedClean {
+					toEmit = fullStreamText[emittedClean:]
+					emittedClean = len(fullStreamText)
+				}
+			}
+
+			if toEmit == "" {
+				return nil
+			}
 			chunk := models.OpenAIChatResponse{
 				ID:                cid,
 				Object:            "chat.completion.chunk",
@@ -82,7 +115,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 					{
 						Index: 0,
 						Delta: &models.OpenAIMessage{
-							Content: delta,
+							Content: toEmit,
 						},
 						FinishReason: nil,
 					},
@@ -92,10 +125,10 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if emitErr == nil {
-			// Extract thinking from the accumulated stream text (if model emitted a thought block)
+			// Final thinking extraction on full accumulated text
 			thinking, cleanStreamText := format.ExtractThinking(fullStreamText)
 
-			// If thinking was found, emit a preceding reasoning_content delta chunk
+			// Emit thinking as reasoning_content delta chunk if present
 			if thinking != "" {
 				thinkChunk := models.OpenAIChatResponse{
 					ID:                cid,

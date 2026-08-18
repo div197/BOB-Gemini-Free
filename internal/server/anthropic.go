@@ -121,29 +121,68 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		_ = writeSSEEvent(w, "content_block_start", evBlockStart)
 
 		var fullText string
+		var emittedClean int // bytes of clean content already sent in text_delta events
+
 		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
 			fullText += delta
-			evDelta := map[string]any{
+
+			// Inline thinking-block suppression: same state machine as chat.go
+			thinking, cleanText := format.ExtractThinking(fullText)
+
+			var toEmit string
+			if thinking != "" {
+				if len(cleanText) > emittedClean {
+					toEmit = cleanText[emittedClean:]
+					emittedClean = len(cleanText)
+				}
+			} else {
+				trimmed := strings.TrimSpace(fullText)
+				if strings.HasPrefix(trimmed, "```thought") || strings.HasPrefix(trimmed, "```thinking") {
+					return nil // inside incomplete thinking block — suppress
+				}
+				if len(fullText) > emittedClean {
+					toEmit = fullText[emittedClean:]
+					emittedClean = len(fullText)
+				}
+			}
+
+			if toEmit == "" {
+				return nil
+			}
+			return writeSSEEvent(w, "content_block_delta", map[string]any{
 				"type":  "content_block_delta",
 				"index": 0,
 				"delta": map[string]any{
 					"type": "text_delta",
-					"text": delta,
+					"text": toEmit,
 				},
-			}
-			return writeSSEEvent(w, "content_block_delta", evDelta)
+			})
 		})
 
 		if streamErr != nil {
-			evErr := map[string]any{
+			_ = writeSSEEvent(w, "error", map[string]any{
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
 					"message": streamErr.Error(),
 				},
-			}
-			_ = writeSSEEvent(w, "error", evErr)
+			})
 			return
+		}
+
+		// Extract thinking from full accumulated text
+		thinking, cleanText := format.ExtractThinking(fullText)
+
+		// If thinking found, emit a Anthropic thinking_block delta
+		if thinking != "" {
+			_ = writeSSEEvent(w, "content_block_delta", map[string]any{
+				"type":  "content_block_delta",
+				"index": 0,
+				"delta": map[string]any{
+					"type":    "thinking_delta",
+					"thinking": thinking,
+				},
+			})
 		}
 
 		// 3. content_block_stop event
@@ -153,11 +192,15 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		})
 
 		// 4. message_delta event
-		outTokens := format.EstimateTokens(fullText)
+		finalText := cleanText
+		outTokens := format.EstimateTokens(finalText)
+		if thinking != "" {
+			outTokens += format.EstimateTokens(thinking)
+		}
 		if outTokens == 0 {
 			outTokens = 1
 		}
-		evMsgDelta := map[string]any{
+		_ = writeSSEEvent(w, "message_delta", map[string]any{
 			"type": "message_delta",
 			"delta": map[string]any{
 				"stop_reason":   "end_turn",
@@ -166,8 +209,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			"usage": map[string]any{
 				"output_tokens": outTokens,
 			},
-		}
-		_ = writeSSEEvent(w, "message_delta", evMsgDelta)
+		})
 
 		a.TokensProcessed.Add(uint64(promptTokens + outTokens))
 

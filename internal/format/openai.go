@@ -144,7 +144,14 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 				parts = append(parts, fmt.Sprintf("[Assistant]: %s", contentStr))
 			}
 		case "tool":
-			parts = append(parts, fmt.Sprintf("[Tool result for %s]: %s", msg.Name, contentStr))
+			identifier := msg.Name
+			if identifier == "" {
+				identifier = msg.ToolCallID
+			}
+			if identifier == "" {
+				identifier = "tool"
+			}
+			parts = append(parts, fmt.Sprintf("[Tool result for %s]: %s", identifier, contentStr))
 		default:
 			if contentStr != "" {
 				parts = append(parts, contentStr)

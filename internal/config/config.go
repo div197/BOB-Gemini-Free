@@ -171,6 +171,24 @@ func Load(path string) (Config, error) {
 	if envAuthUser := os.Getenv("BOB_GEMINI_FREE_AUTH_USER"); envAuthUser != "" {
 		cfg.AuthUser = envAuthUser
 	}
+	if envLog := os.Getenv("BOB_GEMINI_FREE_LOG_REQUESTS"); envLog != "" {
+		cfg.LogRequests = envLog == "true" || envLog == "1" || envLog == "yes"
+	}
+	if envRetry := os.Getenv("BOB_GEMINI_FREE_RETRY_ATTEMPTS"); envRetry != "" {
+		if n, err := strconv.Atoi(envRetry); err == nil && n >= 0 {
+			cfg.RetryAttempts = n
+		}
+	}
+	if envRetryDelay := os.Getenv("BOB_GEMINI_FREE_RETRY_DELAY_SEC"); envRetryDelay != "" {
+		if n, err := strconv.Atoi(envRetryDelay); err == nil && n >= 0 {
+			cfg.RetryDelaySec = n
+		}
+	}
+	if envTimeout := os.Getenv("BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC"); envTimeout != "" {
+		if n, err := strconv.Atoi(envTimeout); err == nil && n > 0 {
+			cfg.RequestTimeoutSec = n
+		}
+	}
 
 	return cfg, nil
 }

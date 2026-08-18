@@ -98,3 +98,38 @@ func TestEnvVarAuthUser(t *testing.T) {
 		t.Errorf("expected auth_user 1 from env, got %s", cfg.AuthUser)
 	}
 }
+
+func TestEnvVarLogRequests(t *testing.T) {
+	for _, val := range []string{"true", "1", "yes"} {
+		t.Setenv("BOB_GEMINI_FREE_LOG_REQUESTS", val)
+		cfg, err := Load("")
+		if err != nil {
+			t.Fatalf("unexpected load error: %v", err)
+		}
+		if !cfg.LogRequests {
+			t.Errorf("expected log_requests=true for env value %q", val)
+		}
+	}
+}
+
+func TestEnvVarRetryAttempts(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_RETRY_ATTEMPTS", "5")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.RetryAttempts != 5 {
+		t.Errorf("expected retry_attempts 5, got %d", cfg.RetryAttempts)
+	}
+}
+
+func TestEnvVarRequestTimeout(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC", "300")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.RequestTimeoutSec != 300 {
+		t.Errorf("expected request_timeout_sec 300, got %d", cfg.RequestTimeoutSec)
+	}
+}
