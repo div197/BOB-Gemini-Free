@@ -25,7 +25,7 @@ const (
 // - `SNlM0e` / `thykhd`: XSRF/AT token required for state-changing POST requests
 // - `cfb2h`: Build label version required for RPC stream endpoints
 var (
-	rePushID  = regexp.MustCompile(`"qKIAYe":"([^"]+)"`)
+	rePushID  = regexp.MustCompile(`"(?:qKIAYe|KnDnFf)":"([^"]+)"`)
 	rePctx    = regexp.MustCompile(`"Ylro7b":"([^"]+)"`)
 	reAt      = regexp.MustCompile(`"(?:SNlM0e|thykhd)":"([^"]+)"`)
 	reBL      = regexp.MustCompile(`"cfb2h":"([^"]+)"`)

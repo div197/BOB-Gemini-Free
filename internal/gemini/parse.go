@@ -10,7 +10,7 @@ import (
 var (
 	reCodeExec    = regexp.MustCompile(`(?s)\x60\x60\x60(?:python|javascript|text)\?code_(?:reference|stdout)&code_event_index=\d+\n.*?\x60\x60\x60\n?`)
 	reCardContent = regexp.MustCompile(`http://googleusercontent\.com/card_content/\d+\n?`)
-	reBardError   = regexp.MustCompile(`BardErrorInfo\s*\[(\d+)\]`)
+	reBardError   = regexp.MustCompile(`BardErrorInfo(?:\s*|",\s*)\[(\d+)\]`)
 )
 
 func CleanText(text string, strip bool) string {

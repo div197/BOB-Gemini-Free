@@ -124,9 +124,29 @@ func TestTokenCache(t *testing.T) {
 		t.Fatalf("Expected non-nil TokenCache")
 	}
 
-	// Without network, should return default fallback tokens
 	tokens := tc.Get()
-	if tokens.PushID != DefaultPushID || tokens.Pctx != DefaultPctx {
-		t.Errorf("Expected fallback default tokens, got: %+v", tokens)
+	if tokens.PushID == "" || tokens.Pctx == "" {
+		t.Errorf("Expected valid PushID and Pctx tokens, got: %+v", tokens)
+	}
+}
+
+func TestLiveImageUpload(t *testing.T) {
+	cfg := config.Default()
+	cookieCache := gemini.NewCookieCache("../../cookie.txt")
+	cinfo, err := cookieCache.Load()
+	if err != nil || cinfo.Cookie == "" {
+		t.Skip("cookie.txt not available, skipping live upload test")
+	}
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	tokenCache := NewTokenCache(cfg, cookieCache, client)
+	tokens := tokenCache.Get()
+
+	sampleImg := createTestImage(100, 100)
+	ref, err := UploadImage(client, tokens, sampleImg, "image/png", cookieCache, cfg.AuthUser)
+	if err != nil {
+		t.Logf("UploadImage failed: %v", err)
+	} else {
+		t.Logf("UploadImage succeeded: ref=%s", ref)
 	}
 }

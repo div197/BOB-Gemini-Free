@@ -173,6 +173,24 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			_ = writeSSEDone(w)
 		} else {
 			a.Logf("Chat stream error: %v", emitErr)
+			errMsg := fmt.Sprintf("\n\n> ⚠️ **Upstream Error**: %v\n", emitErr)
+			_ = emitChunk(format.StreamChunk{Type: format.DeltaContent, Text: errMsg})
+			stopReason := "error"
+			_ = writeSSEData(w, models.OpenAIChatResponse{
+				ID:                cid,
+				Object:            "chat.completion.chunk",
+				Created:           time.Now().Unix(),
+				Model:             resolved.Name,
+				SystemFingerprint: "fp_bob_gemini",
+				Choices: []models.OpenAIChoice{
+					{
+						Index:        0,
+						Delta:        &models.OpenAIMessage{},
+						FinishReason: &stopReason,
+					},
+				},
+			})
+			_ = writeSSEDone(w)
 		}
 		return
 	}

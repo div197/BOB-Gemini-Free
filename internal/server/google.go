@@ -131,6 +131,22 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			_ = writeSSEData(w, finalChunk)
 		} else {
 			a.Logf("Google stream error: %v", emitErr)
+			errChunk := models.GoogleGenerateResponse{
+				Candidates: []models.GoogleCandidate{
+					{
+						Content: &models.GoogleContent{
+							Role: "model",
+							Parts: []models.GooglePart{
+								{Text: fmt.Sprintf("\n\n> ⚠️ **Upstream Error**: %v\n", emitErr)},
+							},
+						},
+						Index:        0,
+						FinishReason: "ERROR",
+					},
+				},
+				ModelVersion: resolved.Name,
+			}
+			_ = writeSSEData(w, errChunk)
 		}
 		return
 	}
