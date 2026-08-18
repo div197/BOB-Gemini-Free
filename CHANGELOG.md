@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.2] - 2026-08-18
+
+### Real-Time Thinking Stream Splitter, Anthropic Multi-Block Lifecycle & SDK Engine Parity
+
+#### Added
+- **Real-Time Thinking Stream Splitter (`ThinkingStreamSplitter`)**: State-machine stream parser isolating ` ```thought\n...\n``` ` blocks on-the-fly during SSE generation:
+  - Streams live `reasoning_content` deltas in OpenAI chat streaming (`POST /v1/chat/completions`).
+  - Implements strict 2-block Anthropic SSE lifecycle (`thinking` block with `thinking_delta` $\rightarrow$ `content_block_stop` $\rightarrow$ `text` block with `text_delta`).
+- **Claude Code Extended Thinking Parameter**: Added dynamic mapping for `req.Thinking` (`enabled` / `budget_tokens`) to Gemini internal thinking modes.
+- **Responses API Real-Time Streaming & `reasoning_effort`**: Added live 8-event SSE lifecycle and dynamic reasoning effort parsing ("high"/"medium"/"low") to `POST /v1/responses`.
+- **Complete Environment Variable Matrix**: Added `BOB_GEMINI_FREE_COOKIE_POOL_DIR`, `BOB_GEMINI_FREE_LOG_REQUESTS`, `BOB_GEMINI_FREE_RETRY_ATTEMPTS`, `BOB_GEMINI_FREE_RETRY_DELAY_SEC`, `BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC`, `BOB_GEMINI_FREE_DEFAULT_MODEL`, and `BOB_GEMINI_FREE_AUTH_USER`.
+- **Expanded Embedded Go Library (`pkg/gateway`)**: Added `NewEngine` in-process Go programmatic inference (`Generate` / `GenerateStream`) with `WithRetry`, `WithTimeout`, `WithCookiePoolDir`, and `WithVersion` options.
+- **Multi-Account Cookie Pool Health Telemetry**: Added `pool_sessions_total` and `pool_sessions_healthy` to health endpoint (`GET /`) and live `--status` CLI dashboard.
+- **Multimodal Decoders**: Added native GIF and WebP image decoding support.
+- **Tool Result ID Routing**: Multi-turn agent loops now fall back to `msg.ToolCallID` when `msg.Name` is omitted by OpenAI clients.
+
+---
+
 ## [0.1.1] - 2026-08-18
 
 ### "API-Less AI" Architecture, Token Counting Engine & Multimodal Vision

@@ -14,7 +14,7 @@ curl http://127.0.0.1:8081/
 ```json
 {
   "status": "ok",
-  "version": "v0.1.0",
+  "version": "v0.1.1",
   "models": [
     "gemini-3.7-flash",
     "gemini-3.7-flash-thinking",
@@ -25,13 +25,41 @@ curl http://127.0.0.1:8081/
   "requests_served": 142,
   "tokens_processed": 185420,
   "estimated_savings_usd": "$0.70",
-  "uptime_seconds": 3600
+  "uptime_seconds": 3600,
+  "pool_sessions_total": 3,
+  "pool_sessions_healthy": 3
 }
 ```
 
 ---
 
-## 2. Automated 13-Point Diagnostic Suite (`--test`)
+## 2. Live CLI Telemetry Dashboard (`--status`)
+
+Query live metrics directly from your terminal:
+
+```bash
+./bob-gemini-free --status --test-url http://127.0.0.1:8081
+```
+
+```
+==================================================================
+    BOB Gemini Free - Live Gateway Telemetry & Status             
+    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
+==================================================================
+  • Gateway Status:        ok (Version v0.1.1)
+  • Target Gateway URL:    http://127.0.0.1:8081
+  • Server Uptime:         3600 seconds (60.0 minutes)
+  • Requests Served:       142 requests
+  • Tokens Processed:      185420 tokens
+  • Estimated USD Savings: $0.70 (vs commercial cloud APIs)
+  • Active Models Loaded:  48 models
+  • Cookie Pool Sessions:  3 total, 3 healthy
+==================================================================
+```
+
+---
+
+## 3. Automated 13-Point Diagnostic Suite (`--test`)
 
 Run the 13-point diagnostic test against any local or remote BOB gateway:
 
@@ -56,7 +84,7 @@ Run the 13-point diagnostic test against any local or remote BOB gateway:
 
 ---
 
-## 3. Concurrency & Stress Benchmark (`--bench`)
+## 4. Concurrency & Stress Benchmark (`--bench`)
 
 Run a load test with concurrent workers:
 

@@ -53,12 +53,16 @@ func main() {
 | `WithHost(host string)` | `string` | Local network binding interface (default: `127.0.0.1`) |
 | `WithCookieFile(path string)` | `string` | Specify authenticated session `cookie.txt` |
 | `WithCookiePool(paths ...string)` | `...string` | Configure round-robin pool of multiple account cookie files |
+| `WithCookiePoolDir(dir string)` | `string` | Auto-discover all `*.txt` cookie files from a directory |
 | `WithAuthUser(index string)` | `string` | Multi-account Google profile index (`"0"`, `"1"`) |
 | `WithDefaultModel(model string)` | `string` | Fallback model if omitted by client |
 | `WithAPIKeys(keys ...string)` | `...string` | Enforce API key authorization |
 | `WithProxy(proxyURL string)` | `string` | Outbound HTTP/SOCKS5 proxy |
 | `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
 | `WithLogRequests(enabled bool)` | `bool` | Enable request lifecycle logging |
+| `WithRetry(attempts, delaySec int)` | `int, int` | Max upstream retries and delay between attempts |
+| `WithTimeout(sec int)` | `int` | Per-request upstream timeout in seconds |
+| `WithVersion(version string)` | `string` | Explicit version string for telemetry endpoint |
 
 ## ⚡ Direct In-Process Programmatic Go Inference (`NewEngine`)
 
