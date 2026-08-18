@@ -102,8 +102,10 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				"stop_reason":   nil,
 				"stop_sequence": nil,
 				"usage": map[string]any{
-					"input_tokens":  promptTokens,
-					"output_tokens": 1,
+					"input_tokens":                promptTokens,
+					"output_tokens":               1,
+					"cache_creation_input_tokens": 0,
+					"cache_read_input_tokens":     0,
 				},
 			},
 		}
@@ -216,8 +218,10 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		StopReason:   stopReason,
 		StopSequence: nil,
 		Usage: models.AnthropicUsage{
-			InputTokens:  promptTokens,
-			OutputTokens: outputTokens,
+			InputTokens:              promptTokens,
+			OutputTokens:             outputTokens,
+			CacheCreationInputTokens: 0,
+			CacheReadInputTokens:     0,
 		},
 	}
 
