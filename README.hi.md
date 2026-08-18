@@ -134,25 +134,29 @@ print(response.choices[0].message.content)
 
 ---
 
-### क्लाइंट इंटीग्रेशन गाइड
+## यूनिवर्सल टूल व ऍप्लिकेशन्स इंटीग्रेशन
 
-#### 1. Cursor IDE
-* **Cursor Settings** → **Models** → **Add Custom Model** खोलें।
-* मॉडल जोड़ें: `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, या `gemini-pro`।
-* **Override OpenAI Base URL** को सेट करें: `http://127.0.0.1:8081/v1`।
-* API Key को `none` (या अपनी सेट की गई Key) रखें।
+चूँकि **BOB Gemini Free** आधिकारिक OpenAI API मानक का 100% पालन करता है, **कोई भी AI एप्लिकेशन, एजेंट फ़्रेमवर्क, या डेवलपर टूल** जो कस्टम OpenAI Base URL का समर्थन करता है, तुरंत काम करता है।
 
-#### 2. Cherry Studio / ChatBox
-* **प्रदाता (Provider)**: OpenAI
-* **API Key**: `none`
-* **Base URL / API Host**: `http://127.0.0.1:8081/v1`
-* **मॉडल**: `gemini-3.7-flash` या `gemini-3.7-flash-thinking` चुनें।
+### यूनिवर्सल इंटीग्रेशन पैटर्न
 
-#### 3. OpenWebUI (Docker)
-```yaml
-environment:
-  - OPENAI_API_BASE_URL=http://bob-gemini-free:8081/v1
-  - OPENAI_API_KEY=none
+किसी भी AI एप्लिकेशन में यह तीन मानक सेटिंग्स भरें:
+
+| सेटिंग फ़ील्ड | वैल्यू | विवरण |
+| :--- | :--- | :--- |
+| **API Format / Provider** | `OpenAI` या `OpenAI Compatible` | मानक REST प्रोटोकॉल |
+| **Base URL / API Host** | `http://127.0.0.1:8081/v1` | लोकल हाई-स्पीड गेटवे |
+| **API Key** | `none` (या आपकी सेट की गई Key) | ऑथेंटिकेशन बंद होने पर वैकल्पिक |
+| **Model** | `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, `gemini-pro` | हाई-स्पीड या डीप रीज़निंग |
+
+### यूनिवर्सल एनवायरनमेंट वेरिएबल्स
+
+CLI टूल्स, बैकग्राउंड बॉट्स, Python/Node स्क्रिप्ट्स, और एजेंट फ़्रेमवर्क्स के लिए:
+
+```bash
+export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_API_BASE=http://127.0.0.1:8081/v1
+export OPENAI_API_KEY=none
 ```
 
 ---
