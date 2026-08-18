@@ -911,6 +911,14 @@ BOB Gemini Free stands on the collective wisdom and engineering breakthroughs of
 4. **The Global Open-Source Community**: The creators and maintainers of Cursor, Windsurf, Aider, Continue.dev, OpenWebUI, Cherry Studio, ChatBox, and the global indie hacker ecosystem pushing the frontiers of software engineering.
 5. **ABCsteps Technologies (Jodhpur, Rajasthan)**: For championing truthful, first-principles AI engineering education, open learning foundations, and the **Break Ordinary Boundaries (BOB)** developer empowerment mission.
 
+## ⚖️ Legal Disclaimer & Trademark Notice
+
+**BOB Gemini Free** is an independent, open-source local gateway engine developed for research, interoperability, and developer educational purposes by **ABCsteps** ([abcsteps.com](https://abcsteps.com)) and **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)).
+
+* **No Affiliation**: BOB Gemini Free is not affiliated with, endorsed by, sponsored by, or in any way officially connected with Google LLC, Alphabet Inc., OpenAI Inc., Anthropic PBC, or any of their subsidiaries.
+* **Trademarks**: "Google", "Gemini", "OpenAI", "ChatGPT", "Anthropic", "Claude", and related marks are trademarks of their respective owners. Their use in this codebase and documentation is strictly nominative for compatibility and protocol interoperability description.
+* **Compliance**: Users are solely responsible for complying with the applicable terms of service and acceptable use policies of any upstream web services or accounts they connect.
+
 ---
 
 ## License

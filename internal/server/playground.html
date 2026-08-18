@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Default Zen Focus Canvas, Categorized Spotlight Command Menu & 60FPS Streaming Engine
+  Default Zen Focus Canvas, Keyboard-Driven Modals, Credits & 60FPS Streaming Engine
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -154,6 +154,7 @@ header {
   align-items: center;
   gap: 8px;
   text-decoration: none;
+  cursor: pointer;
 }
 .brand-headings {
   display: flex;
@@ -799,6 +800,11 @@ select:focus, textarea:focus {
   transform: translateY(-1px);
 }
 
+.footer-credits {
+  font-size: 0.68rem;
+  color: var(--text-subdued);
+}
+
 /* Subtle Unobtrusive Bottom-Right Scroll Floating Action Button */
 .scroll-bottom-fab {
   position: absolute;
@@ -1215,8 +1221,27 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   cursor: pointer;
   transition: all 0.15s ease;
   box-shadow: 0 4px 14px rgba(217, 30, 38, 0.35);
+  outline: none;
+}
+.dialog-btn-danger:focus {
+  box-shadow: 0 0 0 2px var(--accent-primary), 0 4px 14px rgba(217, 30, 38, 0.35);
 }
 .dialog-btn-danger:hover { background: #b91c1c; transform: translateY(-1px); }
+
+/* About & Legal Modal */
+.about-dialog-box {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  width: 520px;
+  max-width: 92vw;
+  border-radius: 12px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+  padding: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  animation: scaleIn 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+}
 
 /* Floating Glass Toast Notification Stack */
 .toast-stack {
@@ -1258,6 +1283,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 /* Responsive Breakpoints for Mobile & Tablet */
 @media (max-width: 1080px) {
   .telemetry-bar { display: none; }
+  .footer-credits { display: none; }
   .sidebar-panel {
     position: absolute;
     top: 0;
@@ -1294,6 +1320,31 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <div class="dialog-actions">
       <button class="dialog-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
       <button class="dialog-btn-danger" id="dialog-confirm-btn" onclick="executeConfirmAction()">Clear History</button>
+    </div>
+  </div>
+</div>
+
+<!-- About & Legal Modal -->
+<div class="dialog-backdrop" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
+  <div class="about-dialog-box">
+    <div class="dialog-header">
+      <div class="dialog-icon-orb" style="background:rgba(255, 202, 0, 0.15); color:var(--accent-primary);">✦</div>
+      <div class="dialog-title">BOB GEMINI FREE</div>
+    </div>
+    <div class="dialog-desc" style="display:flex; flex-direction:column; gap:10px; font-size:0.86rem;">
+      <div>
+        <b>BOB Gemini Free</b> (<i>Break Ordinary Boundaries</i>) is an open-source, high-performance local AI gateway translating standard OpenAI, Anthropic, and Google Gemini APIs into Google's internal web RPC protocol.
+      </div>
+      <div>
+        🏛️ <b>Engineering & Creators:</b> Crafted with devotion by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); font-weight:700;">ABCsteps.com</a> (AI Engineering School) and <a href="https://github.com/div197" target="_blank" style="color:var(--text-main); font-weight:700;">Divyanshu Singh Chouhan (@div197)</a>.
+      </div>
+      <div style="background:rgba(255,255,255,0.03); border:1px solid var(--border-color); padding:10px 12px; border-radius:6px; font-size:0.78rem; color:var(--text-muted); line-height:1.45;">
+        ⚖️ <b>Legal Disclaimer:</b> This software is an independent, local developer tool created for research and protocol interoperability. It is <b>not affiliated with, endorsed by, sponsored by, or claiming ownership of Google LLC, Alphabet Inc., OpenAI, or Anthropic</b>. All brand names and trademarks belong strictly to their respective owners.
+      </div>
+    </div>
+    <div class="dialog-actions">
+      <a href="https://github.com/div197/bob-gemini-free" target="_blank" class="dialog-btn-cancel" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">GitHub Repo</a>
+      <button class="dialog-btn-cancel" onclick="closeAboutModal()">Close</button>
     </div>
   </div>
 </div>
@@ -1452,12 +1503,22 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>C</kbd>
       </div>
+      <div class="cmd-item" data-type="action" onclick="openAboutModal(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">ⓘ</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">About BOB Gemini Free</span>
+            <span class="cmd-item-desc">Creators, ABCsteps & Legal Disclaimers</span>
+          </div>
+        </div>
+        <kbd>A</kbd>
+      </div>
     </div>
   </div>
 </div>
 
 <header>
-  <div class="brand-anchor">
+  <div class="brand-anchor" onclick="openAboutModal()" title="View About & Credits">
     <!-- Pure Typographic Wordmark (Zero Static Icon Clutter) -->
     <div class="brand-headings">
       <div class="brand-title">
@@ -1583,8 +1644,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             <button class="footer-action-btn" type="button" onclick="toggleCmdPalette()" title="Open quick command palette">
               <span id="footer-cmd-label">⌘K Quick Menu</span>
             </button>
+            <button class="footer-action-btn" type="button" onclick="openAboutModal()" title="View project credits & legal disclaimers">
+              <span>ⓘ About</span>
+            </button>
           </div>
-          <span>🔒 <b>Responsible Privacy:</b> Google web RPC safety screening. <b>100% Free</b></span>
+          <div class="footer-credits">
+            <span>Crafted by <a href="https://abcsteps.com" target="_blank" style="color:var(--accent-primary); text-decoration:none; font-weight:700;">ABCsteps.com</a> & <a href="https://github.com/div197/bob-gemini-free" target="_blank" style="color:var(--text-main); text-decoration:none; font-weight:700;">@div197</a> • Independent local research gateway. Not affiliated with Google or Gemini.</span>
+          </div>
         </div>
       </div>
     </div>
@@ -1660,7 +1726,7 @@ function showToast(message, icon = "✦") {
   }, 2400);
 }
 
-/* Modern 2026 Confirm Modal */
+/* Modern 2026 Confirm Modal with Auto-Focus and Key Binding */
 function openConfirmModal(opts) {
   const modal = document.getElementById("confirm-modal");
   document.getElementById("dialog-icon").innerText = opts.icon || "⚠️";
@@ -1672,12 +1738,15 @@ function openConfirmModal(opts) {
   
   pendingConfirmCallback = opts.onConfirm || null;
   modal.classList.add("open");
+  setTimeout(() => btn.focus(), 60);
 }
 
 function closeConfirmModal() {
   const modal = document.getElementById("confirm-modal");
   modal.classList.remove("open");
   pendingConfirmCallback = null;
+  const input = document.getElementById("user-input");
+  if (input) input.focus();
 }
 
 function executeConfirmAction() {
@@ -1685,6 +1754,16 @@ function executeConfirmAction() {
     pendingConfirmCallback();
   }
   closeConfirmModal();
+}
+
+function openAboutModal() {
+  const modal = document.getElementById("about-modal");
+  if (modal) modal.classList.add("open");
+}
+
+function closeAboutModal() {
+  const modal = document.getElementById("about-modal");
+  if (modal) modal.classList.remove("open");
 }
 
 function closeAllSidebars() {
@@ -1793,7 +1872,6 @@ function handleCmdKeyDown(e) {
 
   // Quick number keys 1-5 for model switching
   if (['1', '2', '3', '4', '5'].includes(e.key) && !e.metaKey && !e.ctrlKey) {
-    const modelItem = document.querySelector(`#cmd-items .cmd-item[data-type="model"] kbd`);
     const targetItem = Array.from(document.querySelectorAll('#cmd-items .cmd-item[data-type="model"]')).find(el => {
       const k = el.querySelector('kbd');
       return k && k.innerText === e.key;
@@ -1917,12 +1995,17 @@ function handleKeyDown(e) {
   }
   if (e.key === 'Escape') {
     const confirmModal = document.getElementById("confirm-modal");
-    if (confirmModal.classList.contains("open")) {
+    if (confirmModal && confirmModal.classList.contains("open")) {
       closeConfirmModal();
       return;
     }
+    const aboutModal = document.getElementById("about-modal");
+    if (aboutModal && aboutModal.classList.contains("open")) {
+      closeAboutModal();
+      return;
+    }
     const modal = document.getElementById("cmd-modal");
-    if (modal.classList.contains("open")) {
+    if (modal && modal.classList.contains("open")) {
       toggleCmdPalette();
       return;
     }
@@ -1933,7 +2016,33 @@ function handleKeyDown(e) {
   }
 }
 
+// Global Key Listeners for Modals and Shortcuts
 document.addEventListener("keydown", (e) => {
+  const confirmModal = document.getElementById("confirm-modal");
+  if (confirmModal && confirmModal.classList.contains("open")) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      executeConfirmAction();
+      return;
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeConfirmModal();
+      return;
+    }
+    return;
+  }
+
+  const aboutModal = document.getElementById("about-modal");
+  if (aboutModal && aboutModal.classList.contains("open")) {
+    if (e.key === 'Escape' || e.key === 'Enter') {
+      e.preventDefault();
+      closeAboutModal();
+      return;
+    }
+    return;
+  }
+
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     toggleCmdPalette();
