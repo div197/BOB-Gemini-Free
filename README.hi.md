@@ -23,7 +23,10 @@
 
 **BOB Gemini Free** (बॉब जेमिनी फ्री), [**ABCsteps.com**](https://abcsteps.com/) — **दिव्यांशु सिंह चौहान** ([@div197](https://github.com/div197)) द्वारा स्थापित ऑनलाइन एआई इंजीनियरिंग स्कूल — की **BOB सीरीज़** (*Break Ordinary Boundaries*) का एक प्रमुख उत्पाद है।
 
-यह एक हाई-परफॉर्मेंस, सिंगल-फाइल Go गेटवे है जो गूगल जेमिनी के वेब इंटरफ़ेस को स्टैंडर्ड **OpenAI-कम्पैटिबल** (`/v1/chat/completions`, `/v1/models`, `/v1/responses`) और **Gemini-नेटिव** (`/v1beta/models`) API एंडपॉइंट्स में बदल देता है।
+यह एक हाई-परफॉर्मेंस, सिंगल-फाइल Go गेटवे है जो गूगल जेमिनी के वेब इंटरफ़ेस को **यूनिवर्सल 3-इन-1 AI गेटवे इंजन** में बदल देता है:
+* **OpenAI स्टैंडर्ड**: `/v1/chat/completions`, `/v1/models`, `/v1/models/{model}`, और `/v1/responses` (OpenAI Codex CLI व एजेंट्स)।
+* **Anthropic स्टैंडर्ड**: `/v1/messages` (Claude Code CLI व Anthropic SDKs)।
+* **Google Gemini स्टैंडर्ड**: `/v1beta/models` व `/v1beta/models/{target}` (Gemini CLI व Google GenAI SDKs)।
 
 ---
 
@@ -32,15 +35,16 @@
 ABCsteps की **BOB सीरीज़** का उद्देश्य डेवलपर्स, छात्रों और एआई इंजीनियरों के लिए बिना किसी पेवॉल या महँगे सब्सक्रिप्शन के शक्तिशाली टूल्स और रनटाइम्स उपलब्ध कराना है:
 
 * 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — डेवलपर्स और एआई एजेंट्स के लिए डॉकर-फर्स्ट यूट्यूब डेटा इंजेक्शन और प्रोसेसिंग टूल।
-* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — गूगल जेमिनी वेब की पूरी शक्ति को OpenAI फॉर्मेट में अनलॉक करने वाला लोकल गेटवे।
+* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — OpenAI, Anthropic, और Gemini प्रोटोकॉल्स को सपोर्ट करने वाला हाई-परफॉर्मेंस गेटवे।
 
 ---
 
 ## मुख्य विशेषताएँ
 
 * **प्रत्येक जीमेल (Gmail) यूज़र के लिए मुफ़्त**: दुनिया के हर व्यक्ति के पास जीमेल के साथ जेमिनी का मुफ़्त एक्सेस होता है। यह गेटवे आपको बिना किसी अतिरिक्त शुल्क के Flash, Flash Lite और Deep Thinking (20,000+ अक्षरों की विस्तृत रीज़निंग) का उपयोग करने देता है।
+* **यूनिवर्सल 3-इन-1 प्रोटोकॉल**: OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, और Google GenAI SDKs के साथ सीधे कम्पैटिबल।
 * **Gemini Advanced ($20/माह) प्रो अनलॉक**: यदि आपके पास गूगल का पेड सब्सक्रिप्शन है, तो अपनी लोकल कुकी जोड़कर गूगल के फ्लैगशिप **Pro** मॉडल को एक्टिवेट करें।
-* **OpenAI ड्रॉप-इन रिप्लेसमेंट**: Cherry Studio, ChatBox, Codex CLI, Cursor, तथा OpenAI के Python / Node.js SDKs के साथ सीधे इस्तेमाल करें।
+* **OpenAI ड्रॉप-इन रिप्लेसमेंट**: Cherry Studio, ChatBox, Codex CLI, Cursor, Claude Code, तथा OpenAI / Anthropic के Python / Node.js SDKs के साथ सीधे इस्तेमाल करें।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — यह टूल ऑटोमैटिक कम्प्रेशन और गूगल के स्कॉटी रेज़्युमेबल अपलोड का उपयोग करता है।
 * **रीज़निंग कंट्रोल (`@think=N`)**: मॉडल नाम के आगे `@think=N` लगाकर सोचने की गहराई को नियंत्रित करें (`@think=0` = सबसे गहरी सोच, `@think=4` = तेज़ व संक्षिप्त उत्तर)।
 * **सुरक्षित व लोकल-फर्स्ट**: डिफ़ॉल्ट रूप से `127.0.0.1` पर बाइंड होता है, जिससे आपके क्रेडेंशियल्स पूरी तरह से आपके कंप्यूटर पर ही सुरक्षित रहते हैं।
