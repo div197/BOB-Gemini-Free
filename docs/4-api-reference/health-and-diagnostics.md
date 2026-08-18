@@ -14,7 +14,7 @@ curl http://127.0.0.1:8081/
 ```json
 {
   "status": "ok",
-  "version": "v0.1.1",
+  "version": "v0.1.2",
   "models": [
     "gemini-3.7-flash",
     "gemini-3.7-flash-thinking",
@@ -46,13 +46,13 @@ Query live metrics directly from your terminal:
     BOB Gemini Free - Live Gateway Telemetry & Status             
     Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
 ==================================================================
-  • Gateway Status:        ok (Version v0.1.1)
+  • Gateway Status:        ok (Version v0.1.2)
   • Target Gateway URL:    http://127.0.0.1:8081
   • Server Uptime:         3600 seconds (60.0 minutes)
   • Requests Served:       142 requests
   • Tokens Processed:      185420 tokens
   • Estimated USD Savings: $0.70 (vs commercial cloud APIs)
-  • Active Models Loaded:  48 models
+  • Active Models Loaded:  64 models
   • Cookie Pool Sessions:  3 total, 3 healthy
 ==================================================================
 ```
@@ -101,29 +101,3 @@ Run a load test with concurrent workers:
 - **99th Percentile Latency (P99)**
 - **Request Throughput (req/sec)**
 - **Token Generation Throughput (tokens/sec)**
-
----
-
-## 4. Live Gateway Telemetry & Status CLI (`--status`)
-
-Query live metrics, uptime, token throughput, and estimated dollar savings from any running BOB gateway directly from the terminal:
-
-```bash
-./bob-gemini-free --status --test-url http://127.0.0.1:8081
-```
-
-### Terminal Output:
-```text
-==================================================================
-    BOB Gemini Free - Live Gateway Telemetry & Status             
-    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
-==================================================================
-  • Gateway Status:        ok (Version v0.1.1)
-  • Target Gateway URL:    http://127.0.0.1:8081
-  • Server Uptime:         3600 seconds (60.0 minutes)
-  • Requests Served:       142 requests
-  • Tokens Processed:      185420 tokens
-  • Estimated USD Savings: $0.70 (vs commercial cloud APIs)
-  • Active Models Loaded:  64 models
-==================================================================
-```

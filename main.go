@@ -370,6 +370,7 @@ func main() {
 	fmt.Printf("  Author:      Divyanshu Singh Chouhan (@div197)\n")
 	fmt.Printf("  Listening:   http://%s:%d\n", cfg.Host, cfg.Port)
 	fmt.Printf("  Base URL:    http://localhost:%d/v1\n", cfg.Port)
+	fmt.Printf("  Playground:  http://localhost:%d/playground\n", cfg.Port)
 	fmt.Printf("  Models:      %s\n", strings.Join(modelKeys, ", "))
 	fmt.Printf("  Cookie:      %s\n", cookieStatus)
 	fmt.Printf("  Proxy:       %s\n", proxyStatus)

@@ -21,14 +21,14 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 - [**Connecting Cursor, Windsurf, & Continue.dev**](./3-ai-client-integrations/cursor-and-windsurf.md): Modern AI coding IDE setup.
 - [**Claude Code CLI (Anthropic Protocol)**](./3-ai-client-integrations/claude-code-cli.md): Anthropic Messages SSE streaming & reasoning blocks.
 - [**OpenAI Codex CLI (Responses API)**](./3-ai-client-integrations/openai-codex-cli.md): Terminal coding agent integration.
-- [**Deep Agentic Tools & Open-Source Agent Frameworks**](./3-ai-client-integrations/open-source-agents.md): Grok Build, OpenHands, Roo Code, Cline, Aider, and Goose.
+- [**Deep Agentic Tools & Open-Source Agent Frameworks**](./3-ai-client-integrations/grok-build-and-custom-agents.md): Grok Build, OpenHands, Roo Code, Cline, Aider, and Goose.
 
 ### 4. API Reference
 - [**OpenAI Standard Endpoints**](./4-api-reference/openai-endpoints.md): `/v1/chat/completions`, `/v1/models`, reasoning effort.
 - [**Anthropic Messages Protocol**](./4-api-reference/anthropic-endpoints.md): `/v1/messages`, thinking blocks lifecycle.
 - [**Google Native Gemini v1beta**](./4-api-reference/google-v1beta-endpoints.md): `/v1beta/models`, `/v1beta/models/{model}:generateContent`.
 - [**Image Generation: Imagen 3 & Gemini Nano Banana**](./4-api-reference/imagen-3-and-nano-banana.md): `/v1/images/generations`, photorealistic & native synthesis.
-- [**Health, Diagnostics & Benchmarking**](./4-api-reference/health-and-diagnostics.md): Health monitoring, 12-point diagnostic kit, stress benchmarks.
+- [**Health, Diagnostics & Benchmarking**](./4-api-reference/health-and-diagnostics.md): Health monitoring, 13-point diagnostic kit, stress benchmarks.
 
 ### 5. Embedded Go SDK
 - [**Embedded Go Library Guide (`pkg/gateway`)**](./5-embedded-sdk/go-library-guide.md): Embedding the gateway directly inside Go microservices.
