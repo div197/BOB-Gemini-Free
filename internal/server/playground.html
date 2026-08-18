@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Autonomous Niṣkāma Operational Precision & 2026-Era Glassmorphic Modal Engine
+  Universal Multi-Device Accessibility & 2026-Era Glassmorphic Modal Engine
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -611,7 +611,7 @@ select:focus, textarea:focus {
 
 /* 
   Spacious Sacred Geometry Studio Input Dock
-  Harmonic center alignment, sleek 44px button & input balance
+  Interactive Footer Action Buttons & Multi-Device Accessibility
 */
 .studio-input-area {
   position: absolute;
@@ -686,6 +686,7 @@ select:focus, textarea:focus {
 }
 .btn-pill-cta:disabled { opacity: 0.35; cursor: not-allowed; transform: none; box-shadow: none; }
 
+/* Interactive Clickable Action Buttons in Input Footer */
 .input-footer {
   display: flex;
   justify-content: space-between;
@@ -701,14 +702,26 @@ select:focus, textarea:focus {
   gap: 6px;
   align-items: center;
 }
-.footer-badge {
+.footer-action-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid var(--border-color);
-  padding: 1px 7px;
-  border-radius: 3px;
-  font-size: 0.66rem;
-  font-weight: 600;
   color: var(--text-muted);
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.footer-action-btn:hover {
+  background: var(--bg-card);
+  border-color: var(--accent-primary);
+  color: var(--text-main);
+  transform: translateY(-1px);
 }
 
 .scroll-bottom-pill {
@@ -1125,6 +1138,23 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   opacity: 0;
   transform: translateY(-8px) scale(0.92);
 }
+
+/* Responsive Breakpoints for Mobile & Tablet */
+@media (max-width: 900px) {
+  .telemetry-bar { display: none; }
+  .sidebar-panel {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    height: 100%;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
+  }
+  .sidebar-panel.right { right: 0; }
+  .starters-grid { grid-template-columns: 1fr; }
+  .hero-headline { font-size: 1.45rem; }
+  .sub-bar { padding: 6px 12px; }
+  .studio-input-area { padding: 8px 12px; }
+}
 </style>
 </head>
 <body>
@@ -1206,7 +1236,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <div class="header-controls">
     <button class="nav-pill-btn active" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">◧ Config</button>
     <button class="nav-pill-btn active" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">◨ Code</button>
-    <button class="nav-pill-btn" onclick="toggleCmdPalette()" title="Command Palette (Cmd+K)">⌘K Menu</button>
+    <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette">
+      <span id="cmd-menu-label">⌘K Menu</span>
+    </button>
 
     <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
       <option value="bob-builder" selected>🏗️ BOB Builder</option>
@@ -1295,9 +1327,15 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <div class="input-footer">
           <div class="footer-badges">
-            <span class="footer-badge">Shift+Enter ↵ Newline</span>
-            <span class="footer-badge">Enter ↵ Send</span>
-            <span class="footer-badge">⌘K Quick Menu</span>
+            <button class="footer-action-btn" type="button" onclick="insertNewline()" title="Insert line break into prompt">
+              <span>Shift+Enter ↵</span> <span>Newline</span>
+            </button>
+            <button class="footer-action-btn" type="button" onclick="sendMessage()" title="Send prompt message">
+              <span>Enter ↵</span> <span>Send</span>
+            </button>
+            <button class="footer-action-btn" type="button" onclick="toggleCmdPalette()" title="Open quick command palette">
+              <span id="footer-cmd-label">⌘K Quick Menu</span>
+            </button>
           </div>
           <span>🔒 <b>Responsible Privacy:</b> Google web RPC safety screening. <b>100% Free</b></span>
         </div>
@@ -1346,6 +1384,18 @@ const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
 const PANEL_LEFT_KEY = "bob_gemini_panel_left";
 const PANEL_RIGHT_KEY = "bob_gemini_panel_right";
+
+/* Platform-aware Shortcut Detection (Mac vs Windows/Linux/Mobile) */
+function initPlatformShortcuts() {
+  const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+  const shortcutKey = isMac ? "⌘K" : "Ctrl+K";
+  
+  const menuLabel = document.getElementById("cmd-menu-label");
+  if (menuLabel) menuLabel.innerText = shortcutKey + " Menu";
+
+  const footerLabel = document.getElementById("footer-cmd-label");
+  if (footerLabel) footerLabel.innerText = shortcutKey + " Quick Menu";
+}
 
 /* Modern 2026 Toast System */
 function showToast(message, icon = "✦") {
@@ -1514,6 +1564,17 @@ function scrollToBottom() {
 function autoResize(el) {
   el.style.height = 'auto';
   el.style.height = Math.min(Math.max(el.scrollHeight, 44), 160) + 'px';
+}
+
+function insertNewline() {
+  const el = document.getElementById("user-input");
+  const start = el.selectionStart;
+  const end = el.selectionEnd;
+  const val = el.value;
+  el.value = val.substring(0, start) + "\n" + val.substring(end);
+  el.selectionStart = el.selectionEnd = start + 1;
+  autoResize(el);
+  el.focus();
 }
 
 function handleKeyDown(e) {
@@ -1895,6 +1956,7 @@ function renderMessages() {
   }
 }
 
+initPlatformShortcuts();
 initTheme();
 initPanels();
 loadHistory();
