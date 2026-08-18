@@ -2,10 +2,13 @@ package server
 
 import (
 	"crypto/subtle"
+	"fmt"
 	"net"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/div197/bob-gemini-free/internal/format"
 )
 
 type loggingResponseWriter struct {
@@ -90,6 +93,17 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		start := time.Now()
 		lrw := newLoggingResponseWriter(w)
 
+		// Set standard request metadata and rate limit headers
+		reqID := r.Header.Get("X-Client-Request-Id")
+		if reqID == "" {
+			reqID = fmt.Sprintf("req_%s", format.RandHex(16))
+		}
+		w.Header().Set("x-request-id", reqID)
+		w.Header().Set("openai-version", "2020-10-01")
+		w.Header().Set("x-ratelimit-limit-requests", "1000")
+		w.Header().Set("x-ratelimit-remaining-requests", "999")
+		w.Header().Set("x-ratelimit-reset-requests", "1s")
+
 		if len(a.Cfg.APIKeys) > 0 && !authorize(r, a.Cfg.APIKeys) {
 			writeJSON(lrw, http.StatusUnauthorized, map[string]any{
 				"error": map[string]any{
@@ -101,7 +115,9 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		}
 
 		next.ServeHTTP(lrw, r)
-		a.logRequest(r, lrw.statusCode, time.Since(start))
+		duration := time.Since(start)
+		w.Header().Set("openai-processing-ms", fmt.Sprintf("%d", duration.Milliseconds()))
+		a.logRequest(r, lrw.statusCode, duration)
 	})
 }
 
