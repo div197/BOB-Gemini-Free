@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/bob-gemini-free-banner.jpg" alt="BOB Gemini Free Banner" width="100%">
+</p>
+
 # BOB Gemini Free (बॉब जेमिनी फ्री)
 
 <p align="center">
