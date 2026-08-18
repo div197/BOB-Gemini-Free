@@ -59,6 +59,9 @@ go test -count=1 ./...
 # Run built-in diagnostic test suite against running gateway
 ./bob-gemini-free --test --test-url http://127.0.0.1:8081
 
+# Query live status, uptime, requests, and financial savings
+./bob-gemini-free --status --test-url http://127.0.0.1:8081
+
 # Run concurrency benchmark
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
 ```

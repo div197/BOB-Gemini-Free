@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"context"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -153,6 +154,46 @@ func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
 	os.Exit(0)
 }
 
+func handleStatus(targetURL string) {
+	client := &http.Client{Timeout: 5 * time.Second}
+	resp, err := client.Get(targetURL + "/")
+	if err != nil {
+		fmt.Printf("❌ Failed to reach running BOB Gemini Free gateway at %s: %v\n", targetURL, err)
+		os.Exit(1)
+	}
+	defer resp.Body.Close()
+
+	var data struct {
+		Status              string   `json:"status"`
+		Version             string   `json:"version"`
+		Models              []string `json:"models"`
+		RequestsServed      uint64   `json:"requests_served"`
+		TokensProcessed     uint64   `json:"tokens_processed"`
+		EstimatedSavingsUSD string   `json:"estimated_savings_usd"`
+		UptimeSeconds       int      `json:"uptime_seconds"`
+	}
+
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		fmt.Printf("❌ Failed to parse status response: %v\n", err)
+		os.Exit(1)
+	}
+
+	fmt.Println("==================================================================")
+	fmt.Println("    BOB Gemini Free - Live Gateway Telemetry & Status             ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
+	fmt.Println("==================================================================")
+	fmt.Printf("  • Gateway Status:        %s (Version %s)\n", data.Status, data.Version)
+	fmt.Printf("  • Target Gateway URL:    %s\n", targetURL)
+	fmt.Printf("  • Server Uptime:         %d seconds (%.1f minutes)\n", data.UptimeSeconds, float64(data.UptimeSeconds)/60.0)
+	fmt.Printf("  • Requests Served:       %d requests\n", data.RequestsServed)
+	fmt.Printf("  • Tokens Processed:      %d tokens\n", data.TokensProcessed)
+	fmt.Printf("  • Estimated USD Savings: %s (vs commercial cloud APIs)\n", data.EstimatedSavingsUSD)
+	fmt.Printf("  • Active Models Loaded:  %d models\n", len(data.Models))
+	fmt.Println("==================================================================")
+	fmt.Println()
+	os.Exit(0)
+}
+
 func handleCookieSetup(rawInput string) {
 	fmt.Println("================================================================")
 	fmt.Println("    BOB Gemini Free - Automated Cookie Setup Helper             ")
@@ -236,6 +277,7 @@ func main() {
 	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper (paste prompt)")
 	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
 	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
+	statusFlag := flag.Bool("status", false, "Query live telemetry, uptime, and financial savings from a running gateway")
 	testURLFlag := flag.String("test-url", "http://127.0.0.1:8081", "Target gateway URL for diagnostic tests")
 	testKeyFlag := flag.String("test-key", "", "API key to use for diagnostic tests")
 	benchFlag := flag.Bool("bench", false, "Run performance and throughput benchmark against a running gateway")
@@ -247,6 +289,10 @@ func main() {
 	if *versionFlag {
 		fmt.Printf("BOB-Gemini-Free %s (Break Ordinary Boundaries by ABCsteps - https://abcsteps.com)\n", currentVersion)
 		os.Exit(0)
+	}
+
+	if *statusFlag {
+		handleStatus(*testURLFlag)
 	}
 
 	if *loginFlag {

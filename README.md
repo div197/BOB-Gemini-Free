@@ -183,18 +183,30 @@ Verify every endpoint, streaming chunk, reasoning model, and API format with the
 ```
 
 ```text
-[1/9] [✔ PASS] Gateway Engine Health (GET /) (5ms)
-[2/9] [✔ PASS] OpenAI Models Registry (GET /v1/models) (0s)
-[3/9] [✔ PASS] Single Model Lookup (GET /v1/models/gemini-3.7-flash) (0s)
-[4/9] [✔ PASS] Gemini 3.7 Flash Fast Completion (4.0s)
-[5/9] [✔ PASS] Gemini 3.7 Flash Deep Reasoning (8.3s)
-[6/9] [✔ PASS] Real-time SSE Delta Stream & Usage (1.5s)
-[7/9] [✔ PASS] Developer Role & JSON Output Enforcement (3.9s)
-[8/9] [✔ PASS] Google Native Gemini API Format (3.5s)
-[9/9] [✔ PASS] OpenAI Codex CLI Responses API Format (3.5s)
+[1/13]  [✔ PASS] Gateway Engine Health (GET /) (5ms)
+[2/13]  [✔ PASS] OpenAI Models Registry (GET /v1/models) (0s)
+[3/13]  [✔ PASS] Single Model Lookup (GET /v1/models/gemini-3.7-flash) (0s)
+[4/13]  [✔ PASS] Gemini 3.7 Flash Fast Completion (3.0s)
+[5/13]  [✔ PASS] Gemini 3.7 Flash Deep Reasoning (8.3s)
+[6/13]  [✔ PASS] Real-time SSE Delta Stream & Usage (1.5s)
+[7/13]  [✔ PASS] Developer Role & JSON Output Enforcement (3.9s)
+[8/13]  [✔ PASS] Google Native Gemini API Format (3.5s)
+[9/13]  [✔ PASS] OpenAI Codex CLI Responses API Format (3.5s)
+[10/13] [✔ PASS] Anthropic Messages API Protocol (POST /v1/messages) (3.2s)
+[11/13] [✔ PASS] OpenAI Function Calling & Tool Invocation (4.1s)
+[12/13] [✔ PASS] Image Generation & Gemini Nano Banana Pipeline (3.8s)
+[13/13] [✔ PASS] Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count) (1ms)
 ==================================================================
-    ALL 9 DIAGNOSTIC CHECKS PASSED (100% SUCCESS)
+    ALL 13 DIAGNOSTIC CHECKS PASSED (100% SUCCESS)
 ==================================================================
+```
+
+### Live Status & Telemetry CLI (`--status`)
+
+Query live metrics, token throughput, and estimated dollar savings from any running gateway directly in the terminal:
+
+```bash
+./bob-gemini-free --status
 ```
 
 ---
