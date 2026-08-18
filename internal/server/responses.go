@@ -88,38 +88,24 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
-	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
-		return
-	}
-
 	strChoice, isStr := toolChoice.(string)
 	isToolNone := isStr && strChoice == "none"
 
-	var toolCalls []models.OpenAIToolCall
-	if len(reqTools) > 0 && text != "" && !isToolNone {
-		text, toolCalls = format.ParseToolCalls(text)
-	}
-
 	rid := fmt.Sprintf("resp_%s", format.RandHex(16))
 	mid := fmt.Sprintf("msg_%s", format.RandHex(12))
-
-	outputItems := format.BuildResponseOutput(text, toolCalls, mid)
-
 	stream, _ := req["stream"].(bool)
 	promptTokens := format.EstimateTokens(prompt)
-	outputTokens := format.EstimateTokens(text)
-	if outputTokens == 0 {
-		outputTokens = 1
-	}
 
-	if stream {
+	a.RequestsServed.Add(1)
+
+	// --- Real-time streaming path (no tools) ---
+	if stream && (len(reqTools) == 0 || isToolNone) {
 		if !startSSE(w) {
 			return
 		}
 
-		evCreated := map[string]any{
+		// 1. response.created
+		_ = writeSSEEvent(w, "response.created", map[string]any{
 			"type": "response.created",
 			"response": map[string]any{
 				"id":     rid,
@@ -128,51 +114,189 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 				"model":  resolved.Name,
 				"output": []any{},
 			},
-		}
-		_ = writeSSEEvent(w, "response.created", evCreated)
+		})
 
+		// 2. output_item.added (message item)
+		itemID := fmt.Sprintf("item_%s", format.RandHex(8))
+		_ = writeSSEEvent(w, "response.output_item.added", map[string]any{
+			"type":            "response.output_item.added",
+			"output_index":    0,
+			"item": map[string]any{
+				"id":      itemID,
+				"type":    "message",
+				"role":    "assistant",
+				"status":  "in_progress",
+				"content": []any{},
+			},
+		})
+
+		// 3. content_part.added
+		_ = writeSSEEvent(w, "response.content_part.added", map[string]any{
+			"type":          "response.content_part.added",
+			"item_id":       itemID,
+			"output_index":  0,
+			"content_index": 0,
+			"part": map[string]any{
+				"type": "output_text",
+				"text": "",
+			},
+		})
+
+		// 4. Real-time delta stream
+		var fullStreamText string
+		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra, func(delta string) error {
+			fullStreamText += delta
+			return writeSSEEvent(w, "response.output_text.delta", map[string]any{
+				"type":          "response.output_text.delta",
+				"item_id":       itemID,
+				"output_index":  0,
+				"content_index": 0,
+				"delta":         delta,
+			})
+		})
+		if streamErr != nil {
+			_ = writeSSEEvent(w, "error", map[string]any{
+				"type":    "error",
+				"message": streamErr.Error(),
+			})
+			return
+		}
+
+		outputTokens := format.EstimateTokens(fullStreamText)
+		if outputTokens == 0 {
+			outputTokens = 1
+		}
+		a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+
+		// 5. content_part.done
+		_ = writeSSEEvent(w, "response.content_part.done", map[string]any{
+			"type":          "response.content_part.done",
+			"item_id":       itemID,
+			"output_index":  0,
+			"content_index": 0,
+			"part": map[string]any{
+				"type": "output_text",
+				"text": fullStreamText,
+			},
+		})
+
+		// 6. output_text.done
+		_ = writeSSEEvent(w, "response.output_text.done", map[string]any{
+			"type":          "response.output_text.done",
+			"item_id":       itemID,
+			"output_index":  0,
+			"content_index": 0,
+			"text":          fullStreamText,
+		})
+
+		// 7. output_item.done
+		_ = writeSSEEvent(w, "response.output_item.done", map[string]any{
+			"type":         "response.output_item.done",
+			"output_index": 0,
+			"item": map[string]any{
+				"id":     itemID,
+				"type":   "message",
+				"role":   "assistant",
+				"status": "completed",
+				"content": []map[string]any{
+					{"type": "output_text", "text": fullStreamText},
+				},
+			},
+		})
+
+		// 8. response.completed
+		outputItems := format.BuildResponseOutput(fullStreamText, nil, mid)
+		_ = writeSSEEvent(w, "response.completed", map[string]any{
+			"type": "response.completed",
+			"response": map[string]any{
+				"id":          rid,
+				"object":      "response",
+				"status":      "completed",
+				"model":       resolved.Name,
+				"output":      outputItems,
+				"output_text": fullStreamText,
+				"usage": map[string]any{
+					"input_tokens":  promptTokens,
+					"output_tokens": outputTokens,
+					"total_tokens":  promptTokens + outputTokens,
+				},
+			},
+		})
+		return
+	}
+
+	// --- Non-streaming path (or streaming with tools: buffer then replay) ---
+	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		return
+	}
+
+	var toolCalls []models.OpenAIToolCall
+	if len(reqTools) > 0 && text != "" && !isToolNone {
+		text, toolCalls = format.ParseToolCalls(text)
+	}
+
+	outputItems := format.BuildResponseOutput(text, toolCalls, mid)
+	outputTokens := format.EstimateTokens(text)
+	if outputTokens == 0 {
+		outputTokens = 1
+	}
+	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+
+	if stream {
+		// Tool-call streaming: replay synchronously after buffering
+		if !startSSE(w) {
+			return
+		}
+		_ = writeSSEEvent(w, "response.created", map[string]any{
+			"type": "response.created",
+			"response": map[string]any{
+				"id":     rid,
+				"object": "response",
+				"status": "in_progress",
+				"model":  resolved.Name,
+				"output": []any{},
+			},
+		})
 		for _, item := range outputItems {
 			iType, _ := item["type"].(string)
 			if iType == "function_call" {
-				evDone := map[string]any{
+				_ = writeSSEEvent(w, "response.function_call_arguments.done", map[string]any{
 					"type":      "response.function_call_arguments.done",
 					"item_id":   item["id"],
 					"call_id":   item["call_id"],
 					"name":      item["name"],
 					"arguments": item["arguments"],
-				}
-				_ = writeSSEEvent(w, "response.function_call_arguments.done", evDone)
+				})
 			} else if iType == "message" {
 				if content, ok := item["content"].([]map[string]any); ok {
 					for ci, cp := range content {
-						evDone := map[string]any{
+						_ = writeSSEEvent(w, "response.output_text.done", map[string]any{
 							"type":          "response.output_text.done",
 							"item_id":       item["id"],
 							"content_index": ci,
 							"text":          cp["text"],
-						}
-						_ = writeSSEEvent(w, "response.output_text.done", evDone)
+						})
 					}
 				}
 			}
 		}
-
-		respObj := map[string]any{
-			"id":          rid,
-			"object":      "response",
-			"status":      "completed",
-			"model":       resolved.Name,
-			"output":      outputItems,
-			"output_text": text,
-			"usage": map[string]any{
-				"input_tokens":  promptTokens,
-				"output_tokens": outputTokens,
-				"total_tokens":  promptTokens + outputTokens,
-			},
-		}
 		_ = writeSSEEvent(w, "response.completed", map[string]any{
-			"type":     "response.completed",
-			"response": respObj,
+			"type": "response.completed",
+			"response": map[string]any{
+				"id":          rid,
+				"object":      "response",
+				"status":      "completed",
+				"model":       resolved.Name,
+				"output":      outputItems,
+				"output_text": text,
+				"usage": map[string]any{
+					"input_tokens":  promptTokens,
+					"output_tokens": outputTokens,
+					"total_tokens":  promptTokens + outputTokens,
+				},
+			},
 		})
 	} else {
 		writeJSON(w, http.StatusOK, map[string]any{

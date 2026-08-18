@@ -165,6 +165,12 @@ func Load(path string) (Config, error) {
 			cfg.APIKeys = keys
 		}
 	}
+	if envModel := os.Getenv("BOB_GEMINI_FREE_DEFAULT_MODEL"); envModel != "" {
+		cfg.DefaultModel = envModel
+	}
+	if envAuthUser := os.Getenv("BOB_GEMINI_FREE_AUTH_USER"); envAuthUser != "" {
+		cfg.AuthUser = envAuthUser
+	}
 
 	return cfg, nil
 }

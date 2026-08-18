@@ -99,11 +99,25 @@ func (p *CookiePool) LoadFromDirectory(dir string) int {
 	return p.LoadFromFiles(files)
 }
 
-// Count returns the number of sessions in the pool.
+// Count returns the total number of sessions in the pool.
 func (p *CookiePool) Count() int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return len(p.sessions)
+}
+
+// CountHealthy returns the number of active sessions not currently in a 60s failure cooldown.
+func (p *CookiePool) CountHealthy() int {
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	now := time.Now()
+	healthy := 0
+	for _, s := range p.sessions {
+		if s.Active && now.Sub(s.LastFailure) > 60*time.Second {
+			healthy++
+		}
+	}
+	return healthy
 }
 
 // GetHealthySession selects the next healthy session using round-robin.

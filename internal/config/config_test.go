@@ -76,3 +76,25 @@ func TestFindCookie(t *testing.T) {
 		t.Errorf("expected %s, got %s", cookieFile, cfg.CookieFile)
 	}
 }
+
+func TestEnvVarDefaultModel(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_DEFAULT_MODEL", "gemini-3.7-flash")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.DefaultModel != "gemini-3.7-flash" {
+		t.Errorf("expected gemini-3.7-flash from env, got %s", cfg.DefaultModel)
+	}
+}
+
+func TestEnvVarAuthUser(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_AUTH_USER", "1")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.AuthUser != "1" {
+		t.Errorf("expected auth_user 1 from env, got %s", cfg.AuthUser)
+	}
+}

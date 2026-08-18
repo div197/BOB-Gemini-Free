@@ -112,8 +112,8 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if emitErr == nil {
-			promptTokens := len(prompt) / 4
-			candidatesTokens := len(fullText) / 4
+			promptTokens := format.EstimateTokens(prompt)
+			candidatesTokens := format.EstimateTokens(fullText)
 			finalChunk := models.GoogleGenerateResponse{
 				Candidates: []models.GoogleCandidate{
 					{
@@ -167,8 +167,8 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		responseParts = append(responseParts, models.GooglePart{Text: fallbackText})
 	}
 
-	promptTokens := len(prompt) / 4
-	candidatesTokens := len(text) / 4
+	promptTokens := format.EstimateTokens(prompt)
+	candidatesTokens := format.EstimateTokens(text)
 
 	responseObj := models.GoogleGenerateResponse{
 		Candidates: []models.GoogleCandidate{

@@ -69,9 +69,9 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		var totalDeltaChars int
+		var fullStreamText string
 		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
-			totalDeltaChars += len(delta)
+			fullStreamText += delta
 			chunk := models.OpenAIChatResponse{
 				ID:                cid,
 				Object:            "chat.completion.chunk",
@@ -92,8 +92,37 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if emitErr == nil {
+			// Extract thinking from the accumulated stream text (if model emitted a thought block)
+			thinking, cleanStreamText := format.ExtractThinking(fullStreamText)
+
+			// If thinking was found, emit a preceding reasoning_content delta chunk
+			if thinking != "" {
+				thinkChunk := models.OpenAIChatResponse{
+					ID:                cid,
+					Object:            "chat.completion.chunk",
+					Created:           time.Now().Unix(),
+					Model:             resolved.Name,
+					SystemFingerprint: "fp_bob_gemini",
+					Choices: []models.OpenAIChoice{
+						{
+							Index: 0,
+							Delta: &models.OpenAIMessage{
+								ReasoningContent: thinking,
+							},
+							FinishReason: nil,
+						},
+					},
+				}
+				_ = writeSSEData(w, thinkChunk)
+			}
+
 			pTokens := format.EstimateTokens(prompt)
-			cTokens := totalDeltaChars / 4
+			cTokens := format.EstimateTokens(cleanStreamText)
+			var rTokens int
+			if thinking != "" {
+				rTokens = format.EstimateTokens(thinking)
+				cTokens += rTokens
+			}
 			if cTokens == 0 {
 				cTokens = 1
 			}
@@ -117,6 +146,16 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			_ = writeSSEData(w, endChunk)
 
 			if req.StreamOptions != nil && req.StreamOptions.IncludeUsage {
+				usage := &models.OpenAIUsage{
+					PromptTokens:     pTokens,
+					CompletionTokens: cTokens,
+					TotalTokens:      pTokens + cTokens,
+				}
+				if rTokens > 0 {
+					usage.CompletionTokensDetails = &models.CompletionTokensDetails{
+						ReasoningTokens: rTokens,
+					}
+				}
 				usageChunk := models.OpenAIChatResponse{
 					ID:                cid,
 					Object:            "chat.completion.chunk",
@@ -124,11 +163,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 					Model:             resolved.Name,
 					SystemFingerprint: "fp_bob_gemini",
 					Choices:           []models.OpenAIChoice{},
-					Usage: &models.OpenAIUsage{
-						PromptTokens:     pTokens,
-						CompletionTokens: cTokens,
-						TotalTokens:      pTokens + cTokens,
-					},
+					Usage:             usage,
 				}
 				_ = writeSSEData(w, usageChunk)
 			}

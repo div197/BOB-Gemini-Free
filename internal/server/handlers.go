@@ -25,6 +25,8 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 	reqs := a.RequestsServed.Load()
 	tokens := a.TokensProcessed.Load()
 	savingsUSD := fmt.Sprintf("$%.2f", float64(tokens)/1_000_000.0*3.75)
+	poolTotal := a.Gem.Pool.Count()
+	poolHealthy := a.Gem.Pool.CountHealthy()
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":                "ok",
@@ -34,6 +36,8 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"tokens_processed":      tokens,
 		"estimated_savings_usd": savingsUSD,
 		"uptime_seconds":        int(time.Since(a.StartTime).Seconds()),
+		"pool_sessions_total":   poolTotal,
+		"pool_sessions_healthy": poolHealthy,
 	})
 }
 

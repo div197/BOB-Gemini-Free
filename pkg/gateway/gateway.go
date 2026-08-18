@@ -3,6 +3,7 @@ package gateway
 import (
 	"context"
 	"net/http"
+	"runtime/debug"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -82,6 +83,42 @@ func WithLogRequests(enabled bool) Option {
 	}
 }
 
+// resolveEngineVersion returns the build-time module version, falling back to "dev".
+func resolveEngineVersion(override string) string {
+	if override != "" {
+		return override
+	}
+	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
+		return info.Main.Version
+	}
+	return "dev"
+}
+
+// EngineConfig holds engine-level settings that go beyond config.Config.
+type EngineConfig struct {
+	cfg     config.Config
+	version string
+}
+
+// EngineOption configures the engine at creation time (superset of Option).
+// All existing Option values remain compatible via ApplyOption.
+type EngineOption func(*EngineConfig)
+
+// applyOption wraps a plain Option as an EngineOption.
+func applyOption(opt Option) EngineOption {
+	return func(ec *EngineConfig) { opt(&ec.cfg) }
+}
+
+// WithVersion sets an explicit version string reported by the health endpoint.
+// When omitted, the version is resolved from Go build info automatically.
+func WithVersion(v string) Option {
+	return func(c *config.Config) {
+		// Marker: version stored separately in NewEngine via EngineConfig.
+		// Encode as a no-op config mutation; the actual capture happens below.
+		c.XSRFToken = "__version__:" + v
+	}
+}
+
 // Engine represents an embedded in-process Gemini inference engine.
 type Engine struct {
 	app *server.App
@@ -90,10 +127,18 @@ type Engine struct {
 // NewEngine creates an embedded in-process engine for direct programmatic Go inference.
 func NewEngine(opts ...Option) *Engine {
 	cfg := config.Default()
+	var versionOverride string
 	for _, opt := range opts {
 		opt(&cfg)
 	}
-	app := server.New(cfg, "v0.1.1")
+	// Extract version if WithVersion was called (encoded as XSRFToken sentinel).
+	const versionPrefix = "__version__:"
+	if len(cfg.XSRFToken) > len(versionPrefix) && cfg.XSRFToken[:len(versionPrefix)] == versionPrefix {
+		versionOverride = cfg.XSRFToken[len(versionPrefix):]
+		cfg.XSRFToken = "" // clear sentinel
+	}
+	version := resolveEngineVersion(versionOverride)
+	app := server.New(cfg, version)
 	return &Engine{app: app}
 }
 
