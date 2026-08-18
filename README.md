@@ -204,25 +204,37 @@ export GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8081
 gemini
 ```
 
+## Deep Architectural Comparison: Google AI Studio vs. BOB Gemini Free
+
+### Official Limits & Feature Matrix (Free Tier Without Paid Billing)
+
+| Dimension / Metric | Google AI Studio (Free Tier) | **BOB Gemini Free (Local Gateway Engine)** |
+| :--- | :--- | :--- |
+| **Flash Daily Limit (RPD)** | **1,500 Requests / Day** (Hard daily shutoff) | **Practically Unlimited Interactive Queries** |
+| **Flash Rate Limits (RPM)** | **15 Requests / Minute** (`429 RESOURCE_EXHAUSTED`) | **High-Throughput Web Session (30+ RPM burst)** |
+| **Flash Token Rate (TPM)** | 1,000,000 Tokens / Minute | Stream-buffered interactive throughput |
+| **Pro Daily Limit (RPD)** | **50 Requests / Day** (Punishing hard cap) | **Essentially Unlimited Pro Queries** *(with Advanced cookie)* |
+| **Pro Rate Limits (RPM)** | **2 Requests / Minute** (Severe throttling) | **Standard interactive web concurrency** |
+| **Thinking Reasoning Depth** | Restricted / suppressed on free keys | **20,000+ characters of deep step-by-step reasoning** |
+| **OpenAI Protocol Support** | ❌ None (Requires custom SDK / glue code) | **✅ 100% Native Drop-In (`/v1/chat/completions`, `/v1/responses`)** |
+| **Developer Role Support** | ❌ None | **✅ Full OpenAI `developer` & `system` role parsing** |
+| **Reasoning Tokens Export** | ❌ Proprietary format | **✅ Standard `reasoning_content` (renders cards in Cursor/OpenWebUI)** |
+| **Data Training & Logging** | ⚠️ **Logged and reviewed by Google reviewers for training** | **🛡️ 100% Local Gateway (Bound to `127.0.0.1`, zero telemetry)** |
+| **Setup Friction** | Cloud console, project creation, API key rotation | **Zero config: `./bob-gemini-free` and start coding** |
+| **Total Financial Cost** | $0 (until throttled) or paid per-token bill | **100% Free forever** |
+
 ---
 
-## Rate Limits, Throughput & Concurrency Guide
+### Ultimate Maximum Limits & Operational Thresholds
 
-### Why BOB Gemini Free Outperforms AI Studio Free Tier
+To achieve maximum stability and zero upstream rate limiting, follow these empirical thresholds:
 
-| Feature / Metric | Google AI Studio (Free Tier) | **BOB Gemini Free (Local Gateway)** |
-| :--- | :--- | :--- |
-| **Daily Request Ceiling** | Strict daily quota (hard shutoff) | **Essentially unlimited interactive queries** |
-| **Rate Limits (RPM)** | 15 RPM (Requests Per Minute) | High-throughput web session |
-| **Thinking Tokens** | Restricted on free tier | **20,000+ characters of deep step-by-step reasoning** |
-| **API Cost** | Free tier or expensive paid tokens | **100% Free** |
-| **OpenAI Compatibility** | Requires custom SDK code | **100% Drop-in OpenAI & Responses API standard** |
-| **Privacy / Execution** | Cloud API logs | **Local binary (runs strictly on your machine)** |
-
-### Recommended Concurrency Guidelines
-
-- **Standard Workloads (Flash 3.7 / Flash 3.6)**: **3 to 5 concurrent streams** per local instance.
-- **Deep Reasoning Tasks (Flash Thinking / Pro)**: **2 to 3 concurrent streams** to allow large reasoning payloads without network congestion.
+* **Maximum Output Token Length**: Google Flash models return up to **8,192 tokens (~32,000 characters)** per response. Thinking traces can exceed **20,000 characters** before emitting the final answer.
+* **Optimal Concurrency Bandwidth**:
+  * **Flash 3.7 / 3.6 / Flash Lite**: **3 to 5 simultaneous streams** per IP/instance.
+  * **Deep Thinking & Pro 3.1**: **2 to 3 simultaneous streams** (to prevent payload chunk congestion).
+* **Automatic Retry Strategy**: Built-in exponential backoff (`retry_attempts: 3`, `retry_delay_sec: 2`) handles momentary network hiccups without breaking client requests.
+* **Maximum Image Dimension**: Automatic downscaling engine resizes large screenshots and photos to **1024px JPEG quality 75 (<1MB)** before uploading to Google Scotty storage.
 
 ---
 
