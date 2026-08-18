@@ -11,6 +11,9 @@
 <meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
 <meta name="generator" content="BOB Gemini Free by ABCsteps">
 <title>BOB GEMINI FREE — Universal AI Gateway Studio</title>
+<!-- Universal Marked.js & DOMPurify for Spec-Compliant Markdown Rendering -->
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js"></script>
 <!-- KaTeX for High-Precision Mathematical & Scientific Typography -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
 <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
@@ -2566,117 +2569,86 @@ function downloadImage(btn) {
   showToast("Image downloaded", "🎨");
 }
 
-function renderMarkdown(text) {
-  if (!text) return "";
-  
-  const codeBlocks = [];
-  const inlineCodes = [];
-  let html = text;
+// Initialize Universal Marked.js Configuration with Custom GFM Renderers
+if (window.marked) {
+  const customRenderer = new marked.Renderer();
 
-  // 1. Extract and protect CLOSED code blocks: ```lang\n...```
-  html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*?)```/g, function(match, lang, code) {
-    const idx = codeBlocks.length;
-    const safeCode = escapeHtml(code.trimEnd());
-    const langLabel = lang || 'code';
-    const prismClass = lang ? 'language-' + lang : 'language-none';
-    const blockHtml = '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, \'' + langLabel + '\')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
-    codeBlocks.push(blockHtml);
-    return `@@@BOB_CODE_BLOCK_${idx}@@@`;
-  });
-
-  // 2. Extract and protect UNCLOSED streaming code blocks: ```lang\n... (until end of text)
-  html = html.replace(/```([a-zA-Z0-9_-]*)\n([\s\S]*)$/g, function(match, lang, code) {
-    const idx = codeBlocks.length;
+  customRenderer.code = function(code, lang) {
     const safeCode = escapeHtml(code);
     const langLabel = lang || 'code';
     const prismClass = lang ? 'language-' + lang : 'language-none';
-    const blockHtml = '<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">' + langLabel + '</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="' + prismClass + '">' + safeCode + '</code></pre>';
-    codeBlocks.push(blockHtml);
-    return `@@@BOB_CODE_BLOCK_${idx}@@@`;
+    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${langLabel}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${langLabel}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${safeCode}</code></pre>`;
+  };
+
+  customRenderer.image = function(href, title, text) {
+    return `<div class="assistant-image-card"><img src="${href}" alt="${escapeHtml(text || '')}" loading="lazy"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(text || 'Generated Image')}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
+  };
+
+  marked.setOptions({
+    renderer: customRenderer,
+    gfm: true,
+    breaks: true,
+    pedantic: false
+  });
+}
+
+function renderMarkdown(text) {
+  if (!text) return "";
+
+  // 1. Protect LaTeX Math blocks before Marked parsing
+  const mathBlocks = [];
+  let processed = text;
+
+  // Display math: $$...$$ or \[...\]
+  processed = processed.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, function(match) {
+    const idx = mathBlocks.length;
+    mathBlocks.push(match);
+    return `@@@BOB_MATH_${idx}@@@`;
   });
 
-  // 3. Extract and protect inline code: `code`
-  html = html.replace(/`([^`\n]+)`/g, function(match, code) {
-    const idx = inlineCodes.length;
-    inlineCodes.push('<code>' + escapeHtml(code) + '</code>');
-    return `@@@BOB_INLINE_CODE_${idx}@@@`;
+  // Inline math: $...$ or \(...\)
+  processed = processed.replace(/(\$[^\$\n]+\$|\\\([^\n]*?\\\))/g, function(match) {
+    const idx = mathBlocks.length;
+    mathBlocks.push(match);
+    return `@@@BOB_MATH_${idx}@@@`;
   });
 
-  // 4. Extract Images: ![alt](url)
-  html = html.replace(/!\[(.*?)\]\((.*?)\)/g, function(match, alt, url) {
-    return `<div class="assistant-image-card"><img src="${url}" alt="${escapeHtml(alt)}" loading="lazy"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${escapeHtml(alt || 'Generated Image')}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
-  });
-
-  // 5. Links: [text](url)
-  html = html.replace(/\[([^\]]+)\]\((https?:\/\/[^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-
-  // 6. Headings
-  html = html.replace(/^#### (.*$)/gim, '<h4>$1</h4>');
-  html = html.replace(/^### (.*$)/gim, '<h3>$1</h3>');
-  html = html.replace(/^## (.*$)/gim, '<h2>$1</h2>');
-  html = html.replace(/^# (.*$)/gim, '<h1>$1</h1>');
-
-  // 7. Horizontal rules
-  html = html.replace(/^\s*---\s*$/gim, '<hr>');
-
-  // 8. Alerts & Blockquotes
-  html = html.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
-  html = html.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
-  html = html.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
-  html = html.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
-  html = html.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
-  html = html.replace(/^>\s+(.*$)/gim, '<blockquote>$1</blockquote>');
-
-  // 9. Tables
-  html = html.replace(/((?:\|[^\n]+\|\r?\n)+)/g, function(tableBlock) {
-    const rows = tableBlock.trim().split('\n').map(r => r.trim()).filter(r => r);
-    if (rows.length < 2) return tableBlock;
-    if (!rows[1].match(/^\|[\s:?-]+\|/)) return tableBlock;
-
-    let tableHtml = '<div class="table-wrapper"><table><thead><tr>';
-    const headers = rows[0].split('|').slice(1, -1);
-    headers.forEach(h => { tableHtml += '<th>' + h.trim() + '</th>'; });
-    tableHtml += '</tr></thead><tbody>';
-
-    for (let i = 2; i < rows.length; i++) {
-      tableHtml += '<tr>';
-      const cells = rows[i].split('|').slice(1, -1);
-      cells.forEach(c => { tableHtml += '<td>' + c.trim() + '</td>'; });
-      tableHtml += '</tr>';
-    }
-    tableHtml += '</tbody></table></div>';
-    return tableHtml;
-  });
-
-  // 10. Checkboxes
-  html = html.replace(/^\s*-\s*\[ \]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" disabled class="task-checkbox"><span>$1</span></div>');
-  html = html.replace(/^\s*-\s*\[[xX]\]\s*(.*$)/gim, '<div class="task-item"><input type="checkbox" checked disabled class="task-checkbox"><span>$1</span></div>');
-
-  // 11. Strikethrough
-  html = html.replace(/~~([^~]+)~~/g, '<del>$1</del>');
-
-  // 12. Bold & Italic (Respect word boundaries to avoid mangling underscores in identifiers)
-  html = html.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>');
-  html = html.replace(/__([^_]+)__/g, '<b>$1</b>');
-  html = html.replace(/(^|[^\w*])\*([^*\n]+)\*([^\w*]|$)/g, '$1<i>$2</i>$3');
-  html = html.replace(/(^|[^\w_])_([^_\n]+)_([^\w_]|$)/g, '$1<i>$2</i>$3');
-
-  // 13. Lists
-  html = html.replace(/^\s*[-*]\s+(.*$)/gim, '<li>$1</li>');
-  html = html.replace(/(<li>.*<\/li>)/gim, '<ul>$1</ul>');
-  html = html.replace(/<\/ul>\s*<ul>/gim, '');
-
-  // 14. Convert newlines to <br> outside code blocks
-  html = html.replace(/\n/g, '<br>');
-
-  // 15. Restore protected inline code
-  for (let i = 0; i < inlineCodes.length; i++) {
-    html = html.replaceAll(`@@@BOB_INLINE_CODE_${i}@@@`, inlineCodes[i]);
+  // 2. Balance unclosed code blocks during active streaming
+  const backtickMatches = processed.match(/```/g);
+  if (backtickMatches && backtickMatches.length % 2 !== 0) {
+    processed += "\n```";
   }
 
-  // 16. Restore protected code blocks
-  for (let i = 0; i < codeBlocks.length; i++) {
-    html = html.replaceAll(`@@@BOB_CODE_BLOCK_${i}@@@`, codeBlocks[i]);
+  // 3. Process GitHub-style Alert Callouts
+  processed = processed.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
+  processed = processed.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
+  processed = processed.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
+  processed = processed.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
+  processed = processed.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
+
+  // 4. Universal Marked.js standard parsing
+  let html = "";
+  if (window.marked && typeof marked.parse === 'function') {
+    try {
+      html = marked.parse(processed);
+    } catch(e) {
+      html = escapeHtml(processed);
+    }
+  } else {
+    html = escapeHtml(processed);
+  }
+
+  // 5. Restore protected LaTeX Math blocks
+  for (let i = 0; i < mathBlocks.length; i++) {
+    html = html.replaceAll(`@@@BOB_MATH_${i}@@@`, mathBlocks[i]);
+  }
+
+  // 6. Universal DOMPurify Sanitization
+  if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
+    html = DOMPurify.sanitize(html, {
+      ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input'],
+      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel']
+    });
   }
 
   return html;
