@@ -15,7 +15,7 @@
 <style>
 /* 
   Harmonic Golden Ratio Design System (Phi = 1.618)
-  Universal Multi-Device Accessibility & 2026-Era Glassmorphic Modal Engine
+  Pure Typographic Identity & Multi-Theme Harmonic Cosmology
 */
 :root {
   /* BOB Builder (Industrial Gold & Cosmic Navy) */
@@ -46,26 +46,26 @@
 }
 
 [data-theme="vodafone"] {
-  --bg-app: #f4f5f8;
-  --bg-header: #212427;
-  --bg-sidebar: #f4f5f8;
+  --bg-app: #f5f6f8;
+  --bg-header: #1a1c1e;
+  --bg-sidebar: #f5f6f8;
   --bg-workspace: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #fafafa;
-  --bg-input: #f4f5f8;
+  --bg-card-hover: #f9fafb;
+  --bg-input: #f5f6f8;
   --border-color: #e2e5e9;
-  --border-focus: #212427;
-  --text-main: #212427;
-  --text-muted: #55595d;
-  --text-subdued: #8e959c;
+  --border-focus: #e60000;
+  --text-main: #1a1c1e;
+  --text-muted: #64748b;
+  --text-subdued: #94a3b8;
   --accent-primary: #e60000;
   --accent-primary-hover: #cc0000;
   --accent-primary-text: #ffffff;
   --accent-badge: #e60000;
   --accent-badge-text: #ffffff;
-  --accent-secondary: #212427;
+  --accent-secondary: #25282b;
   --shadow-main: 0 2px 10px rgba(0, 0, 0, 0.05);
-  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.28);
+  --shadow-cta: 0 4px 14px rgba(230, 0, 0, 0.3);
 }
 
 [data-theme="spotify"] {
@@ -151,14 +151,8 @@ header {
 .brand-anchor {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   text-decoration: none;
-}
-.brand-logo-svg {
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.3));
 }
 .brand-headings {
   display: flex;
@@ -166,17 +160,31 @@ header {
 }
 .brand-title {
   font-weight: 900;
-  font-size: 1.12rem;
-  letter-spacing: -0.4px;
+  font-size: 1.18rem;
+  letter-spacing: -0.5px;
   text-transform: uppercase;
   color: var(--text-main);
   line-height: 1.1;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
-.brand-title .accent {
+.brand-title .brand-bob {
+  font-weight: 900;
+  color: var(--text-main);
+  letter-spacing: -0.5px;
+}
+.brand-title .brand-sep {
   color: var(--accent-primary);
+  font-size: 0.9rem;
+}
+.brand-title .brand-gemini {
+  color: var(--accent-primary);
+  font-weight: 800;
+}
+.brand-title .brand-free {
+  color: var(--text-main);
+  font-weight: 900;
 }
 .brand-tagline {
   font-size: 0.62rem;
@@ -564,7 +572,7 @@ select:focus, textarea:focus {
   line-height: 1.15;
   margin-bottom: 6px;
 }
-.hero-headline span {
+.hero-headline .accent {
   color: var(--accent-primary);
 }
 .hero-subline {
@@ -1205,23 +1213,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 <header>
   <div class="brand-anchor">
-    <!-- Custom BOB GEMINI FREE Vector Emblem -->
-    <svg class="brand-logo-svg" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <rect width="100" height="100" rx="20" fill="url(#brand-grad)"/>
-      <path d="M22 28H48C56 28 62 33 62 40C62 45 58 48 53 50C60 52 65 57 65 64C65 72 58 78 48 78H22V28Z" fill="#000000" opacity="0.18"/>
-      <path d="M25 25H50C57.7 25 64 30.3 64 37.5C64 42.2 60.5 45.8 55.5 47.5C62 49.5 67 54.5 67 61.5C67 69.5 60 75 50 75H25V25Z" stroke="#ffffff" stroke-width="6" stroke-linejoin="round" fill="none"/>
-      <path d="M37 37H48C51.5 37 54 39 54 42C54 45 51.5 47 48 47H37V37Z" fill="#ffffff"/>
-      <path d="M37 53H49C53 53 56 55.5 56 59C56 62.5 53 65 49 65H37V53Z" fill="#ffffff"/>
-      <polygon points="76,22 80,33 91,37 80,41 76,52 72,41 61,37 72,33" fill="#ffffff"/>
-      <defs>
-        <linearGradient id="brand-grad" x1="0" y1="0" x2="100" y2="100" gradientUnits="userSpaceOnUse">
-          <stop stop-color="#FFC800"/>
-          <stop offset="1" stop-color="#D91E26"/>
-        </linearGradient>
-      </defs>
-    </svg>
+    <!-- Pure Typographic Wordmark (Zero Static Icon Clutter) -->
     <div class="brand-headings">
-      <div class="brand-title">BOB <span class="accent">GEMINI FREE</span></div>
+      <div class="brand-title">
+        <span class="brand-bob">BOB</span>
+        <span class="brand-sep">✦</span>
+        <span class="brand-gemini">GEMINI</span>
+        <span class="brand-free">FREE</span>
+      </div>
       <div class="brand-tagline">Universal AI Gateway • Web RPC Bridge</div>
     </div>
   </div>
@@ -1868,7 +1867,7 @@ function renderMessages() {
     welcome.innerHTML = `
       <div class="hero-title-band">
         <div class="hero-headline">
-          BUILD ANYTHING. <span>BREAK ORDINARY BOUNDARIES</span>.
+          BUILD ANYTHING. <span class="accent">BREAK ORDINARY BOUNDARIES</span>.
         </div>
         <div class="hero-subline">
           High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
