@@ -3607,13 +3607,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">2D Cyberpunk Snake Game</div>
               <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('py_fourier')">
+            <div class="starter-card" onclick="selectStarter('py_finance')">
               <div class="badge-chip">
                 <span class="mini-orb">🐍</span>
                 <span>PYTHON WASM SANDBOX</span>
               </div>
-              <div class="starter-card-title">NumPy Fourier Wave Analyzer</div>
-              <div class="starter-card-desc">High-precision FFT frequency harmonic analysis running in-memory with NumPy and CPython 3.11 WASM.</div>
+              <div class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</div>
+              <div class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</div>
             </div>
             <div class="starter-card" onclick="selectStarter('orbit')">
               <div class="badge-chip">
@@ -3888,7 +3888,7 @@ const STARTER_PROMPTS_HI = {
   snake: "HTML5 Canvas में एक पूर्ण, स्टैंडअलोन 2D साइबरपंक स्नेक आर्केड गेम बनाएं। इसमें नियॉन ग्लो, खाना खाने पर कण विस्फोट (particles), बढ़ती कठिनाई, स्मूथ 60fps गेम लूप, हाई स्कोर ट्रैकिंग, Web Audio API ध्वनि प्रभाव और टच/तीर कुंजियों के नियंत्रण शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   orbit: "Three.js (CDN के माध्यम से) का उपयोग करके HTML5 में एक पूर्ण, यथार्थवादी, इंटरैक्टिव 3D सौर मंडल व ग्रहीय कक्षा सिमुलेशन बनाएं। इसमें प्रकाशयुक्त सूर्य, G*m1*m2/r^2 गुरुत्वाकर्षण के साथ केप्लेरियन कक्षीय भौतिकी, चमकती कक्षीय रेखाएं, शनि के छल्ले, 360° OrbitControls (pan, rotate, zoom) और गति स्लाइडर शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   compound: "Chart.js के साथ HTML5 में एक पूर्ण, स्टैंडअलोन इंटरैक्टिव वित्तीय चक्रवृद्धि ब्याज व धन वृद्धि कैलकुलेटर बनाएं। इसमें प्रारंभिक निवेश, मासिक योगदान, वार्षिक रिटर्न % और अवधि के लिए स्लाइडर्स शामिल करें। संचयी विकास का इंटरैक्टिव चार्ट प्रस्तुत करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
-  py_fourier: "Pyodide WebAssembly के लिए NumPy का उपयोग करके एक संपूर्ण वैज्ञानिक कम्प्यूटेशनल स्क्रिप्ट लिखें जो एक जटिल सिग्नल पर फास्ट फूरियर ट्रांसफॉर्म (FFT) विश्लेषण करे। पावर स्पेक्ट्रल घनत्व, पीक आवृत्तियों की गणना करें और एक संरचित ASCII स्पेक्ट्रम ग्राफ व मेट्रिक्स तालिका प्रिंट करें। संपूर्ण कोड एक ```python``` ब्लॉक में दें।",
+  py_finance: "Pyodide WebAssembly के लिए NumPy का उपयोग करके एक संपूर्ण परिमाणात्मक वित्त (Quantitative Finance) स्क्रिप्ट लिखें। ब्लैक-स्कोल्स मॉडल (Black-Scholes Model) का उपयोग करके कॉल और पुट विकल्पों का सटीक मूल्य निर्धारण करें, 5 जोखिम ग्रीक्स (Delta, Gamma, Theta, Vega, Rho) की गणना करें और 95% और 99% वैल्यू एट रिस्क (VaR) का अनुमान लगाने के लिए 10,000-पाथ मोंटे कार्लो सिमुलेशन चलाएं। एक संरचित वित्तीय डैशबोर्ड और जोखिम तालिका आउटपुट करें। संपूर्ण कोड एक ```python``` ब्लॉक में दें ताकि यह सीधे BOB के WASM सैंडबॉक्स में चले।",
   schrodinger: "डी ब्रोग्ली तरंग संबंधों और हैमिल्टनियन यांत्रिकी का उपयोग करते हुए प्रथम सिद्धांतों से समय-निर्भर श्रोडिंगर तरंग समीकरण (Time-Dependent Schrödinger Wave Equation) की KaTeX LaTeX गणितीय व्युत्पत्ति तैयार करें। प्रत्येक चरण को स्पष्ट समीकरणों के साथ समझाएं।",
   proof: "[विषय/सूत्र] के लिए चरण-दर-चरण गणितीय प्रमाण और KaTeX व्युत्पत्ति तैयार करें।",
   audit: "[सिस्टम/कोडबेस] का व्यापक प्रथम-सिद्धांत वास्तुकला विश्लेषण, सुरक्षा समीक्षा और तकनीकी बॉटलनेक ऑडिट करें।",
@@ -6250,7 +6250,7 @@ const STARTER_PROMPTS = {
   snake: "Build a complete, standalone 2D Cyberpunk Snake arcade game in HTML5 Canvas. Include neon glow aesthetics, particle explosions when eating food, increasing difficulty, smooth 60fps game loop, high score tracking, sound effects via Web Audio API, and touch + arrow key controls. Output the entire runnable code inside a single ```html``` block.",
   orbit: "Build a complete, photorealistic, interactive 3D Solar System & Planetary Orbit Simulation in standalone HTML5 using Three.js (via CDN). Include a glowing Sun with point light illumination, multi-planet Keplerian orbital mechanics with G*m1*m2/r^2 gravity, glowing orbital trail lines, textured planets, Saturn planetary rings, particle starfield galaxy background, full 360° OrbitControls (pan, rotate, mouse/touch zoom), and real-time physics controls (Simulation Speed 1x-100x, Pause/Play, Reset). Output the entire runnable self-contained code inside a single ```html``` block.",
   compound: "Build a complete, standalone interactive Financial Compound Wealth & Freedom Calculator in HTML5 with Chart.js. Include dynamic sliders for Initial Investment, Monthly Contribution, Annual Return %, and Investment Horizon (years). Render an interactive stacked growth chart showing Total Contributed vs Total Interest Earned, with inflation adjustment toggles and annual breakdown data tables. Output the entire runnable code inside a single ```html``` block.",
-  py_fourier: "Write a complete Python scientific computing script using numpy to perform Fast Fourier Transform (FFT) harmonic analysis on a noisy composite signal (fundamental frequency + 3rd and 5th harmonics). Calculate power spectral density, peak frequencies, and print a formatted ASCII spectrum graph and signal metrics table. Output the entire runnable code inside a single ```python``` block so it runs instantly in BOB's in-browser CPython 3.11 WebAssembly sandbox.",
+  py_finance: "Write a complete, production-grade Python quantitative finance script using numpy and scipy (or math/numpy) to evaluate European Option Pricing using the Black-Scholes Model. Calculate exact pricing for both Call and Put options, determine the 5 risk sensitivities / Greeks (Delta, Gamma, Theta, Vega, Rho), and run a 10,000-path Monte Carlo asset path simulation to compute the 95% and 99% Value at Risk (VaR) and Expected Shortfall (CVaR). Output a structured, formatted financial analytics dashboard and risk summary table. Output the entire runnable code inside a single ```python``` block so it executes directly in BOB's in-browser WebAssembly sandbox.",
   schrodinger: "Derive the Time-Dependent Schrödinger Wave Equation from first principles using de Broglie matter wave relations (E = \\hbar\\omega, p = \\hbar k), the classical energy conservation equation (E = p^2/2m + V), and differential wave operators. Formulate every step with clean, rigorous KaTeX LaTeX mathematical notation, detailing boundary conditions, the physical meaning of the complex probability wave function \\Psi(x,t), and probability conservation. Output clear LaTeX equations.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a complete Python script using the official openai-python SDK configured to stream responses from BOB Gemini Free at http://127.0.0.1:9610/v1 with model gemini-3.7-flash and extract reasoning_content thinking tokens in real-time.",
@@ -6296,13 +6296,13 @@ function renderMessages() {
           <div class="starter-card-title">2D Cyberpunk Snake Game</div>
           <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('py_fourier')">
+        <div class="starter-card" onclick="selectStarter('py_finance')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
             <span>PYTHON WASM SANDBOX</span>
           </div>
-          <div class="starter-card-title">NumPy Fourier Wave Analyzer</div>
-          <div class="starter-card-desc">High-precision FFT frequency harmonic analysis running in-memory with NumPy and CPython 3.11 WASM.</div>
+          <div class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</div>
+          <div class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</div>
         </div>
         <div class="starter-card" onclick="selectStarter('orbit')">
           <div class="badge-chip">
