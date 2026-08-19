@@ -2234,7 +2234,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <span id="gateway-ping-badge" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Latency: --</span>
         </label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="gateway-url-input" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <input type="text" id="gateway-url-input" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button class="btn-pill-action" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
           <button class="btn-pill-subtle" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
         </div>
@@ -3232,7 +3232,8 @@ function renderAllMermaid(targetEl) {
   const root = targetEl || document.getElementById("messages-content");
   if (!root || !window.mermaid) return;
   try {
-    const isLight = document.documentElement.getAttribute('data-theme') === 'vodafone';
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const isLight = currentTheme === 'vodafone' || currentTheme === 'apple';
     mermaid.initialize({
       startOnLoad: false,
       theme: isLight ? 'default' : 'dark',
@@ -3362,6 +3363,15 @@ document.addEventListener("keydown", (e) => {
     return;
   }
 
+  const cmdModal = document.getElementById("cmd-modal");
+  if (cmdModal && cmdModal.classList.contains("open")) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      toggleCmdPalette();
+      return;
+    }
+  }
+
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     toggleCmdPalette();
@@ -3371,6 +3381,13 @@ document.addEventListener("keydown", (e) => {
     } else if (e.key === ']') {
       toggleSidebar('right');
     }
+  }
+});
+
+// Universal Window Paste for Instant Screenshot / Multimodal Ingestion
+window.addEventListener("paste", (e) => {
+  if (e.target.tagName !== 'INPUT' && e.target.tagName !== 'TEXTAREA') {
+    handleClipboardPaste(e);
   }
 });
 
@@ -3497,25 +3514,46 @@ if (window.marked) {
   const customRenderer = new marked.Renderer();
 
   customRenderer.code = function(code, lang) {
-    const safeCode = escapeHtml(code);
-    const langLabel = lang || 'code';
-    if (langLabel.toLowerCase() === 'mermaid') {
-      return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${code}</div></div>`;
+    let rawCode = typeof code === 'object' && code !== null ? (code.text || '') : (code || '');
+    let rawLang = typeof code === 'object' && code !== null ? (code.lang || '') : (lang || '');
+    const cleanLang = (rawLang || '').toLowerCase().trim();
+    if (cleanLang === 'mermaid') {
+      return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${escapeHtml(rawCode)}</div></div>`;
     }
-    const cleanLang = (lang || '').toLowerCase().trim();
+    const safeCode = escapeHtml(rawCode);
+    const langLabel = rawLang || 'code';
     let highlightedCode = safeCode;
     if (window.Prism && Prism.languages && Prism.languages[cleanLang]) {
       try {
-        highlightedCode = Prism.highlight(code, Prism.languages[cleanLang], cleanLang);
+        highlightedCode = Prism.highlight(rawCode, Prism.languages[cleanLang], cleanLang);
       } catch(e) {}
     }
     const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
-    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${langLabel}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${langLabel}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
+    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${escapeHtml(langLabel)}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
 
   customRenderer.image = function(href, title, text) {
-    const cleanAlt = escapeHtml(text || 'Image Reference');
-    return `<div class="assistant-image-card"><img src="${href}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer" onerror="handleImageError(this, '${cleanAlt}')"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
+    let rawHref = typeof href === 'object' && href !== null ? (href.href || '') : (href || '');
+    let rawTitle = typeof href === 'object' && href !== null ? (href.title || '') : (title || '');
+    let rawText = typeof href === 'object' && href !== null ? (href.text || '') : (text || '');
+    const cleanAlt = escapeHtml(rawText || rawTitle || 'Image Reference');
+    const safeHref = escapeHtml(rawHref);
+    return `<div class="assistant-image-card"><img src="${safeHref}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer" onerror="handleImageError(this, '${cleanAlt}')"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadImage(this)">💾 Save</button></div></div>`;
+  };
+
+  customRenderer.table = function(header, body) {
+    let rawHeader = typeof header === 'object' && header !== null ? (header.header || '') : (header || '');
+    let rawBody = typeof header === 'object' && header !== null ? (header.body || '') : (body || '');
+    return `<div class="table-wrapper"><table><thead>${rawHeader}</thead><tbody>${rawBody}</tbody></table></div>`;
+  };
+
+  customRenderer.link = function(href, title, text) {
+    let rawHref = typeof href === 'object' && href !== null ? (href.href || '') : (href || '');
+    let rawTitle = typeof href === 'object' && href !== null ? (href.title || '') : (title || '');
+    let rawText = typeof href === 'object' && href !== null ? (href.text || '') : (text || '');
+    const titleAttr = rawTitle ? ` title="${escapeHtml(rawTitle)}"` : '';
+    const safeHref = escapeHtml(rawHref);
+    return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener noreferrer">${rawText}</a>`;
   };
 
   marked.setOptions({
@@ -3575,8 +3613,8 @@ function renderMarkdown(text) {
   // 5. Universal DOMPurify Sanitization
   if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
     html = DOMPurify.sanitize(html, {
-      ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input'],
-      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel', 'referrerpolicy', 'onerror']
+      ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input', 'a', 'p', 'ul', 'ol', 'li', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'em', 'strong', 'del', 'kbd'],
+      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel', 'referrerpolicy', 'onerror', 'href', 'title', 'alt', 'src']
     });
   }
 
