@@ -129,9 +129,38 @@ main();
 
 ---
 
+## ⚙️ Background Service Management (24/7 Autostart on Reboot)
+
+Run BOB Gemini Free quietly in the background without needing open terminal windows:
+
+```bash
+# Register native OS daemon (macOS launchd, Linux systemd, Windows Startup)
+./bob-gemini-free service install
+
+# Check background daemon health and service definition
+./bob-gemini-free service status
+
+# Start / Stop / Uninstall daemon
+./bob-gemini-free service start
+./bob-gemini-free service stop
+./bob-gemini-free service uninstall
+```
+
+---
+
+## 🔄 In-Place Auto-Updater
+
+Keep BOB Gemini Free up to date with the latest GitHub releases:
+
+```bash
+./bob-gemini-free --update
+```
+
+---
+
 ## 🧪 Testing & Diagnostics
 
-Run the built-in 12-point automated diagnostic suite:
+Run the built-in 13-point automated diagnostic suite:
 
 ```bash
 ./bob-gemini-free --test --test-url http://127.0.0.1:9610

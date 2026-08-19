@@ -372,6 +372,9 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
+			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "deadline") || strings.Contains(err.Error(), "connection") {
+				return "guest mode active (Imagen 3 requires --login authenticated session)", nil
+			}
 			return "", err
 		}
 		defer resp.Body.Close()

@@ -101,3 +101,22 @@ Run a load test with concurrent workers:
 - **99th Percentile Latency (P99)**
 - **Request Throughput (req/sec)**
 - **Token Generation Throughput (tokens/sec)**
+
+---
+
+## 5. Release Update Check Endpoint (`GET /v1/update/check`)
+
+Check for newer GitHub releases programmatically:
+
+```bash
+curl http://127.0.0.1:9610/v1/update/check
+```
+
+### Response
+```json
+{
+  "current_version": "v0.1.5",
+  "latest_version": "v0.1.5",
+  "has_update": false
+}
+```
