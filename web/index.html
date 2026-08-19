@@ -4,13 +4,13 @@
   Engineered by Divyanshu Singh Chouhan (@div197) & ABCsteps (abcsteps.com)
   Autonomous Pure Local RPC Bridge for Developers & Agents
 -->
-<html lang="en" data-theme="apple">
+<html lang="en" data-theme="bob-builder">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
 <meta name="generator" content="BOB Gemini Free by ABCsteps">
-<meta name="theme-color" content="#f5f5f7">
+<meta name="theme-color" content="#030712">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="BOB Gemini Free">
@@ -2396,8 +2396,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </button>
 
     <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
-      <option value="apple" selected>🍎 Apple Design</option>
-      <option value="bob-builder">🏗️ BOB Builder</option>
+      <option value="bob-builder" selected>🏗️ BOB Builder</option>
+      <option value="apple">🍎 Apple Design</option>
       <option value="vodafone">🔴 Vodafone Editorial</option>
       <option value="spotify">🟢 Spotify Dark</option>
       <option value="quantum">🌌 Gemini Quantum</option>
@@ -2926,7 +2926,7 @@ function setSidebarState(side, isOpen) {
 function initTheme() {
   const urlParams = new URLSearchParams(window.location.search);
   const themeParam = urlParams.get('theme');
-  const saved = themeParam || localStorage.getItem(THEME_KEY) || "apple";
+  const saved = themeParam || localStorage.getItem(THEME_KEY) || "bob-builder";
   changeTheme(saved);
   const sel = document.getElementById("theme-selector");
   if (sel) sel.value = saved;
@@ -3873,6 +3873,7 @@ async function sendMessage() {
     const decoder = new TextDecoder();
     let partial = "";
 
+    let streamDone = false;
     while (true) {
       const {done, value} = await reader.read();
       if (done) break;
@@ -3883,7 +3884,11 @@ async function sendMessage() {
 
       for (const line of lines) {
         const trimmed = line.trim();
-        if (!trimmed || trimmed === "data: [DONE]") continue;
+        if (!trimmed) continue;
+        if (trimmed === "data: [DONE]" || trimmed.includes("[DONE]")) {
+          streamDone = true;
+          break;
+        }
         if (trimmed.startsWith("data: ")) {
           try {
             const data = JSON.parse(trimmed.slice(6));
@@ -3900,6 +3905,9 @@ async function sendMessage() {
             }
           } catch(e) {}
         }
+      }
+      if (streamDone) {
+        break;
       }
     }
 

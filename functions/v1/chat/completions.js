@@ -205,8 +205,8 @@ export async function onRequestPost(context) {
       const reader = upstreamRes.body.getReader();
       const parser = new StreamParser();
 
-      // Background stream processing
-      (async () => {
+      // Background stream processing with context.waitUntil to keep Cloudflare isolate alive
+      const streamPromise = (async () => {
         try {
           while (true) {
             const { done, value } = await reader.read();
@@ -251,9 +251,15 @@ export async function onRequestPost(context) {
         } catch (e) {
           console.error("Stream pump error:", e);
         } finally {
-          await writer.close();
+          try {
+            await writer.close();
+          } catch (e) {}
         }
       })();
+
+      if (context && typeof context.waitUntil === 'function') {
+        context.waitUntil(streamPromise);
+      }
 
       return new Response(readable, {
         headers: {
