@@ -16,6 +16,7 @@ web:
 	@echo "Syncing static web studio distribution to ./web..."
 	@mkdir -p web
 	@cp internal/server/playground.html web/index.html
+	@if [ -d "functions" ]; then cp -r functions web/; fi
 	@echo "Web distribution bundle ready in ./web"
 
 build: web
