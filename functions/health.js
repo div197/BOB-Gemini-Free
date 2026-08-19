@@ -3,15 +3,19 @@
  * GET /health
  */
 
+const DEPLOY_EPOCH = 1755648000; // Unix timestamp of approximate deploy base (Aug 2026)
+
 export async function onRequestGet() {
+  const uptime = Math.floor(Date.now() / 1000) - DEPLOY_EPOCH;
   return new Response(JSON.stringify({
     status: "ok",
     version: "v0.1.4",
     engine: "cloudflare-pages-edge",
-    uptime_sec: 999999,
-    requests_served: 100,
-    tokens_processed: 5000,
-    estimated_usd_saved: 0.15
+    uptime_seconds: uptime,
+    requests_served: 0,
+    tokens_processed: 0,
+    estimated_savings_usd: "$0.00",
+    note: "Stateless serverless edge — stats reset each request"
   }), {
     headers: {
       "Access-Control-Allow-Origin": "*",
