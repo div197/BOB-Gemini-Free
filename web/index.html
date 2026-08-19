@@ -2399,6 +2399,68 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     /* Prevent iOS Safari auto-zoom on focus */
     font-size: 16px;
   }
+
+  /* Fullscreen & Responsive Artifact Studio Modal on Mobile */
+  .artifact-modal-backdrop .artifact-studio-box {
+    width: 100vw;
+    height: 100dvh;
+    max-width: 100vw;
+    border-radius: 0;
+    border: none;
+  }
+  .artifact-studio-header {
+    padding: max(8px, env(safe-area-inset-top)) 10px 8px 10px;
+    gap: 6px;
+  }
+  .artifact-header-actions {
+    gap: 4px;
+  }
+  .artifact-header-actions .btn-pill-subtle {
+    padding: 0 6px;
+    height: 26px;
+    font-size: 0.65rem;
+  }
+
+  /* Mobile Floating Audio Controller Bar */
+  .floating-audio-bar {
+    bottom: calc(72px + env(safe-area-inset-bottom));
+    max-width: calc(100vw - 16px);
+    padding: 4px 10px;
+    gap: 8px;
+  }
+  .audio-title {
+    font-size: 0.72rem;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .audio-sub {
+    display: none;
+  }
+
+  /* Mobile Inline Edit Optimization */
+  .inline-edit-container {
+    max-width: 100%;
+    padding: 8px;
+  }
+  .inline-edit-textarea {
+    font-size: 16px !important;
+    line-height: 22px;
+  }
+
+  /* Mobile Artifact Chip */
+  .artifact-card-chip {
+    padding: 8px 10px;
+    gap: 8px;
+  }
+  .artifact-chip-sub {
+    display: none;
+  }
+  .btn-launch-art {
+    padding: 4px 10px;
+    font-size: 0.72rem;
+  }
 }
 
 /* Sidebar Tabs (Settings / History) */
@@ -3825,6 +3887,9 @@ const I18N = {
 
 const STARTER_PROMPTS_HI = {
   grader: "क्वांटम सुपरपोजिशन और इंटैंगलमेंट की अवधारणा को 5वीं कक्षा के मेधावी छात्र को समझाएं। वास्तविक दुनिया की भौतिक व प्राकृतिक उपमाओं (जैसे बहता पानी, साइकिल के गियर, किताबें, प्रकाश, ध्वनि या रसोई की विधियाँ) का उपयोग करें। यदि दृश्य तुलना दिखानी हो तो मार्कडाउन इमेज लिंक के बजाय वैध Mermaid आरेख या ASCII आरेख आउटपुट करें। लेगो ब्लॉक्स जैसी घिसी-पिटी उपमाओं से बचें।",
+  snake: "HTML5 Canvas में एक पूर्ण, स्टैंडअलोन 2D साइबरपंक स्नेक आर्केड गेम बनाएं। इसमें नियॉन ग्लो, खाना खाने पर कण विस्फोट (particles), बढ़ती कठिनाई, स्मूथ 60fps गेम लूप, हाई स्कोर ट्रैकिंग, Web Audio API ध्वनि प्रभाव और टच/तीर कुंजियों के नियंत्रण शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
+  orbit: "Three.js (CDN के माध्यम से) का उपयोग करके HTML5 में एक पूर्ण, यथार्थवादी, इंटरैक्टिव 3D सौर मंडल व ग्रहीय कक्षा सिमुलेशन बनाएं। इसमें प्रकाशयुक्त सूर्य, G*m1*m2/r^2 गुरुत्वाकर्षण के साथ केप्लेरियन कक्षीय भौतिकी, चमकती कक्षीय रेखाएं, शनि के छल्ले, 360° OrbitControls (pan, rotate, zoom) और गति स्लाइडर शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
+  compound: "Chart.js के साथ HTML5 में एक पूर्ण, स्टैंडअलोन इंटरैक्टिव वित्तीय चक्रवृद्धि ब्याज व धन वृद्धि कैलकुलेटर बनाएं। इसमें प्रारंभिक निवेश, मासिक योगदान, वार्षिक रिटर्न % और अवधि के लिए स्लाइडर्स शामिल करें। संचयी विकास का इंटरैक्टिव चार्ट प्रस्तुत करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   proof: "[विषय/सूत्र] के लिए चरण-दर-चरण गणितीय प्रमाण और KaTeX व्युत्पत्ति तैयार करें।",
   audit: "[सिस्टम/कोडबेस] का व्यापक प्रथम-सिद्धांत वास्तुकला विश्लेषण, सुरक्षा समीक्षा और तकनीकी बॉटलनेक ऑडिट करें।",
   physics: "[अवधारणा/शोधपत्र] को नियंत्रित करने वाले मूलभूत सिद्धांतों, भौतिकी और गणितीय समीकरणों का विश्लेषण करें।",
@@ -6183,7 +6248,7 @@ function loadHistory() {
 const STARTER_PROMPTS = {
   grader: "Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.",
   snake: "Build a complete, standalone 2D Cyberpunk Snake arcade game in HTML5 Canvas. Include neon glow aesthetics, particle explosions when eating food, increasing difficulty, smooth 60fps game loop, high score tracking, sound effects via Web Audio API, and touch + arrow key controls. Output the entire runnable code inside a single ```html``` block.",
-  orbit: "Build a complete, standalone interactive 3D Planetary Orbit & Gravity Simulation in HTML5 Canvas. Include realistic gravitational attraction (G*m1*m2/r^2), orbital velocity vectors, planetary collision particles, trail lines, camera pan/zoom controls, and real-time physics parameters (time step, mass slider). Output the entire runnable code inside a single ```html``` block.",
+  orbit: "Build a complete, photorealistic, interactive 3D Solar System & Planetary Orbit Simulation in standalone HTML5 using Three.js (via CDN). Include a glowing Sun with point light illumination, multi-planet Keplerian orbital mechanics with G*m1*m2/r^2 gravity, glowing orbital trail lines, textured planets, Saturn planetary rings, particle starfield galaxy background, full 360° OrbitControls (pan, rotate, mouse/touch zoom), and real-time physics controls (Simulation Speed 1x-100x, Pause/Play, Reset). Output the entire runnable self-contained code inside a single ```html``` block.",
   compound: "Build a complete, standalone interactive Financial Compound Wealth & Freedom Calculator in HTML5 with Chart.js. Include dynamic sliders for Initial Investment, Monthly Contribution, Annual Return %, and Investment Horizon (years). Render an interactive stacked growth chart showing Total Contributed vs Total Interest Earned, with inflation adjustment toggles and annual breakdown data tables. Output the entire runnable code inside a single ```html``` block.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.",
