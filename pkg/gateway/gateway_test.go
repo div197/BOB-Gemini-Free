@@ -1,6 +1,7 @@
 package gateway
 
 import (
+	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -82,5 +83,43 @@ func TestNewEngine(t *testing.T) {
 	}
 	if engine.app.Version != "v1.0.0-test" {
 		t.Errorf("Expected version v1.0.0-test, got %s", engine.app.Version)
+	}
+}
+
+func TestEngineGenerateMethods(t *testing.T) {
+	engine := NewEngine(
+		WithDefaultModel("gemini-3.7-flash"),
+		WithVersion("v1.0.0-media-test"),
+	)
+	if engine == nil {
+		t.Fatalf("Expected non-nil Engine")
+	}
+
+	// Verify methods return context error when context is canceled
+	ctx, cancel := context.WithCancel(t.Context())
+	cancel()
+
+	_, err := engine.Generate(ctx, "hello", "gemini-3.7-flash")
+	if err == nil {
+		t.Errorf("Expected context error for canceled context in Generate")
+	}
+
+	_, err = engine.GenerateWithMedia(ctx, "hello", "gemini-3.7-flash", []string{"ref1"})
+	if err == nil {
+		t.Errorf("Expected context error for canceled context in GenerateWithMedia")
+	}
+
+	err = engine.GenerateStream(ctx, "hello", "gemini-3.7-flash", func(delta string) error {
+		return nil
+	})
+	if err == nil {
+		t.Errorf("Expected context error for canceled context in GenerateStream")
+	}
+
+	err = engine.GenerateStreamWithMedia(ctx, "hello", "gemini-3.7-flash", []string{"ref1"}, func(delta string) error {
+		return nil
+	})
+	if err == nil {
+		t.Errorf("Expected context error for canceled context in GenerateStreamWithMedia")
 	}
 }

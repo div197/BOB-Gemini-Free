@@ -88,22 +88,20 @@ func handleDiagnostics(targetURL, apiKey string) {
 	fmt.Println("==================================================================")
 	fmt.Printf("Target Gateway URL: %s\n\n", targetURL)
 
-	results := diag.RunDiagnostics(targetURL, apiKey)
 	var passCount, failCount int
-
-	for i, res := range results {
+	_ = diag.RunDiagnosticsWithProgress(targetURL, apiKey, func(idx, total int, res diag.TestResult) {
 		if res.Passed {
 			passCount++
-			fmt.Printf("[%d/%d] [✔ PASS] %s (%v)\n", i+1, len(results), res.Name, res.Duration.Round(time.Millisecond))
+			fmt.Printf("[%d/%d] [✔ PASS] %s (%v)\n", idx, total, res.Name, res.Duration.Round(time.Millisecond))
 			if res.Details != "" {
 				fmt.Printf("      ↳ %s\n", res.Details)
 			}
 		} else {
 			failCount++
-			fmt.Printf("[%d/%d] [✘ FAIL] %s (%v)\n", i+1, len(results), res.Name, res.Duration.Round(time.Millisecond))
+			fmt.Printf("[%d/%d] [✘ FAIL] %s (%v)\n", idx, total, res.Name, res.Duration.Round(time.Millisecond))
 			fmt.Printf("      ↳ Error: %v\n", res.Error)
 		}
-	}
+	})
 
 	fmt.Println()
 	fmt.Println("==================================================================")

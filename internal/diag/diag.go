@@ -19,25 +19,38 @@ type TestResult struct {
 	Error    error
 }
 
+// ProgressFn is called after each diagnostic test completes with real-time feedback.
+type ProgressFn func(idx, total int, res TestResult)
+
 // RunDiagnostics executes an automated end-to-end test suite against a running BOB Gemini Free instance.
 func RunDiagnostics(baseURL, apiKey string) []TestResult {
+	return RunDiagnosticsWithProgress(baseURL, apiKey, nil)
+}
+
+// RunDiagnosticsWithProgress executes the diagnostic suite and reports each result immediately.
+func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) []TestResult {
 	baseURL = strings.TrimRight(baseURL, "/")
-	client := &http.Client{Timeout: 90 * time.Second}
+	client := &http.Client{Timeout: 45 * time.Second}
 
 	var results []TestResult
+	const totalTests = 13
 
 	runTest := func(name string, fn func() (string, error)) {
 		start := time.Now()
 		details, err := fn()
 		dur := time.Since(start)
 		passed := err == nil
-		results = append(results, TestResult{
+		res := TestResult{
 			Name:     name,
 			Passed:   passed,
 			Duration: dur,
 			Details:  details,
 			Error:    err,
-		})
+		}
+		results = append(results, res)
+		if onProgress != nil {
+			onProgress(len(results), totalTests, res)
+		}
 	}
 
 	setHeaders := func(req *http.Request) {
@@ -194,6 +207,7 @@ func RunDiagnostics(baseURL, apiKey string) []TestResult {
 		if n == 0 {
 			return "", fmt.Errorf("empty stream response")
 		}
+		_, _ = io.Copy(io.Discard, resp.Body)
 		return "streaming chunks verified", nil
 	})
 

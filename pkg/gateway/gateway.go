@@ -170,6 +170,11 @@ func (e *Engine) Handler() http.Handler {
 
 // Generate performs a synchronous, single-turn text generation request directly in Go.
 func (e *Engine) Generate(ctx context.Context, prompt string, model string) (string, error) {
+	return e.GenerateWithMedia(ctx, prompt, model, nil)
+}
+
+// GenerateWithMedia performs a synchronous text generation request with multimodal file references directly in Go.
+func (e *Engine) GenerateWithMedia(ctx context.Context, prompt string, model string, fileRefs []string) (string, error) {
 	if model == "" {
 		model = e.app.Cfg.DefaultModel
 	}
@@ -177,11 +182,16 @@ func (e *Engine) Generate(ctx context.Context, prompt string, model string) (str
 	if err != nil {
 		return "", err
 	}
-	return e.app.Gem.GenerateContext(ctx, prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+	return e.app.Gem.GenerateContext(ctx, prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 }
 
 // GenerateStream performs real-time streaming text generation directly in Go, invoking onDelta for each token chunk.
 func (e *Engine) GenerateStream(ctx context.Context, prompt string, model string, onDelta func(delta string) error) error {
+	return e.GenerateStreamWithMedia(ctx, prompt, model, nil, onDelta)
+}
+
+// GenerateStreamWithMedia performs real-time streaming text generation with multimodal file references directly in Go.
+func (e *Engine) GenerateStreamWithMedia(ctx context.Context, prompt string, model string, fileRefs []string, onDelta func(delta string) error) error {
 	if model == "" {
 		model = e.app.Cfg.DefaultModel
 	}
@@ -189,7 +199,7 @@ func (e *Engine) GenerateStream(ctx context.Context, prompt string, model string
 	if err != nil {
 		return err
 	}
-	return e.app.Gem.GenerateStreamContext(ctx, prompt, resolved.Mode, resolved.Think, nil, resolved.Extra, onDelta)
+	return e.app.Gem.GenerateStreamContext(ctx, prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, onDelta)
 }
 
 // NewHandler creates a standalone standard http.Handler that can be mounted into any Go HTTP server or router.

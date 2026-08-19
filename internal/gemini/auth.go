@@ -76,15 +76,14 @@ func (c *CookieCache) loadUnlocked() error {
 			cookieStr = data.Cookie
 			sapisid = data.SAPISID
 		}
-	} else {
-		cookieStr = content
-		pairs := strings.Split(cookieStr, "; ")
-		for _, pair := range pairs {
-			parts := strings.SplitN(pair, "=", 2)
-			if len(parts) == 2 && parts[0] == "SAPISID" {
-				sapisid = parts[1]
-				break
-			}
+	}
+	if cookieStr == "" {
+		extracted, err := ExtractCookies(content)
+		if err == nil && extracted != nil {
+			cookieStr = extracted.RawCookie
+			sapisid = extracted.SAPISID
+		} else {
+			cookieStr = content
 		}
 	}
 
