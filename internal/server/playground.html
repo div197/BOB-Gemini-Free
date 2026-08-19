@@ -3529,31 +3529,47 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
                 <span>FIRST PRINCIPLES</span>
               </div>
               <div class="starter-card-title">Explain to a 5th Grader</div>
-              <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (clean, pure, no LEGO clichés).</div>
+              <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('quantum')">
+            <div class="starter-card" onclick="selectStarter('snake')">
               <div class="badge-chip">
-                <span class="mini-orb">🧠</span>
-                <span>DEEP THOUGHT</span>
+                <span class="mini-orb">🎮</span>
+                <span>ARTIFACT CANVAS</span>
               </div>
-              <div class="starter-card-title">Quantum Reasoning</div>
-              <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
+              <div class="starter-card-title">2D Cyberpunk Snake Game</div>
+              <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
+            </div>
+            <div class="starter-card" onclick="selectStarter('orbit')">
+              <div class="badge-chip">
+                <span class="mini-orb">🪐</span>
+                <span>PHYSICS ENGINE</span>
+              </div>
+              <div class="starter-card-title">3D Planetary Orbit Simulator</div>
+              <div class="starter-card-desc">Interactive N-body gravitational simulator with velocity vectors and mass controls.</div>
+            </div>
+            <div class="starter-card" onclick="selectStarter('compound')">
+              <div class="badge-chip">
+                <span class="mini-orb">📊</span>
+                <span>CHART VISUALIZER</span>
+              </div>
+              <div class="starter-card-title">Compound Wealth Calculator</div>
+              <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
             </div>
             <div class="starter-card" onclick="selectStarter('python')">
               <div class="badge-chip">
                 <span class="mini-orb">🐍</span>
-                <span>INTEGRATION</span>
+                <span>PYTHON STREAM</span>
               </div>
-              <div class="starter-card-title">Python Stream (Port 9610)</div>
-              <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
+              <div class="starter-card-title">OpenAI SDK Port 9610</div>
+              <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
             </div>
             <div class="starter-card" onclick="selectStarter('golang')">
               <div class="badge-chip">
                 <span class="mini-orb">⚙️</span>
-                <span>SYSTEM ENGINE</span>
+                <span>GO ARCHITECTURE</span>
               </div>
-              <div class="starter-card-title">Go Systems Architecture</div>
-              <div class="starter-card-desc">Production-grade concurrent server architecture with zero allocations and graceful shutdown.</div>
+              <div class="starter-card-title">Zero-Allocation Microservice</div>
+              <div class="starter-card-desc">Production-grade concurrent server architecture with graceful shutdown and resilience.</div>
             </div>
           </div>
         </div>
@@ -5067,20 +5083,7 @@ function openArtifactCanvas(artId) {
         });
 
         // Setup interactive input() hook
-        await pyodideInstance.runPythonAsync(`
-import js
-import builtins
-
-def _bob_custom_input(prompt=''):
-    if prompt:
-        print(prompt, end='')
-    res = js.prompt(str(prompt) if prompt else "Python input():")
-    val = str(res if res is not None else '')
-    print(val)
-    return val
-
-builtins.input = _bob_custom_input
-`);
+        await pyodideInstance.runPythonAsync("import js\\nimport builtins\\n\\ndef _bob_custom_input(prompt=''):\\n    if prompt:\\n        print(prompt, end='')\\n    res = js.prompt(str(prompt) if prompt else 'Python input():')\\n    val = str(res if res is not None else '')\\n    print(val)\\n    return val\\n\\nbuiltins.input = _bob_custom_input\\n");
 
         document.getElementById('py-dot').className = 'py-dot ready';
         document.getElementById('py-status-text').textContent = 'CPython 3.11 WASM Ready • In-Memory Safe Sandbox';
@@ -5123,7 +5126,7 @@ builtins.input = _bob_custom_input
         if (result !== undefined && result !== null) {
           appendTerm(String(result), 'term-info');
         }
-        appendTerm(\`\\n✔ Finished in \${duration}ms\`, 'term-system');
+        appendTerm('\\n✔ Finished in ' + duration + 'ms', 'term-system');
       } catch (err) {
         appendTerm(err.message, 'term-err');
       }
