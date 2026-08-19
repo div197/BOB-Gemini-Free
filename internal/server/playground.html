@@ -2233,7 +2233,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       </div>
 
       <div class="cmd-section-label" data-section="templates">🎓 Study & Reasoning Templates</div>
-      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Explain the concept of [Topic] to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams (```mermaid ... ```) or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.'); toggleCmdPalette();">
+      <div class="cmd-item" data-type="template" onclick="selectStarter('grader'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">🎓</span>
           <div class="cmd-item-info">
@@ -2243,7 +2243,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>P1</kbd>
       </div>
-      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Formulate a rigorous, step-by-step mathematical proof and KaTeX derivation for [Topic/Formula].'); toggleCmdPalette();">
+      <div class="cmd-item" data-type="template" onclick="selectStarter('proof'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">📐</span>
           <div class="cmd-item-info">
@@ -2253,7 +2253,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>P2</kbd>
       </div>
-      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Perform a comprehensive first-principles architecture review, security assessment, and technical bottleneck audit of [System/Codebase].'); toggleCmdPalette();">
+      <div class="cmd-item" data-type="template" onclick="selectStarter('audit'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">🔬</span>
           <div class="cmd-item-info">
@@ -2263,7 +2263,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>P3</kbd>
       </div>
-      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Deconstruct the fundamental axioms, underlying physics, and mathematical equations governing [Concept/Paper].'); toggleCmdPalette();">
+      <div class="cmd-item" data-type="template" onclick="selectStarter('physics'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">⚡</span>
           <div class="cmd-item-info">
@@ -2498,7 +2498,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             </div>
           </div>
           <div class="starters-grid">
-            <div class="starter-card" onclick="setStarterPrompt('Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams (```mermaid ... ```) or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.')">
+            <div class="starter-card" onclick="selectStarter('grader')">
               <div class="badge-chip">
                 <span class="mini-orb">🎓</span>
                 <span>FIRST PRINCIPLES</span>
@@ -2506,7 +2506,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">Explain to a 5th Grader</div>
               <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (clean, pure, no LEGO clichés).</div>
             </div>
-            <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
+            <div class="starter-card" onclick="selectStarter('quantum')">
               <div class="badge-chip">
                 <span class="mini-orb">🧠</span>
                 <span>DEEP THOUGHT</span>
@@ -2514,7 +2514,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">Quantum Reasoning</div>
               <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
             </div>
-            <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.')">
+            <div class="starter-card" onclick="selectStarter('python')">
               <div class="badge-chip">
                 <span class="mini-orb">🐍</span>
                 <span>INTEGRATION</span>
@@ -2522,7 +2522,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">Python Stream (Port 9610)</div>
               <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
             </div>
-            <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations.')">
+            <div class="starter-card" onclick="selectStarter('golang')">
               <div class="badge-chip">
                 <span class="mini-orb">⚙️</span>
                 <span>SYSTEM ENGINE</span>
@@ -3542,6 +3542,20 @@ function loadHistory() {
   renderMessages();
 }
 
+const STARTER_PROMPTS = {
+  grader: "Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.",
+  proof: "Formulate a rigorous, step-by-step mathematical proof and KaTeX derivation for [Topic/Formula].",
+  audit: "Perform a comprehensive first-principles architecture review, security assessment, and technical bottleneck audit of [System/Codebase].",
+  physics: "Deconstruct the fundamental axioms, underlying physics, and mathematical equations governing [Concept/Paper].",
+  quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.",
+  python: "Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.",
+  golang: "Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations."
+};
+
+function selectStarter(key) {
+  setStarterPrompt(STARTER_PROMPTS[key] || "");
+}
+
 function setStarterPrompt(text) {
   const inputEl = document.getElementById("user-input");
   inputEl.value = text;
@@ -3565,7 +3579,7 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="setStarterPrompt('Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams (```mermaid ... ```) or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.')">
+        <div class="starter-card" onclick="selectStarter('grader')">
           <div class="badge-chip">
             <span class="mini-orb">🎓</span>
             <span>FIRST PRINCIPLES</span>
@@ -3573,7 +3587,7 @@ function renderMessages() {
           <div class="starter-card-title">Explain to a 5th Grader</div>
           <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (with Mermaid visual diagrams, no LEGO clichés).</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
+        <div class="starter-card" onclick="selectStarter('quantum')">
           <div class="badge-chip">
             <span class="mini-orb">🧠</span>
             <span>DEEP THOUGHT</span>
@@ -3581,7 +3595,7 @@ function renderMessages() {
           <div class="starter-card-title">Quantum Reasoning</div>
           <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.')">
+        <div class="starter-card" onclick="selectStarter('python')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
             <span>INTEGRATION</span>
@@ -3589,7 +3603,7 @@ function renderMessages() {
           <div class="starter-card-title">Python Stream (Port 9610)</div>
           <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations.')">
+        <div class="starter-card" onclick="selectStarter('golang')">
           <div class="badge-chip">
             <span class="mini-orb">⚙️</span>
             <span>SYSTEM ENGINE</span>
