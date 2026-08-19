@@ -808,7 +808,7 @@ input[type="range"] {
 .messages-scroll {
   flex: 1;
   overflow-y: auto;
-  padding: 20px 20px 170px 20px;
+  padding: 12px 20px 130px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -819,10 +819,10 @@ input[type="range"] {
 }
 .messages-content-wrapper {
   width: 100%;
-  max-width: 880px;
+  max-width: 960px;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
 }
 
 /* Story Card (Assistant Message) */
@@ -984,69 +984,73 @@ input[type="range"] {
 
 /* Welcome Hero Grid */
 .welcome-hero {
-  margin: 6px auto;
+  margin: 0 auto;
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 .hero-title-band {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 22px 26px;
-  margin-bottom: 14px;
+  padding: 14px 20px;
+  margin-bottom: 2px;
   box-shadow: var(--shadow-main);
 }
 .hero-headline {
-  font-size: 1.85rem;
+  font-size: 1.42rem;
   font-weight: 900;
-  letter-spacing: -0.8px;
+  letter-spacing: -0.6px;
   text-transform: uppercase;
   color: var(--text-main);
   line-height: 1.15;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 .hero-headline .accent {
   color: var(--accent-primary);
 }
 .hero-subline {
-  font-size: 0.92rem;
+  font-size: 0.8rem;
   color: var(--text-muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 .starters-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
 }
 .starter-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 14px 16px;
+  padding: 10px 12px;
   cursor: pointer;
   transition: all 0.18s ease;
   box-shadow: var(--shadow-main);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  min-height: 100px;
 }
 .starter-card:hover {
   border-color: var(--accent-primary);
   transform: translateY(-2px);
   background: var(--bg-card-hover);
 }
-.starter-card .badge-chip { margin-bottom: 10px; align-self: flex-start; }
+.starter-card .badge-chip { margin-bottom: 6px; align-self: flex-start; padding: 2px 7px; font-size: 0.6rem; }
 .starter-card-title {
   font-weight: 800;
   color: var(--text-main);
-  font-size: 0.96rem;
-  letter-spacing: -0.2px;
-  margin-bottom: 4px;
-  line-height: 1.25;
+  font-size: 0.84rem;
+  letter-spacing: -0.15px;
+  margin-bottom: 3px;
+  line-height: 1.2;
 }
 .starter-card-desc {
-  font-size: 0.8rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.35;
 }
 
 /* 
