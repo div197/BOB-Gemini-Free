@@ -31,7 +31,16 @@ func RunDiagnostics(baseURL, apiKey string) []TestResult {
 // RunDiagnosticsWithProgress executes the diagnostic suite and reports each result immediately.
 func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) []TestResult {
 	baseURL = strings.TrimRight(baseURL, "/")
-	client := &http.Client{Timeout: 45 * time.Second}
+	transport := &http.Transport{
+		MaxIdleConns:        20,
+		MaxIdleConnsPerHost: 10,
+		IdleConnTimeout:     90 * time.Second,
+		DisableKeepAlives:   false,
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   45 * time.Second,
+	}
 
 	var results []TestResult
 	const totalTests = 13

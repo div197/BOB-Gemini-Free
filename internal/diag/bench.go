@@ -31,13 +31,23 @@ type BenchmarkReport struct {
 // RunBenchmark conducts a concurrent stress and performance benchmark against the gateway.
 func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) BenchmarkReport {
 	baseURL = strings.TrimRight(baseURL, "/")
-	client := &http.Client{Timeout: 60 * time.Second}
 
 	if concurrency <= 0 {
 		concurrency = 3
 	}
 	if totalRequests <= 0 {
 		totalRequests = 6
+	}
+
+	transport := &http.Transport{
+		MaxIdleConns:        concurrency * 4,
+		MaxIdleConnsPerHost: concurrency * 4,
+		IdleConnTimeout:     90 * time.Second,
+		DisableKeepAlives:   false,
+	}
+	client := &http.Client{
+		Transport: transport,
+		Timeout:   60 * time.Second,
 	}
 
 	var successful, failed, totalTokens atomic.Int64
