@@ -1118,6 +1118,13 @@ input[type="range"] {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 1px var(--border-focus);
 }
+#user-input::placeholder {
+  color: var(--text-subdued);
+  opacity: 0.75;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .btn-pill-cta {
   background: var(--accent-primary);
   color: var(--accent-primary-text);
@@ -1894,7 +1901,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   header::-webkit-scrollbar { display: none; }
   
   .brand-title {
-    font-size: 0.95rem;
+    font-size: 0.92rem;
+    gap: 4px;
   }
   .brand-sep {
     display: inline-block;
@@ -1922,72 +1930,155 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     max-width: 105px;
     touch-action: manipulation;
   }
+  
+  /* Sub-Bar & Instant Actions: Fits completely on 1 line with NO scroll */
   .sub-bar {
-    padding: 6px 10px;
-    gap: 6px;
+    padding: 6px 8px;
+    gap: 4px;
+    justify-content: space-between;
   }
+  .sub-bar-left {
+    gap: 4px;
+    flex-shrink: 1;
+    min-width: 0;
+  }
+  .sub-bar-actions {
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .sub-btn-text {
+    display: inline-block;
+    font-size: 0.68rem;
+  }
+  .sub-bar-actions .sub-btn-text {
+    display: none;
+  }
+  .sub-clear-text {
+    display: inline-block;
+    font-size: 0.68rem;
+  }
+  .btn-pill-subtle {
+    padding: 0 7px;
+    height: 28px;
+    font-size: 0.7rem;
+    touch-action: manipulation;
+  }
+  .btn-clear-pill {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+    color: #ef4444;
+  }
+  .active-model-chip {
+    padding: 0 8px;
+    height: 28px;
+    font-size: 0.68rem;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    touch-action: manipulation;
+  }
+
+  /* Messages Scroll Area */
   .messages-scroll {
-    padding: 10px 10px calc(140px + env(safe-area-inset-bottom)) 10px;
+    padding: 10px 8px calc(135px + env(safe-area-inset-bottom)) 8px;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
   }
+  .messages-content-wrapper {
+    gap: 12px;
+  }
+
+  /* Compact Welcome Hero & Micro Starter Cards */
+  .hero-title-band {
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+  }
+  .hero-headline {
+    font-size: 1.05rem;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+  }
+  .hero-subline {
+    font-size: 0.76rem;
+    line-height: 1.35;
+    margin-top: 4px;
+  }
+  .starters-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px;
+  }
+  .starter-card {
+    padding: 8px 10px;
+    border-radius: 10px;
+    touch-action: manipulation;
+    min-height: auto;
+  }
+  .starter-card .badge-chip {
+    margin-bottom: 4px;
+    padding: 2px 6px;
+    font-size: 0.58rem;
+  }
+  .starter-card-title {
+    font-size: 0.78rem;
+    font-weight: 700;
+    margin-bottom: 0;
+    line-height: 1.2;
+  }
+  .starter-card-desc {
+    display: none;
+  }
+
+  /* Assistant Story Cards */
   .story-card {
-    padding: 16px 14px;
+    padding: 14px 12px;
     border-radius: 12px;
   }
   .story-card-header {
     flex-wrap: wrap;
     gap: 6px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
   }
   .story-meta-stats {
     display: none;
   }
-  .hero-title-band {
-    padding: 16px 14px;
-    margin-bottom: 10px;
-    border-radius: 12px;
-  }
-  .hero-headline {
-    font-size: 1.25rem;
-    letter-spacing: -0.4px;
-  }
-  .hero-subline {
-    font-size: 0.82rem;
-  }
-  .starters-grid {
-    grid-template-columns: 1fr;
-    gap: 8px;
-  }
-  .starter-card {
-    padding: 12px 14px;
-    border-radius: 10px;
-    touch-action: manipulation;
-  }
+
+  /* Spacious Studio Input Dock */
   .studio-input-area {
-    padding: 8px 10px max(8px, env(safe-area-inset-bottom)) 10px;
+    padding: 6px 8px max(8px, env(safe-area-inset-bottom)) 8px;
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
   }
   .input-row {
     gap: 6px;
+    align-items: flex-end;
   }
-  /* Prevent iOS Safari 16px Auto-Zoom */
+  /* Prevent iOS Safari 16px Auto-Zoom & ensure perfect vertical centering */
   #user-input {
+    min-height: 44px;
     font-size: 16px !important;
-    line-height: 1.4;
+    line-height: 22px;
+    padding: 10px 12px;
+    border-radius: 12px;
   }
   .btn-attachment-pill {
-    width: 38px;
-    height: 38px;
-    font-size: 0.95rem;
+    width: 44px;
+    height: 44px;
+    font-size: 1.1rem;
+    border-radius: 12px;
     touch-action: manipulation;
   }
   .btn-pill-cta {
-    padding: 0 16px;
-    height: 38px;
-    font-size: 0.78rem;
+    padding: 0 18px;
+    height: 44px;
+    font-size: 0.8rem;
+    border-radius: 12px;
     touch-action: manipulation;
   }
   .input-footer {
     justify-content: center;
+    padding-top: 2px;
   }
   .footer-badges {
     justify-content: center;
@@ -2514,7 +2605,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <section class="chat-workspace" id="workspace-drop-zone">
     <div class="sub-bar">
       <div class="sub-bar-left">
-        <button class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">✦ New Chat</button>
+        <button class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">
+          <span>✦</span> <span class="sub-btn-text">New</span>
+        </button>
         <div class="active-model-chip" onclick="toggleCmdPalette()" title="Click to change model">
           <div class="live-dot"></div>
           <span id="active-model-label">gemini-3.7-flash</span>
@@ -2522,15 +2615,21 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
       </div>
       <div class="sub-bar-actions">
-        <button class="btn-pill-subtle" onclick="copyFullTranscript()" title="Copy entire chat transcript">📋 Copy Chat</button>
-        <button class="btn-pill-subtle" onclick="exportMarkdown()" title="Download conversation as Markdown">💾 Export .md</button>
-        <button class="btn-pill-subtle" onclick="clearChat()" title="Reset conversation">🗑️ Clear</button>
+        <button class="btn-pill-subtle" onclick="copyFullTranscript()" title="Copy entire chat transcript">
+          <span>📋</span> <span class="sub-btn-text">Copy</span>
+        </button>
+        <button class="btn-pill-subtle" onclick="exportMarkdown()" title="Download conversation as Markdown">
+          <span>💾</span> <span class="sub-btn-text">Export</span>
+        </button>
+        <button class="btn-pill-subtle btn-clear-pill" onclick="clearChat()" title="Reset conversation">
+          <span>🗑️</span> <span class="sub-clear-text">Clear</span>
+        </button>
       </div>
     </div>
 
     <div class="messages-scroll" id="messages-list">
       <div class="messages-content-wrapper" id="messages-content">
-        <div class="welcome-hero">
+        <div class="welcome-hero" id="welcome-hero">
           <div class="hero-title-band">
             <div class="hero-headline">
               BUILD ANYTHING. <span class="accent">BREAK ORDINARY BOUNDARIES</span>.
@@ -2592,7 +2691,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
         <div class="input-row">
           <button class="btn-attachment-pill" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
-          <textarea id="user-input" placeholder="Ask anything, formulate mathematical proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
+          <textarea id="user-input" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
             <span id="send-btn-label">Send</span>
             <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
@@ -3146,9 +3245,10 @@ function scrollToBottom() {
 function autoResize(el) {
   if (!el) return;
   el.style.height = 'auto';
+  const isMobile = window.innerWidth <= 640;
+  const minH = isMobile ? 40 : 44;
+  const maxH = isMobile ? 130 : 200;
   const scrollH = el.scrollHeight;
-  const minH = 44;
-  const maxH = 200;
   if (scrollH > maxH) {
     el.style.height = maxH + 'px';
     el.style.overflowY = 'auto';
