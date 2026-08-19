@@ -212,6 +212,8 @@ export async function onRequestPost(context) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
+            const isGoogleEnd = chunk.includes('["e",') || chunk.includes('["di",');
+
             const deltas = parser.feed(chunk);
             for (const delta of deltas) {
               const sseObj = {
@@ -229,6 +231,10 @@ export async function onRequestPost(context) {
                 ]
               };
               await writer.write(encoder.encode(`data: ${JSON.stringify(sseObj)}\n\n`));
+            }
+
+            if (isGoogleEnd) {
+              break;
             }
           }
 
