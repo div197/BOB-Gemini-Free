@@ -4878,7 +4878,12 @@ function extractArtifactMeta(code, lang) {
     icon = "📊";
     title = "Architecture & Systems Diagram";
     isInteractive = true;
-  } else if (['python', 'go', 'golang', 'javascript', 'js', 'typescript', 'ts', 'rust', 'cpp', 'json', 'sql', 'bash', 'sh'].includes(cleanLang)) {
+  } else if (cleanLang === 'python' || cleanLang === 'py') {
+    type = "python";
+    icon = "🐍";
+    title = "Python WASM Live Sandbox";
+    isInteractive = true;
+  } else if (['go', 'golang', 'javascript', 'js', 'typescript', 'ts', 'rust', 'cpp', 'json', 'sql', 'bash', 'sh'].includes(cleanLang)) {
     type = cleanLang;
     icon = "📦";
     title = cleanLang.toUpperCase() + " Artifact";
@@ -4886,6 +4891,22 @@ function extractArtifactMeta(code, lang) {
   }
 
   return { title, type, icon, isInteractive };
+}
+
+function sanitizePythonCode(code) {
+  if (!code) return '';
+  let cleaned = code.trim();
+  
+  if (cleaned.includes('```')) {
+    const parts = cleaned.split('```');
+    if (cleaned.startsWith('```')) {
+      cleaned = parts[1].replace(/^(?:python|py)?\n/i, '');
+    } else {
+      cleaned = parts[0];
+    }
+  }
+  
+  return cleaned.trim();
 }
 
 function openArtifactCanvas(artId) {
@@ -4909,6 +4930,209 @@ function openArtifactCanvas(artId) {
       iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto;} svg{max-width:90vw; max-height:85vh; filter:drop-shadow(0 10px 25px rgba(0,0,0,0.5));}</style></head><body>${art.code}</body></html>`;
     } else if (art.type === 'mermaid') {
       iframe.srcdoc = `<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(art.code)}</div><script>mermaid.initialize({startOnLoad:true, theme:'dark'});<\/script></body></html>`;
+    } else if (art.type === 'python') {
+      const cleanPyCode = sanitizePythonCode(art.code);
+      iframe.srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Python WASM Runner</title>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"><\/script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #090d16;
+      color: #f1f5f9;
+      font-family: 'JetBrains Mono', 'Fira Code', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .py-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 12px;
+    }
+    .py-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .py-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: pulse 1s infinite alternate;
+    }
+    .py-dot.ready { background: #10b981; animation: none; }
+    .py-dot.error { background: #ef4444; animation: none; }
+    @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+    .py-actions {
+      display: flex;
+      gap: 8px;
+    }
+    .py-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .py-btn:hover {
+      background: #10b981;
+      color: #000;
+      border-color: #10b981;
+    }
+    .py-btn.btn-run {
+      background: #10b981;
+      color: #000;
+      font-weight: 600;
+      border-color: #10b981;
+    }
+    .py-btn.btn-run:hover {
+      background: #059669;
+    }
+    .py-terminal-wrap {
+      flex: 1;
+      background: #030712;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      overflow-y: auto;
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.6;
+    }
+    .term-out { color: #a7f3d0; }
+    .term-err { color: #f87171; font-weight: 600; }
+    .term-info { color: #60a5fa; }
+    .term-system { color: #64748b; font-style: italic; }
+  </style>
+</head>
+<body>
+  <div class="py-header">
+    <div class="py-status">
+      <div class="py-dot" id="py-dot"></div>
+      <span id="py-status-text">Initializing CPython 3.11 WASM Sandbox...</span>
+    </div>
+    <div class="py-actions">
+      <button class="py-btn btn-run" id="btn-run-code" onclick="runPythonCode()">▶ Run Script</button>
+      <button class="py-btn" onclick="clearTerminal()">↺ Clear</button>
+    </div>
+  </div>
+
+  <div class="py-terminal-wrap" id="terminal">
+    <span class="term-system">🐍 Loading Pyodide WebAssembly isolate (Zero Server & Zero Cloud Execution)...</span>
+  </div>
+
+  <script>
+    let pyodideInstance = null;
+    const rawUserCode = ${JSON.stringify(cleanPyCode)};
+
+    function appendTerm(text, className = 'term-out') {
+      const term = document.getElementById('terminal');
+      const span = document.createElement('span');
+      span.className = className;
+      span.textContent = text + '\\n';
+      term.appendChild(span);
+      term.scrollTop = term.scrollHeight;
+    }
+
+    function clearTerminal() {
+      document.getElementById('terminal').innerHTML = '';
+    }
+
+    async function initPyodide() {
+      try {
+        pyodideInstance = await loadPyodide({
+          stdout: (text) => appendTerm(text, 'term-out'),
+          stderr: (text) => appendTerm(text, 'term-err')
+        });
+
+        // Setup interactive input() hook
+        await pyodideInstance.runPythonAsync(`
+import js
+import builtins
+
+def _bob_custom_input(prompt=''):
+    if prompt:
+        print(prompt, end='')
+    res = js.prompt(str(prompt) if prompt else "Python input():")
+    val = str(res if res is not None else '')
+    print(val)
+    return val
+
+builtins.input = _bob_custom_input
+`);
+
+        document.getElementById('py-dot').className = 'py-dot ready';
+        document.getElementById('py-status-text').textContent = 'CPython 3.11 WASM Ready • In-Memory Safe Sandbox';
+        appendTerm('✨ Pyodide WASM Engine initialized successfully!\\n', 'term-info');
+        runPythonCode();
+      } catch (err) {
+        document.getElementById('py-dot').className = 'py-dot error';
+        document.getElementById('py-status-text').textContent = 'Pyodide Load Failed';
+        appendTerm('Failed to load Pyodide WebAssembly: ' + err.message, 'term-err');
+      }
+    }
+
+    async function runPythonCode() {
+      if (!pyodideInstance) {
+        appendTerm('Python engine is still initializing, please wait...', 'term-system');
+        return;
+      }
+      
+      const codeImports = [];
+      const supportedPkgs = ['numpy', 'pandas', 'matplotlib', 'scipy', 'sympy'];
+      supportedPkgs.forEach(pkg => {
+        const re = new RegExp('(?:import\\\\s+' + pkg + '|from\\\\s+' + pkg + '\\\\b)', 'm');
+        if (re.test(rawUserCode)) codeImports.push(pkg);
+      });
+
+      if (codeImports.length > 0) {
+        appendTerm('📦 Loading packages: ' + codeImports.join(', ') + '...', 'term-info');
+        try {
+          await pyodideInstance.loadPackage(codeImports);
+        } catch(pkgErr) {
+          appendTerm('Package load warning: ' + pkgErr.message, 'term-system');
+        }
+      }
+
+      appendTerm('─── Running Python Execution ───', 'term-system');
+      try {
+        const startTime = performance.now();
+        const result = await pyodideInstance.runPythonAsync(rawUserCode);
+        const duration = (performance.now() - startTime).toFixed(1);
+        if (result !== undefined && result !== null) {
+          appendTerm(String(result), 'term-info');
+        }
+        appendTerm(\`\\n✔ Finished in \${duration}ms\`, 'term-system');
+      } catch (err) {
+        appendTerm(err.message, 'term-err');
+      }
+    }
+
+    initPyodide();
+  <\/script>
+</body>
+</html>`;
     } else {
       iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; padding:24px; background:#0f172a; color:#e2e8f0; font-family:monospace; font-size:14px; white-space:pre-wrap;}</style></head><body>${escapeHtml(art.code)}</body></html>`;
     }
@@ -5037,17 +5261,32 @@ if (window.marked) {
     
     const canvasBtn = meta.isInteractive ? `<button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem; color:var(--accent-primary); border-color:var(--accent-primary);" onclick="openArtifactCanvas('${artId}')">⚡ Canvas</button>` : '';
 
-    const artifactChip = meta.isInteractive && (meta.type === 'html' || meta.type === 'svg') ? 
-      `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
-        <div class="artifact-chip-left">
-          <span class="artifact-chip-icon">${meta.icon}</span>
-          <div class="artifact-chip-info">
-            <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
-            <span class="artifact-chip-sub">Live Interactive Web Application • Click to launch Canvas</span>
+    let artifactChip = '';
+    if (meta.isInteractive) {
+      if (meta.type === 'python') {
+        artifactChip = `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
+          <div class="artifact-chip-left">
+            <span class="artifact-chip-icon">🐍</span>
+            <div class="artifact-chip-info">
+              <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
+              <span class="artifact-chip-sub">Python WebAssembly Sandbox • Click to run code live</span>
+            </div>
           </div>
-        </div>
-        <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Launch ⚡</button>
-      </div>` : '';
+          <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Run WASM ⚡</button>
+        </div>`;
+      } else if (meta.type === 'html' || meta.type === 'svg') {
+        artifactChip = `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
+          <div class="artifact-chip-left">
+            <span class="artifact-chip-icon">${meta.icon}</span>
+            <div class="artifact-chip-info">
+              <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
+              <span class="artifact-chip-sub">Live Interactive Web Application • Click to launch Canvas</span>
+            </div>
+          </div>
+          <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Launch ⚡</button>
+        </div>`;
+      }
+    }
 
     return `${artifactChip}<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns">${canvasBtn}<button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${escapeHtml(langLabel)}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
