@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.3-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.4-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">

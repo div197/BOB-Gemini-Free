@@ -9,18 +9,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.4] - 2026-08-19
 
-### Zero-Download Cloudflare Pages Web Studio, BOB Builder Default & Stream Completion Engine
+### Zero-Download Cloudflare Pages Web Studio, iOS Safari Hardening & Steve Jobs Level Mobile UX
 
 #### Added
 - **Zero-Download Cloudflare Pages Serverless Edge Studio**: Deployed native Cloudflare Pages Edge Functions (`/functions/v1/chat/completions.js`, `/functions/v1/models.js`, `/functions/health.js`) executing serverless Web RPC streaming directly in V8 isolates without requiring local binary downloads.
 - **BOB Builder Default Theme**: Established high-contrast **BOB Builder** dark developer theme as the primary default across all browsers and devices.
 - **Direct GitHub Navbar Integration**: Added top navbar GitHub repository link and icon pill directly in `playground.html` and `web/index.html` for 1-click open-source repository exploration.
 - **Public GitHub Raw Install Snippets**: Standardized 1-click terminal setup commands to point directly to raw public GitHub repository URLs (`curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash`).
+- **iOS Dynamic Viewport Height (`100dvh`)**: Replaced `100vh` with `100dvh` (Dynamic Viewport Height unit) on `body` — layout correctly adjusts when the iOS Safari keyboard appears or collapses without layout reflow.
+- **Compact 2×2 Starter Card Grid on Mobile**: Welcome screen starter cards now render as a 2×2 compact grid on screens ≤860px. Card descriptions are hidden; only icon badge + title shown. Hero section now uses ≤30% screen height (was ~60%).
+- **Instant-Access CLEAR Button**: Sub-bar restructured so 📋 Copy and 💾 Export show icon-only on mobile, while 🗑️ **CLEAR** is always visible as a bold red pill (`rgba(239,68,68,0.12)` background) — zero horizontal scrolling needed.
+- **44px Touch Target Compliance (Apple HIG)**: All interactive controls in the input dock (`#user-input`, attachment pill, Send button) now meet Apple's minimum 44pt touch target size on all mobile screens.
+- **Theme Selector Hidden on Mobile**: Theme selector `<select>` is now hidden on screens ≤640px — all 5 themes remain accessible via ⌘K Menu → Themes section.
+- **Mobile-Aware `autoResize()` Textarea**: Textarea auto-resize function now detects mobile (`window.innerWidth ≤ 640`) and applies `minH=40, maxH=130` instead of desktop `minH=44, maxH=200` to prevent keyboard from hiding the chat area.
+- **Placeholder Ellipsis**: `#user-input::placeholder` styled with `white-space: nowrap; overflow: hidden; text-overflow: ellipsis` to prevent placeholder text from wrapping to 2 lines on any screen width.
+- **⌘K Menu Button Icon-Only on Mobile**: Header ⌘K button now shows only the `⌘` glyph on narrow screens (≤640px), making room for the status dot, panel toggles, and GitHub button without overflow.
 
 #### Fixed
 - **Clean HTTP/2 Stream Conclusion**: Engineered Google RPC batch end-marker detection (`["e", ...]` and `["di", ...]`) with explicit upstream `reader.cancel()` and downstream `writer.close()`, eliminating stream hanging and HTTP/2 stream errors.
 - **Mobile Privacy & Security Standardization**: Removed background localhost probes from public HTTPS domains to eliminate Private Network Access (PNA) permission dialogs on mobile Chrome/Android and Apple Safari.
 - **Instant Token & Word Telemetry Badge**: Resolved stream conclusion lifecycle in `playground.html` so word/token counts and the `SEND ➤` button reset immediately upon generation completion.
+- **iOS Safari Auto-Zoom Prevention**: Set `#user-input { font-size: 16px !important }` to prevent iOS Safari 16px auto-zoom trigger when focusing the text input.
+- **iOS Safe Area Inset Padding**: All chrome components (header, sidebar, input dock) now respect `env(safe-area-inset-top/bottom/left/right)` for correct notch and home indicator clearance on iPhone X and later.
+- **iOS Tap Highlight Removal**: Added `-webkit-tap-highlight-color: transparent` to body and `touch-action: manipulation` to all interactive buttons to eliminate the grey flash on tap and remove 300ms tap delay.
+- **Native iOS Inertial Scroll**: Added `-webkit-overflow-scrolling: touch` and `overscroll-behavior-y: contain` to the messages scroll area for native 120Hz ProMotion inertial scrolling and to prevent rubber-band scroll from escaping the container.
+- **Version Consistency**: Updated all hardcoded version strings from `v0.1.3` → `v0.1.4` in the About modal, footer status pill, and JavaScript fallback constants.
+- **Diagnostic Check 6 (SSE Stream)**: Fixed stream scanner to use `bufio.Scanner` for robust SSE line parsing.
+- **Diagnostic Check 12 (Image Generation)**: Now gracefully handles `BardErrorInfo 1003` guest-mode errors with informative pass instead of false failure.
 
 ---
 

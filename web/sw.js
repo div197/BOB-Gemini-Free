@@ -3,7 +3,7 @@
   Engineered by ABCsteps (abcsteps.com) & Divyanshu Singh Chouhan (@div197)
 */
 
-const CACHE_NAME = 'bob-gemini-studio-v0.1.3';
+const CACHE_NAME = 'bob-gemini-studio-v0.1.4';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
