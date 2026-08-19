@@ -10,9 +10,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
 <meta name="generator" content="BOB Gemini Free by ABCsteps">
-<meta name="theme-color" content="#030712">
+<meta name="theme-color" content="#030712" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f97316" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="BOB Gemini Free">
 <link rel="manifest" href="manifest.json">
 <title>BOB GEMINI FREE — Universal AI Gateway Studio</title>
@@ -2106,6 +2107,24 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     max-height: 90dvh;
     overflow-y: auto;
   }
+  /* Command Palette mobile sizing */
+  .cmd-modal-backdrop {
+    padding-top: max(env(safe-area-inset-top), 8px);
+    align-items: flex-start;
+  }
+  .cmd-palette {
+    max-width: 98vw;
+    border-radius: 12px;
+    margin-top: 8px;
+  }
+  .cmd-list {
+    max-height: 55vh;
+    max-height: 55dvh;
+  }
+  .cmd-input-box input {
+    /* Prevent iOS Safari auto-zoom on focus */
+    font-size: 16px;
+  }
 }
 </style>
 </head>
@@ -4018,48 +4037,72 @@ async function sendMessage() {
     let partial = "";
 
     let streamDone = false;
-    while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-      partial += decoder.decode(value, {stream: true});
+    let rafId = 0; // Track RAF frame ID for proper cancellation
 
-      const lines = partial.split("\n");
-      partial = lines.pop() || "";
+    // Override scheduleSmoothRender to capture RAF ID
+    function scheduleSmoothRenderTracked() {
+      if (rafId) return; // Already pending
+      rafId = requestAnimationFrame(() => {
+        rafId = 0;
+        if (thoughtFullText) {
+          thoughtBox.classList.add("active");
+          thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+        }
+        if (asstFullText) {
+          contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
+        }
+        if (userIsAtBottom) {
+          msgListEl.scrollTop = msgListEl.scrollHeight;
+        }
+      });
+    }
 
+    function processSSELines(text) {
+      const lines = text.split("\n");
+      const remaining = lines.pop() || "";
       for (const line of lines) {
         const trimmed = line.trim();
         if (!trimmed) continue;
-        if (trimmed === "data: [DONE]" || trimmed.includes("[DONE]")) {
-          streamDone = true;
-          break;
-        }
+        if (trimmed === "data: [DONE]") { streamDone = true; break; }
         if (trimmed.startsWith("data: ")) {
           try {
             const data = JSON.parse(trimmed.slice(6));
-            const delta = data.choices && data.choices[0] ? data.choices[0].delta : null;
+            const choice = data.choices && data.choices[0];
+            if (!choice) continue;
+            // Detect finish_reason stop as secondary completion signal
+            if (choice.finish_reason === "stop") { streamDone = true; }
+            const delta = choice.delta;
             if (delta) {
               if (delta.reasoning_content) {
                 thoughtFullText += delta.reasoning_content;
-                scheduleSmoothRender();
+                scheduleSmoothRenderTracked();
               }
               if (delta.content) {
                 asstFullText += delta.content;
-                scheduleSmoothRender();
+                scheduleSmoothRenderTracked();
               }
             }
           } catch(e) {}
         }
       }
-      if (streamDone) {
-        break;
-      }
+      return remaining;
     }
 
-    // Flush remaining buffer
-    if (renderRafPending) {
-      cancelAnimationFrame(renderRafPending);
-      renderRafPending = false;
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      partial += decoder.decode(value, {stream: true});
+      partial = processSSELines(partial);
+      if (streamDone) break;
     }
+    // Flush any remaining partial buffer (safety net for truncated streams)
+    if (partial.trim()) {
+      processSSELines(partial + "\n");
+    }
+
+    // Cancel any pending RAF and do a synchronous final render
+    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+
     if (thoughtFullText) {
       thoughtBox.classList.add("active");
       thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
@@ -4101,7 +4144,7 @@ async function sendMessage() {
       if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
         mixedContentHint = `
           <div style="margin-top:8px; padding:8px 12px; background:rgba(245,158,11,0.12); border-left:3px solid #f59e0b; border-radius:4px; font-size:0.8rem; color:var(--text-main); line-height:1.4;">
-            💡 <b>Browser Security Notice:</b> You are accessing via <code>https://</code>. If your browser blocks local loopback HTTP calls, access via <a href="http://bob-gemini-free.abcsteps.com" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://bob-gemini-free.abcsteps.com</a> or use your local interface at <a href="http://127.0.0.1:9610/playground" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://127.0.0.1:9610/playground</a>.
+            💡 <b>Browser Security Notice:</b> You are accessing via <code>https://</code>. If your browser blocks local loopback HTTP calls, use the public demo at <a href="https://bob-gemini-free.abcsteps.com" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">bob-gemini-free.abcsteps.com</a> (serverless mode, no binary needed) or your local interface at <a href="http://127.0.0.1:9610/playground" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://127.0.0.1:9610/playground</a>.
           </div>
         `;
       }
