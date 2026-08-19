@@ -2784,6 +2784,26 @@ function getGatewayBaseUrl() {
   return "http://127.0.0.1:9610";
 }
 
+async function autoDetectGateway() {
+  const custom = localStorage.getItem(ENDPOINT_KEY);
+  if (custom && custom.trim() !== "") return;
+  
+  if (!['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 600);
+      const res = await fetch("http://127.0.0.1:9610/", { signal: controller.signal });
+      clearTimeout(timeoutId);
+      if (res.ok) {
+        localStorage.setItem(ENDPOINT_KEY, "http://127.0.0.1:9610");
+        refreshTelemetry();
+        updateSnippet();
+      }
+    } catch(e) {}
+  }
+}
+autoDetectGateway();
+
 function openGatewayModal() {
   const modal = document.getElementById("gateway-modal");
   const input = document.getElementById("gateway-url-input");
