@@ -217,7 +217,36 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ---
 
-### Option 4: Interactive Local-First Web Studio (`/playground` & `bob-gemini-free.abcsteps.com`)
+### Option 4: Native Background Service Daemonization (`service`)
+
+Run BOB Gemini Free 24/7 in the background across system reboots with native OS daemons (macOS `launchd`, Linux `systemd`, Windows Startup):
+
+```bash
+# Install and enable auto-start on boot (Zero terminal windows needed)
+./bob-gemini-free service install
+
+# Check background daemon health and service definition
+./bob-gemini-free service status
+
+# Start / Stop / Uninstall daemon
+./bob-gemini-free service start
+./bob-gemini-free service stop
+./bob-gemini-free service uninstall
+```
+
+---
+
+### Option 5: In-Place Atomic Auto-Updater (`--update`)
+
+Keep BOB Gemini Free updated with the latest releases directly from GitHub with 1 command:
+
+```bash
+./bob-gemini-free --update
+```
+
+---
+
+### Option 6: Interactive Local-First Web Studio (`/playground` & `bob-gemini-free.abcsteps.com`)
 
 Access the built-in, zero-dependency visual studio directly in your web browser:
 * 🌐 **Online Cloudflare Pages Web Studio**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% Unlimited Scalable Local-First PWA)*
@@ -226,6 +255,7 @@ Access the built-in, zero-dependency visual studio directly in your web browser:
 #### 🌟 100% Unlimited Scalability & State-of-the-Art Client Capabilities:
 * 🔒 **100% On-Device Privacy**: When loaded from [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/), the static web studio auto-discovers and connects directly to your local BOB gateway engine at `http://127.0.0.1:9610` using Chrome Private Network Access (PNA). No prompts, chats, or thinking tokens ever touch intermediate cloud servers.
 * 🐍 **1,000,000-Student Scale In-Browser Pyodide WASM Python Sandbox**: Live client-side CPython 3.11 execution in an isolated WebAssembly sandbox with zero server-side execution risk, zero Python setup, interactive `input()` support, and automatic scientific package wheel streaming (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`).
+* 🗄️ **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)**: In-memory relational database powered by official SQLite WebAssembly (`sql.js`). Run queries in <1ms with `[ Run SQL ⚡ ]` chips, inspect schemas, and view interactive styled data tables with zero cloud costs.
 * ⚡ **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
 * 🪄 **Live AI Prompt Metaprompting Wand Engine (`🪄`)**: Background prompt optimization powered by `gemini-3.7-flash` that transforms rough thoughts into structured master specifications in ~200ms with seamless offline fallback (`⌘ + Shift + P`).
 * 🔍 **Non-Breaking Reading Text Zoom Controller (`🔍 100%`)**: Targeted typography scaling (`calc(0.92rem * var(--reading-zoom))`) via sub-bar pill, `⌘+`/`⌘-`/`⌘0`, and Command Palette without breaking outer geometry, headers, or navigation.
