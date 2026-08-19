@@ -149,4 +149,16 @@ func TestLiveImageUpload(t *testing.T) {
 	} else {
 		t.Logf("UploadImage succeeded: ref=%s", ref)
 	}
+
+	gemClient := gemini.NewClient(cfg)
+	gemClient.Cookies = cookieCache
+	err = gemClient.GenerateStream("What is in this image?", 1, 4, []string{ref}, nil, func(delta string) error {
+		t.Logf("Delta: %s", delta)
+		return nil
+	})
+	if err != nil {
+		t.Logf("GenerateStream with image ref failed: %v", err)
+	} else {
+		t.Logf("GenerateStream with image ref SUCCEEDED!")
+	}
 }

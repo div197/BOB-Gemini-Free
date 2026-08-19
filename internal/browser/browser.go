@@ -265,6 +265,7 @@ func LaunchLoginSession(ctx context.Context, logFn func(format string, args ...a
 			var pairs []string
 			hasSAPISID := false
 			hasPSID := false
+			hasPSIDTS := false
 
 			for _, c := range resp.Result.Cookies {
 				if strings.Contains(c.Domain, "google.com") {
@@ -275,6 +276,9 @@ func LaunchLoginSession(ctx context.Context, logFn func(format string, args ...a
 					if strings.Contains(c.Name, "PSID") || c.Name == "SID" {
 						hasPSID = true
 					}
+					if strings.Contains(c.Name, "PSIDTS") {
+						hasPSIDTS = true
+					}
 				}
 			}
 
@@ -283,12 +287,12 @@ func LaunchLoginSession(ctx context.Context, logFn func(format string, args ...a
 				logFn("[*] Detected %d active session tokens...", len(pairs))
 			}
 
-			// If user successfully reached Gemini app and key session tokens are present
-			if hasSAPISID && hasPSID && len(pairs) >= 5 {
+			// Ensure user has fully loaded Gemini and dynamic timestamp session token is present
+			if hasSAPISID && hasPSID && (hasPSIDTS || len(pairs) >= 15) {
 				rawCookie := strings.Join(pairs, "; ")
 				extracted, err := gemini.ExtractCookies(rawCookie)
 				if err == nil && extracted.SAPISID != "" {
-					logFn("[✔] Successfully captured active session!")
+					logFn("[✔] Successfully captured authenticated session with active SAPISID & PSIDTS!")
 					return extracted, nil
 				}
 			}

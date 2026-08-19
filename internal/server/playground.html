@@ -2146,12 +2146,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       </div>
 
       <div class="cmd-section-label" data-section="templates">🎓 Study & Reasoning Templates</div>
-      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Explain the concept of [Topic] to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). Avoid cliché analogies like LEGO blocks or toy bricks.'); toggleCmdPalette();">
+      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Explain the concept of [Topic] to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams (```mermaid ... ```) or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.'); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">🎓</span>
           <div class="cmd-item-info">
             <span class="cmd-item-title">Explain to a 5th Grader</span>
-            <span class="cmd-item-desc">Pure first-principles mental models & natural analogies (no Lego blocks)</span>
+            <span class="cmd-item-desc">Pure first-principles mental models & natural analogies (Mermaid visual diagrams, no Lego blocks)</span>
           </div>
         </div>
         <kbd>P1</kbd>
@@ -3286,13 +3286,13 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="setStarterPrompt('Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). Avoid cliché analogies like LEGO blocks or toy bricks.')">
+        <div class="starter-card" onclick="setStarterPrompt('Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams (```mermaid ... ```) or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.')">
           <div class="badge-chip">
             <span class="mini-orb">🎓</span>
             <span>FIRST PRINCIPLES</span>
           </div>
           <div class="starter-card-title">Explain to a 5th Grader</div>
-          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (clean, pure, no LEGO clichés).</div>
+          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (with Mermaid visual diagrams, no LEGO clichés).</div>
         </div>
         <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
           <div class="badge-chip">
