@@ -135,8 +135,7 @@ func resolveEngineVersion(override string) string {
 // When omitted, the version is resolved from Go build info automatically.
 func WithVersion(v string) Option {
 	return func(c *config.Config) {
-		// Encode version as a sentinel in XSRFToken; decoded and cleared in NewEngine.
-		c.XSRFToken = "__version__:" + v
+		c.Version = v
 	}
 }
 
@@ -148,17 +147,10 @@ type Engine struct {
 // NewEngine creates an embedded in-process engine for direct programmatic Go inference.
 func NewEngine(opts ...Option) *Engine {
 	cfg := config.Default()
-	var versionOverride string
 	for _, opt := range opts {
 		opt(&cfg)
 	}
-	// Extract version if WithVersion was called (encoded as XSRFToken sentinel).
-	const versionPrefix = "__version__:"
-	if len(cfg.XSRFToken) > len(versionPrefix) && cfg.XSRFToken[:len(versionPrefix)] == versionPrefix {
-		versionOverride = cfg.XSRFToken[len(versionPrefix):]
-		cfg.XSRFToken = "" // clear sentinel
-	}
-	version := resolveEngineVersion(versionOverride)
+	version := resolveEngineVersion(cfg.Version)
 	app := server.New(cfg, version)
 	return &Engine{app: app}
 }

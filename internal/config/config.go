@@ -24,6 +24,7 @@ type Config struct {
 	Proxy             string   `json:"proxy"`
 	APIKeys           []string `json:"api_keys"`
 	Impersonate       string   `json:"impersonate"`
+	Version           string   `json:"version,omitempty"`
 }
 
 func Default() Config {
