@@ -3604,10 +3604,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             <div class="starter-card" onclick="selectStarter('orbit')">
               <div class="badge-chip">
                 <span class="mini-orb">🪐</span>
-                <span>PHYSICS ENGINE</span>
+                <span>THREE.JS WEBGL</span>
               </div>
-              <div class="starter-card-title">3D Planetary Orbit Simulator</div>
-              <div class="starter-card-desc">Interactive N-body gravitational simulator with velocity vectors and mass controls.</div>
+              <div class="starter-card-title">3D Solar System & Orbit Lab</div>
+              <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
             </div>
             <div class="starter-card" onclick="selectStarter('compound')">
               <div class="badge-chip">
@@ -3617,10 +3617,26 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">Compound Wealth Calculator</div>
               <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('python')">
+            <div class="starter-card" onclick="selectStarter('py_snake')">
               <div class="badge-chip">
                 <span class="mini-orb">🐍</span>
-                <span>PYTHON STREAM</span>
+                <span>PYTHON WASM</span>
+              </div>
+              <div class="starter-card-title">Classic Nokia Snake (Python)</div>
+              <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
+            </div>
+            <div class="starter-card" onclick="selectStarter('schrodinger')">
+              <div class="badge-chip">
+                <span class="mini-orb">📐</span>
+                <span>RIGOROUS PROOF</span>
+              </div>
+              <div class="starter-card-title">Quantum Wave Mechanics</div>
+              <div class="starter-card-desc">Step-by-step first-principles KaTeX derivation of the Time-Dependent Schrödinger Wave Equation.</div>
+            </div>
+            <div class="starter-card" onclick="selectStarter('python')">
+              <div class="badge-chip">
+                <span class="mini-orb">⚡</span>
+                <span>LOCAL SDK BRIDGE</span>
               </div>
               <div class="starter-card-title">OpenAI SDK Port 9610</div>
               <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
@@ -3890,6 +3906,8 @@ const STARTER_PROMPTS_HI = {
   snake: "HTML5 Canvas में एक पूर्ण, स्टैंडअलोन 2D साइबरपंक स्नेक आर्केड गेम बनाएं। इसमें नियॉन ग्लो, खाना खाने पर कण विस्फोट (particles), बढ़ती कठिनाई, स्मूथ 60fps गेम लूप, हाई स्कोर ट्रैकिंग, Web Audio API ध्वनि प्रभाव और टच/तीर कुंजियों के नियंत्रण शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   orbit: "Three.js (CDN के माध्यम से) का उपयोग करके HTML5 में एक पूर्ण, यथार्थवादी, इंटरैक्टिव 3D सौर मंडल व ग्रहीय कक्षा सिमुलेशन बनाएं। इसमें प्रकाशयुक्त सूर्य, G*m1*m2/r^2 गुरुत्वाकर्षण के साथ केप्लेरियन कक्षीय भौतिकी, चमकती कक्षीय रेखाएं, शनि के छल्ले, 360° OrbitControls (pan, rotate, zoom) और गति स्लाइडर शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   compound: "Chart.js के साथ HTML5 में एक पूर्ण, स्टैंडअलोन इंटरैक्टिव वित्तीय चक्रवृद्धि ब्याज व धन वृद्धि कैलकुलेटर बनाएं। इसमें प्रारंभिक निवेश, मासिक योगदान, वार्षिक रिटर्न % और अवधि के लिए स्लाइडर्स शामिल करें। संचयी विकास का इंटरैक्टिव चार्ट प्रस्तुत करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
+  py_snake: "शुद्ध Python में एक पूर्ण, खेलने योग्य रेट्रो नोकिया 3310 स्नेक गेम लिखें। इसमें 20x10 ASCII ग्रिड बोर्ड, भोजन उत्पादन, 'w'/'a'/'s'/'d' इनपुट नियंत्रण, दीवार और पूंछ से टकराव का पता लगाना और स्कोर काउंटर शामिल करें। संपूर्ण कोड एक ```python``` ब्लॉक में दें ताकि यह BOB के WASM सैंडबॉक्स में सीधे चल सके।",
+  schrodinger: "डी ब्रोग्ली तरंग संबंधों और हैमिल्टनियन यांत्रिकी का उपयोग करते हुए प्रथम सिद्धांतों से समय-निर्भर श्रोडिंगर तरंग समीकरण (Time-Dependent Schrödinger Wave Equation) की KaTeX LaTeX गणितीय व्युत्पत्ति तैयार करें। प्रत्येक चरण को स्पष्ट समीकरणों के साथ समझाएं।",
   proof: "[विषय/सूत्र] के लिए चरण-दर-चरण गणितीय प्रमाण और KaTeX व्युत्पत्ति तैयार करें।",
   audit: "[सिस्टम/कोडबेस] का व्यापक प्रथम-सिद्धांत वास्तुकला विश्लेषण, सुरक्षा समीक्षा और तकनीकी बॉटलनेक ऑडिट करें।",
   physics: "[अवधारणा/शोधपत्र] को नियंत्रित करने वाले मूलभूत सिद्धांतों, भौतिकी और गणितीय समीकरणों का विश्लेषण करें।",
@@ -6250,9 +6268,11 @@ const STARTER_PROMPTS = {
   snake: "Build a complete, standalone 2D Cyberpunk Snake arcade game in HTML5 Canvas. Include neon glow aesthetics, particle explosions when eating food, increasing difficulty, smooth 60fps game loop, high score tracking, sound effects via Web Audio API, and touch + arrow key controls. Output the entire runnable code inside a single ```html``` block.",
   orbit: "Build a complete, photorealistic, interactive 3D Solar System & Planetary Orbit Simulation in standalone HTML5 using Three.js (via CDN). Include a glowing Sun with point light illumination, multi-planet Keplerian orbital mechanics with G*m1*m2/r^2 gravity, glowing orbital trail lines, textured planets, Saturn planetary rings, particle starfield galaxy background, full 360° OrbitControls (pan, rotate, mouse/touch zoom), and real-time physics controls (Simulation Speed 1x-100x, Pause/Play, Reset). Output the entire runnable self-contained code inside a single ```html``` block.",
   compound: "Build a complete, standalone interactive Financial Compound Wealth & Freedom Calculator in HTML5 with Chart.js. Include dynamic sliders for Initial Investment, Monthly Contribution, Annual Return %, and Investment Horizon (years). Render an interactive stacked growth chart showing Total Contributed vs Total Interest Earned, with inflation adjustment toggles and annual breakdown data tables. Output the entire runnable code inside a single ```html``` block.",
+  py_snake: "Write a complete, playable retro Nokia 3310 Snake game in pure Python. Use a 20x10 ASCII grid board, food generation with random placement, snake movement via step-by-step turns or user input ('w'/'a'/'s'/'d'), collision detection against walls and tail, score counter, and increasing speed levels. Output the entire runnable code inside a single ```python``` block so it runs directly in BOB's in-browser WebAssembly sandbox.",
+  schrodinger: "Derive the Time-Dependent Schrödinger Wave Equation from first principles using de Broglie matter wave relations (E = \\hbar\\omega, p = \\hbar k), the classical energy conservation equation (E = p^2/2m + V), and differential wave operators. Formulate every step with clean, rigorous KaTeX LaTeX mathematical notation, detailing boundary conditions, the physical meaning of the complex probability wave function \\Psi(x,t), and probability conservation. Output clear LaTeX equations.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
-  python: "Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.",
-  golang: "Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations."
+  python: "Write a complete Python script using the official openai-python SDK configured to stream responses from BOB Gemini Free at http://127.0.0.1:9610/v1 with model gemini-3.7-flash and extract reasoning_content thinking tokens in real-time.",
+  golang: "Write a production-grade, zero-allocation concurrent HTTP reverse proxy microservice in Go (Go 1.22+) using standard library net/http and sync.Pool. Include graceful shutdown on SIGINT/SIGTERM, custom round-tripper with connection pooling, structured slog logging, and health probe endpoints."
 };
 
 function selectStarter(key) {
@@ -6305,10 +6325,10 @@ function renderMessages() {
         <div class="starter-card" onclick="selectStarter('orbit')">
           <div class="badge-chip">
             <span class="mini-orb">🪐</span>
-            <span>PHYSICS ENGINE</span>
+            <span>THREE.JS WEBGL</span>
           </div>
-          <div class="starter-card-title">3D Planetary Orbit Simulator</div>
-          <div class="starter-card-desc">Interactive N-body gravitational simulator with velocity vectors and mass controls.</div>
+          <div class="starter-card-title">3D Solar System & Orbit Lab</div>
+          <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
         </div>
         <div class="starter-card" onclick="selectStarter('compound')">
           <div class="badge-chip">
@@ -6318,10 +6338,26 @@ function renderMessages() {
           <div class="starter-card-title">Compound Wealth Calculator</div>
           <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('python')">
+        <div class="starter-card" onclick="selectStarter('py_snake')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
-            <span>PYTHON STREAM</span>
+            <span>PYTHON WASM</span>
+          </div>
+          <div class="starter-card-title">Classic Nokia Snake (Python)</div>
+          <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
+        </div>
+        <div class="starter-card" onclick="selectStarter('schrodinger')">
+          <div class="badge-chip">
+            <span class="mini-orb">📐</span>
+            <span>RIGOROUS PROOF</span>
+          </div>
+          <div class="starter-card-title">Quantum Wave Mechanics</div>
+          <div class="starter-card-desc">Step-by-step first-principles KaTeX derivation of the Time-Dependent Schrödinger Wave Equation.</div>
+        </div>
+        <div class="starter-card" onclick="selectStarter('python')">
+          <div class="badge-chip">
+            <span class="mini-orb">⚡</span>
+            <span>LOCAL SDK BRIDGE</span>
           </div>
           <div class="starter-card-title">OpenAI SDK Port 9610</div>
           <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
