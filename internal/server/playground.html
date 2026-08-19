@@ -3933,12 +3933,21 @@ async function sendMessage() {
       saveHistory();
     } else {
       updateGatewayStatusIndicator(false, null);
+      let mixedContentHint = "";
+      if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
+        mixedContentHint = `
+          <div style="margin-top:8px; padding:8px 12px; background:rgba(245,158,11,0.12); border-left:3px solid #f59e0b; border-radius:4px; font-size:0.8rem; color:var(--text-main); line-height:1.4;">
+            💡 <b>Browser Security Notice:</b> You are accessing via <code>https://</code>. If your browser blocks local loopback HTTP calls, access via <a href="http://bob-gemini-free.abcsteps.com" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://bob-gemini-free.abcsteps.com</a> or use your local interface at <a href="http://127.0.0.1:9610/playground" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://127.0.0.1:9610/playground</a>.
+          </div>
+        `;
+      }
       contentSpan.innerHTML = `
         <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
         <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
           Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
           Ensure the engine is running (<code>./bob-gemini-free --port 9610</code>) or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
         </div>
+        ${mixedContentHint}
       `;
     }
   } finally {
