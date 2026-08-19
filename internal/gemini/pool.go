@@ -24,15 +24,18 @@ type AccountSession struct {
 
 // CookiePool manages a multi-account pool of Google session cookies with auto-rotation and failover.
 type CookiePool struct {
-	mu       sync.RWMutex
-	sessions []*AccountSession
-	cursor   atomic.Uint64
+	mu        sync.RWMutex
+	sessions  []*AccountSession
+	sources   []string
+	sourceDir string
+	cursor    atomic.Uint64
 }
 
 // NewCookiePool initializes an empty or populated cookie pool.
 func NewCookiePool() *CookiePool {
 	return &CookiePool{
 		sessions: make([]*AccountSession, 0),
+		sources:  make([]string, 0),
 	}
 }
 
@@ -62,6 +65,10 @@ func (p *CookiePool) AddSession(source, cookieStr, sapisid, authUser string) {
 
 // LoadFromFiles loads multiple cookie files into the pool.
 func (p *CookiePool) LoadFromFiles(files []string) int {
+	p.mu.Lock()
+	p.sources = append(p.sources, files...)
+	p.mu.Unlock()
+
 	loaded := 0
 	for _, f := range files {
 		if strings.TrimSpace(f) == "" {
@@ -86,6 +93,10 @@ func (p *CookiePool) LoadFromFiles(files []string) int {
 
 // LoadFromDirectory discovers all .txt cookie files in a directory.
 func (p *CookiePool) LoadFromDirectory(dir string) int {
+	p.mu.Lock()
+	p.sourceDir = dir
+	p.mu.Unlock()
+
 	entries, err := os.ReadDir(dir)
 	if err != nil {
 		return 0
@@ -97,6 +108,78 @@ func (p *CookiePool) LoadFromDirectory(dir string) int {
 		}
 	}
 	return p.LoadFromFiles(files)
+}
+
+// Reload refreshes all session tokens from registered sources on disk without restarting the server.
+func (p *CookiePool) Reload() int {
+	p.mu.RLock()
+	sources := append([]string{}, p.sources...)
+	sourceDir := p.sourceDir
+	p.mu.RUnlock()
+
+	if sourceDir != "" {
+		entries, err := os.ReadDir(sourceDir)
+		if err == nil {
+			for _, e := range entries {
+				if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
+					sources = append(sources, filepath.Join(sourceDir, e.Name()))
+				}
+			}
+		}
+	}
+
+	loaded := 0
+	var newSessions []*AccountSession
+
+	for _, f := range sources {
+		if strings.TrimSpace(f) == "" {
+			continue
+		}
+		data, err := os.ReadFile(f)
+		if err != nil {
+			continue
+		}
+		raw := strings.TrimSpace(string(data))
+		if raw == "" {
+			continue
+		}
+		extracted, err := ExtractCookies(raw)
+		if err == nil && extracted.RawCookie != "" {
+			id := extracted.SAPISID
+			if id == "" {
+				id = f
+			}
+			newSessions = append(newSessions, &AccountSession{
+				ID:         id,
+				SourceFile: f,
+				Cookie:     extracted.RawCookie,
+				SAPISID:    extracted.SAPISID,
+				Active:     true,
+			})
+			loaded++
+		}
+	}
+
+	if loaded > 0 {
+		p.mu.Lock()
+		p.sessions = newSessions
+		p.mu.Unlock()
+	}
+	return loaded
+}
+
+// StartAutoReload launches a lightweight background goroutine that periodically syncs session tokens.
+func (p *CookiePool) StartAutoReload(interval time.Duration) {
+	if interval <= 0 {
+		interval = 30 * time.Second
+	}
+	go func() {
+		ticker := time.NewTicker(interval)
+		defer ticker.Stop()
+		for range ticker.C {
+			p.Reload()
+		}
+	}()
 }
 
 // Count returns the total number of sessions in the pool.

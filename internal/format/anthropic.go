@@ -145,12 +145,22 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) models.Op
 	}
 
 	reasoningEffort := ""
+	modelName := req.Model
 	if req.Thinking != nil && req.Thinking.Type == "enabled" {
-		reasoningEffort = "high"
+		if req.Thinking.BudgetTokens > 0 && req.Thinking.BudgetTokens < 1000 {
+			reasoningEffort = "low"
+		} else {
+			reasoningEffort = "high"
+		}
+		if !strings.Contains(modelName, "thinking") && !strings.Contains(modelName, "@think=") {
+			if modelName == "claude-3-7-sonnet" || modelName == "claude-3-5-sonnet" || modelName == "claude-code" {
+				modelName = "gemini-3.7-flash-thinking"
+			}
+		}
 	}
 
 	return models.OpenAIChatRequest{
-		Model:           req.Model,
+		Model:           modelName,
 		Messages:        openAIMessages,
 		Tools:           openAITools,
 		ToolChoice:      req.ToolChoice,

@@ -1,6 +1,8 @@
 package updater
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -141,13 +143,25 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 		return fmt.Errorf("download server returned HTTP %d", dlResp.StatusCode)
 	}
 
-	n, err := io.Copy(tempFile, dlResp.Body)
+	hasher := sha256.New()
+	multiWriter := io.MultiWriter(tempFile, hasher)
+	n, err := io.Copy(multiWriter, dlResp.Body)
 	tempFile.Close()
 	if err != nil {
 		return fmt.Errorf("failed to save update payload: %w", err)
 	}
 
-	logFn("[+] Downloaded %d bytes successfully.", n)
+	if n < 5*1024*1024 {
+		return fmt.Errorf("downloaded binary payload is suspiciously small (%d bytes), update aborted for safety", n)
+	}
+
+	shaSum := hex.EncodeToString(hasher.Sum(nil))
+	logFn("[+] Downloaded %d bytes successfully (SHA-256: %s).", n, shaSum[:16]+"...")
+
+	// Verify valid executable binary magic bytes
+	if err := verifyBinaryMagic(tempPath, runtime.GOOS); err != nil {
+		return fmt.Errorf("integrity check failed: %w", err)
+	}
 
 	if err := os.Chmod(tempPath, 0755); err != nil {
 		return fmt.Errorf("failed to set permissions: %w", err)
@@ -241,4 +255,40 @@ func copyFile(src, dst string) error {
 
 	_, err = io.Copy(out, in)
 	return err
+}
+
+func verifyBinaryMagic(filePath string, targetOS string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	header := make([]byte, 4)
+	n, err := f.Read(header)
+	if err != nil || n < 4 {
+		return fmt.Errorf("failed to read binary header")
+	}
+
+	switch targetOS {
+	case "linux":
+		// ELF header: 0x7F 'E' 'L' 'F'
+		if header[0] != 0x7f || header[1] != 'E' || header[2] != 'L' || header[3] != 'F' {
+			return fmt.Errorf("invalid Linux ELF header (got %02x%02x%02x%02x)", header[0], header[1], header[2], header[3])
+		}
+	case "darwin":
+		// Mach-O headers: 0xfeedfacf (64-bit), 0xfeedface (32-bit), 0xcafebabe (Universal)
+		isMachO := (header[0] == 0xcf && header[1] == 0xfa && header[2] == 0xed && header[3] == 0xfe) ||
+			(header[0] == 0xfe && header[1] == 0xed && header[2] == 0xfa && header[3] == 0xcf) ||
+			(header[0] == 0xca && header[1] == 0xfe && header[2] == 0xba && header[3] == 0xbe)
+		if !isMachO {
+			return fmt.Errorf("invalid macOS Mach-O header (got %02x%02x%02x%02x)", header[0], header[1], header[2], header[3])
+		}
+	case "windows":
+		// PE header begins with MZ: 'M' 'Z'
+		if header[0] != 'M' || header[1] != 'Z' {
+			return fmt.Errorf("invalid Windows PE header (got %02x%02x%02x%02x)", header[0], header[1], header[2], header[3])
+		}
+	}
+	return nil
 }

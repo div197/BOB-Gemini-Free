@@ -60,6 +60,10 @@ func New(cfg config.Config, version string) *App {
 		StartTime:  time.Now(),
 	}
 
+	if gemClient.Pool != nil {
+		gemClient.Pool.StartAutoReload(30 * time.Second)
+	}
+
 	return app
 }
 
