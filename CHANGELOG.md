@@ -7,16 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.5] - 2026-08-19
+## [0.1.5] - 2026-08-20
 
-### 2022–2026 AI Innovations Suite, In-Browser Pyodide WASM Python Sandbox, Natural HD Speech Studio & In-Place Message Branching
+### 2022–2026 AI Innovations Suite: In-Browser Pyodide WASM Python Sandbox, Live AI Metaprompter Wand, Non-Breaking Reading Zoom, 2D/3D Artifact Studios & Steve Jobs Mobile Ergonomics
 
 #### Added
 - **1,000,000-Student Scale In-Browser Pyodide WASM Python Execution Engine**:
   - Live client-side CPython 3.11 execution in an isolated in-memory WebAssembly sandbox with **zero server-side execution risk, zero Python installation required, and zero cloud billing**.
   - Dedicated **`🐍 Python WASM Live Sandbox` [ Run WASM ⚡ ]** interactive Artifact Card Chips automatically attached to all Python code blocks.
   - **Dynamic Code Sanitization Engine (`sanitizePythonCode`)**: Automatically strips conversational text, markdown headers, and trailing fences before AST parsing to prevent `SyntaxError` crashes.
-  - **Interactive `input()` Prompt Hook**: Intercepts `builtins.input` via browser prompt so student CLI games, number-guessing programs, and text adventures run interactively without freezing.
+  - **Interactive `input()` Prompt Hook**: Intercepts `builtins.input` via browser prompt with clean cancellation handling (`KeyboardInterrupt`) so interactive scripts and financial simulations run smoothly.
   - **Dynamic Scientific Package Auto-Loader**: Inspects code for `numpy`, `pandas`, `matplotlib`, `scipy`, `sympy` and dynamically streams WebAssembly package wheels on demand.
   - **Cyberpunk Dark Terminal & Performance Timer**: Real-time `sys.stdout` streaming, red error highlights, and sub-10ms execution reporting (`✔ Finished in 7.0ms`).
 - **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**:
@@ -24,38 +24,36 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rich **Artifact Card Chips** in chat with title extraction, type badge, and 1-click `Launch ⚡` button.
   - Dedicated **Interactive Artifact Studio Canvas Modal** with sandboxed `iframe` execution (`allow-scripts allow-modals allow-forms allow-same-origin`) supporting live HTML5, CSS3, JavaScript, Canvas 2D/WebGL simulations & games, SVG vector rendering, and Mermaid architecture diagrams.
   - Dual Tab switcher (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), quick copy (`📋`), standalone file export (`💾`), and instant fullscreen pop-out (`⛶`) in dedicated browser windows.
+- **Live AI Prompt Metaprompting Wand Engine (`🪄`)**:
+  - Upgraded from static heuristic regex to a **real-time AI prompt optimization engine**: makes a background call to local BOB gateway (`/v1/chat/completions`) using `gemini-3.7-flash` to transform rough thoughts into structured, precision master prompts in ~200ms.
+  - Seamless, zero-latency offline fallback to structured templates (Game/App, Math/Physics, Code/Architecture, General) when offline or unreachable.
+  - Keyboard shortcut (`⌘ + Shift + P` / `Ctrl + Shift + P`) and sparkling button glow animation.
+- **Subtle, Non-Breaking Reading Zoom Controller (`🔍 100%`)**:
+  - Dynamically scales reading typography (`calc(0.92rem * var(--reading-zoom))`) on assistant responses, markdown text, thought blocks, and code blocks while keeping header, sidebars, starter cards, and input layout 100% fixed, stable, and unbroken.
+  - Integrated 1-click sub-bar cycle pill (`100%` $\rightarrow$ `115%` $\rightarrow$ `130%` $\rightarrow$ `85%` $\rightarrow$ `100%`), Command Palette (⌘K) quick commands, and keyboard shortcuts (`⌘ +` / `Ctrl +`, `⌘ -` / `Ctrl -`, `⌘ 0` / `Ctrl 0`) with `localStorage` persistence.
+- **Symmetrical Radha-Krishna $2 \times 2$ 4-Flagship Masterpiece Matrix**:
+  - Replaced cramped 8-card grid with a spacious, soothing, balanced $2 \times 2$ matrix showcasing the platform's 4 defining superpowers:
+    1. 🎮 **Artifact Canvas Studio**: *2D Cyberpunk Snake Game* (HTML5 Canvas 60fps arcade).
+    2. 🐍 **Python WASM Sandbox**: *Quantitative Finance & Risk (Black-Scholes & Monte Carlo)* (NumPy option pricing, 5 Greeks, and 10,000-path VaR).
+    3. 🪐 **Three.js WebGL Studio**: *3D Solar System & Orbit Lab* (Photorealistic N-body gravity simulator with 360° OrbitControls).
+    4. 🎓 **First Principles & Mental Models**: *Explain to a 5th Grader* (Intuitive analogies with Mermaid visual diagrams).
 - **In-Place User Message Editing & Conversation Branching Engine**:
   - True in-place DOM transformation: clicking `✏️` on any past user bubble instantly transforms the card into an inline editor with auto-growing textarea and `[ Save & Submit ]` / `[ Cancel ]` buttons.
   - Full conversation rewind and re-branching (`chatHistory.slice(0, idx)`), restoring any attached multimodal images or document context.
   - Keyboard ergonomics: `Ctrl+Enter` / `⌘+Enter` to submit, `Escape` to cancel.
 - **Natural HD Speech Engine & Floating Audio Controller Bar (NotebookLM-Class Voice Studio)**:
-  - **Intelligent Neural Voice Scoring Engine (`getBestNaturalVoice`)**: Automatically filters out legacy 1990s robotic synths (Fred, Albert) and awards a +250 priority score to `✨ Studio HD Natural Voices` (`Google US English`, `Google हिन्दी (hi-IN)`, `Google UK English Female`, `Samantha Enhanced`, `Ava Premium`, `Rishi`, `Lekha`).
+  - **Intelligent Neural Voice Scoring Engine (`getBestNaturalVoice`)**: Automatically filters out legacy robotic synths and prioritizes `✨ Studio HD Natural Voices` (`Google US English`, `Google हिन्दी`, `Samantha Enhanced`, `Ava Premium`, `Rishi`, `Lekha`).
   - **Dharmic Glassmorphic Floating Audio Player Bar**: Bottom-docked player equipped with **Play / Pause toggle (`⏸️` / `▶️`)**, **Cycle Speed chip (`0.8x`, `1.0x`, `1.25x`, `1.5x`)**, **Live 4-bar pulsating sound equalizer (`ılılı`)**, **Sentence Progress Counter (`Sentence X of Y`)**, and **Stop (`⏹️`)**.
   - **Sentence-by-Sentence Fluid Cadence**: Chunking parser that prevents browser 15-second speech synthesis timeouts and delivers natural human conversational pacing.
-  - **Studio Configuration Controls**: Natural voice picker and speech rate slider in the Left Sidebar.
-- **Prompt Magic Wand Engine (`🪄 Super-Prompt Expander`)**:
-  - 1-click input dock button and keyboard shortcut (`⌘ + Shift + P` / `Ctrl + Shift + P`) with glowing sparkle animation (`@keyframes wandGlow`).
-  - Contextually expands brief thoughts into production-grade prompts: game/canvas queries $\rightarrow$ full HTML5/JS requirements; physics/math queries $\rightarrow$ first-principles KaTeX derivations; backend queries $\rightarrow$ zero-allocation Go architectures.
-- **Multi-Model Instant Branching Retry Group (`↻ Retry`, `🧠 Think`, `⚡ Flash`)**:
-  - Direct controls on assistant story cards allowing instant re-generation with `@think=0` (Deep Step-by-Step Reasoning) or `@think=4` (Ultra-Fast Flash).
-- **2026 Interactive Artifact Starter Gallery**:
-  - Enhanced welcome hero with 6 production-grade starter cards: *2D Cyberpunk Snake Arcade Game*, *3D Planetary Orbit Physics Sandbox*, *Compound Wealth Calculator*, *Explain to a 5th Grader (Mermaid diagrams)*, *Python Stream Client*, and *Go Zero-Allocation Architecture*.
-- **Publication-Grade Print & PDF Stylesheet (`@media print`)**:
-  - Print-ready CSS stripping all UI chrome, sidebars, and input docks for clean 1-click PDF exporting via `window.print()`.
-- **Shared School Computer Lab Privacy & Ephemeral Workspace**:
-  - Pure single-session in-memory architecture preventing multi-user history leakage across shared classroom computers while preserving on-demand `💾 Export Markdown` and `✦ New`.
-- **Real-Time Indic Phonetic Transliteration (`अ`) with Backspace Undo**:
-  - Dynamic Roman $\rightarrow$ Devanagari conversion with sub-millisecond LRU cache and offline fallback.
-- **Native Web Speech Voice Recognition (🎙️ Mic Engine)**:
-  - Zero-latency client-side speech-to-text dictation in English and Hindi.
-- **Modernized Desktop Header Ergonomics**:
-  - Brand typography: `BREAK ORDINARY BOUNDARIES • BY ABCSTEPS`.
-  - Unified **Glass Island Telemetry Capsule** (`Uptime • Requests • Tokens • Saved`).
-  - Unified segmented sidebar pill (`[ ◧ Config | Code ◨ ]`).
+- **Steve Jobs Level Mobile Ergonomics & 2-Tier Input Dock**:
+  - `position: fixed !important;` off-canvas drawer architecture for Config and Code panels, eliminating flex margin shifts on mobile viewports.
+  - 2-tier mobile input layout: 100% wide auto-resizing textarea on top; tools dock (`📎`, `अ`, `🎙️`, `🪄`) and golden `SEND ➤` CTA on bottom.
+  - Guaranteed Apple HIG 44pt touch target compliance, dynamic viewport height (`100dvh`), and notch/home-indicator safe area inset support (`env(safe-area-inset-*)`).
 
 #### Fixed
 - **Message Editing Pointer Jump Bug**: Resolved DOM click binding and positional tracking (`data-msg-idx`) so message editing happens strictly in-place without scrolling to the bottom input box.
-- **Textarea Horizontal Scrollbar Elimination**: Added `overflow-x: hidden !important;`, `scrollbar-width: thin;`, and `overflow-x` enforcement in `autoResize(el)` to permanently eliminate unwanted horizontal scrollbar rendering across WebKit and Blink browsers.
+- **Textarea Horizontal Scrollbar Elimination**: Added `overflow-x: hidden !important;`, `scrollbar-width: none !important;`, and `overflow-x` enforcement in `autoResize(el)` to permanently eliminate unwanted horizontal scrollbar rendering across WebKit and Blink browsers.
+- **Pyodide Sync Cancellation**: Added `KeyboardInterrupt` exception handling when user cancels `input()` dialogs.
 
 ---
 
