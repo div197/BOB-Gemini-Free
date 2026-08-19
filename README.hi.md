@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.4-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.5-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -188,8 +188,13 @@ chmod +x install.sh
 * 🌐 **ऑनलाइन Cloudflare Pages वेब स्टूडियो**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% असीमित स्केलेबल लोकल-फ़र्स्ट PWA)*
 * 🏠 **लोकल सर्वर एड्रेस**: `http://127.0.0.1:9610/playground` (या `/ui`)
 
-#### 🌟 100% असीमित स्केलेबिलिटी व शून्य क्लाउड बिल:
+#### 🌟 100% असीमित स्केलेबिलिटी व अत्याधुनिक क्लाइंट क्षमताएँ:
 * 🔒 **100% ऑन-डिवाइस प्राइवेसी**: जब आप [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/) खोलते हैं, तो यह सीधे आपके लोकल गेटवे `http://127.0.0.1:9610` से जुड़ता है। आपकी कोई भी चैट या प्रॉम्प्ट किसी क्लाउड सर्वर पर नहीं जाती।
+* ⚡ **नेटिव क्लाइंट-साइड इंटरैक्टिव आर्टिफ़ैक्ट्स इंजन (Claude-Style Live Canvas)**: HTML5 वेब ऍप्लिकेशन्स, CSS3 एनिमेशन्स, Canvas 2D/WebGL गेम्स, SVG वेक्टर ग्राफिक्स और Mermaid डायग्राम्स को 1-क्लिक **`Launch ⚡`** चिप से सीधे सैंडबॉक्स्ड स्टूडियो मोडल (`[ ▶ Preview | ⟨/⟩ Code ]`) में चलाएँ।
+* 🌐 **द्विभाषी व 8 क्षेत्रीय लिपियों में इंटरफ़ेस**: 1-क्लिक हेडर स्विचर व ⌘K शॉर्टकट (`L1` English, `L2` हिन्दी), साथ में 8 भारतीय लिपियों का समर्थन (हिन्दी, संस्कृतम्, मराठी, বাংলা, ગુજરાતી, தமிழ், తెలుగు, ਪੰਜਾਬੀ)।
+* ✍️ **रीयल-टाइम फोनेटिक लिप्यंतरण (Backspace Undo के साथ)**: अंग्रेज़ी अक्षरों में टाइप करने पर (`"namaste"`) स्पेस दबाते ही शुद्ध देवनागरी (`"नमस्ते"`) में परिवर्तन। `Backspace` दबाते ही शब्द वापस अंग्रेज़ी अक्षरों में बदल जाता है।
+* 🎙️ **नेटिव वॉइस इनपुट (Web Speech API)**: बिना किसी बाहरी API या क्लाउड शुल्क के ब्राउज़र द्वारा सीधे हिंदी व अंग्रेज़ी में बोलकर टाइप करने की सुविधा।
+* 🏛️ **भारतीय स्कूल कंप्यूटर लैब मास्टर आर्किटेक्चर**: 1-प्रोसेस LAN होस्ट मोड (`--host 0.0.0.0 --port 9610`) द्वारा 30-कंप्यूटर वाली लैब में 240+ छात्रों को ₹0 में स्थानीय एआई का लाभ।
 * 🧠 **लाइव रीज़निंग विज़ुअलाइज़र**: Gemini 3.7 Flash Thinking के रीज़निंग टोकन्स को रीयल-टाइम में प्रवाहित होते हुए देखें।
 * ⚡ **मॉडल व थिंकिंग स्विचर**: तेज़ मॉडल्स, डीप रीज़निंग, या Imagen 3 इमेज सिंथेसिस को एक क्लिक में टेस्ट करें।
 * 📊 **लाइव टेलीमेट्री व डॉलर बचत ट्रैकर**: अपटाइम, प्रोसेस्ड टोकन्स और कुल डॉलर बचत का लाइव मीटर।

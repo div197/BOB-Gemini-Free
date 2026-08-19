@@ -449,44 +449,85 @@ header {
 .brand-tagline {
   font-size: 0.62rem;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   color: var(--text-muted);
 }
 
-/* Telemetry Pills */
+/* Unified Glass Telemetry Capsule */
 .telemetry-bar {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-.stat-pill {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  padding: 0 10px;
-  height: 28px;
+  padding: 0 14px;
+  height: 32px;
   border-radius: var(--radius-pill);
-  color: var(--text-muted);
+  display: flex;
+  gap: 8px;
+  align-items: center;
   font-size: 0.72rem;
+  color: var(--text-muted);
   font-weight: 600;
+  white-space: nowrap;
+}
+.telemetry-bar .stat-item {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
-.stat-pill b {
+.telemetry-bar .stat-sep {
+  color: var(--text-subdued);
+  opacity: 0.4;
+  font-size: 0.7rem;
+}
+.telemetry-bar b {
   color: var(--text-main);
   font-family: var(--font-mono);
   font-weight: 700;
 }
-.stat-pill.savings b {
+.telemetry-bar .savings b {
   color: #10b981;
 }
 
-/* Header Controls & Sidebar Toggles */
+/* Header Controls & Segmented Controls */
 .header-controls {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+.nav-segmented-group {
+  display: inline-flex;
+  align-items: center;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  height: 32px;
+  padding: 2px;
+}
+.nav-segment-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-main);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 10px;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: inherit;
+}
+.nav-segment-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-primary);
+}
+.nav-segment-btn.active {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
 }
 .theme-selector {
   background: var(--bg-card);
@@ -1095,6 +1136,34 @@ input[type="range"] {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
 }
+.btn-translit-pill {
+  font-weight: 800;
+  font-size: 1rem;
+  font-family: inherit;
+  user-select: none;
+}
+.btn-translit-pill.active {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 12px var(--border-glow);
+}
+.btn-mic-pill {
+  font-size: 1.05rem;
+  user-select: none;
+}
+.btn-mic-pill.recording {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+  animation: pulse-mic 1.2s infinite ease-in-out;
+}
+@keyframes pulse-mic {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
+}
 
 #user-input {
   flex: 1;
@@ -1111,9 +1180,17 @@ input[type="range"] {
   font-family: inherit;
   color: var(--text-main);
   font-weight: 500;
+  overflow-x: hidden !important;
   overflow-y: hidden;
+  word-break: break-word;
+  white-space: pre-wrap;
+  scrollbar-width: thin;
   box-sizing: border-box;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+#user-input::-webkit-scrollbar {
+  width: 4px;
+  height: 0px;
 }
 #user-input:focus {
   border-color: var(--border-focus);
@@ -1357,6 +1434,203 @@ input[type="range"] {
   font-family: var(--font-mono);
   font-size: 0.88em;
   font-weight: 600;
+}
+
+/* Interactive Artifact Canvas Studio & Chips */
+.artifact-card-chip {
+  margin: 14px 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 4px solid var(--accent-primary);
+  border-radius: var(--radius-card);
+  padding: 12px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+}
+.artifact-card-chip:hover {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-main);
+}
+.artifact-chip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.artifact-chip-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+.artifact-chip-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.artifact-chip-title {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+.artifact-chip-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+.btn-launch-art {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
+  border: none;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 0 14px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+.btn-launch-art:hover {
+  transform: scale(1.03);
+}
+
+.artifact-modal-backdrop {
+  z-index: 9999;
+}
+.artifact-modal-backdrop .artifact-studio-box {
+  background: var(--bg-modal);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  width: 95vw;
+  max-width: 1240px;
+  height: 88vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.75);
+  overflow: hidden;
+  animation: artZoomIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes artZoomIn {
+  from { opacity: 0; transform: scale(0.96) translateY(8px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.artifact-studio-header {
+  padding: 10px 18px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border-color);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.artifact-header-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.artifact-type-orb {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+.artifact-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.artifact-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-main);
+  letter-spacing: -0.2px;
+}
+.artifact-type-badge {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.artifact-view-tabs {
+  display: inline-flex;
+  background: var(--bg-app);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  gap: 2px;
+}
+.art-tab-btn {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+.art-tab-btn.active {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
+}
+.artifact-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.artifact-studio-body {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  background: #ffffff;
+}
+.artifact-pane {
+  display: none;
+  width: 100%;
+  height: 100%;
+}
+.artifact-pane.active {
+  display: block;
+}
+#art-sandbox-iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #ffffff;
+}
+#art-pane-code {
+  background: var(--bg-app);
+  overflow: auto;
+  padding: 16px;
+  box-sizing: border-box;
+}
+#art-pane-code pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--text-main);
+  background: transparent !important;
+  border: none !important;
 }
 
 /* Quotes */
@@ -2165,7 +2439,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <span class="about-star">✦</span>
           <span class="about-title">BOB GEMINI FREE</span>
         </div>
-        <span class="about-version-badge">v0.1.4</span>
+        <span class="about-version-badge">v0.1.5</span>
       </div>
       <div class="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
     </div>
@@ -2265,6 +2539,49 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         <span>⚡ Test Ping</span>
       </button>
       <button class="btn-pill-action" onclick="closeGatewayModal()">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Interactive Native Artifact Studio Canvas Modal -->
+<div class="dialog-backdrop artifact-modal-backdrop" id="artifact-modal" onclick="if(event.target===this) closeArtifactCanvas()">
+  <div class="artifact-studio-box">
+    <div class="artifact-studio-header">
+      <div class="artifact-header-left">
+        <div class="artifact-type-orb" id="art-type-orb">⚡</div>
+        <div class="artifact-title-wrap">
+          <span class="artifact-title" id="art-modal-title">Interactive Web App</span>
+          <span class="artifact-type-badge" id="art-modal-badge">HTML / CSS / JS</span>
+        </div>
+      </div>
+
+      <div class="artifact-view-tabs">
+        <button class="art-tab-btn active" id="art-tab-preview" onclick="switchArtifactTab('preview')">
+          <span>▶</span> <span>Preview</span>
+        </button>
+        <button class="art-tab-btn" id="art-tab-code" onclick="switchArtifactTab('code')">
+          <span>⟨/⟩</span> <span>Code</span>
+        </button>
+      </div>
+
+      <div class="artifact-header-actions">
+        <button class="btn-pill-subtle" onclick="reloadArtifactSandbox()" title="Reload Sandbox Execution">⟳ Reload</button>
+        <button class="btn-pill-subtle" onclick="copyArtifactCode()" title="Copy Artifact Source">📋 Copy</button>
+        <button class="btn-pill-subtle" onclick="downloadArtifactFile()" title="Download as File">💾 Save</button>
+        <button class="btn-pill-subtle" onclick="popOutArtifact()" title="Open in New Fullscreen Browser Tab">⛶ Pop Out</button>
+        <button class="btn-pill-subtle" onclick="closeArtifactCanvas()" title="Close Canvas" style="color:#ef4444;">✕</button>
+      </div>
+    </div>
+
+    <div class="artifact-studio-body">
+      <!-- Live Preview IFrame -->
+      <div class="artifact-pane active" id="art-pane-preview">
+        <iframe id="art-sandbox-iframe" sandbox="allow-scripts allow-modals allow-forms allow-same-origin" title="Interactive Artifact Sandbox"></iframe>
+      </div>
+      <!-- Source Code Pane -->
+      <div class="artifact-pane" id="art-pane-code">
+        <pre><code id="art-code-display" class="language-html"></code></pre>
+      </div>
     </div>
   </div>
 </div>
@@ -2380,6 +2697,120 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           </div>
         </div>
         <kbd>T5</kbd>
+      </div>
+
+      <div class="cmd-section-label" data-section="languages">🌐 Language, Voice & Transliteration</div>
+      <div class="cmd-item" data-type="language" onclick="setLanguage('en'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🇬🇧</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">English UI</span>
+            <span class="cmd-item-desc">Default English interface & starter cards</span>
+          </div>
+        </div>
+        <kbd>L1</kbd>
+      </div>
+      <div class="cmd-item" data-type="language" onclick="setLanguage('hi'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🇮🇳</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">हिन्दी UI (Hindi)</span>
+            <span class="cmd-item-desc">सम्पूर्ण इंटरफ़ेस, बटन व संकेत हिंदी में</span>
+          </div>
+        </div>
+        <kbd>L2</kbd>
+      </div>
+      <div class="cmd-item" data-type="action" onclick="toggleVoiceInput(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🎙️</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Voice Input (Speech-to-Text)</span>
+            <span class="cmd-item-desc">Dictate in English or Hindi via Web Speech API</span>
+          </div>
+        </div>
+        <kbd>Mic</kbd>
+      </div>
+      <div class="cmd-item" data-type="action" onclick="toggleTransliteration(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">⌨️</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Toggle Indic Phonetic Typing (अ)</span>
+            <span class="cmd-item-desc">Type in Hinglish (namaste) -> converts to Hindi (नमस्ते)</span>
+          </div>
+        </div>
+        <kbd>Ctrl+G</kbd>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('hi-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">अ</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: हिन्दी (Hindi / Devanagari)</span>
+            <span class="cmd-item-desc">Default Devanagari script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('sa-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">ॐ</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: संस्कृतम् (Sanskrit)</span>
+            <span class="cmd-item-desc">Classical Sanskrit Devanagari script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('mr-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">म</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: मराठी (Marathi)</span>
+            <span class="cmd-item-desc">Marathi Devanagari transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('bn-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">বা</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: বাংলা (Bengali)</span>
+            <span class="cmd-item-desc">Bengali script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('gu-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">ગુ</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: ગુજરાતી (Gujarati)</span>
+            <span class="cmd-item-desc">Gujarati script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('ta-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">த</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: தமிழ் (Tamil)</span>
+            <span class="cmd-item-desc">Tamil script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('te-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">తె</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: తెలుగు (Telugu)</span>
+            <span class="cmd-item-desc">Telugu script transliteration</span>
+          </div>
+        </div>
+      </div>
+      <div class="cmd-item" data-type="script" onclick="setIndicScript('pa-t-i0-und'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">ਪੰ</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Script: ਪੰਜਾਬੀ (Punjabi / Gurmukhi)</span>
+            <span class="cmd-item-desc">Gurmukhi Punjabi script transliteration</span>
+          </div>
+        </div>
       </div>
 
       <div class="cmd-section-label" data-section="templates">🎓 Study & Reasoning Templates</div>
@@ -2519,15 +2950,18 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         <span class="brand-gemini">GEMINI</span>
         <span class="brand-free">FREE</span>
       </div>
-      <div class="brand-tagline">Universal AI Gateway • Web RPC Bridge</div>
+      <div class="brand-tagline">BREAK ORDINARY BOUNDARIES • BY ABCSTEPS</div>
     </div>
   </div>
   
   <div class="telemetry-bar">
-    <div class="stat-pill">Uptime: <b id="stat-uptime">0s</b></div>
-    <div class="stat-pill">Requests: <b id="stat-requests">0</b></div>
-    <div class="stat-pill">Tokens: <b id="stat-tokens">0</b></div>
-    <div class="stat-pill savings">Saved: <b id="stat-savings">$0.00</b></div>
+    <span class="stat-item"><span class="stat-label">Uptime:</span> <b id="stat-uptime">0s</b></span>
+    <span class="stat-sep">•</span>
+    <span class="stat-item"><span class="stat-label">Requests:</span> <b id="stat-requests">0</b></span>
+    <span class="stat-sep">•</span>
+    <span class="stat-item"><span class="stat-label">Tokens:</span> <b id="stat-tokens">0</b></span>
+    <span class="stat-sep">•</span>
+    <span class="stat-item savings"><span class="stat-label">Saved:</span> <b id="stat-savings">$0.00</b></span>
   </div>
 
   <div class="header-controls">
@@ -2535,12 +2969,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <div class="status-indicator-dot" id="gateway-status-dot"></div>
       <span class="nav-btn-text" id="gateway-status-text">127.0.0.1:9610</span>
     </button>
-    <button class="nav-pill-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
-      <span>◧</span> <span class="nav-btn-text">Config</span>
-    </button>
-    <button class="nav-pill-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
-      <span>◨</span> <span class="nav-btn-text">Code</span>
-    </button>
+    <div class="nav-segmented-group">
+      <button class="nav-segment-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
+        <span>◧</span> <span class="nav-btn-text">Config</span>
+      </button>
+      <button class="nav-segment-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
+        <span class="nav-btn-text">Code</span> <span>◨</span>
+      </button>
+    </div>
     <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
       <span>⌘</span><span class="nav-btn-text" id="cmd-menu-label">K Menu</span>
     </button>
@@ -2549,12 +2985,17 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <span class="nav-btn-text">GitHub</span>
     </a>
 
-    <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)">
+    <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)" title="Color Theme">
       <option value="bob-builder" selected>🏗️ BOB Builder</option>
       <option value="apple">🍎 Apple Design</option>
       <option value="vodafone">🔴 Vodafone Editorial</option>
       <option value="spotify">🟢 Spotify Dark</option>
       <option value="quantum">🌌 Gemini Quantum</option>
+    </select>
+
+    <select class="theme-selector lang-selector" id="lang-selector" onchange="setLanguage(this.value)" title="UI Language">
+      <option value="en" selected>🌐 English</option>
+      <option value="hi">🌐 हिन्दी</option>
     </select>
   </div>
 </header>
@@ -2712,6 +3153,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
         <div class="input-row">
           <button class="btn-attachment-pill" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
+          <button class="btn-attachment-pill btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
+          <button class="btn-attachment-pill btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
           <textarea id="user-input" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
             <span id="send-btn-label">Send</span>
@@ -2734,7 +3177,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             </button>
           </div>
           <div class="footer-status-pill">
-            <span>🔒 Pure Local RPC • Private & Free • v0.1.4</span>
+            <span>🔒 Pure Local RPC • Private & Free • v0.1.5</span>
           </div>
         </div>
       </div>
@@ -2786,6 +3229,378 @@ const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
 const PANEL_LEFT_KEY = "bob_gemini_panel_left";
 const PANEL_RIGHT_KEY = "bob_gemini_panel_right";
+const LANG_KEY = "bob_gemini_free_lang";
+const TRANSLIT_KEY = "bob_gemini_free_translit";
+
+let currentLang = "en";
+let isTransliterationActive = false;
+const translitCache = new Map();
+
+/* Sacred Multi-Lingual Internationalization (i18n) Engine */
+const I18N = {
+  en: {
+    brandTagline: "BREAK ORDINARY BOUNDARIES • BY ABCSTEPS",
+    statUptime: "Uptime:",
+    statRequests: "Requests:",
+    statTokens: "Tokens:",
+    statSavings: "Saved:",
+    navConfig: "Config",
+    navCode: "Code",
+    navCmdMenu: "K Menu",
+    navGitHub: "GitHub",
+    subNew: "New",
+    subCopy: "Copy",
+    subExport: "Export",
+    subClear: "Clear",
+    panelConfigTitle: "Model Configuration",
+    panelTargetModel: "Target Model",
+    panelThinkDepth: "Reasoning Depth (@think)",
+    panelTemp: "Sampling Temperature",
+    panelMaxTokens: "Max Output Tokens",
+    panelProto: "Protocol Endpoint",
+    panelSysPrompt: "System Prompt (Optional)",
+    panelIntegrationTitle: "Drop-in Integration",
+    heroHeadline: "BUILD ANYTHING. <span class=\"accent\">BREAK ORDINARY BOUNDARIES</span>.",
+    heroSubline: "High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>",
+    starterGraderChip: "FIRST PRINCIPLES",
+    starterGraderTitle: "Explain to a 5th Grader",
+    starterGraderDesc: "Grounded intuitive mental models & physical analogies (with Mermaid visual diagrams, no LEGO clichés).",
+    starterQuantumChip: "DEEP THOUGHT",
+    starterQuantumTitle: "Quantum Reasoning",
+    starterQuantumDesc: "Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.",
+    starterPythonChip: "INTEGRATION",
+    starterPythonTitle: "Python Stream (Port 9610)",
+    starterPythonDesc: "Drop-in OpenAI SDK client configuration for real-time token streaming.",
+    starterGoChip: "SYSTEM ENGINE",
+    starterGoTitle: "Go Systems Architecture",
+    starterGoDesc: "Production-grade concurrent server architecture with zero allocations and graceful shutdown.",
+    inputPlaceholder: "Ask anything, formulate proofs, or paste images/code...",
+    btnSend: "Send",
+    btnStop: "Stop",
+    footerNewline: "Newline",
+    footerSend: "Send",
+    footerCmd: "Quick Menu",
+    footerAbout: "ⓘ About",
+    footerStatus: "🔒 Pure Local RPC • Private & Free • v0.1.5",
+    modalGatewayTitle: "GATEWAY ENGINE STATUS",
+    modalGatewaySub: "Local-First RPC Bridge • On-Device & Zero Cloud Limits",
+    modalGatewayLabel: "Gateway Endpoint URL",
+    modalGatewaySave: "Save",
+    modalGatewayReset: "Reset",
+    modalAboutTitle: "BOB GEMINI FREE",
+    modalAboutSub: "Universal Local AI Gateway Engine • v0.1.5",
+    modalAboutClose: "Close",
+    modalConfirmTitle: "Clear Conversation?",
+    modalConfirmDesc: "Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.",
+    modalConfirmCancel: "Cancel",
+    modalConfirmAction: "Clear History",
+    toastTranslitOn: "Indic Phonetic Typing Enabled (Hindi)",
+    toastTranslitOff: "Indic Phonetic Typing Disabled (English)",
+    toastLangChanged: "Language set to English",
+    generating: "Generating response..."
+  },
+  hi: {
+    brandTagline: "साधारण सीमाओं को तोड़ें • ABCSTEPS द्वारा",
+    statUptime: "अपटाइम:",
+    statRequests: "अनुरोध:",
+    statTokens: "टोकन्स:",
+    statSavings: "बचत:",
+    navConfig: "कॉन्फ़िगर",
+    navCode: "कोड",
+    navCmdMenu: "K मेनू",
+    navGitHub: "गिटहब",
+    subNew: "नया",
+    subCopy: "कॉपी",
+    subExport: "एक्सपोर्ट",
+    subClear: "हटाएं",
+    panelConfigTitle: "मॉडल कॉन्फ़िगरेशन",
+    panelTargetModel: "लक्षित मॉडल",
+    panelThinkDepth: "तर्क गहराई (@think)",
+    panelTemp: "सैंपलिंग तापमान",
+    panelMaxTokens: "अधिकतम टोकन्स",
+    panelProto: "प्रोटोकॉल एंडपॉइंट",
+    panelSysPrompt: "सिस्टम निर्देश (वैकल्पिक)",
+    panelIntegrationTitle: "ड्रॉप-इन इंटीग्रेशन",
+    heroHeadline: "कुछ भी बनाएं। <span class=\"accent\">साधारण सीमाओं को तोड़ें</span>।",
+    heroSubline: "उच्च-प्रदर्शन स्थानीय AI गेटवे जो मानक प्रोटोकॉल को Google के आंतरिक वेब RPC में अनुवादित करता है। <b>शून्य क्लाउड बिल, शून्य क्रेडिट कार्ड, 100% निःशुल्क।</b>",
+    starterGraderChip: "मूल सिद्धांत",
+    starterGraderTitle: "कक्षा 5 के छात्र को समझाएं",
+    starterGraderDesc: "सहज भौतिक उपमाओं और मर्मेड आरेखों के साथ स्पष्ट ज्ञान (लेगो खिलौनों की घिसी-पिटी उपमाओं के बिना)।",
+    starterQuantumChip: "गहन विचार",
+    starterQuantumTitle: "क्वांटम तर्क व गणित",
+    starterQuantumDesc: "डिराक ब्रा-केट वेक्टर निरूपण, हिल्बर्ट स्पेस और इंटैंगलमेंट मैट्रिक्स।",
+    starterPythonChip: "इंटीग्रेशन",
+    starterPythonTitle: "पायथन स्ट्रीम (पोर्ट 9610)",
+    starterPythonDesc: "वास्तविक समय टोकन स्ट्रीमिंग के लिए ड्रॉप-इन OpenAI SDK क्लाइंट सेटअप।",
+    starterGoChip: "सिस्टम इंजन",
+    starterGoTitle: "गो सिस्टम्स आर्किटेक्चर",
+    starterGoDesc: "शून्य मेमोरी आवंटन और सुचारू शटडाउन के साथ समवर्ती सर्वर वास्तुकला।",
+    inputPlaceholder: "कुछ भी पूछें, समीकरण हल करें, या चित्र/कोड पेस्ट करें...",
+    btnSend: "भेजें",
+    btnStop: "रोकें",
+    footerNewline: "नई पंक्ति",
+    footerSend: "भेजें",
+    footerCmd: "त्वरित मेनू",
+    footerAbout: "ⓘ विवरण",
+    footerStatus: "🔒 शुद्ध स्थानीय RPC • पूर्ण निजी व निःशुल्क • v0.1.5",
+    modalGatewayTitle: "गेटवे इंजन स्थिति",
+    modalGatewaySub: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस व असीमित",
+    modalGatewayLabel: "गेटवे एंडपॉइंट URL",
+    modalGatewaySave: "सहेजें",
+    modalGatewayReset: "रीसेट",
+    modalAboutTitle: "BOB GEMINI FREE",
+    modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.1.5",
+    modalAboutClose: "बंद करें",
+    modalConfirmTitle: "बातचीत हटाएं?",
+    modalConfirmDesc: "क्या आप वाकई अपना वर्तमान इतिहास हटाना चाहते हैं? यह कैनवास को रीसेट कर देगा।",
+    modalConfirmCancel: "रद्द करें",
+    modalConfirmAction: "इतिहास हटाएं",
+    toastTranslitOn: "भारतीय ध्वन्यात्मक टाइपिंग सक्षम (हिन्दी)",
+    toastTranslitOff: "ध्वन्यात्मक टाइपिंग अक्षम (English)",
+    toastLangChanged: "भाषा हिन्दी पर सेट की गई",
+    generating: "उत्तर तैयार हो रहा है..."
+  }
+};
+
+const STARTER_PROMPTS_HI = {
+  grader: "क्वांटम सुपरपोजिशन और इंटैंगलमेंट की अवधारणा को 5वीं कक्षा के मेधावी छात्र को समझाएं। वास्तविक दुनिया की भौतिक व प्राकृतिक उपमाओं (जैसे बहता पानी, साइकिल के गियर, किताबें, प्रकाश, ध्वनि या रसोई की विधियाँ) का उपयोग करें। यदि दृश्य तुलना दिखानी हो तो मार्कडाउन इमेज लिंक के बजाय वैध Mermaid आरेख या ASCII आरेख आउटपुट करें। लेगो ब्लॉक्स जैसी घिसी-पिटी उपमाओं से बचें।",
+  proof: "[विषय/सूत्र] के लिए चरण-दर-चरण गणितीय प्रमाण और KaTeX व्युत्पत्ति तैयार करें।",
+  audit: "[सिस्टम/कोडबेस] का व्यापक प्रथम-सिद्धांत वास्तुकला विश्लेषण, सुरक्षा समीक्षा और तकनीकी बॉटलनेक ऑडिट करें।",
+  physics: "[अवधारणा/शोधपत्र] को नियंत्रित करने वाले मूलभूत सिद्धांतों, भौतिकी और गणितीय समीकरणों का विश्लेषण करें।",
+  quantum: "चरण-दर-चरण तर्क और LaTeX मैट्रिक्स के साथ क्वांटम सुपरपोजिशन और इंटैंगलमेंट के गणितीय सिद्धांतों की व्याख्या करें।",
+  python: "सोचने वाले टोकन्स (thinking tokens) को स्ट्रीम करने के लिए http://127.0.0.1:9610/v1 पर लक्षित OpenAI SDK का उपयोग करके एक Python स्क्रिप्ट लिखें।",
+  golang: "शून्य आवंटन (zero allocations) के साथ रीयल-टाइम इवेंट पाइपलाइन के लिए Go में एक लचीला माइक्रोसर्विसेज आर्किटेक्चर डिज़ाइन करें।"
+};
+
+/* Offline Indic Phonetic Rule Fallback Engine */
+const OFFLINE_INDIC_RULES = {
+  special: {
+    'om': 'ॐ', 'shree': 'श्री', 'shri': 'श्री', 'krishna': 'कृष्ण', 'radha': 'राधा', 'ram': 'राम', 'sita': 'सीता',
+    'namaste': 'नमस्ते', 'namaskar': 'नमस्कार', 'aap': 'आप', 'kaise': 'कैसे', 'kaisi': 'कैसी', 'kaisa': 'कैसा',
+    'hai': 'है', 'hain': 'हैं', 'ho': 'हो', 'hoon': 'हूँ', 'hun': 'हूँ', 'kya': 'क्या', 'kyon': 'क्यों', 'kyu': 'क्यों',
+    'nahi': 'नहीं', 'nahin': 'नहीं', 'haan': 'हाँ', 'han': 'हाँ', 'accha': 'अच्छा', 'theek': 'ठीक',
+    'bhai': 'भाई', 'dost': 'दोस्त', 'dhanyawad': 'धन्यवाद', 'dhanyavad': 'धन्यवाद', 'shukriya': 'शुक्रिया',
+    'bharat': 'भारत', 'hindustan': 'हिंदुस्तान', 'pyaar': 'प्यार', 'shanti': 'शांति', 'gyan': 'ज्ञान',
+    'kaam': 'काम', 'karo': 'करो', 'karna': 'करना', 'karta': 'करता', 'karti': 'करती', 'karte': 'करते',
+    'batao': 'बताओ', 'samjhao': 'समझाओ', 'likho': 'लिखो', 'padho': 'पढ़ो', 'suno': 'सुनो', 'dekho': 'देखो',
+    'aur': 'और', 'lekin': 'लेकिन', 'par': 'पर', 'se': 'से', 'ko': 'को', 'mein': 'में', 'me': 'में', 'ka': 'का', 'ki': 'की', 'ke': 'के'
+  }
+};
+
+const INDIC_LANGS = {
+  'hi-t-i0-und': { name: 'हिन्दी', label: 'Hindi', symbol: 'अ' },
+  'sa-t-i0-und': { name: 'संस्कृतम्', label: 'Sanskrit', symbol: 'ॐ' },
+  'mr-t-i0-und': { name: 'मराठी', label: 'Marathi', symbol: 'म' },
+  'bn-t-i0-und': { name: 'বাংলা', label: 'Bengali', symbol: 'বা' },
+  'gu-t-i0-und': { name: 'ગુજરાતી', label: 'Gujarati', symbol: 'ગુ' },
+  'ta-t-i0-und': { name: 'தமிழ்', label: 'Tamil', symbol: 'த' },
+  'te-t-i0-und': { name: 'తెలుగు', label: 'Telugu', symbol: 'తె' },
+  'pa-t-i0-und': { name: 'ਪੰਜਾਬੀ', label: 'Punjabi', symbol: 'ਪੰ' }
+};
+
+let currentIndicLang = localStorage.getItem("bob_gemini_indic_lang") || "hi-t-i0-und";
+let lastTransliteration = null;
+
+function setIndicScript(langCode) {
+  if (!INDIC_LANGS[langCode]) return;
+  currentIndicLang = langCode;
+  localStorage.setItem("bob_gemini_indic_lang", currentIndicLang);
+  const btn = document.getElementById("btn-translit");
+  if (btn) {
+    btn.innerText = INDIC_LANGS[langCode].symbol;
+  }
+  showToast(`Script: ${INDIC_LANGS[langCode].name} (${INDIC_LANGS[langCode].label})`, "🇮🇳");
+}
+
+function offlineTransliterateWord(word) {
+  const low = (word || '').toLowerCase();
+  if (OFFLINE_INDIC_RULES.special[low]) {
+    return OFFLINE_INDIC_RULES.special[low];
+  }
+  return word;
+}
+
+/* Hybrid Indic Transliteration: Google Input Tools API + Local Offline Fallback */
+async function transliterateWord(word) {
+  const clean = (word || '').trim();
+  if (!clean || !/^[a-zA-Z0-9]+$/.test(clean)) return clean;
+  const cacheKey = `${currentIndicLang}:${clean.toLowerCase()}`;
+  if (translitCache.has(cacheKey)) {
+    return translitCache.get(cacheKey);
+  }
+  try {
+    const res = await fetch(`https://inputtools.google.com/request?text=${encodeURIComponent(clean)}&itc=${encodeURIComponent(currentIndicLang)}&num=1`);
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data[0] === 'SUCCESS' && data[1] && data[1][0] && data[1][0][1] && data[1][0][1][0]) {
+        const indicWord = data[1][0][1][0];
+        translitCache.set(cacheKey, indicWord);
+        return indicWord;
+      }
+    }
+  } catch(e) {}
+  
+  const fallback = offlineTransliterateWord(clean);
+  translitCache.set(cacheKey, fallback);
+  return fallback;
+}
+
+function toggleTransliteration() {
+  isTransliterationActive = !isTransliterationActive;
+  localStorage.setItem(TRANSLIT_KEY, isTransliterationActive ? "true" : "false");
+  
+  const btn = document.getElementById("btn-translit");
+  if (btn) {
+    btn.classList.toggle("active", isTransliterationActive);
+    if (INDIC_LANGS[currentIndicLang]) {
+      btn.innerText = INDIC_LANGS[currentIndicLang].symbol;
+    }
+  }
+  
+  const dict = I18N[currentLang] || I18N.en;
+  const sym = INDIC_LANGS[currentIndicLang] ? INDIC_LANGS[currentIndicLang].symbol : "अ";
+  showToast(isTransliterationActive ? dict.toastTranslitOn : dict.toastTranslitOff, isTransliterationActive ? sym : "🌐");
+}
+
+/* Native Web Speech Voice Recognition (Zero-Latency Dictation) */
+let recognition = null;
+let isRecordingVoice = false;
+
+function initVoiceRecognition() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) return;
+
+  recognition = new SpeechRec();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+
+  recognition.onstart = function() {
+    isRecordingVoice = true;
+    const micBtn = document.getElementById("btn-mic");
+    if (micBtn) micBtn.classList.add("recording");
+    showToast(currentLang === 'hi' ? "सुन रहा हूँ... बोलिए" : "Listening... Speak now", "🎙️");
+  };
+
+  recognition.onresult = function(event) {
+    let finalTranscript = '';
+    for (let i = event.resultIndex; i < event.results.length; ++i) {
+      if (event.results[i].isFinal) {
+        finalTranscript += event.results[i][0].transcript;
+      }
+    }
+    const inputEl = document.getElementById("user-input");
+    if (finalTranscript && inputEl) {
+      inputEl.value = (inputEl.value ? inputEl.value + " " : "") + finalTranscript;
+      autoResize(inputEl);
+      inputEl.focus();
+    }
+  };
+
+  recognition.onerror = function() {
+    stopVoiceInput();
+  };
+
+  recognition.onend = function() {
+    stopVoiceInput();
+  };
+}
+
+function toggleVoiceInput() {
+  const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!SpeechRec) {
+    showToast("Voice dictation not supported in this browser", "⚠️");
+    return;
+  }
+  if (!recognition) {
+    initVoiceRecognition();
+  }
+
+  if (isRecordingVoice) {
+    try { recognition.stop(); } catch(e) {}
+    stopVoiceInput();
+  } else {
+    recognition.lang = (currentLang === 'hi' || isTransliterationActive) ? 'hi-IN' : 'en-IN';
+    try {
+      recognition.start();
+    } catch(e) {
+      stopVoiceInput();
+    }
+  }
+}
+
+function stopVoiceInput() {
+  isRecordingVoice = false;
+  const micBtn = document.getElementById("btn-mic");
+  if (micBtn) micBtn.classList.remove("recording");
+}
+
+function setLanguage(lang, isInitial = false) {
+  currentLang = lang || "en";
+  localStorage.setItem(LANG_KEY, currentLang);
+  document.documentElement.setAttribute("data-lang", currentLang);
+
+  const dict = I18N[currentLang] || I18N.en;
+
+  const sel = document.getElementById("lang-selector");
+  if (sel) sel.value = currentLang;
+
+  const inputEl = document.getElementById("user-input");
+  if (inputEl) inputEl.placeholder = dict.inputPlaceholder;
+
+  const sendLabel = document.getElementById("send-btn-label");
+  if (sendLabel && !isGenerating) sendLabel.innerText = dict.btnSend;
+
+  const brandTagline = document.querySelector(".brand-tagline");
+  if (brandTagline) brandTagline.innerText = dict.brandTagline;
+
+  const subNewText = document.querySelector(".sub-bar-left .sub-btn-text");
+  if (subNewText) subNewText.innerText = dict.subNew;
+  const subClearText = document.querySelector(".sub-clear-text");
+  if (subClearText) subClearText.innerText = dict.subClear;
+
+  const statLabels = document.querySelectorAll(".telemetry-bar .stat-label");
+  if (statLabels && statLabels.length >= 4) {
+    statLabels[0].innerText = dict.statUptime;
+    statLabels[1].innerText = dict.statRequests;
+    statLabels[2].innerText = dict.statTokens;
+    statLabels[3].innerText = dict.statSavings;
+  }
+
+  const leftHead = document.querySelector("#sidebar-left .panel-header span");
+  if (leftHead) leftHead.innerText = dict.panelConfigTitle;
+  const rightHead = document.querySelector("#sidebar-right .panel-header span");
+  if (rightHead) rightHead.innerText = dict.panelIntegrationTitle;
+
+  const footerStatus = document.querySelector(".footer-status-pill span");
+  if (footerStatus) footerStatus.innerText = dict.footerStatus;
+
+  if (chatHistory.length === 0) {
+    renderMessages();
+  }
+
+  if (!isInitial) {
+    showToast(dict.toastLangChanged, "🌐");
+  }
+}
+
+function initLanguage() {
+  const urlParams = new URLSearchParams(window.location.search);
+  const langParam = urlParams.get('lang');
+  const saved = langParam || localStorage.getItem(LANG_KEY) || "en";
+  setLanguage(saved, true);
+}
+
+function initTransliteration() {
+  const saved = localStorage.getItem(TRANSLIT_KEY) === "true";
+  isTransliterationActive = saved;
+  const btn = document.getElementById("btn-translit");
+  if (btn) {
+    btn.classList.toggle("active", isTransliterationActive);
+    if (INDIC_LANGS[currentIndicLang]) {
+      btn.innerText = INDIC_LANGS[currentIndicLang].symbol;
+    }
+  }
+}
 
 /* Platform-aware Shortcut Detection (Mac vs Windows/Linux/Mobile) */
 function initPlatformShortcuts() {
@@ -3002,9 +3817,9 @@ async function pingGatewayManual() {
     const res = await fetch(checkUrl, { method: "GET" });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
-      const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.4" }));
+      const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.5" }));
       if (pill) {
-        pill.innerText = "ONLINE • " + (data.version || "v0.1.4");
+        pill.innerText = "ONLINE • " + (data.version || "v0.1.5");
         pill.style.background = "rgba(16, 185, 129, 0.2)";
         pill.style.color = "#10b981";
       }
@@ -3267,6 +4082,7 @@ function scrollToBottom() {
 function autoResize(el) {
   if (!el) return;
   el.style.height = 'auto';
+  el.style.overflowX = 'hidden';
   const isMobile = window.innerWidth <= 640;
   const minH = isMobile ? 40 : 44;
   const maxH = isMobile ? 130 : 200;
@@ -3298,6 +4114,11 @@ function handleKeyDown(e) {
     toggleCmdPalette();
     return;
   }
+  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'g') {
+    e.preventDefault();
+    toggleTransliteration();
+    return;
+  }
   if (e.key === 'Escape') {
     const confirmModal = document.getElementById("confirm-modal");
     if (confirmModal && confirmModal.classList.contains("open")) {
@@ -3320,6 +4141,59 @@ function handleKeyDown(e) {
       return;
     }
   }
+
+  // Backspace Undo for Indic Transliteration
+  if (isTransliterationActive && e.key === 'Backspace' && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    const input = e.target;
+    if (lastTransliteration && input.selectionStart === lastTransliteration.pos) {
+      e.preventDefault();
+      const before = input.value.slice(0, lastTransliteration.pos - lastTransliteration.replacement.length - 1);
+      const after = input.value.slice(lastTransliteration.pos);
+      input.value = before + lastTransliteration.original + after;
+      input.selectionStart = input.selectionEnd = before.length + lastTransliteration.original.length;
+      lastTransliteration = null;
+      autoResize(input);
+      return;
+    }
+    lastTransliteration = null;
+  }
+
+  // Real-time Indic Phonetic Transliteration on Space
+  if (isTransliterationActive && (e.key === ' ' || e.code === 'Space') && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey) {
+    const input = e.target;
+    const caret = input.selectionStart;
+    const textBefore = input.value.slice(0, caret);
+    const match = textBefore.match(/([a-zA-Z0-9]+)$/);
+    if (match) {
+      const word = match[1];
+      const wordStart = caret - word.length;
+      e.preventDefault();
+      
+      const cacheKey = `${currentIndicLang}:${word.toLowerCase()}`;
+      const cached = translitCache.get(cacheKey) || (currentIndicLang.startsWith('hi') ? OFFLINE_INDIC_RULES.special[word.toLowerCase()] : null);
+      if (cached) {
+        const beforeWord = input.value.slice(0, wordStart);
+        const afterCaret = input.value.slice(caret);
+        input.value = beforeWord + cached + " " + afterCaret;
+        const newPos = wordStart + cached.length + 1;
+        input.selectionStart = input.selectionEnd = newPos;
+        lastTransliteration = { original: word, replacement: cached, pos: newPos };
+        autoResize(input);
+      } else {
+        transliterateWord(word).then((replacement) => {
+          const beforeWord = input.value.slice(0, wordStart);
+          const afterCaret = input.value.slice(caret);
+          input.value = beforeWord + replacement + " " + afterCaret;
+          const newPos = wordStart + replacement.length + 1;
+          input.selectionStart = input.selectionEnd = newPos;
+          lastTransliteration = { original: word, replacement: replacement, pos: newPos };
+          autoResize(input);
+        });
+      }
+      return;
+    }
+  }
+
   if (e.key === 'Enter' && !e.shiftKey) {
     e.preventDefault();
     sendMessage();
@@ -3368,6 +4242,15 @@ document.addEventListener("keydown", (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
       toggleCmdPalette();
+      return;
+    }
+  }
+
+  const artModal = document.getElementById("artifact-modal");
+  if (artModal && artModal.classList.contains("open")) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeArtifactCanvas();
       return;
     }
   }
@@ -3509,6 +4392,172 @@ function handleImageError(img, altText) {
   }
 }
 
+/* Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas) */
+const artifactsRegistry = new Map();
+let currentActiveArtifact = null;
+
+function extractArtifactMeta(code, lang) {
+  const cleanLang = (lang || '').toLowerCase().trim();
+  let title = "Interactive Artifact";
+  let type = cleanLang || "code";
+  let icon = "⚡";
+  let isInteractive = false;
+
+  if (cleanLang === 'html' || cleanLang === 'xml' || code.includes('<!DOCTYPE html>') || code.includes('<html') || (cleanLang === 'javascript' && (code.includes('document.createElement') || code.includes('canvas')))) {
+    type = "html";
+    icon = "🌐";
+    isInteractive = true;
+    const titleMatch = code.match(/<title[^>]*>([^<]+)<\/title>/i);
+    if (titleMatch && titleMatch[1]) {
+      title = titleMatch[1].trim();
+    } else {
+      const h1Match = code.match(/<h1[^>]*>([^<]+)<\/h1>/i);
+      if (h1Match && h1Match[1]) {
+        title = h1Match[1].trim();
+      } else {
+        title = "Interactive Web Application";
+      }
+    }
+  } else if (cleanLang === 'svg' || (code.trim().startsWith('<svg') && code.trim().endsWith('</svg>'))) {
+    type = "svg";
+    icon = "🎨";
+    title = "Vector SVG Graphic";
+    isInteractive = true;
+  } else if (cleanLang === 'mermaid') {
+    type = "mermaid";
+    icon = "📊";
+    title = "Architecture & Systems Diagram";
+    isInteractive = true;
+  } else if (['python', 'go', 'golang', 'javascript', 'js', 'typescript', 'ts', 'rust', 'cpp', 'json', 'sql', 'bash', 'sh'].includes(cleanLang)) {
+    type = cleanLang;
+    icon = "📦";
+    title = cleanLang.toUpperCase() + " Artifact";
+    isInteractive = false;
+  }
+
+  return { title, type, icon, isInteractive };
+}
+
+function openArtifactCanvas(artId) {
+  const art = artifactsRegistry.get(artId);
+  if (!art) return;
+  currentActiveArtifact = art;
+
+  const orb = document.getElementById("art-type-orb");
+  if (orb) orb.innerText = art.icon;
+  const titleEl = document.getElementById("art-modal-title");
+  if (titleEl) titleEl.innerText = art.title;
+  const badgeEl = document.getElementById("art-modal-badge");
+  if (badgeEl) badgeEl.innerText = art.type.toUpperCase() + " • " + (art.isInteractive ? "Interactive Live Canvas" : "Source Artifact");
+
+  // Load Iframe Sandbox
+  const iframe = document.getElementById("art-sandbox-iframe");
+  if (iframe) {
+    if (art.type === 'html') {
+      iframe.srcdoc = art.code;
+    } else if (art.type === 'svg') {
+      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto;} svg{max-width:90vw; max-height:85vh; filter:drop-shadow(0 10px 25px rgba(0,0,0,0.5));}</style></head><body>${art.code}</body></html>`;
+    } else if (art.type === 'mermaid') {
+      iframe.srcdoc = `<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(art.code)}</div><script>mermaid.initialize({startOnLoad:true, theme:'dark'});<\/script></body></html>`;
+    } else {
+      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; padding:24px; background:#0f172a; color:#e2e8f0; font-family:monospace; font-size:14px; white-space:pre-wrap;}</style></head><body>${escapeHtml(art.code)}</body></html>`;
+    }
+  }
+
+  // Load Code Display
+  const codeEl = document.getElementById("art-code-display");
+  if (codeEl) {
+    let highlighted = escapeHtml(art.code);
+    if (window.Prism && Prism.languages && Prism.languages[art.lang]) {
+      try {
+        highlighted = Prism.highlight(art.code, Prism.languages[art.lang], art.lang);
+      } catch(e) {}
+    }
+    codeEl.innerHTML = highlighted;
+    codeEl.className = "language-" + (art.lang || "none");
+  }
+
+  switchArtifactTab(art.isInteractive ? 'preview' : 'code');
+  const modal = document.getElementById("artifact-modal");
+  if (modal) modal.classList.add("open");
+}
+
+function closeArtifactCanvas() {
+  const modal = document.getElementById("artifact-modal");
+  if (modal) modal.classList.remove("open");
+  const iframe = document.getElementById("art-sandbox-iframe");
+  if (iframe) iframe.srcdoc = "";
+}
+
+function switchArtifactTab(tab) {
+  const previewTab = document.getElementById("art-tab-preview");
+  const codeTab = document.getElementById("art-tab-code");
+  const previewPane = document.getElementById("art-pane-preview");
+  const codePane = document.getElementById("art-pane-code");
+
+  if (tab === 'preview') {
+    if (previewTab) previewTab.classList.add("active");
+    if (codeTab) codeTab.classList.remove("active");
+    if (previewPane) previewPane.classList.add("active");
+    if (codePane) codePane.classList.remove("active");
+  } else {
+    if (previewTab) previewTab.classList.remove("active");
+    if (codeTab) codeTab.classList.add("active");
+    if (previewPane) previewPane.classList.remove("active");
+    if (codePane) codePane.classList.add("active");
+  }
+}
+
+function reloadArtifactSandbox() {
+  if (!currentActiveArtifact) return;
+  openArtifactCanvas(currentActiveArtifact.id);
+  showToast("Sandbox reloaded", "🔄");
+}
+
+function copyArtifactCode() {
+  if (!currentActiveArtifact) return;
+  navigator.clipboard.writeText(currentActiveArtifact.code);
+  showToast("Artifact code copied to clipboard!", "📋");
+}
+
+function downloadArtifactFile() {
+  if (!currentActiveArtifact) return;
+  let ext = "txt";
+  let mime = "text/plain";
+  if (currentActiveArtifact.type === 'html') { ext = "html"; mime = "text/html"; }
+  else if (currentActiveArtifact.type === 'svg') { ext = "svg"; mime = "image/svg+xml"; }
+  else if (currentActiveArtifact.type === 'python') { ext = "py"; mime = "text/x-python"; }
+  else if (currentActiveArtifact.type === 'go') { ext = "go"; mime = "text/x-go"; }
+  else if (currentActiveArtifact.type === 'javascript' || currentActiveArtifact.type === 'js') { ext = "js"; mime = "text/javascript"; }
+  else if (currentActiveArtifact.type === 'mermaid') { ext = "mmd"; mime = "text/plain"; }
+
+  const filename = (currentActiveArtifact.title || "artifact").toLowerCase().replace(/[^a-z0-9_-]/g, '_') + "." + ext;
+  const blob = new Blob([currentActiveArtifact.code], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast("Saved: " + filename, "💾");
+}
+
+function popOutArtifact() {
+  if (!currentActiveArtifact) return;
+  let mime = currentActiveArtifact.type === 'svg' ? 'image/svg+xml' : 'text/html';
+  let content = currentActiveArtifact.code;
+  if (currentActiveArtifact.type === 'svg') {
+    content = `<!DOCTYPE html><html><head><title>${escapeHtml(currentActiveArtifact.title)}</title><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a;} svg{max-width:95vw; max-height:90vh;}</style></head><body>${content}</body></html>`;
+    mime = 'text/html';
+  }
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  window.open(url, '_blank');
+  showToast("Launched artifact in standalone window", "⛶");
+}
+
 // Initialize Universal Marked.js Configuration with Custom GFM Renderers
 if (window.marked) {
   const customRenderer = new marked.Renderer();
@@ -3520,6 +4569,12 @@ if (window.marked) {
     if (cleanLang === 'mermaid') {
       return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${escapeHtml(rawCode)}</div></div>`;
     }
+    
+    // Register Artifact
+    const meta = extractArtifactMeta(rawCode, cleanLang);
+    const artId = 'art_' + Math.random().toString(36).substr(2, 9);
+    artifactsRegistry.set(artId, { id: artId, lang: cleanLang, type: meta.type, title: meta.title, icon: meta.icon, isInteractive: meta.isInteractive, code: rawCode });
+
     const safeCode = escapeHtml(rawCode);
     const langLabel = rawLang || 'code';
     let highlightedCode = safeCode;
@@ -3529,7 +4584,22 @@ if (window.marked) {
       } catch(e) {}
     }
     const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
-    return `<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns"><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${escapeHtml(langLabel)}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
+    
+    const canvasBtn = meta.isInteractive ? `<button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem; color:var(--accent-primary); border-color:var(--accent-primary);" onclick="openArtifactCanvas('${artId}')">⚡ Canvas</button>` : '';
+
+    const artifactChip = meta.isInteractive && (meta.type === 'html' || meta.type === 'svg') ? 
+      `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
+        <div class="artifact-chip-left">
+          <span class="artifact-chip-icon">${meta.icon}</span>
+          <div class="artifact-chip-info">
+            <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
+            <span class="artifact-chip-sub">Live Interactive Web Application • Click to launch Canvas</span>
+          </div>
+        </div>
+        <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Launch ⚡</button>
+      </div>` : '';
+
+    return `${artifactChip}<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns">${canvasBtn}<button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="downloadCode(this, '${escapeHtml(langLabel)}')">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copyCode(this)">Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
 
   customRenderer.image = function(href, title, text) {
@@ -3766,7 +4836,8 @@ const STARTER_PROMPTS = {
 };
 
 function selectStarter(key) {
-  setStarterPrompt(STARTER_PROMPTS[key] || "");
+  const prompts = currentLang === 'hi' ? STARTER_PROMPTS_HI : STARTER_PROMPTS;
+  setStarterPrompt(prompts[key] || STARTER_PROMPTS[key] || "");
 }
 
 function setStarterPrompt(text) {
@@ -3779,50 +4850,53 @@ function setStarterPrompt(text) {
 function renderMessages() {
   const content = document.getElementById("messages-content");
   content.innerHTML = "";
+  const dict = I18N[currentLang] || I18N.en;
+
   if (chatHistory.length === 0) {
     const welcome = document.createElement("div");
     welcome.className = "welcome-hero";
+    welcome.id = "welcome-hero";
     welcome.innerHTML = `
       <div class="hero-title-band">
         <div class="hero-headline">
-          BUILD ANYTHING. <span class="accent">BREAK ORDINARY BOUNDARIES</span>.
+          ${dict.heroHeadline}
         </div>
         <div class="hero-subline">
-          High-performance local AI gateway translating standard protocols into Google's internal web RPC. <b>Zero cloud bill, zero credit cards, 100% free.</b>
+          ${dict.heroSubline}
         </div>
       </div>
       <div class="starters-grid">
         <div class="starter-card" onclick="selectStarter('grader')">
           <div class="badge-chip">
             <span class="mini-orb">🎓</span>
-            <span>FIRST PRINCIPLES</span>
+            <span>${dict.starterGraderChip}</span>
           </div>
-          <div class="starter-card-title">Explain to a 5th Grader</div>
-          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (with Mermaid visual diagrams, no LEGO clichés).</div>
+          <div class="starter-card-title">${dict.starterGraderTitle}</div>
+          <div class="starter-card-desc">${dict.starterGraderDesc}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('quantum')">
           <div class="badge-chip">
             <span class="mini-orb">🧠</span>
-            <span>DEEP THOUGHT</span>
+            <span>${dict.starterQuantumChip}</span>
           </div>
-          <div class="starter-card-title">Quantum Reasoning</div>
-          <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
+          <div class="starter-card-title">${dict.starterQuantumTitle}</div>
+          <div class="starter-card-desc">${dict.starterQuantumDesc}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('python')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
-            <span>INTEGRATION</span>
+            <span>${dict.starterPythonChip}</span>
           </div>
-          <div class="starter-card-title">Python Stream (Port 9610)</div>
-          <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
+          <div class="starter-card-title">${dict.starterPythonTitle}</div>
+          <div class="starter-card-desc">${dict.starterPythonDesc}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('golang')">
           <div class="badge-chip">
             <span class="mini-orb">⚙️</span>
-            <span>SYSTEM ENGINE</span>
+            <span>${dict.starterGoChip}</span>
           </div>
-          <div class="starter-card-title">Go Systems Architecture</div>
-          <div class="starter-card-desc">Production-grade concurrent server architecture with zero allocations and graceful shutdown.</div>
+          <div class="starter-card-title">${dict.starterGoTitle}</div>
+          <div class="starter-card-desc">${dict.starterGoDesc}</div>
         </div>
       </div>
     `;
@@ -3898,6 +4972,8 @@ function renderMessages() {
 }
 
 initPlatformShortcuts();
+initLanguage();
+initTransliteration();
 initTheme();
 initPanels();
 loadHistory();
@@ -3914,7 +4990,18 @@ function handleSendOrStop() {
 
 async function sendMessage() {
   const inputEl = document.getElementById("user-input");
-  const text = inputEl.value.trim();
+  let text = inputEl.value.trim();
+  if (isTransliterationActive && text) {
+    const match = text.match(/([a-zA-Z0-9]+)$/);
+    if (match) {
+      const word = match[1];
+      const low = word.toLowerCase();
+      const cached = translitCache.get(low) || OFFLINE_INDIC_RULES.special[low];
+      if (cached && cached !== word) {
+        text = text.slice(0, text.length - word.length) + cached;
+      }
+    }
+  }
   if ((!text && !currentAttachedImage) || isGenerating) return;
 
   isGenerating = true;
@@ -3923,9 +5010,10 @@ async function sendMessage() {
   const sendBtn = document.getElementById("send-btn");
   const sendLabel = document.getElementById("send-btn-label");
   const sendIcon = document.getElementById("send-btn-icon");
+  const dict = I18N[currentLang] || I18N.en;
 
   sendBtn.classList.add("stop-mode");
-  sendLabel.innerText = "Stop";
+  sendLabel.innerText = dict.btnStop;
   sendIcon.innerText = "■";
 
   inputEl.value = "";
@@ -4199,7 +5287,8 @@ async function sendMessage() {
     isGenerating = false;
     activeAbortController = null;
     sendBtn.classList.remove("stop-mode");
-    sendLabel.innerText = "Send";
+    const dict = I18N[currentLang] || I18N.en;
+    sendLabel.innerText = dict.btnSend;
     sendIcon.innerText = "➤";
     inputEl.disabled = false;
     inputEl.focus();

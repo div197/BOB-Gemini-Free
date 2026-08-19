@@ -14,7 +14,7 @@ curl http://127.0.0.1:9610/
 ```json
 {
   "status": "ok",
-  "version": "v0.1.4",
+  "version": "v0.1.5",
   "models": [
     "gemini-3.7-flash",
     "gemini-3.7-flash-thinking",
@@ -46,7 +46,7 @@ Query live metrics directly from your terminal:
     BOB Gemini Free - Live Gateway Telemetry & Status             
     Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
 ==================================================================
-  • Gateway Status:        ok (Version v0.1.4)
+  • Gateway Status:        ok (Version v0.1.5)
   • Target Gateway URL:    http://127.0.0.1:9610
   • Server Uptime:         3600 seconds (60.0 minutes)
   • Requests Served:       142 requests

@@ -7,11 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.5] - 2026-08-19
+
+### Multi-Indic Script Transliteration, Native Voice Input, School Lab Architecture & Desktop Ergonomics
+
+#### Added
+- **Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas)**:
+  - Automatic code block detection & registration into a high-performance in-memory `artifactsRegistry`.
+  - Rich **Artifact Card Chips** in chat with title extraction, type badge, and 1-click `Launch ⚡` button.
+  - Dedicated **Interactive Artifact Studio Canvas Modal** with sandboxed `iframe` execution (`allow-scripts allow-modals allow-forms allow-same-origin`) supporting live HTML5, CSS3, JavaScript, Canvas 2D/WebGL animations, SVG vector rendering, and Mermaid architecture diagrams.
+  - Dual Tab switcher (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), quick copy (`📋`), file export (`💾`), and instant fullscreen pop-out (`⛶`) in dedicated browser windows.
+- **Bilingual & Multi-Indic Internationalization (`en` / `hi` + 8 Regional Scripts)**: Zero-dependency client-side internationalization system (`I18N`) with 1-click header switcher and ⌘K shortcuts (`L1` English, `L2` हिन्दी), with support for 8 regional Indic scripts (हिन्दी, संस्कृतम्, मराठी, বাংলা, ગુજરાતી, தமிழ், తెలుగు, ਪੰਜਾਬੀ).
+- **Real-Time Indic Phonetic Transliteration with Backspace Undo**: Space-key dynamic conversion of Roman transliteration (`"namaste"`, `"aap kaise ho"`) into native Devanagari (`"नमस्ते"`, `"आप कैसे हो"`), backed by Google Input Tools API and an offline rule dictionary fallback. Hitting `Backspace` immediately reverts the converted word back to its original Roman characters.
+- **Native Web Speech Voice Recognition (🎙️ Mic Engine)**: Client-side voice dictation via the browser's native `SpeechRecognition` API supporting zero-latency English and Hindi speech-to-text without external APIs or cloud dependencies.
+- **Modernized Desktop Header Ergonomics**:
+  - Replaced technical tagline with primary brand identity: `BREAK ORDINARY BOUNDARIES • BY ABCSTEPS`.
+  - Unified 4 separate telemetry pills into a single floating **Glass Island Telemetry Capsule** (`Uptime • Requests • Tokens • Saved`).
+  - Merged Config and Code sidebar triggers into a unified segmented pill (`[ ◧ Config | Code ◨ ]`).
+- **Indian School Computer Lab LAN Master Blueprint**: Documented 1-process LAN host topology (`--host 0.0.0.0 --port 9610`) enabling 30-PC computer labs with 240+ daily students to access local AI at ₹0 cost on <25MB RAM.
+
+#### Fixed
+- **Textarea Horizontal Scrollbar Elimination**: Added `overflow-x: hidden !important;`, `scrollbar-width: thin;`, and `overflow-x` enforcement in `autoResize(el)` to permanently eliminate unwanted horizontal scrollbar rendering across WebKit and Blink browsers.
+
+---
+
 ## [0.1.4] - 2026-08-19
 
 ### Zero-Download Cloudflare Pages Web Studio, iOS Safari Hardening & Steve Jobs Level Mobile UX
 
 #### Added
+- **Bilingual / Multilingual UI Engine (`en` / `hi`)**: Built-in zero-dependency client-side internationalization system (`I18N`) with 1-click header switcher and ⌘K shortcuts (`L1` English, `L2` हिन्दी), translating all headlines, starter cards, telemetry indicators, navigation pills, input placeholders, and modal dialogues dynamically with `localStorage` persistence.
+- **Real-Time Client-Side Indic Phonetic Transliteration (Hinglish $\rightarrow$ Devanagari)**: Integrated instant phonetic typing toggleable via `Ctrl+G` or the input dock `अ` button. Space key dynamically converts Roman transliteration (`"aap kaise ho"`, `"namaste"`) into native Devanagari (`"आप कैसे हो"`, `"नमस्ते"`), backed by Google Input Tools API, sub-millisecond in-memory LRU cache, and built-in offline rule dictionary fallback.
+- **Multi-Indic Language Ready**: Validated out-of-the-box transliteration support across 10 Indian languages (Hindi, Sanskrit, Marathi, Bengali, Gujarati, Tamil, Telugu, Kannada, Malayalam, Punjabi).
+- **School Computer Lab LAN Master Mode**: Documented 1-process LAN host topology (`--host 0.0.0.0 --port 9610`) enabling 30-PC computer labs with 240+ daily students to access local AI at ₹0 cost on <25MB RAM.
 - **Zero-Download Cloudflare Pages Serverless Edge Studio**: Deployed native Cloudflare Pages Edge Functions (`/functions/v1/chat/completions.js`, `/functions/v1/models.js`, `/functions/health.js`) executing serverless Web RPC streaming directly in V8 isolates without requiring local binary downloads.
 - **BOB Builder Default Theme**: Established high-contrast **BOB Builder** dark developer theme as the primary default across all browsers and devices.
 - **Direct GitHub Navbar Integration**: Added top navbar GitHub repository link and icon pill directly in `playground.html` and `web/index.html` for 1-click open-source repository exploration.

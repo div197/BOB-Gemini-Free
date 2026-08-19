@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.4-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.5-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -219,12 +219,17 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ### Option 4: Interactive Local-First Web Studio (`/playground` & `bob-gemini-free.abcsteps.com`)
 
-Access the built-in, zero-dependency, temple-grade visual studio directly in your web browser:
+Access the built-in, zero-dependency visual studio directly in your web browser:
 * 🌐 **Online Cloudflare Pages Web Studio**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% Unlimited Scalable Local-First PWA)*
 * 🏠 **Local Server Address**: `http://127.0.0.1:9610/playground` (or `/ui`)
 
-#### 🌟 100% Unlimited Scalability & Zero Cloud Compute Costs:
+#### 🌟 100% Unlimited Scalability & State-of-the-Art Client Capabilities:
 * 🔒 **100% On-Device Privacy**: When loaded from [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/), the static web studio auto-discovers and connects directly to your local BOB gateway engine at `http://127.0.0.1:9610` using Chrome Private Network Access (PNA). No prompts, chats, or thinking tokens ever touch intermediate cloud servers.
+* ⚡ **Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
+* 🌐 **Bilingual & Multi-Indic Internationalization (`en` / `hi` + 8 Regional Scripts)**: 1-click dynamic language switcher and ⌘K shortcuts (`L1` English, `L2` हिन्दी), with support for 8 regional Indic scripts (हिन्दी, संस्कृतम्, मराठी, বাংলা, ગુજરાતી, தமிழ், తెలుగు, ਪੰਜਾਬੀ).
+* ✍️ **Real-Time Indic Phonetic Transliteration with Backspace Undo**: Space-key dynamic conversion of Roman transliteration (`"namaste"`, `"aap kaise ho"`) into native Devanagari (`"नमस्ते"`, `"आप कैसे हो"`). Hitting `Backspace` instantly reverts converted words back to their original Roman characters.
+* 🎙️ **Native Web Speech Voice Recognition**: Client-side voice dictation via the browser's native `SpeechRecognition` API supporting zero-latency English and Hindi speech-to-text with zero backend overhead.
+* 🏛️ **Indian School Computer Lab LAN Master Architecture**: 1-process LAN host topology (`--host 0.0.0.0 --port 9610`) enabling 30-PC computer labs with 240+ daily students to access local AI at ₹0 cost on <25MB RAM.
 * 👁️ **Multimodal Vision Engine**: Attach files (`📎`), drag-and-drop images onto the canvas, or paste screenshots directly from your clipboard (`⌘V` / `Ctrl+V`).
 * 🧠 **Real-Time Reasoning Visualizer**: Stream step-by-step thinking tokens live inside isolated reasoning cards without distracting from the main response.
 * 📐 **Synchronous Scientific Typography (KaTeX)**: Zero-flicker mathematical rendering for Dirac bra-kets ($\langle \psi | \phi \rangle$), Hilbert spaces, matrices ($\begin{pmatrix}1\\0\end{pmatrix}$), integrals, and proofs.
