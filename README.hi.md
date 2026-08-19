@@ -118,9 +118,9 @@ BOB Gemini Free बिना किसी अतिरिक्त कॉन्�
 | श्रेणी (Category) | समर्थित टूल्स व क्लाइंट्स | कनेक्शन एंडपॉइंट |
 | :--- | :--- | :--- |
 | **टर्मिनल कोडिंग एजेंट्स** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Gemini CLI (`gemini`) | नेटिव बेस यूआरएल (Base URLs) |
-| **एजेंटिक IDEs व एक्सटेंशन्स** | Cursor (Agent Mode), Windsurf, VS Code (Continue, Roo Code, Cline) | `http://127.0.0.1:8081/v1` |
-| **स्वायत्त एजेंट फ़्रेमवर्क्स** | Grok Build, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
-| **रूटर्स व लोकल प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **एजेंटिक IDEs व एक्सटेंशन्स** | Cursor (Agent Mode), Windsurf, VS Code (Continue, Roo Code, Cline) | `http://127.0.0.1:9610/v1` |
+| **स्वायत्त एजेंट फ़्रेमवर्क्स** | Grok Build, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:9610/v1` |
+| **रूटर्स व लोकल प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:9610/v1` |
 | **ऑफिशियल SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | लोकल बेस यूआरएल |
 
 ---
@@ -134,7 +134,7 @@ BOB Gemini Free बिना किसी अतिरिक्त कॉन्�
 ./bob-gemini-free
 
 # 2. किसी भी टूल में सेट करें:
-# Base URL: http://127.0.0.1:8081/v1
+# Base URL: http://127.0.0.1:9610/v1
 # API Key:  none
 ```
 
@@ -149,7 +149,7 @@ BOB Gemini Free बिना किसी अतिरिक्त कॉन्�
 ./bob-gemini-free --test
 
 # या कस्टम पोर्ट / API Key के साथ
-./bob-gemini-free --test --test-url http://127.0.0.1:8081 --test-key your_api_key
+./bob-gemini-free --test --test-url http://127.0.0.1:9610 --test-key your_api_key
 
 # या स्क्रिप्ट चलाएँ
 ./test-kit.sh
@@ -184,7 +184,7 @@ chmod +x install.sh
 
 ### विकल्प C: इंटरैक्टिव वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड (`/playground` व `/ui`)
 
-अपने किसी भी वेब ब्राउज़र में `http://127.0.0.1:8081/playground` खोलें और इनबिल्ट विज़ुअल इंटरफ़ेस का आनंद लें:
+अपने किसी भी वेब ब्राउज़र में `http://127.0.0.1:9610/playground` खोलें और इनबिल्ट विज़ुअल इंटरफ़ेस का आनंद लें:
 
 * 🧠 **लाइव रीज़निंग विज़ुअलाइज़र**: Gemini 3.7 Flash Thinking के रीज़निंग टोकन्स को रीयल-टाइम में प्रवाहित होते हुए देखें।
 * ⚡ **मॉडल व थिंकिंग स्विचर**: तेज़ मॉडल्स, डीप रीज़निंग, या Imagen 3 इमेज सिंथेसिस को एक क्लिक में टेस्ट करें।
@@ -209,7 +209,7 @@ chmod +x install.sh
 
 ```bash
 make build
-./bob-gemini-free --port 8081
+./bob-gemini-free --port 9610
 ```
 
 ---
@@ -242,7 +242,7 @@ make build
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 
@@ -261,7 +261,7 @@ print(response.choices[0].message.content)
 import base64
 from openai import OpenAI
 
-client = OpenAI(base_url="http://127.0.0.1:8081/v1", api_key="none")
+client = OpenAI(base_url="http://127.0.0.1:9610/v1", api_key="none")
 
 with open("image.png", "rb") as f:
     b64 = base64.b64encode(f.read()).decode("utf-8")
@@ -288,7 +288,7 @@ BOB Gemini Free में Anthropic Messages API प्रोटोकॉल (`P
 #### Claude Code CLI सेटअप
 
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```
@@ -299,7 +299,7 @@ claude
 from anthropic import Anthropic
 
 client = Anthropic(
-    base_url="http://127.0.0.1:8081",
+    base_url="http://127.0.0.1:9610",
     api_key="none"
 )
 
@@ -316,7 +316,7 @@ print(message.content[0].text)
 ### OpenAI Codex CLI
 
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_BASE_URL=http://127.0.0.1:9610/v1
 export OPENAI_API_KEY=none
 codex
 ```
@@ -327,7 +327,7 @@ codex
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 
@@ -361,7 +361,7 @@ func main() {
 		gateway.WithCookieFile("cookie.txt"), // ऐच्छिक (Optional)
 	)
 
-	http.ListenAndServe("127.0.0.1:8081", handler)
+	http.ListenAndServe("127.0.0.1:9610", handler)
 }
 ```
 
@@ -410,7 +410,7 @@ func main() {
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
 
 # या स्क्रिप्ट चलाएँ
-./scripts/bench.sh http://127.0.0.1:8081 3 6 your_api_key
+./scripts/bench.sh http://127.0.0.1:9610 3 6 your_api_key
 ```
 
 ---
@@ -458,7 +458,7 @@ scripts\start-service.bat
 | सेटिंग फ़ील्ड | वैल्यू | विवरण |
 | :--- | :--- | :--- |
 | **API Format / Provider** | `OpenAI` या `OpenAI Compatible` | मानक REST प्रोटोकॉल |
-| **Base URL / API Host** | `http://127.0.0.1:8081/v1` | लोकल हाई-स्पीड गेटवे |
+| **Base URL / API Host** | `http://127.0.0.1:9610/v1` | लोकल हाई-स्पीड गेटवे |
 | **API Key** | `none` (या आपकी सेट की गई Key) | ऑथेंटिकेशन बंद होने पर वैकल्पिक |
 | **Model** | `gemini-3.7-flash`, `gemini-3.7-flash-thinking`, `gemini-pro` | हाई-स्पीड या डीप रीज़निंग |
 
@@ -467,8 +467,8 @@ scripts\start-service.bat
 CLI टूल्स, बैकग्राउंड बॉट्स, Python/Node स्क्रिप्ट्स, और एजेंट फ़्रेमवर्क्स के लिए:
 
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
-export OPENAI_API_BASE=http://127.0.0.1:8081/v1
+export OPENAI_BASE_URL=http://127.0.0.1:9610/v1
+export OPENAI_API_BASE=http://127.0.0.1:9610/v1
 export OPENAI_API_KEY=none
 ```
 
@@ -701,7 +701,7 @@ docker build -t bob-gemini-free:local .
 # 2. कुकी माउंट करके कंटेनर चलाएँ
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
   -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
   bob-gemini-free:local
@@ -712,7 +712,7 @@ docker run -d \
 docker logs bob-gemini-free
 # Output:
 #   Cookie: yes (/app/cookie.txt)
-#   Listening: http://0.0.0.0:8081
+#   Listening: http://0.0.0.0:9610
 ```
 
 ---
@@ -805,7 +805,7 @@ OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भ�
 
 बस अपने टर्मिनल में ये वैरिएबल्स सेट करें और Claude Code शुरू करें:
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```
@@ -814,8 +814,8 @@ claude
 <details>
 <summary><strong>13. क्या यह OpenAI Codex CLI (`openai/codex`) और AI Routers (LiteLLM / OpenRouter / Portkey) के साथ काम करता है?</strong></summary>
 
-* **OpenAI Codex CLI**: नेटिव `/v1/responses` और `/v1/chat/completions` एंडपॉइंट्स द्वारा पूर्ण समर्थित। बस `OPENAI_BASE_URL=http://127.0.0.1:8081/v1` सेट करें।
-* **LiteLLM / OpenRouter / Portkey / OneAPI**: `http://127.0.0.1:8081/v1` को कस्टम OpenAI अपस्ट्रीम के रूप में जोड़ें। गेटवे बिना किसी समस्या के सभी SSE डेल्टा चंक्स, रीज़निंग टोकन्स और यूसेज मीट्रिक्स रिटर्न करता है।
+* **OpenAI Codex CLI**: नेटिव `/v1/responses` और `/v1/chat/completions` एंडपॉइंट्स द्वारा पूर्ण समर्थित। बस `OPENAI_BASE_URL=http://127.0.0.1:9610/v1` सेट करें।
+* **LiteLLM / OpenRouter / Portkey / OneAPI**: `http://127.0.0.1:9610/v1` को कस्टम OpenAI अपस्ट्रीम के रूप में जोड़ें। गेटवे बिना किसी समस्या के सभी SSE डेल्टा चंक्स, रीज़निंग टोकन्स और यूसेज मीट्रिक्स रिटर्न करता है।
 </details>
 
 ---

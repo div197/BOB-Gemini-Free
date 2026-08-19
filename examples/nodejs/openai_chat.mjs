@@ -1,13 +1,13 @@
 /**
  * BOB Gemini Free - Node.js OpenAI SDK Example
- * Run BOB Gemini Free gateway: ./bob-gemini-free --port 8081
+ * Run BOB Gemini Free gateway: ./bob-gemini-free --port 9610
  * Then run: npm install openai && node openai_chat.mjs
  */
 
 import OpenAI from 'openai';
 
 const openai = new OpenAI({
-  baseURL: 'http://127.0.0.1:8081/v1',
+  baseURL: 'http://127.0.0.1:9610/v1',
   apiKey: 'none',
 });
 

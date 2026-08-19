@@ -10,14 +10,14 @@ Set the environment variables and launch Codex CLI:
 
 ### macOS & Linux (Terminal)
 ```bash
-export OPENAI_BASE_URL="http://127.0.0.1:8081/v1"
+export OPENAI_BASE_URL="http://127.0.0.1:9610/v1"
 export OPENAI_API_KEY="none"
 codex
 ```
 
 ### Windows (PowerShell)
 ```powershell
-$env:OPENAI_BASE_URL="http://127.0.0.1:8081/v1"
+$env:OPENAI_BASE_URL="http://127.0.0.1:9610/v1"
 $env:OPENAI_API_KEY="none"
 codex
 ```
@@ -29,7 +29,7 @@ codex
 You can also drop a `.env` file into your project's root folder:
 
 ```ini
-OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+OPENAI_BASE_URL=http://127.0.0.1:9610/v1
 OPENAI_API_KEY=none
 ```
 
@@ -59,14 +59,14 @@ Codex CLI will automatically detect and load these variables when launched in th
 
 ### For Zsh (`~/.zshrc`):
 ```bash
-echo 'export OPENAI_BASE_URL="http://127.0.0.1:8081/v1"' >> ~/.zshrc
+echo 'export OPENAI_BASE_URL="http://127.0.0.1:9610/v1"' >> ~/.zshrc
 echo 'export OPENAI_API_KEY="none"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### For Bash (`~/.bashrc`):
 ```bash
-echo 'export OPENAI_BASE_URL="http://127.0.0.1:8081/v1"' >> ~/.bashrc
+echo 'export OPENAI_BASE_URL="http://127.0.0.1:9610/v1"' >> ~/.bashrc
 echo 'export OPENAI_API_KEY="none"' >> ~/.bashrc
 source ~/.bashrc
 ```

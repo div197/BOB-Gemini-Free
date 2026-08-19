@@ -18,7 +18,7 @@ build:
 	@echo "Build complete: ./$(BINARY_NAME)"
 
 run: build
-	./$(BINARY_NAME) --port 8081
+	./$(BINARY_NAME) --port 9610
 
 test:
 	go test -count=1 -v ./...

@@ -123,9 +123,9 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 | Category | Supported Clients & Frameworks | Connection Endpoint |
 | :--- | :--- | :--- |
 | **Terminal Coding Agents** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Aider CLI (`aider`), Gemini CLI (`gemini`) | Native Base URLs |
-| **Agentic IDEs & Extensions** | Cursor (Agent Mode), Roo Code, Cline, Continue.dev, Windsurf | `http://127.0.0.1:8081/v1` |
-| **Autonomous Agent Runtimes** | Grok Build, OpenHands, SWE-agent, Goose, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:8081/v1` |
-| **Routers & Local Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:8081/v1` |
+| **Agentic IDEs & Extensions** | Cursor (Agent Mode), Roo Code, Cline, Continue.dev, Windsurf | `http://127.0.0.1:9610/v1` |
+| **Autonomous Agent Runtimes** | Grok Build, OpenHands, SWE-agent, Goose, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:9610/v1` |
+| **Routers & Local Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:9610/v1` |
 | **Official SDKs** | OpenAI (Python/JS/Go/.NET/Java), Anthropic (Python/TypeScript), Google GenAI | Local Base URLs |
 
 ---
@@ -139,7 +139,7 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 ./bob-gemini-free
 
 # 2. Point any AI tool or script to:
-# Base URL: http://127.0.0.1:8081/v1
+# Base URL: http://127.0.0.1:9610/v1
 # API Key:  none
 ```
 
@@ -168,7 +168,7 @@ docker compose up -d
 
 # Or standard Docker
 docker build -t bob-gemini-free .
-docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free
+docker run -d --name bob-gemini-free -p 9610:9610 bob-gemini-free
 ```
 
 ---
@@ -182,7 +182,7 @@ Verify every endpoint, streaming chunk, reasoning model, and API format with the
 ./bob-gemini-free --test
 
 # Or against a custom port / authenticated instance
-./bob-gemini-free --test --test-url http://127.0.0.1:8081 --test-key your_api_key
+./bob-gemini-free --test --test-url http://127.0.0.1:9610 --test-key your_api_key
 
 # Or run the standalone script
 ./test-kit.sh
@@ -219,7 +219,7 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ### Option 4: Interactive Web Playground & Telemetry Studio (`/playground` & `/ui`)
 
-Open `http://127.0.0.1:8081/playground` (or `/ui`) in any web browser to access the built-in, zero-dependency, temple-grade visual studio:
+Open `http://127.0.0.1:9610/playground` (or `/ui`) in any web browser to access the built-in, zero-dependency, temple-grade visual studio:
 
 * 👁️ **Multimodal Vision Engine**: Attach files (`📎`), drag-and-drop images onto the canvas, or paste screenshots directly from your clipboard (`⌘V` / `Ctrl+V`).
 * 🧠 **Real-Time Reasoning Visualizer**: Stream step-by-step thinking tokens live inside isolated reasoning cards without distracting from the main response.
@@ -253,10 +253,10 @@ Open `http://127.0.0.1:8081/playground` (or `/ui`) in any web browser to access 
 make build
 
 # Start the gateway
-./bob-gemini-free --port 8081
+./bob-gemini-free --port 9610
 ```
 
-The gateway will start listening at `http://127.0.0.1:8081/v1`.
+The gateway will start listening at `http://127.0.0.1:9610/v1`.
 
 ---
 
@@ -288,7 +288,7 @@ Production-ready, copy-pasteable integration examples are located in the [`examp
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"  # Or your configured api_key
 )
 
@@ -308,7 +308,7 @@ print(response.choices[0].message.content)
 import base64
 from openai import OpenAI
 
-client = OpenAI(base_url="http://127.0.0.1:8081/v1", api_key="none")
+client = OpenAI(base_url="http://127.0.0.1:9610/v1", api_key="none")
 
 with open("diagram.png", "rb") as img_file:
     b64_img = base64.b64encode(img_file.read()).decode("utf-8")
@@ -332,7 +332,7 @@ BOB Gemini Free includes native support for Anthropic's Messages API protocol (`
 #### Claude Code CLI Setup
 
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```
@@ -343,7 +343,7 @@ claude
 from anthropic import Anthropic
 
 client = Anthropic(
-    base_url="http://127.0.0.1:8081",
+    base_url="http://127.0.0.1:9610",
     api_key="none"
 )
 
@@ -360,7 +360,7 @@ print(message.content[0].text)
 ### OpenAI Codex CLI
 
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_BASE_URL=http://127.0.0.1:9610/v1
 export OPENAI_API_KEY=none
 codex
 ```
@@ -368,7 +368,7 @@ codex
 ### cURL (OpenAI Chat Completions)
 
 ```bash
-curl http://127.0.0.1:8081/v1/chat/completions \
+curl http://127.0.0.1:9610/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-3.7-flash",
@@ -382,7 +382,7 @@ curl http://127.0.0.1:8081/v1/chat/completions \
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 
@@ -402,7 +402,7 @@ print("Generated Image URL:", response.data[0].url)
 
 ```bash
 export GEMINI_API_KEY=none
-export GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:8081
+export GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:9610
 gemini
 ```
 
@@ -424,7 +424,7 @@ func main() {
 		gateway.WithCookieFile("cookie.txt"), // optional
 	)
 
-	http.ListenAndServe("127.0.0.1:8081", handler)
+	http.ListenAndServe("127.0.0.1:9610", handler)
 }
 ```
 
@@ -473,7 +473,7 @@ BOB Gemini Free includes a built-in stress tester and throughput benchmark:
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
 
 # Or benchmark against a custom URL / port
-./scripts/bench.sh http://127.0.0.1:8081 3 6 your_api_key
+./scripts/bench.sh http://127.0.0.1:9610 3 6 your_api_key
 ```
 
 ```text
@@ -766,7 +766,7 @@ docker build -t bob-gemini-free:local .
 # 2. Run container with cookie mounted
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
   -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
   bob-gemini-free:local
@@ -777,7 +777,7 @@ Verify container status:
 docker logs bob-gemini-free
 # Output:
 #   Cookie: yes (/app/cookie.txt)
-#   Listening: http://0.0.0.0:8081
+#   Listening: http://0.0.0.0:9610
 ```
 
 ---
@@ -788,7 +788,7 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 
 ```json
 {
-  "port": 8081,
+  "port": 9610,
   "host": "127.0.0.1",
   "retry_attempts": 3,
   "retry_delay_sec": 2,
@@ -814,7 +814,7 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 | Command | Description |
 | :--- | :--- |
 | `make build` | Compile static binary for host architecture into `./bob-gemini-free` |
-| `make run` | Build and start server immediately on port 8081 |
+| `make run` | Build and start server immediately on port 9610 |
 | `make test` | Run complete unit test suite with verbose logging |
 | `make test-cover` | Run test suite with line-by-line coverage report |
 | `make dist` | Cross-compile standalone binaries for macOS (ARM64/Intel), Linux (AMD64/ARM64), and Windows |
@@ -910,7 +910,7 @@ Zero. BOB Gemini Free is 100% open source under the MIT License, written in pure
 
 Simply export the official environment variables and launch Claude Code:
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```
@@ -919,8 +919,8 @@ claude
 <details>
 <summary><strong>13. How do I use BOB Gemini Free with OpenAI Codex CLI (`openai/codex`) and AI Router Proxies (LiteLLM / OpenRouter / Portkey)?</strong></summary>
 
-* **OpenAI Codex CLI**: Supported via native `/v1/responses` and `/v1/chat/completions`. Set `OPENAI_BASE_URL=http://127.0.0.1:8081/v1` and `OPENAI_API_KEY=none`.
-* **LiteLLM / OpenRouter / Portkey / OneAPI**: Configure `http://127.0.0.1:8081/v1` as your custom OpenAI upstream provider. The gateway returns standard SSE delta chunks, `reasoning_content` thinking blocks, and token usage accounting.
+* **OpenAI Codex CLI**: Supported via native `/v1/responses` and `/v1/chat/completions`. Set `OPENAI_BASE_URL=http://127.0.0.1:9610/v1` and `OPENAI_API_KEY=none`.
+* **LiteLLM / OpenRouter / Portkey / OneAPI**: Configure `http://127.0.0.1:9610/v1` as your custom OpenAI upstream provider. The gateway returns standard SSE delta chunks, `reasoning_content` thinking blocks, and token usage accounting.
 </details>
 
 ---

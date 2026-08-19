@@ -28,7 +28,7 @@ type Config struct {
 
 func Default() Config {
 	return Config{
-		Port:              8081,
+		Port:              9610,
 		Host:              "127.0.0.1",
 		RetryAttempts:     3,
 		RetryDelaySec:     2,

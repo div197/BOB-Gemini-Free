@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Real-Time Streaming with Deep Reasoning Thinking Tokens
-curl -N http://127.0.0.1:8081/v1/chat/completions \
+curl -N http://127.0.0.1:9610/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-3.7-flash-thinking",

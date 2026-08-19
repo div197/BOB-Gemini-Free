@@ -26,7 +26,7 @@ if (!(Test-Path "$ConfigDir\config.json")) {
 
 if (Test-Path ".\$AppName") {
     Write-Host "[✔] Existing $AppName binary found locally." -ForegroundColor Green
-    Write-Host "Start with: .\$AppName --port 8081" -ForegroundColor Yellow
+    Write-Host "Start with: .\$AppName --port 9610" -ForegroundColor Yellow
 } elseif (Get-Command go -ErrorAction SilentlyContinue) {
     Write-Host "[*] Go detected. Compiling $AppName from source..." -ForegroundColor Cyan
     $env:CGO_ENABLED = "0"
@@ -34,19 +34,19 @@ if (Test-Path ".\$AppName") {
     Write-Host "[✔] Successfully built $AppName!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Start the server by running:" -ForegroundColor Yellow
-    Write-Host "  .\$AppName --port 8081" -ForegroundColor White
+    Write-Host "  .\$AppName --port 9610" -ForegroundColor White
 } elseif (Get-Command docker -ErrorAction SilentlyContinue) {
     Write-Host "[*] Building Docker container..." -ForegroundColor Cyan
     docker build -t bob-gemini-free .
     Write-Host "[✔] Docker container built!" -ForegroundColor Green
-    Write-Host "Run with: docker run -d --name bob-gemini-free -p 8081:8081 bob-gemini-free" -ForegroundColor Yellow
+    Write-Host "Run with: docker run -d --name bob-gemini-free -p 9610:9610 bob-gemini-free" -ForegroundColor Yellow
 } else {
     Write-Host "[*] No Go or Docker detected. Fetching pre-compiled Windows 64-bit binary..." -ForegroundColor Cyan
     $DownloadUrl = "https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-windows-amd64.exe"
     try {
         Invoke-WebRequest -Uri $DownloadUrl -OutFile $AppName
         Write-Host "[✔] Standalone binary downloaded successfully!" -ForegroundColor Green
-        Write-Host "Start with: .\$AppName --port 8081" -ForegroundColor Yellow
+        Write-Host "Start with: .\$AppName --port 9610" -ForegroundColor Yellow
     } catch {
         Write-Host "[!] Pre-compiled binary not yet available on GitHub Releases." -ForegroundColor Yellow
         Write-Host "[*] Please install Go (https://go.dev/dl/) or download a release binary." -ForegroundColor Cyan
@@ -54,5 +54,5 @@ if (Test-Path ".\$AppName") {
 }
 
 Write-Host ""
-Write-Host "Base URL: http://127.0.0.1:8081/v1" -ForegroundColor Cyan
+Write-Host "Base URL: http://127.0.0.1:9610/v1" -ForegroundColor Cyan
 Write-Host "Visit ABCsteps: https://abcsteps.com/" -ForegroundColor Cyan

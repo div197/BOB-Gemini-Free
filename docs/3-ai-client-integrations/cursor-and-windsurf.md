@@ -10,7 +10,7 @@ Cursor is the leading AI-first code editor. Connecting BOB enables full **Agent 
 
 1. Open **Cursor Settings** (`Cmd + ,` or `Ctrl + ,`) $\rightarrow$ **Models**.
 2. Under **OpenAI API Key**, configure:
-   * **OpenAI Base URL**: `http://127.0.0.1:8081/v1`
+   * **OpenAI Base URL**: `http://127.0.0.1:9610/v1`
    * **API Key**: `none` (or your configured `api_keys`)
 3. Click **Add Model** and add the following models:
    * `gemini-3.7-flash` (Ultra-fast code edits, Composer, and autocomplete)
@@ -24,7 +24,7 @@ Cursor is the leading AI-first code editor. Connecting BOB enables full **Agent 
 
 1. Open **Windsurf Settings** $\rightarrow$ **Cascade** $\rightarrow$ **Custom OpenAI Provider**.
 2. Enter:
-   * **Base URL**: `http://127.0.0.1:8081/v1`
+   * **Base URL**: `http://127.0.0.1:9610/v1`
    * **API Key**: `none`
    * **Model**: `gemini-3.7-flash`
 3. Cascade will immediately start generating diffs and resolving repo contexts locally!
@@ -42,21 +42,21 @@ In `~/.continue/config.json`:
       "title": "Gemini 3.7 Flash",
       "provider": "openai",
       "model": "gemini-3.7-flash",
-      "apiBase": "http://127.0.0.1:8081/v1",
+      "apiBase": "http://127.0.0.1:9610/v1",
       "apiKey": "none"
     },
     {
       "title": "Gemini 3.7 Flash Thinking",
       "provider": "openai",
       "model": "gemini-3.7-flash-thinking",
-      "apiBase": "http://127.0.0.1:8081/v1",
+      "apiBase": "http://127.0.0.1:9610/v1",
       "apiKey": "none"
     },
     {
       "title": "Gemini 3.1 Pro",
       "provider": "openai",
       "model": "gemini-3.1-pro",
-      "apiBase": "http://127.0.0.1:8081/v1",
+      "apiBase": "http://127.0.0.1:9610/v1",
       "apiKey": "none"
     }
   ],
@@ -64,7 +64,7 @@ In `~/.continue/config.json`:
     "title": "Gemini Flash Lite",
     "provider": "openai",
     "model": "gemini-flash-lite",
-    "apiBase": "http://127.0.0.1:8081/v1",
+    "apiBase": "http://127.0.0.1:9610/v1",
     "apiKey": "none"
   }
 }

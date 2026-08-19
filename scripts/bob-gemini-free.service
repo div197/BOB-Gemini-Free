@@ -6,11 +6,11 @@ After=network.target
 [Service]
 Type=simple
 User=%i
-ExecStart=/usr/local/bin/bob-gemini-free --port 8081
+ExecStart=/usr/local/bin/bob-gemini-free --port 9610
 Restart=on-failure
 RestartSec=5s
 Environment=BOB_GEMINI_FREE_HOST=127.0.0.1
-Environment=BOB_GEMINI_FREE_PORT=8081
+Environment=BOB_GEMINI_FREE_PORT=9610
 
 [Install]
 WantedBy=multi-user.target

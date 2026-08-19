@@ -29,12 +29,12 @@ This directory provides copy-pasteable, production-ready examples demonstrating 
 
 1. Start your local BOB Gemini Free gateway:
    ```bash
-   ./bob-gemini-free --port 8081
+   ./bob-gemini-free --port 9610
    ```
 
 2. Open the built-in Web Playground in your browser:
    ```
-   http://127.0.0.1:8081/playground
+   http://127.0.0.1:9610/playground
    ```
 
 3. Run any Python/Node/Shell example against the running gateway!

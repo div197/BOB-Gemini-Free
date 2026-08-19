@@ -10,14 +10,14 @@ Set the environment variables and run `claude`:
 
 ```bash
 # macOS / Linux (Terminal)
-export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"
+export ANTHROPIC_BASE_URL="http://127.0.0.1:9610"
 export ANTHROPIC_API_KEY="none"
 claude
 ```
 
 ### Windows (PowerShell)
 ```powershell
-$env:ANTHROPIC_BASE_URL="http://127.0.0.1:8081"
+$env:ANTHROPIC_BASE_URL="http://127.0.0.1:9610"
 $env:ANTHROPIC_API_KEY="none"
 claude
 ```
@@ -31,7 +31,7 @@ Once inside Claude Code, verify that traffic is routing locally through BOB:
 ```bash
 claude /status
 ```
-*(Confirms that `ANTHROPIC_BASE_URL` is pointing to `http://127.0.0.1:8081`).*
+*(Confirms that `ANTHROPIC_BASE_URL` is pointing to `http://127.0.0.1:9610`).*
 
 > **Tip**: If you were previously logged in via OAuth subscription and want to force local routing, run:
 > ```bash
@@ -77,19 +77,19 @@ Claude Code CLI uses tool calls to inspect files, edit code, and run bash comman
 
 ### For Zsh (`~/.zshrc`):
 ```bash
-echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"' >> ~/.zshrc
+echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:9610"' >> ~/.zshrc
 echo 'export ANTHROPIC_API_KEY="none"' >> ~/.zshrc
 source ~/.zshrc
 ```
 
 ### For Bash (`~/.bashrc`):
 ```bash
-echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:8081"' >> ~/.bashrc
+echo 'export ANTHROPIC_BASE_URL="http://127.0.0.1:9610"' >> ~/.bashrc
 echo 'export ANTHROPIC_API_KEY="none"' >> ~/.bashrc
 source ~/.bashrc
 ```
 
 ### Handy One-Word Alias:
 ```bash
-alias claude-free='ANTHROPIC_BASE_URL=http://127.0.0.1:8081 ANTHROPIC_API_KEY=none claude'
+alias claude-free='ANTHROPIC_BASE_URL=http://127.0.0.1:9610 ANTHROPIC_API_KEY=none claude'
 ```

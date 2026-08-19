@@ -1,6 +1,6 @@
 """
 BOB Gemini Free - OpenAI Python SDK Example
-Run BOB Gemini Free gateway: ./bob-gemini-free --port 8081
+Run BOB Gemini Free gateway: ./bob-gemini-free --port 9610
 Then run: pip install openai && python openai_chat.py
 """
 
@@ -8,7 +8,7 @@ from openai import OpenAI
 
 # 1. Initialize client pointing to local BOB gateway
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none",  # or your configured BOB_GEMINI_FREE_API_KEYS
 )
 

@@ -22,7 +22,7 @@ BOB Gemini Free exposes standard OpenAI image generation endpoints (`POST /v1/im
 
 ### 1. Standard URL Format (cURL)
 ```bash
-curl -X POST http://127.0.0.1:8081/v1/images/generations \
+curl -X POST http://127.0.0.1:9610/v1/images/generations \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "A majestic snow leopard on a Himalayan cliff at sunset, cinematic lighting, 8k",
@@ -32,7 +32,7 @@ curl -X POST http://127.0.0.1:8081/v1/images/generations \
 
 ### 2. Base64 Encoded Format (`response_format: "b64_json"`)
 ```bash
-curl -X POST http://127.0.0.1:8081/v1/images/generations \
+curl -X POST http://127.0.0.1:9610/v1/images/generations \
   -H "Content-Type: application/json" \
   -d '{
     "prompt": "An intricate brass astronomical clock with Vedic constellations",
@@ -49,7 +49,7 @@ curl -X POST http://127.0.0.1:8081/v1/images/generations \
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 

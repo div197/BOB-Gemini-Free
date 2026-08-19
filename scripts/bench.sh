@@ -7,7 +7,7 @@ set -e
 # Author: Divyanshu Singh Chouhan (@div197)
 # ==============================================================================
 
-TARGET_URL="${1:-http://127.0.0.1:8081}"
+TARGET_URL="${1:-http://127.0.0.1:9610}"
 CONCURRENCY="${2:-3}"
 REQUESTS="${3:-6}"
 API_KEY="${4:-}"

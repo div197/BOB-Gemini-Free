@@ -17,7 +17,7 @@ make dist
 go test -count=1 ./...
 
 # Run diagnostic integration test kit against local server
-./bob-gemini-free --test --test-url http://127.0.0.1:8081
+./bob-gemini-free --test --test-url http://127.0.0.1:9610
 
 # Run concurrency benchmark
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
@@ -47,7 +47,7 @@ gofmt -s -w .
 When using Claude Code with this gateway:
 
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```

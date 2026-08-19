@@ -7,7 +7,7 @@ BOB Gemini Free implements Google's official Gemini REST endpoints on `/v1beta/*
 ## 1. List Models (`GET /v1beta/models`)
 
 ```bash
-curl http://127.0.0.1:8081/v1beta/models
+curl http://127.0.0.1:9610/v1beta/models
 ```
 
 ---
@@ -66,7 +66,7 @@ Calculate the exact token count for prompt text and multimodal images before sen
 
 ### Request
 ```bash
-curl -X POST http://127.0.0.1:8081/v1beta/models/gemini-3.7-flash:countTokens \
+curl -X POST http://127.0.0.1:9610/v1beta/models/gemini-3.7-flash:countTokens \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [

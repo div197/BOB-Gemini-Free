@@ -2145,6 +2145,48 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         <kbd>T5</kbd>
       </div>
 
+      <div class="cmd-section-label" data-section="templates">🎓 Study & Reasoning Templates</div>
+      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Explain the concept of [Topic] to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). Avoid cliché analogies like LEGO blocks or toy bricks.'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🎓</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Explain to a 5th Grader</span>
+            <span class="cmd-item-desc">Pure first-principles mental models & natural analogies (no Lego blocks)</span>
+          </div>
+        </div>
+        <kbd>P1</kbd>
+      </div>
+      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Formulate a rigorous, step-by-step mathematical proof and KaTeX derivation for [Topic/Formula].'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">📐</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">LaTeX Mathematical Proof</span>
+            <span class="cmd-item-desc">Step-by-step rigorous KaTeX proof and formal derivation</span>
+          </div>
+        </div>
+        <kbd>P2</kbd>
+      </div>
+      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Perform a comprehensive first-principles architecture review, security assessment, and technical bottleneck audit of [System/Codebase].'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🔬</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Systems Architecture Audit</span>
+            <span class="cmd-item-desc">First-principles concurrency, memory allocation, and bottleneck review</span>
+          </div>
+        </div>
+        <kbd>P3</kbd>
+      </div>
+      <div class="cmd-item" data-type="template" onclick="setStarterPrompt('Deconstruct the fundamental axioms, underlying physics, and mathematical equations governing [Concept/Paper].'); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">⚡</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Scientific Deconstruction</span>
+            <span class="cmd-item-desc">Breakdown of core physical axioms, mathematical laws, and proofs</span>
+          </div>
+        </div>
+        <kbd>P4</kbd>
+      </div>
+
       <div class="cmd-section-label" data-section="workspace">⚙️ Workspace Controls</div>
       <div class="cmd-item" data-type="action" onclick="newChat(); toggleCmdPalette();">
         <div class="cmd-item-left">
@@ -2472,7 +2514,22 @@ function handleImageFileSelect(e) {
 
 function attachImageFile(file) {
   if (!file.type.startsWith("image/")) {
-    showToast("Please upload an image file", "⚠️");
+    const isDoc = file.type.startsWith("text/") || 
+                  /\.(txt|md|markdown|json|csv|py|js|ts|tsx|jsx|go|rs|cpp|c|h|hpp|java|html|css|scss|sh|yaml|yml|xml|sql|pdf)$/i.test(file.name);
+    if (isDoc) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const text = evt.target.result;
+        const input = document.getElementById("user-input");
+        const docFence = `\n\n\`\`\`[Document: ${file.name}]\n${text}\n\`\`\`\n`;
+        input.value = (input.value ? input.value + "\n" : "") + docFence;
+        autoResize(input);
+        showToast("Imported document: " + file.name, "📄");
+      };
+      reader.readAsText(file);
+      return;
+    }
+    showToast("Please attach an image or text/code document", "⚠️");
     return;
   }
   const reader = new FileReader();
@@ -2912,7 +2969,7 @@ function updateSnippet() {
 
   document.getElementById("code-python").innerText = 
 `from openai import OpenAI
-client = OpenAI(base_url="http://127.0.0.1:8081/v1", api_key="none")
+client = OpenAI(base_url="http://127.0.0.1:9610/v1", api_key="none")
 res = client.chat.completions.create(
     model="${model}",
     temperature=${temp},
@@ -2921,12 +2978,12 @@ res = client.chat.completions.create(
 print(res.choices[0].message.content)`;
 
   document.getElementById("code-claude").innerText = 
-`export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+`export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude`;
 
   document.getElementById("code-curl").innerText = 
-`curl http://127.0.0.1:8081/v1/chat/completions \\
+`curl http://127.0.0.1:9610/v1/chat/completions \\
   -H "Content-Type: application/json" \\
   -d '{"model":"${model}","temperature":${temp},"stream":true,"messages":[{"role":"user","content":"Hi"}]}'`;
 }
@@ -3229,13 +3286,13 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="setStarterPrompt('Write a high-performance HTTP server in Go with graceful shutdown and rate limiting.')">
+        <div class="starter-card" onclick="setStarterPrompt('Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). Avoid cliché analogies like LEGO blocks or toy bricks.')">
           <div class="badge-chip">
-            <span class="mini-orb">⚙️</span>
-            <span>SYSTEM ENGINE</span>
+            <span class="mini-orb">🎓</span>
+            <span>FIRST PRINCIPLES</span>
           </div>
-          <div class="starter-card-title">Go HTTP Server</div>
-          <div class="starter-card-desc">Production-grade concurrent server architecture with zero allocations and graceful shutdown.</div>
+          <div class="starter-card-title">Explain to a 5th Grader</div>
+          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies (clean, pure, no LEGO clichés).</div>
         </div>
         <div class="starter-card" onclick="setStarterPrompt('Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.')">
           <div class="badge-chip">
@@ -3245,21 +3302,21 @@ function renderMessages() {
           <div class="starter-card-title">Quantum Reasoning</div>
           <div class="starter-card-desc">Dirac bra-ket vector formulations, Hilbert spaces, and entanglement matrices.</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:8081/v1 to stream thinking tokens.')">
+        <div class="starter-card" onclick="setStarterPrompt('Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
             <span>INTEGRATION</span>
           </div>
-          <div class="starter-card-title">Python Stream</div>
+          <div class="starter-card-title">Python Stream (Port 9610)</div>
           <div class="starter-card-desc">Drop-in OpenAI SDK client configuration for real-time token streaming.</div>
         </div>
-        <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture for real-time video processing pipeline.')">
+        <div class="starter-card" onclick="setStarterPrompt('Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations.')">
           <div class="badge-chip">
-            <span class="mini-orb">🏗️</span>
-            <span>ARCHITECTURE</span>
+            <span class="mini-orb">⚙️</span>
+            <span>SYSTEM ENGINE</span>
           </div>
-          <div class="starter-card-title">Microservices Pipeline</div>
-          <div class="starter-card-desc">Distributed event-driven pipeline design with Kafka and edge compute nodes.</div>
+          <div class="starter-card-title">Go Systems Architecture</div>
+          <div class="starter-card-desc">Production-grade concurrent server architecture with zero allocations and graceful shutdown.</div>
         </div>
       </div>
     `;

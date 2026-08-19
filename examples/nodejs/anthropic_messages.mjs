@@ -1,13 +1,13 @@
 /**
  * BOB Gemini Free - Node.js Anthropic SDK Example
- * Run BOB Gemini Free gateway: ./bob-gemini-free --port 8081
+ * Run BOB Gemini Free gateway: ./bob-gemini-free --port 9610
  * Then run: npm install @anthropic-ai/sdk && node anthropic_messages.mjs
  */
 
 import Anthropic from '@anthropic-ai/sdk';
 
 const anthropic = new Anthropic({
-  baseURL: 'http://127.0.0.1:8081',
+  baseURL: 'http://127.0.0.1:9610',
   apiKey: 'none',
 });
 

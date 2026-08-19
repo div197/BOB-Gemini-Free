@@ -12,7 +12,7 @@ For developers building autonomous software engineering pipelines with **Grok Bu
 
 ```bash
 # Export standard OpenAI endpoint
-export OPENAI_BASE_URL="http://127.0.0.1:8081/v1"
+export OPENAI_BASE_URL="http://127.0.0.1:9610/v1"
 export OPENAI_API_KEY="none"
 
 # Target Gemini 3.7 Flash Thinking
@@ -29,7 +29,7 @@ BOB Gemini Free supports multi-turn agent execution with automatic tool schema i
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 
@@ -56,7 +56,7 @@ Configure BOB as your primary LLM engine across agent teams:
 from langchain_openai import ChatOpenAI
 
 llm = ChatOpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none",
     model="gemini-3.7-flash-thinking",
     temperature=0.2

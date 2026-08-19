@@ -7,7 +7,7 @@ BOB Gemini Free includes built-in automated test and diagnostic tooling to verif
 ## 1. Engine Health & Live Telemetry Endpoint (`GET /`)
 
 ```bash
-curl http://127.0.0.1:8081/
+curl http://127.0.0.1:9610/
 ```
 
 ### Response
@@ -38,7 +38,7 @@ curl http://127.0.0.1:8081/
 Query live metrics directly from your terminal:
 
 ```bash
-./bob-gemini-free --status --test-url http://127.0.0.1:8081
+./bob-gemini-free --status --test-url http://127.0.0.1:9610
 ```
 
 ```
@@ -47,7 +47,7 @@ Query live metrics directly from your terminal:
     Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
 ==================================================================
   • Gateway Status:        ok (Version v0.1.2)
-  • Target Gateway URL:    http://127.0.0.1:8081
+  • Target Gateway URL:    http://127.0.0.1:9610
   • Server Uptime:         3600 seconds (60.0 minutes)
   • Requests Served:       142 requests
   • Tokens Processed:      185420 tokens
@@ -64,7 +64,7 @@ Query live metrics directly from your terminal:
 Run the 13-point diagnostic test against any local or remote BOB gateway:
 
 ```bash
-./bob-gemini-free --test --test-url http://127.0.0.1:8081
+./bob-gemini-free --test --test-url http://127.0.0.1:9610
 ```
 
 ### Verification Checks Performed:

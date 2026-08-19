@@ -1,6 +1,6 @@
 """
 BOB Gemini Free - Anthropic Python SDK Example
-Run BOB Gemini Free gateway: ./bob-gemini-free --port 8081
+Run BOB Gemini Free gateway: ./bob-gemini-free --port 9610
 Then run: pip install anthropic && python anthropic_messages.py
 """
 
@@ -8,7 +8,7 @@ from anthropic import Anthropic
 
 # 1. Initialize client pointing to local BOB gateway
 client = Anthropic(
-    base_url="http://127.0.0.1:8081",
+    base_url="http://127.0.0.1:9610",
     api_key="none",
 )
 

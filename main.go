@@ -281,7 +281,7 @@ func main() {
 	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
 	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
 	statusFlag := flag.Bool("status", false, "Query live telemetry, uptime, and financial savings from a running gateway")
-	testURLFlag := flag.String("test-url", "http://127.0.0.1:8081", "Target gateway URL for diagnostic tests")
+	testURLFlag := flag.String("test-url", "http://127.0.0.1:9610", "Target gateway URL for diagnostic tests")
 	testKeyFlag := flag.String("test-key", "", "API key to use for diagnostic tests")
 	benchFlag := flag.Bool("bench", false, "Run performance and throughput benchmark against a running gateway")
 	benchConcurrencyFlag := flag.Int("bench-concurrency", 3, "Number of concurrent workers for benchmarking")

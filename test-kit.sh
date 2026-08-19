@@ -7,7 +7,7 @@ set -e
 # Author: Divyanshu Singh Chouhan (@div197)
 # ==============================================================================
 
-TARGET_URL="${1:-http://127.0.0.1:8081}"
+TARGET_URL="${1:-http://127.0.0.1:9610}"
 API_KEY="${2:-}"
 
 if [ -f "./bob-gemini-free" ]; then

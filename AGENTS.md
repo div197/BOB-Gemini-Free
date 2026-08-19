@@ -57,10 +57,10 @@ make dist
 go test -count=1 ./...
 
 # Run built-in diagnostic test suite against running gateway
-./bob-gemini-free --test --test-url http://127.0.0.1:8081
+./bob-gemini-free --test --test-url http://127.0.0.1:9610
 
 # Query live status, uptime, requests, and financial savings
-./bob-gemini-free --status --test-url http://127.0.0.1:8081
+./bob-gemini-free --status --test-url http://127.0.0.1:9610
 
 # Run concurrency benchmark
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
@@ -92,20 +92,20 @@ gofmt -s -w .
 ## 5. Connecting AI Agents to BOB Gemini Free
 
 ### Cursor / Windsurf / Continue / Roo Code (OpenAI Protocol)
-- **Base URL**: `http://127.0.0.1:8081/v1`
+- **Base URL**: `http://127.0.0.1:9610/v1`
 - **API Key**: `none` (or your configured `api_keys`)
 - **Model**: `gemini-3.7-flash` or `gemini-3.7-flash-thinking`
 
 ### Claude Code CLI (Anthropic Protocol)
 ```bash
-export ANTHROPIC_BASE_URL=http://127.0.0.1:8081
+export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
 export ANTHROPIC_API_KEY=none
 claude
 ```
 
 ### OpenAI Codex CLI (Responses API)
 ```bash
-export OPENAI_BASE_URL=http://127.0.0.1:8081/v1
+export OPENAI_BASE_URL=http://127.0.0.1:9610/v1
 export OPENAI_API_KEY=none
 codex
 ```
@@ -148,7 +148,7 @@ Image attachments are uploaded to Google Scotty storage (`content-push.googleapi
 ```bash
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
   -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
   bob-gemini-free:local
@@ -161,7 +161,7 @@ All configuration fields can be set without mounting a `config.json` file:
 | Environment Variable | Type | Default | Description |
 |---|---|---|---|
 | `BOB_GEMINI_FREE_HOST` | string | `127.0.0.1` | Binding host interface |
-| `BOB_GEMINI_FREE_PORT` | int | `8081` | Listening port |
+| `BOB_GEMINI_FREE_PORT` | int | `9610` | Listening port |
 | `BOB_GEMINI_FREE_COOKIE_FILE` | string | `./cookie.txt` | Path to primary session cookie file |
 | `BOB_GEMINI_FREE_COOKIE_POOL` | string | `` | Comma-separated pool of cookie files |
 | `BOB_GEMINI_FREE_COOKIE_POOL_DIR` | string | `` | Directory of `*.txt` cookie files for auto-discovery |

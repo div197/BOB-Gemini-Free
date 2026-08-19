@@ -23,7 +23,7 @@ irm https://raw.githubusercontent.com/div197/bob-gemini-free/main/install.ps1 | 
 ```bash
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   bob-gemini-free:local
 ```
 
@@ -32,14 +32,14 @@ docker run -d \
 ## 🚀 Starting the Gateway
 
 ```bash
-# Start on default port 8081
+# Start on default port 9610
 ./bob-gemini-free
 
 # Or specify custom port and host
-./bob-gemini-free --port 8081 --host 127.0.0.1
+./bob-gemini-free --port 9610 --host 127.0.0.1
 ```
 
-Once started, the gateway listens at `http://127.0.0.1:8081`.
+Once started, the gateway listens at `http://127.0.0.1:9610`.
 
 ---
 
@@ -56,7 +56,7 @@ Once started, the gateway listens at `http://127.0.0.1:8081`.
 
 ### 1. OpenAI Standard (cURL)
 ```bash
-curl http://127.0.0.1:8081/v1/chat/completions \
+curl http://127.0.0.1:9610/v1/chat/completions \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-3.7-flash",
@@ -66,7 +66,7 @@ curl http://127.0.0.1:8081/v1/chat/completions \
 
 ### 2. Anthropic Messages (Claude Code CLI format)
 ```bash
-curl http://127.0.0.1:8081/v1/messages \
+curl http://127.0.0.1:9610/v1/messages \
   -H "Content-Type: application/json" \
   -H "anthropic-version: 2023-06-01" \
   -d '{
@@ -78,7 +78,7 @@ curl http://127.0.0.1:8081/v1/messages \
 
 ### 3. Google Gemini Native v1beta
 ```bash
-curl http://127.0.0.1:8081/v1beta/models/gemini-3.7-flash:generateContent \
+curl http://127.0.0.1:9610/v1beta/models/gemini-3.7-flash:generateContent \
   -H "Content-Type: application/json" \
   -d '{
     "contents": [{"parts": [{"text": "Hello from Gemini API!"}]}]
@@ -94,7 +94,7 @@ curl http://127.0.0.1:8081/v1beta/models/gemini-3.7-flash:generateContent \
 from openai import OpenAI
 
 client = OpenAI(
-    base_url="http://127.0.0.1:8081/v1",
+    base_url="http://127.0.0.1:9610/v1",
     api_key="none"
 )
 
@@ -111,7 +111,7 @@ print(response.choices[0].message.content)
 import OpenAI from "openai";
 
 const openai = new OpenAI({
-  baseURL: "http://127.0.0.1:8081/v1",
+  baseURL: "http://127.0.0.1:9610/v1",
   apiKey: "none",
 });
 
@@ -134,7 +134,7 @@ main();
 Run the built-in 12-point automated diagnostic suite:
 
 ```bash
-./bob-gemini-free --test --test-url http://127.0.0.1:8081
+./bob-gemini-free --test --test-url http://127.0.0.1:9610
 ```
 
 Run a live stress benchmark:

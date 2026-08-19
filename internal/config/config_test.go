@@ -11,8 +11,8 @@ func TestDefaultConfig(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected error loading empty path: %v", err)
 	}
-	if cfg.Port != 8081 {
-		t.Errorf("expected port 8081, got %d", cfg.Port)
+	if cfg.Port != 9610 {
+		t.Errorf("expected port 9610, got %d", cfg.Port)
 	}
 	if cfg.Host != "127.0.0.1" {
 		t.Errorf("expected host 127.0.0.1, got %s", cfg.Host)

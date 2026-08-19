@@ -40,7 +40,7 @@ data: [DONE]
 Returns the complete catalog of registered Gemini, OpenAI alias, and Anthropic alias models with permission metadata.
 
 ```bash
-curl http://127.0.0.1:8081/v1/models
+curl http://127.0.0.1:9610/v1/models
 ```
 
 ### Response
@@ -66,7 +66,7 @@ curl http://127.0.0.1:8081/v1/models
 ## 3. Single Model Lookup (`GET /v1/models/{model}`)
 
 ```bash
-curl http://127.0.0.1:8081/v1/models/gemini-3.7-flash
+curl http://127.0.0.1:9610/v1/models/gemini-3.7-flash
 ```
 
 ---
@@ -76,7 +76,7 @@ curl http://127.0.0.1:8081/v1/models/gemini-3.7-flash
 For OpenAI Codex CLI and terminal agents:
 
 ```bash
-curl http://127.0.0.1:8081/v1/responses \
+curl http://127.0.0.1:9610/v1/responses \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-3.7-flash",
@@ -92,7 +92,7 @@ curl http://127.0.0.1:8081/v1/responses \
 Calculate prompt and message tokens before initiating completion loops:
 
 ```bash
-curl -X POST http://127.0.0.1:8081/v1/tokens/count \
+curl -X POST http://127.0.0.1:9610/v1/tokens/count \
   -H "Content-Type: application/json" \
   -d '{
     "model": "gemini-3.7-flash",

@@ -6,14 +6,14 @@ services:
     container_name: bob-gemini-free
     environment:
       - BOB_GEMINI_FREE_HOST=0.0.0.0
-      - BOB_GEMINI_FREE_PORT=8081
+      - BOB_GEMINI_FREE_PORT=9610
     ports:
-      - "8081:8081"
+      - "9610:9610"
     volumes:
       - ./config.json:/app/config.json:ro
       - ./cookie.txt:/app/cookie.txt:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/ >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9610/ >/dev/null 2>&1 || exit 1"]
       interval: 20s
       timeout: 3s
       retries: 3

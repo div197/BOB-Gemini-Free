@@ -9,7 +9,7 @@ BOB Gemini Free includes a lightweight multi-stage Docker build producing an ult
 ```bash
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   bob-gemini-free:local
 ```
 
@@ -22,7 +22,7 @@ Mount your `cookie.txt` (or `cookies/` folder) read-only into `/app/`:
 ```bash
 docker run -d \
   --name bob-gemini-free \
-  -p 8081:8081 \
+  -p 9610:9610 \
   -v $(pwd)/cookie.txt:/app/cookie.txt:ro \
   -e BOB_GEMINI_FREE_COOKIE_FILE=/app/cookie.txt \
   bob-gemini-free:local
@@ -43,14 +43,14 @@ services:
     container_name: bob-gemini-free
     environment:
       - BOB_GEMINI_FREE_HOST=0.0.0.0
-      - BOB_GEMINI_FREE_PORT=8081
+      - BOB_GEMINI_FREE_PORT=9610
     ports:
-      - "8081:8081"
+      - "9610:9610"
     volumes:
       - ./config.json:/app/config.json:ro
       - ./cookie.txt:/app/cookie.txt:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:8081/ >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:9610/ >/dev/null 2>&1 || exit 1"]
       interval: 20s
       timeout: 3s
       retries: 3
@@ -69,6 +69,6 @@ docker compose up -d
 
 When running under **OrbStack** on macOS:
 - **Instant Cold Boot**: Gateway starts in **<3ms**.
-- **Domain Access**: Access directly via `http://bob-gemini-free.orb.local/` or `http://127.0.0.1:8081`.
+- **Domain Access**: Access directly via `http://bob-gemini-free.orb.local/` or `http://127.0.0.1:9610`.
 - **Zero Overhead**: CPU emulation and battery utilization are negligible compared to standard Docker Desktop.
 - **Native Healthcheck Indicator**: OrbStack shows a green health badge immediately.

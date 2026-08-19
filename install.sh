@@ -46,7 +46,7 @@ elif command -v docker >/dev/null 2>&1; then
     echo -e "${BLUE}[*] Building local Docker image: $APP_NAME...${NC}"
     docker build -t "$APP_NAME" .
     echo -e "${GREEN}[+] Docker container built successfully!${NC}"
-    echo -e "${GREEN}[*] Run anytime with:${NC} docker run -d --name $APP_NAME -p 8081:8081 $APP_NAME"
+    echo -e "${GREEN}[*] Run anytime with:${NC} docker run -d --name $APP_NAME -p 9610:9610 $APP_NAME"
     exit 0
 # 5. Zero-dependency fallback: Auto-download pre-compiled binary for OS & Architecture
 else
@@ -74,8 +74,8 @@ fi
 echo ""
 echo -e "${GREEN}${BOLD}[✔] Setup Complete!${NC}"
 echo -e "Start the server by running:"
-echo -e "  ${BOLD}./$APP_NAME --port 8081${NC}"
+echo -e "  ${BOLD}./$APP_NAME --port 9610${NC}"
 echo ""
-echo -e "Base URL: ${BOLD}http://127.0.0.1:8081/v1${NC}"
+echo -e "Base URL: ${BOLD}http://127.0.0.1:9610/v1${NC}"
 echo -e "Visit ABCsteps: ${BLUE}https://abcsteps.com/${NC}"
 echo ""
