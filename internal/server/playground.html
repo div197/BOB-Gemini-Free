@@ -6108,7 +6108,7 @@ function clearChat() {
   });
 }
 
-function enhanceCurrentPrompt() {
+async function enhanceCurrentPrompt() {
   const inputEl = document.getElementById("user-input");
   const raw = inputEl.value.trim();
   if (!raw) {
@@ -6120,9 +6120,58 @@ function enhanceCurrentPrompt() {
   const btn = document.getElementById("btn-wand");
   if (btn) {
     btn.classList.add("wand-sparkle");
-    setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
   }
 
+  showToast("🪄 Crafting precision master prompt with Gemini...", "✨");
+
+  // 1. Live AI Prompt Metaprompting Engine (via local BOB Gateway)
+  try {
+    const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash";
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 6500);
+
+    const res = await fetch("/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer none"
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        messages: [
+          {
+            role: "system",
+            content: "You are an elite Prompt Optimization Engine. Transform the user's rough prompt or idea into a crystal-clear, highly structured, production-grade master prompt for frontier LLMs. Retain the core intent. Add precise technical constraints, domain-specific requirements, edge-case evaluations, and clean output formatting. Output ONLY the optimized prompt text directly, without conversational greetings, preambles, or wrap-up notes."
+          },
+          {
+            role: "user",
+            content: raw
+          }
+        ],
+        stream: false,
+        temperature: 0.3
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      const aiOptimized = data?.choices?.[0]?.message?.content?.trim();
+      if (aiOptimized && aiOptimized.length > 10) {
+        inputEl.value = aiOptimized;
+        autoResize(inputEl);
+        inputEl.focus();
+        showToast("Prompt expanded with AI master-prompt precision!", "🪄");
+        if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("AI prompt enhancement offline fallback:", err);
+  }
+
+  // 2. Intelligent Offline Fallback Engine
   const lower = raw.toLowerCase();
   let enhanced = "";
 
@@ -6176,6 +6225,7 @@ function enhanceCurrentPrompt() {
   autoResize(inputEl);
   inputEl.focus();
   showToast("Prompt expanded with temple-grade specifications!", "🪄");
+  if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
 }
 
 function printConversation() {
