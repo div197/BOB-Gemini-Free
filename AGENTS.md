@@ -66,10 +66,25 @@ go test -count=1 ./...
 ./bob-gemini-free --bench --bench-concurrency 3 --bench-requests 6
 ```
 
-### Code Formatting
-```bash
 # Format all Go source files according to standard Go conventions
 gofmt -s -w .
+```
+
+### Automation & Background Service Operations
+```bash
+# In-place auto-update to latest GitHub Release
+./bob-gemini-free --update
+
+# Register and start 24/7 background OS daemon across reboots
+./bob-gemini-free service install [--port 9610]
+
+# Check background daemon health and service definition
+./bob-gemini-free service status
+
+# Start / Stop / Uninstall daemon
+./bob-gemini-free service start
+./bob-gemini-free service stop
+./bob-gemini-free service uninstall
 ```
 
 ---

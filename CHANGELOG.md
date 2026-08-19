@@ -9,9 +9,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.5] - 2026-08-20
 
-### 2022–2026 AI Innovations Suite: In-Browser Pyodide WASM Python Sandbox, Live AI Metaprompter Wand, Non-Breaking Reading Zoom, 2D/3D Artifact Studios & Steve Jobs Mobile Ergonomics
+### 2022–2026 AI Innovations Suite: In-Place Auto-Updater, Native OS Daemons, In-Browser SQLite & Pyodide WASM, Live AI Metaprompter Wand, Non-Breaking Reading Zoom, 2D/3D Artifact Studios & Steve Jobs Mobile Ergonomics
 
 #### Added
+- **In-Place Atomic Self-Updater (`--update` / `update` & `GET /v1/update/check`)**:
+  - Automatically queries official GitHub Releases API, parses SemVer, downloads OS/Arch matching binary (`darwin-arm64`, `darwin-amd64`, `linux-amd64`, `linux-arm64`, `windows-amd64.exe`), verifies size, and replaces running executable in place via POSIX atomic rename and Windows `.old` rename.
+  - Added live HTTP endpoint `GET /v1/update/check` so the web playground proactively checks and alerts users when newer releases are published.
+- **Native OS Background Service Daemons (`service install | start | stop | status | uninstall`)**:
+  - Cross-platform native daemonization enabling 24/7 background operation across reboots with zero open terminals:
+    - **macOS**: `~/Library/LaunchAgents/com.abcsteps.bob-gemini-free.plist` with `RunAtLoad` and `KeepAlive` via `launchctl`.
+    - **Linux**: `~/.config/systemd/user/bob-gemini-free.service` via `systemctl --user`.
+    - **Windows**: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\bob-gemini-free.bat`.
+  - Added live CLI subcommand suite: `./bob-gemini-free service [install|start|stop|status|uninstall]`.
+- **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)**:
+  - Integrated official SQLite WebAssembly (`sql.js`) engine running client-side with zero cloud costs.
+  - Automatic `[ Run SQL ⚡ ]` action card chips on all ` ```sql ` code blocks.
+  - Interactive table viewer rendering formatted data with column headers, formatted numbers, row counts, and microsecond execution timer (`⚡ 0.8ms`).
+  - Interactive SQL query editor allowing users to run live `SELECT`, `INSERT`, `UPDATE`, and `CREATE TABLE` queries directly in the browser sandbox.
 - **1,000,000-Student Scale In-Browser Pyodide WASM Python Execution Engine**:
   - Live client-side CPython 3.11 execution in an isolated in-memory WebAssembly sandbox with **zero server-side execution risk, zero Python installation required, and zero cloud billing**.
   - Dedicated **`🐍 Python WASM Live Sandbox` [ Run WASM ⚡ ]** interactive Artifact Card Chips automatically attached to all Python code blocks.
