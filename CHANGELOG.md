@@ -9,24 +9,45 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.1.5] - 2026-08-19
 
-### Multi-Indic Script Transliteration, Native Voice Input, School Lab Architecture & Desktop Ergonomics
+### 2022–2026 AI Innovations Suite, Natural HD Speech Engine, Interactive Artifacts Canvas & In-Place Message Branching
 
 #### Added
-- **Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas)**:
-  - Automatic code block detection & registration into a high-performance in-memory `artifactsRegistry`.
+- **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**:
+  - Automatic code block detection & registration into an in-memory `artifactsRegistry`.
   - Rich **Artifact Card Chips** in chat with title extraction, type badge, and 1-click `Launch ⚡` button.
-  - Dedicated **Interactive Artifact Studio Canvas Modal** with sandboxed `iframe` execution (`allow-scripts allow-modals allow-forms allow-same-origin`) supporting live HTML5, CSS3, JavaScript, Canvas 2D/WebGL animations, SVG vector rendering, and Mermaid architecture diagrams.
-  - Dual Tab switcher (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), quick copy (`📋`), file export (`💾`), and instant fullscreen pop-out (`⛶`) in dedicated browser windows.
-- **Bilingual & Multi-Indic Internationalization (`en` / `hi` + 8 Regional Scripts)**: Zero-dependency client-side internationalization system (`I18N`) with 1-click header switcher and ⌘K shortcuts (`L1` English, `L2` हिन्दी), with support for 8 regional Indic scripts (हिन्दी, संस्कृतम्, मराठी, বাংলা, ગુજરાતી, தமிழ், తెలుగు, ਪੰਜਾਬੀ).
-- **Real-Time Indic Phonetic Transliteration with Backspace Undo**: Space-key dynamic conversion of Roman transliteration (`"namaste"`, `"aap kaise ho"`) into native Devanagari (`"नमस्ते"`, `"आप कैसे हो"`), backed by Google Input Tools API and an offline rule dictionary fallback. Hitting `Backspace` immediately reverts the converted word back to its original Roman characters.
-- **Native Web Speech Voice Recognition (🎙️ Mic Engine)**: Client-side voice dictation via the browser's native `SpeechRecognition` API supporting zero-latency English and Hindi speech-to-text without external APIs or cloud dependencies.
+  - Dedicated **Interactive Artifact Studio Canvas Modal** with sandboxed `iframe` execution (`allow-scripts allow-modals allow-forms allow-same-origin`) supporting live HTML5, CSS3, JavaScript, Canvas 2D/WebGL simulations & games, SVG vector rendering, and Mermaid architecture diagrams.
+  - Dual Tab switcher (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), quick copy (`📋`), standalone file export (`💾`), and instant fullscreen pop-out (`⛶`) in dedicated browser windows.
+- **In-Place User Message Editing & Conversation Branching Engine**:
+  - True in-place DOM transformation: clicking `✏️` on any past user bubble instantly transforms the card into an inline editor with auto-growing textarea and `[ Save & Submit ]` / `[ Cancel ]` buttons.
+  - Full conversation rewind and re-branching (`chatHistory.slice(0, idx)`), restoring any attached multimodal images or document context.
+  - Keyboard ergonomics: `Ctrl+Enter` / `⌘+Enter` to submit, `Escape` to cancel.
+- **Natural HD Speech Engine & Floating Audio Controller Bar (NotebookLM-Class Voice Studio)**:
+  - **Intelligent Neural Voice Scoring Engine (`getBestNaturalVoice`)**: Automatically filters out legacy 1990s robotic synths (Fred, Albert) and awards a +250 priority score to `✨ Studio HD Natural Voices` (`Google US English`, `Google हिन्दी (hi-IN)`, `Google UK English Female`, `Samantha Enhanced`, `Ava Premium`, `Rishi`, `Lekha`).
+  - **Dharmic Glassmorphic Floating Audio Player Bar**: Bottom-docked player equipped with **Play / Pause toggle (`⏸️` / `▶️`)**, **Cycle Speed chip (`0.8x`, `1.0x`, `1.25x`, `1.5x`)**, **Live 4-bar pulsating sound equalizer (`ılılı`)**, **Sentence Progress Counter (`Sentence X of Y`)**, and **Stop (`⏹️`)**.
+  - **Sentence-by-Sentence Fluid Cadence**: Chunking parser that prevents browser 15-second speech synthesis timeouts and delivers natural human conversational pacing.
+  - **Studio Configuration Controls**: Natural voice picker and speech rate slider in the Left Sidebar.
+- **Prompt Magic Wand Engine (`🪄 Super-Prompt Expander`)**:
+  - 1-click input dock button and keyboard shortcut (`⌘ + Shift + P` / `Ctrl + Shift + P`) with glowing sparkle animation (`@keyframes wandGlow`).
+  - Contextually expands brief thoughts into production-grade prompts: game/canvas queries $\rightarrow$ full HTML5/JS requirements; physics/math queries $\rightarrow$ first-principles KaTeX derivations; backend queries $\rightarrow$ zero-allocation Go architectures.
+- **Multi-Model Instant Branching Retry Group (`↻ Retry`, `🧠 Think`, `⚡ Flash`)**:
+  - Direct controls on assistant story cards allowing instant re-generation with `@think=0` (Deep Step-by-Step Reasoning) or `@think=4` (Ultra-Fast Flash).
+- **2026 Interactive Artifact Starter Gallery**:
+  - Enhanced welcome hero with 6 production-grade starter cards: *2D Cyberpunk Snake Arcade Game*, *3D Planetary Orbit Physics Sandbox*, *Compound Wealth Calculator*, *Explain to a 5th Grader (Mermaid diagrams)*, *Python Stream Client*, and *Go Zero-Allocation Architecture*.
+- **Publication-Grade Print & PDF Stylesheet (`@media print`)**:
+  - Print-ready CSS stripping all UI chrome, sidebars, and input docks for clean 1-click PDF exporting via `window.print()`.
+- **Shared School Computer Lab Privacy & Ephemeral Workspace**:
+  - Pure single-session in-memory architecture preventing multi-user history leakage across shared classroom computers while preserving on-demand `💾 Export Markdown` and `✦ New`.
+- **Real-Time Indic Phonetic Transliteration (`अ`) with Backspace Undo**:
+  - Dynamic Roman $\rightarrow$ Devanagari conversion with sub-millisecond LRU cache and offline fallback.
+- **Native Web Speech Voice Recognition (🎙️ Mic Engine)**:
+  - Zero-latency client-side speech-to-text dictation in English and Hindi.
 - **Modernized Desktop Header Ergonomics**:
-  - Replaced technical tagline with primary brand identity: `BREAK ORDINARY BOUNDARIES • BY ABCSTEPS`.
-  - Unified 4 separate telemetry pills into a single floating **Glass Island Telemetry Capsule** (`Uptime • Requests • Tokens • Saved`).
-  - Merged Config and Code sidebar triggers into a unified segmented pill (`[ ◧ Config | Code ◨ ]`).
-- **Indian School Computer Lab LAN Master Blueprint**: Documented 1-process LAN host topology (`--host 0.0.0.0 --port 9610`) enabling 30-PC computer labs with 240+ daily students to access local AI at ₹0 cost on <25MB RAM.
+  - Brand typography: `BREAK ORDINARY BOUNDARIES • BY ABCSTEPS`.
+  - Unified **Glass Island Telemetry Capsule** (`Uptime • Requests • Tokens • Saved`).
+  - Unified segmented sidebar pill (`[ ◧ Config | Code ◨ ]`).
 
 #### Fixed
+- **Message Editing Pointer Jump Bug**: Resolved DOM click binding and positional tracking (`data-msg-idx`) so message editing happens strictly in-place without scrolling to the bottom input box.
 - **Textarea Horizontal Scrollbar Elimination**: Added `overflow-x: hidden !important;`, `scrollbar-width: thin;`, and `overflow-x` enforcement in `autoResize(el)` to permanently eliminate unwanted horizontal scrollbar rendering across WebKit and Blink browsers.
 
 ---

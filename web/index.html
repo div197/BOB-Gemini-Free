@@ -2400,6 +2400,355 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     font-size: 16px;
   }
 }
+
+/* Sidebar Tabs (Settings / History) */
+.sidebar-tabs {
+  display: flex;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 2px;
+  margin-bottom: 12px;
+}
+.sidebar-tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 5px 0;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+}
+.sidebar-tab-btn:hover {
+  color: var(--text-main);
+}
+.sidebar-tab-btn.active {
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
+}
+.sidebar-tab-pane {
+  display: none;
+}
+.sidebar-tab-pane.active {
+  display: block;
+}
+
+/* Multi-Session History & Search */
+.session-search-box {
+  position: relative;
+  margin-bottom: 10px;
+}
+.session-search-input {
+  width: 100%;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  color: var(--text-main);
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.session-search-input:focus {
+  border-color: var(--border-focus);
+}
+.sessions-list-container {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: calc(100vh - 240px);
+  overflow-y: auto;
+}
+.session-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  gap: 8px;
+}
+.session-item:hover {
+  border-color: var(--accent-primary);
+  background: var(--bg-card-hover);
+}
+.session-item.active {
+  border-color: var(--accent-primary);
+  box-shadow: inset 0 0 0 1px var(--accent-primary);
+}
+.session-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.session-item-title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-main);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+}
+.session-item-date {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+}
+.btn-delete-session {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  opacity: 0.6;
+}
+.session-item:hover .btn-delete-session {
+  opacity: 1;
+}
+.btn-delete-session:hover {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* TTS Speaking Pulse Animation */
+.btn-tts-action.speaking {
+  color: var(--accent-primary) !important;
+  border-color: var(--accent-primary) !important;
+  background: rgba(16, 185, 129, 0.15) !important;
+  animation: pulse-tts 1.2s infinite;
+}
+@keyframes pulse-tts {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+
+/* Document & Code Attachment Chips */
+.doc-attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-family: var(--font-mono);
+  color: var(--text-main);
+  box-shadow: var(--shadow-main);
+}
+.doc-attachment-chip .btn-remove-doc {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 0.72rem;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+}
+.doc-attachment-chip .btn-remove-doc:hover {
+  color: #ef4444;
+}
+
+/* User Message Edit Action Button */
+.btn-user-action {
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  opacity: 0;
+  transition: all 0.15s ease;
+}
+.user-row:hover .btn-user-action {
+  opacity: 0.8;
+}
+.btn-user-action:hover {
+  opacity: 1;
+  color: var(--accent-primary);
+  background: var(--bg-card);
+}
+
+/* Inline Message In-Place Editing */
+.user-row.editing-mode {
+  max-width: 100%;
+  width: 100%;
+}
+.inline-edit-container {
+  width: 100%;
+  max-width: 720px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-card);
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+  margin-left: auto;
+}
+.inline-edit-textarea {
+  width: 100%;
+  min-height: 64px;
+  max-height: 280px;
+  background: var(--bg-main);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: inherit;
+  font-size: 0.88rem;
+  color: var(--text-main);
+  resize: vertical;
+  outline: none;
+  line-height: 1.5;
+  box-sizing: border-box;
+}
+.inline-edit-textarea:focus {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2);
+}
+.inline-edit-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Prompt Magic Wand Glow & Styles */
+.btn-wand-pill:hover {
+  color: #f59e0b !important;
+  border-color: #f59e0b !important;
+  background: rgba(245, 158, 11, 0.15) !important;
+}
+.btn-wand-pill.wand-sparkle {
+  animation: wandGlow 0.9s ease;
+}
+@keyframes wandGlow {
+  0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245,158,11,0.7); }
+  50% { transform: scale(1.18) rotate(18deg); box-shadow: 0 0 16px 4px rgba(245,158,11,0.5); }
+  100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(245,158,11,0); }
+}
+
+/* Print View Stylesheet */
+@media print {
+  header, .studio-input-area, .sidebar-panel, .scroll-bottom-fab, .toast-stack, .story-header-actions, .btn-user-action, .btn-pill-subtle {
+    display: none !important;
+  }
+  body, main, .messages-viewport, .messages-content {
+    background: #fff !important;
+    color: #000 !important;
+    overflow: visible !important;
+/* Floating Audio Speech Control Bar (Dharmic Glassmorphism) */
+.floating-audio-bar {
+  position: absolute;
+  bottom: 84px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg-card);
+  border: 1px solid var(--accent-primary);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.36);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  z-index: 95;
+  animation: slideUpAudioBar 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+@keyframes slideUpAudioBar {
+  from { opacity: 0; transform: translate(-50%, 12px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+.audio-bar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.audio-equalizer {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 16px;
+}
+.eq-bar {
+  width: 3px;
+  background: var(--accent-primary);
+  border-radius: 2px;
+  animation: eqPulse 0.7s ease-in-out infinite alternate;
+}
+.eq-1 { height: 40%; animation-delay: 0.1s; }
+.eq-2 { height: 90%; animation-delay: 0.3s; }
+.eq-3 { height: 60%; animation-delay: 0.2s; }
+.eq-4 { height: 100%; animation-delay: 0.4s; }
+.floating-audio-bar.paused .eq-bar {
+  animation-play-state: paused;
+  opacity: 0.5;
+}
+@keyframes eqPulse {
+  0% { height: 25%; }
+  100% { height: 100%; }
+}
+.audio-meta {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+.audio-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-main);
+  letter-spacing: 0.02em;
+}
+.audio-sub {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+}
+.audio-bar-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-left: 1px solid var(--border-color);
+  padding-left: 10px;
+}
+.audio-ctrl-btn {
+  background: var(--bg-hover);
+  border: 1px solid var(--border-color);
+  color: var(--text-main);
+  border-radius: 6px;
+  padding: 3px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+.audio-ctrl-btn:hover {
+  background: var(--accent-primary);
+  color: #fff;
+  border-color: var(--accent-primary);
+}
 </style>
 </head>
 <body>
@@ -2410,8 +2759,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 <!-- Mobile Drawer Overlay Backdrop -->
 <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeAllSidebars()"></div>
 
-<!-- Hidden File Picker for Image Multimodal Attachment -->
-<input type="file" id="image-file-input" accept="image/*" style="display:none" onchange="handleImageFileSelect(event)">
+<!-- Hidden Universal File Picker for Multimodal Vision & Document Attachments -->
+<input type="file" id="image-file-input" accept="image/*,.txt,.py,.go,.js,.ts,.html,.css,.json,.csv,.md,.sql,.sh,.yaml,.yml,.c,.cpp,.rs,.java,.rb,.php,.xml" style="display:none" onchange="handleUniversalFileSelect(event)">
 
 <!-- 2026 Confirmation Modal -->
 <div class="dialog-backdrop" id="confirm-modal" onclick="if(event.target===this) closeConfirmModal()">
@@ -2582,6 +2931,49 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <div class="artifact-pane" id="art-pane-code">
         <pre><code id="art-code-display" class="language-html"></code></pre>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Custom Instructions & User Persona Modal -->
+<div class="dialog-backdrop" id="instructions-modal" onclick="if(event.target===this) closeInstructionsModal()">
+  <div class="about-dialog-box" style="max-width:620px;">
+    <div class="about-header-band">
+      <div class="about-header-top">
+        <div class="about-brand-wrap">
+          <span class="about-star">🧠</span>
+          <span class="about-title">CUSTOM INSTRUCTIONS & PERSONA</span>
+        </div>
+        <span class="about-version-badge">MEMORY PROFILE</span>
+      </div>
+      <div class="about-subtitle">Define permanent contextual preferences and formatting style</div>
+    </div>
+
+    <div class="about-body">
+      <div class="control-card" style="margin-bottom:12px;">
+        <label style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
+          1. What should BOB Gemini Free know about you?
+        </label>
+        <textarea id="instr-user-persona" rows="3" placeholder="e.g. I am a software engineer in India. I work with Go, Python, and Docker. I prefer concise first-principles explanations." style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; color:var(--text-main); font-family:inherit; font-size:0.84rem; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
+      </div>
+
+      <div class="control-card" style="margin:0;">
+        <label style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
+          2. How would you like responses to be formatted?
+        </label>
+        <textarea id="instr-response-style" rows="3" placeholder="e.g. Always write production-ready code with error handling. Prefer Mermaid visual architecture diagrams over long paragraphs. Zero conversational filler." style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; color:var(--text-main); font-family:inherit; font-size:0.84rem; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
+      </div>
+
+      <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:10px;">
+        🔒 <b>100% Private & Local</b>: Custom instructions are saved securely in your browser's <code>localStorage</code> and automatically merged into every completion request.
+      </div>
+    </div>
+
+    <div class="about-actions">
+      <button class="btn-pill-primary-action" onclick="saveCustomInstructions()">
+        <span>💾 Save Instructions</span>
+      </button>
+      <button class="btn-pill-action" onclick="closeInstructionsModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -2916,6 +3308,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>C</kbd>
       </div>
+      <div class="cmd-item" data-type="action" onclick="openInstructionsModal(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🧠</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Custom Instructions & Persona</span>
+            <span class="cmd-item-desc">Manage user background & response formatting rules</span>
+          </div>
+        </div>
+        <kbd>I</kbd>
+      </div>
       <div class="cmd-item" data-type="action" onclick="openGatewayModal(); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">⚡</span>
@@ -3001,10 +3403,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 </header>
 
 <main>
-  <!-- Left Model Configuration Studio -->
+  <!-- Left Model Configuration & Studio Controls -->
   <aside class="sidebar-panel left collapsed" id="sidebar-left">
     <div class="panel-header">
-      <span>Model Configuration</span>
+      <span>Studio Configuration</span>
       <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
     </div>
 
@@ -3060,6 +3462,26 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <div class="control-card">
       <label>System Prompt (Optional)</label>
       <textarea id="system-prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
+    </div>
+
+    <div class="control-card">
+      <label>
+        <span>🔊 Natural Speech Engine</span>
+        <span class="val-badge" id="tts-speed-badge">1.0x</span>
+      </label>
+      <select id="tts-voice-select" onchange="localStorage.setItem('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
+        <option value="auto">🌟 Auto Best Natural HD Voice</option>
+      </select>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:0.65rem; color:var(--text-muted); min-width:40px;">Speed:</span>
+        <input type="range" id="tts-speed-range" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; localStorage.setItem('bob_tts_rate', this.value);" style="flex:1;">
+      </div>
+    </div>
+
+    <div class="control-card" style="margin-top:12px; border-color:var(--accent-primary);">
+      <button class="btn-pill-action" onclick="openInstructionsModal()" style="width:100%; justify-content:center; gap:6px;">
+        <span>🧠</span> <span>Custom Instructions & Persona</span>
+      </button>
     </div>
   </aside>
 
@@ -3141,20 +3563,43 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <!-- Subtle Unobtrusive Bottom-Right Floating Action Button -->
     <button class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom">↓</button>
 
+    <!-- Floating Audio Speech Controller Bar (Play, Pause, Speed, Progress) -->
+    <div class="floating-audio-bar" id="floating-audio-bar" style="display:none;">
+      <div class="audio-bar-left">
+        <div class="audio-equalizer">
+          <span class="eq-bar eq-1"></span>
+          <span class="eq-bar eq-2"></span>
+          <span class="eq-bar eq-3"></span>
+          <span class="eq-bar eq-4"></span>
+        </div>
+        <div class="audio-meta">
+          <span class="audio-title" id="audio-bar-title">Speaking Response...</span>
+          <span class="audio-sub" id="audio-bar-sub">Google US English • Sentence 1/5</span>
+        </div>
+      </div>
+      <div class="audio-bar-controls">
+        <button class="audio-ctrl-btn" id="audio-pause-btn" onclick="toggleAudioPause()" title="Play / Pause">⏸️</button>
+        <button class="audio-ctrl-btn" id="audio-speed-btn" onclick="cycleAudioSpeed()" title="Cycle playback speed">1.0x</button>
+        <button class="audio-ctrl-btn" onclick="stopAudioPlayback()" title="Stop audio">⏹️</button>
+      </div>
+    </div>
+
     <!-- Sacred Geometry Studio Input Dock with Multimodal Vision Engine -->
     <div class="studio-input-area">
       <div class="studio-input-container">
-        <!-- Staged Image Attachment Chip -->
+        <!-- Staged Image or Document Attachment Chip -->
         <div class="attachment-preview-bar" id="attachment-preview">
-          <img class="attachment-thumb" id="attachment-img" src="" alt="Attached image">
-          <span class="attachment-name" id="attachment-name">screenshot.png</span>
-          <button class="btn-remove-attachment" onclick="removeAttachedImage()" title="Remove attachment">✕</button>
+          <img class="attachment-thumb" id="attachment-img" src="" alt="Attached image" style="display:none;">
+          <span id="attachment-doc-icon" style="font-size:1.1rem; display:none;">📄</span>
+          <span class="attachment-name" id="attachment-name">attachment</span>
+          <button class="btn-remove-attachment" onclick="removeAttachedAttachment()" title="Remove attachment">✕</button>
         </div>
 
         <div class="input-row">
           <button class="btn-attachment-pill" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
           <button class="btn-attachment-pill btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
           <button class="btn-attachment-pill btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
+          <button class="btn-attachment-pill btn-wand-pill" id="btn-wand" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with structured specifications">🪄</button>
           <textarea id="user-input" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
           <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
             <span id="send-btn-label">Send</span>
@@ -4109,6 +4554,11 @@ function insertNewline() {
 }
 
 function handleKeyDown(e) {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+    e.preventDefault();
+    enhanceCurrentPrompt();
+    return;
+  }
   if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     toggleCmdPalette();
@@ -4640,7 +5090,6 @@ function renderMarkdown(text) {
   // 1. Protect LaTeX Math blocks before Marked parsing
   const mathBlocks = [];
   let processed = text;
-
   // Display math: $$...$$ or \[...\]
   processed = processed.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, function(match) {
     const idx = mathBlocks.length;
@@ -4723,6 +5172,584 @@ function renderMarkdown(text) {
   return html;
 }
 
+let currentAttachedDoc = null;
+let activeTtsButton = null;
+
+function openInstructionsModal() {
+  const modal = document.getElementById('instructions-modal');
+  if (!modal) return;
+  try {
+    const raw = localStorage.getItem('bob_custom_instructions');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      document.getElementById('instr-user-persona').value = parsed.persona || '';
+      document.getElementById('instr-response-style').value = parsed.style || '';
+    }
+  } catch(e) {}
+  modal.classList.add('open');
+}
+
+function closeInstructionsModal() {
+  const modal = document.getElementById('instructions-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function saveCustomInstructions() {
+  const persona = document.getElementById('instr-user-persona').value.trim();
+  const style = document.getElementById('instr-response-style').value.trim();
+  try {
+    localStorage.setItem('bob_custom_instructions', JSON.stringify({ persona, style }));
+  } catch(e) {}
+  closeInstructionsModal();
+  showToast('Custom instructions saved!', '🧠');
+}
+
+function getEffectiveSystemPrompt() {
+  let basePrompt = document.getElementById('system-prompt').value.trim();
+  try {
+    const raw = localStorage.getItem('bob_custom_instructions');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      let parts = [];
+      if (parsed.persona) parts.push(`[User Persona & Context]:\n${parsed.persona}`);
+      if (parsed.style) parts.push(`[Formatting Style & Instructions]:\n${parsed.style}`);
+      if (basePrompt) parts.push(`[System Context]:\n${basePrompt}`);
+      if (parts.length > 0) return parts.join('\n\n');
+    }
+  } catch(e) {}
+  return basePrompt;
+}
+
+function openInstructionsModal() {
+  const modal = document.getElementById('instructions-modal');
+  if (!modal) return;
+  try {
+    const raw = localStorage.getItem('bob_custom_instructions');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      document.getElementById('instr-user-persona').value = parsed.persona || '';
+      document.getElementById('instr-response-style').value = parsed.style || '';
+    }
+  } catch(e) {}
+  modal.classList.add('open');
+}
+
+function closeInstructionsModal() {
+  const modal = document.getElementById('instructions-modal');
+  if (modal) modal.classList.remove('open');
+}
+
+function saveCustomInstructions() {
+  const persona = document.getElementById('instr-user-persona').value.trim();
+  const style = document.getElementById('instr-response-style').value.trim();
+  try {
+    localStorage.setItem('bob_custom_instructions', JSON.stringify({ persona, style }));
+  } catch(e) {}
+  closeInstructionsModal();
+  showToast('Custom instructions saved!', '🧠');
+}
+
+function getEffectiveSystemPrompt() {
+  let basePrompt = document.getElementById('system-prompt').value.trim();
+  try {
+    const raw = localStorage.getItem('bob_custom_instructions');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      let parts = [];
+      if (parsed.persona) parts.push(`[User Persona & Context]:\n${parsed.persona}`);
+      if (parsed.style) parts.push(`[Formatting Style & Instructions]:\n${parsed.style}`);
+      if (basePrompt) parts.push(`[System Context]:\n${basePrompt}`);
+      if (parts.length > 0) return parts.join('\n\n');
+    }
+  } catch(e) {}
+  return basePrompt;
+}
+
+function handleUniversalFileSelect(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentAttachedImage = {
+        dataUrl: e.target.result,
+        name: file.name,
+        type: file.type,
+        size: file.size
+      };
+      currentAttachedDoc = null;
+      updateAttachmentPreviewBar();
+    };
+    reader.readAsDataURL(file);
+  } else {
+    const reader = new FileReader();
+    reader.onload = function(e) {
+      currentAttachedDoc = {
+        name: file.name,
+        size: file.size,
+        content: e.target.result
+      };
+      currentAttachedImage = null;
+      updateAttachmentPreviewBar();
+    };
+    reader.readAsText(file);
+  }
+}
+
+function updateAttachmentPreviewBar() {
+  const bar = document.getElementById('attachment-preview');
+  const img = document.getElementById('attachment-img');
+  const docIcon = document.getElementById('attachment-doc-icon');
+  const nameEl = document.getElementById('attachment-name');
+  if (!bar) return;
+
+  if (currentAttachedImage) {
+    img.src = currentAttachedImage.dataUrl;
+    img.style.display = 'block';
+    if (docIcon) docIcon.style.display = 'none';
+    nameEl.innerText = currentAttachedImage.name;
+    bar.classList.add('active');
+  } else if (currentAttachedDoc) {
+    img.style.display = 'none';
+    if (docIcon) docIcon.style.display = 'inline-block';
+    const kb = (currentAttachedDoc.size / 1024).toFixed(1);
+    nameEl.innerText = `${currentAttachedDoc.name} (${kb} KB)`;
+    bar.classList.add('active');
+  } else {
+    bar.classList.remove('active');
+  }
+}
+
+function removeAttachedAttachment() {
+  currentAttachedImage = null;
+  currentAttachedDoc = null;
+  const input = document.getElementById('image-file-input');
+  if (input) input.value = '';
+  updateAttachmentPreviewBar();
+}
+
+function removeAttachedImage() {
+  removeAttachedAttachment();
+}
+
+const roboticExcludes = ['fred', 'bad news', 'bells', 'boing', 'cellos', 'deranged', 'hysterical', 'pipe organ', 'trinoids', 'whisper', 'zarvox', 'albert', 'junior', 'ralph', 'bahh', 'bubbles', 'good news', 'jester', 'organ', 'wobble', 'eddy', 'flo', 'grandma', 'grandpa', 'reed', 'rocko', 'sandy', 'shelley'];
+
+function isStudioQualityVoice(v) {
+  const name = (v.name || '').toLowerCase();
+  return name.includes('google') || name.includes('natural') || name.includes('enhanced') || name.includes('premium') || name.includes('neural') || name.includes('siri') || (name.includes('samantha') && (name.includes('enhanced') || name.includes('premium'))) || name.includes('ava') || name.includes('zoe') || name.includes('rishi') || name.includes('swara') || name.includes('lekha') || name.includes('jenny') || name.includes('guy');
+}
+
+function scoreVoiceForLang(v, isHindi) {
+  const name = (v.name || '').toLowerCase();
+  const lang = (v.lang || '').toLowerCase();
+  let score = 0;
+
+  if (roboticExcludes.some(r => name.includes(r))) return -999;
+
+  // Premium studio tier
+  if (name.includes('google us english')) score += 250;
+  if (name.includes('google हिन्दी') || name.includes('google hindi')) score += 250;
+  if (name.includes('google uk english female')) score += 230;
+  if (name.includes('google uk english male')) score += 220;
+  if (name.startsWith('google ')) score += 200;
+
+  if (name.includes('natural')) score += 180;
+  if (name.includes('enhanced')) score += 160;
+  if (name.includes('premium')) score += 160;
+  if (name.includes('neural')) score += 170;
+  if (name.includes('siri')) score += 140;
+  if (name.includes('samantha') && (name.includes('enhanced') || name.includes('premium'))) score += 160;
+  if (name.includes('ava') || name.includes('zoe') || name.includes('rishi') || name.includes('swara') || name.includes('lekha') || name.includes('jenny')) score += 150;
+
+  if (isHindi) {
+    if (lang.startsWith('hi')) score += 120;
+  } else {
+    if (lang.startsWith('en')) score += 60;
+    if (lang.includes('en-us') || lang.includes('en_us')) score += 25;
+    if (lang.includes('en-gb') || lang.includes('en_gb')) score += 20;
+    if (lang.includes('en-in') || lang.includes('en_in')) score += 20;
+  }
+
+  if (v.default) score += 10;
+  return score;
+}
+
+function initTtsVoices() {
+  if (!window.speechSynthesis) return;
+  const select = document.getElementById('tts-voice-select');
+  if (!select) return;
+  const voices = window.speechSynthesis.getVoices() || [];
+  if (voices.length === 0) return;
+
+  const currentVal = localStorage.getItem('bob_preferred_tts_voice') || 'auto';
+  select.innerHTML = '<option value="auto">🌟 Auto Best Natural HD Voice (Recommended)</option>';
+
+  const validVoices = voices.filter(v => {
+    const nameLower = (v.name || '').toLowerCase();
+    return !roboticExcludes.some(r => nameLower.includes(r));
+  });
+
+  const studioVoices = validVoices.filter(v => isStudioQualityVoice(v));
+  const otherVoices = validVoices.filter(v => !isStudioQualityVoice(v));
+
+  studioVoices.sort((a, b) => scoreVoiceForLang(b, false) - scoreVoiceForLang(a, false));
+  otherVoices.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+
+  if (studioVoices.length > 0) {
+    const grpStudio = document.createElement('optgroup');
+    grpStudio.label = '✨ Studio HD Natural Voices (Ultra-Smooth)';
+    studioVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.innerText = `✨ ${v.name} (${v.lang})`;
+      if (v.name === currentVal) opt.selected = true;
+      grpStudio.appendChild(opt);
+    });
+    select.appendChild(grpStudio);
+  }
+
+  if (otherVoices.length > 0) {
+    const grpOther = document.createElement('optgroup');
+    grpOther.label = 'Standard System Voices';
+    otherVoices.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v.name;
+      opt.innerText = `${v.name} (${v.lang})`;
+      if (v.name === currentVal) opt.selected = true;
+      grpOther.appendChild(opt);
+    });
+    select.appendChild(grpOther);
+  }
+
+  const rate = localStorage.getItem('bob_tts_rate');
+  if (rate) {
+    const speedRange = document.getElementById('tts-speed-range');
+    const speedBadge = document.getElementById('tts-speed-badge');
+    if (speedRange) speedRange.value = rate;
+    if (speedBadge) speedBadge.innerText = rate + 'x';
+  }
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  window.speechSynthesis.onvoiceschanged = initTtsVoices;
+  setTimeout(initTtsVoices, 300);
+  setTimeout(initTtsVoices, 1000);
+}
+
+function getBestNaturalVoice(isHindi) {
+  if (!window.speechSynthesis) return null;
+  const voices = window.speechSynthesis.getVoices() || [];
+  if (voices.length === 0) return null;
+
+  const pref = localStorage.getItem('bob_preferred_tts_voice');
+  if (pref && pref !== 'auto') {
+    const userVoice = voices.find(v => v.name === pref);
+    if (userVoice) return userVoice;
+  }
+
+  const pool = voices.filter(v => {
+    const nameLower = (v.name || '').toLowerCase();
+    return !roboticExcludes.some(r => nameLower.includes(r));
+  });
+
+  const sorted = [...pool].sort((a, b) => scoreVoiceForLang(b, isHindi) - scoreVoiceForLang(a, isHindi));
+  return sorted[0] || voices[0];
+}
+
+let currentAudioState = null;
+
+function showAudioBar(voiceName, current, total) {
+  const bar = document.getElementById('floating-audio-bar');
+  if (!bar) return;
+  const sub = document.getElementById('audio-bar-sub');
+  const speedBtn = document.getElementById('audio-speed-btn');
+  const pauseBtn = document.getElementById('audio-pause-btn');
+
+  if (sub) sub.innerText = `${voiceName} • Sentence ${current} of ${total}`;
+  if (speedBtn && currentAudioState) speedBtn.innerText = currentAudioState.rate + 'x';
+  if (pauseBtn) pauseBtn.innerText = '⏸️';
+
+  bar.classList.remove('paused');
+  bar.style.display = 'flex';
+}
+
+function hideAudioBar() {
+  const bar = document.getElementById('floating-audio-bar');
+  if (bar) bar.style.display = 'none';
+}
+
+function toggleAudioPause() {
+  if (!window.speechSynthesis || !currentAudioState) return;
+  const pauseBtn = document.getElementById('audio-pause-btn');
+  const bar = document.getElementById('floating-audio-bar');
+
+  if (currentAudioState.isPaused) {
+    window.speechSynthesis.resume();
+    currentAudioState.isPaused = false;
+    if (pauseBtn) pauseBtn.innerText = '⏸️';
+    if (bar) bar.classList.remove('paused');
+    showToast("Audio resumed", "▶️");
+  } else {
+    window.speechSynthesis.pause();
+    currentAudioState.isPaused = true;
+    if (pauseBtn) pauseBtn.innerText = '▶️';
+    if (bar) bar.classList.add('paused');
+    showToast("Audio paused", "⏸️");
+  }
+}
+
+function cycleAudioSpeed() {
+  if (!currentAudioState) return;
+  const speeds = [0.8, 1.0, 1.25, 1.5];
+  let cur = parseFloat(currentAudioState.rate || 1.0);
+  let nextIdx = (speeds.findIndex(s => Math.abs(s - cur) < 0.05) + 1) % speeds.length;
+  let nextSpeed = speeds[nextIdx];
+
+  currentAudioState.rate = nextSpeed;
+  localStorage.setItem('bob_tts_rate', nextSpeed);
+
+  const speedBtn = document.getElementById('audio-speed-btn');
+  if (speedBtn) speedBtn.innerText = nextSpeed + 'x';
+  const speedRange = document.getElementById('tts-speed-range');
+  const speedBadge = document.getElementById('tts-speed-badge');
+  if (speedRange) speedRange.value = nextSpeed;
+  if (speedBadge) speedBadge.innerText = nextSpeed + 'x';
+
+  showToast(`Speech rate: ${nextSpeed}x`, "⏩");
+}
+
+function stopAudioPlayback() {
+  if (window.speechSynthesis) {
+    window.speechSynthesis.cancel();
+  }
+  if (activeTtsButton) {
+    resetTtsButton(activeTtsButton);
+    activeTtsButton = null;
+  }
+  currentAudioState = null;
+  hideAudioBar();
+}
+
+function toggleReadAloud(btn) {
+  if (!window.speechSynthesis) {
+    showToast("Text-to-Speech not supported in this browser", "⚠️");
+    return;
+  }
+
+  if (window.speechSynthesis.speaking && activeTtsButton === btn) {
+    stopAudioPlayback();
+    return;
+  }
+
+  stopAudioPlayback();
+
+  const storyCard = btn.closest('.story-card');
+  if (!storyCard) return;
+  const rawMarkdown = storyCard.getAttribute('data-raw') || storyCard.innerText || '';
+  
+  let cleanText = rawMarkdown
+    .replace(/```[\s\S]*?```/g, ' [Code block omitted] ')
+    .replace(/`([^`]+)`/g, '$1')
+    .replace(/\$\$[\s\S]*?\$\$/g, ' [Mathematical equation] ')
+    .replace(/\$([^\$]+)\$/g, '$1')
+    .replace(/!\[.*?\]\(.*?\)/g, '')
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1')
+    .replace(/#{1,6}\s+/g, '')
+    .replace(/(\*\*|__)(.*?)\1/g, '$2')
+    .replace(/(\*|_)(.*?)\1/g, '$2')
+    .replace(/<[^>]*>/g, '')
+    .trim();
+
+  if (!cleanText) {
+    showToast("No readable text found", "⚠️");
+    return;
+  }
+
+  const isHindi = /[\u0900-\u097F]/.test(cleanText);
+  const langTag = isHindi ? 'hi-IN' : (currentLang === 'hi' ? 'hi-IN' : 'en-IN');
+  const naturalVoice = getBestNaturalVoice(isHindi);
+  const voiceDisplayName = naturalVoice ? (naturalVoice.name.replace(/^Google\s+/i, 'Google ').replace(/\s*\([^)]*\)/g, '')) : 'Natural Voice';
+
+  const rate = parseFloat(localStorage.getItem('bob_tts_rate') || '1.0');
+  const sentences = cleanText.match(/[^.!?\n]+[.!?\n]+/g) || [cleanText];
+
+  currentAudioState = {
+    sentences: sentences,
+    sentenceIdx: 0,
+    isPaused: false,
+    rate: rate,
+    voice: naturalVoice,
+    voiceName: voiceDisplayName,
+    langTag: langTag
+  };
+
+  activeTtsButton = btn;
+  btn.innerHTML = '<span>⏹️</span> <span>Stop</span>';
+  btn.classList.add('speaking');
+
+  function speakNext() {
+    if (!currentAudioState || currentAudioState.sentenceIdx >= currentAudioState.sentences.length || activeTtsButton !== btn) {
+      stopAudioPlayback();
+      return;
+    }
+
+    const sText = currentAudioState.sentences[currentAudioState.sentenceIdx++].trim();
+    if (!sText) {
+      speakNext();
+      return;
+    }
+
+    showAudioBar(currentAudioState.voiceName, currentAudioState.sentenceIdx, currentAudioState.sentences.length);
+
+    const utter = new SpeechSynthesisUtterance(sText);
+    utter.lang = currentAudioState.langTag;
+    utter.rate = currentAudioState.rate;
+    utter.pitch = 1.0;
+    if (currentAudioState.voice) utter.voice = currentAudioState.voice;
+
+    utter.onend = () => {
+      if (!currentAudioState || currentAudioState.isPaused) return;
+      speakNext();
+    };
+    utter.onerror = () => {
+      stopAudioPlayback();
+    };
+
+    window.speechSynthesis.speak(utter);
+  }
+
+  speakNext();
+}
+
+function resetTtsButton(btn) {
+  if (!btn) return;
+  btn.innerHTML = '<span>🔊</span> <span>Listen</span>';
+  btn.classList.remove('speaking');
+}
+
+function openEditUserMessage(idx) {
+  if (isGenerating) {
+    showToast("Please wait for response to complete or stop it first", "⚠️");
+    return;
+  }
+  const userDiv = document.querySelector(`.user-row[data-msg-idx="${idx}"]`);
+  if (!userDiv) return;
+
+  const m = chatHistory[idx];
+  if (!m) return;
+  let text = "";
+  if (typeof m.content === 'string') {
+    text = m.content;
+  } else if (Array.isArray(m.content)) {
+    const textObj = m.content.find(c => c.type === 'text');
+    text = textObj ? textObj.text : "";
+  }
+
+  // Strip document prefix if present
+  const docMatch = text.match(/^\[Attached Document: .*?\]\n```[\s\S]*?```\n\n([\s\S]*)$/);
+  if (docMatch) {
+    text = docMatch[1];
+  }
+
+  userDiv.classList.add("editing-mode");
+  userDiv.innerHTML = `
+    <div class="inline-edit-container">
+      <textarea class="inline-edit-textarea" id="inline-edit-input-${idx}">${escapeHtml(text)}</textarea>
+      <div class="inline-edit-actions">
+        <button class="btn-pill-subtle" onclick="cancelEditUserMessage()" style="padding:4px 12px; font-size:0.75rem;">Cancel</button>
+        <button class="btn-pill-action" onclick="saveAndSubmitEdit(${idx})" style="padding:4px 14px; font-size:0.75rem; font-weight:700;">Save & Submit</button>
+      </div>
+    </div>
+  `;
+  const textarea = document.getElementById(`inline-edit-input-${idx}`);
+  if (textarea) {
+    textarea.focus();
+    textarea.style.height = 'auto';
+    textarea.style.height = (textarea.scrollHeight + 6) + 'px';
+    textarea.addEventListener('input', () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = (textarea.scrollHeight + 6) + 'px';
+    });
+    textarea.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        e.preventDefault();
+        saveAndSubmitEdit(idx);
+      } else if (e.key === 'Escape') {
+        cancelEditUserMessage();
+      }
+    });
+  }
+}
+
+function editUserMessage(btn) {
+  const row = btn.closest('.user-row');
+  if (!row) return;
+  const idxStr = row.getAttribute('data-msg-idx');
+  if (idxStr !== null) {
+    openEditUserMessage(parseInt(idxStr, 10));
+    return;
+  }
+  const allRows = Array.from(document.querySelectorAll('.user-row'));
+  const rIdx = allRows.indexOf(row);
+  if (rIdx >= 0) {
+    let userCount = 0;
+    for (let i = 0; i < chatHistory.length; i++) {
+      if (chatHistory[i].role === 'user') {
+        if (userCount === rIdx) {
+          openEditUserMessage(i);
+          return;
+        }
+        userCount++;
+      }
+    }
+  }
+}
+
+function cancelEditUserMessage() {
+  renderMessages();
+}
+
+function saveAndSubmitEdit(idx) {
+  if (isGenerating) return;
+  const textarea = document.getElementById(`inline-edit-input-${idx}`);
+  if (!textarea) return;
+  const newText = textarea.value.trim();
+  if (!newText) return;
+
+  const oldMsg = chatHistory[idx];
+  // Truncate conversation history up to idx so we re-branch from this point
+  chatHistory = chatHistory.slice(0, idx);
+  saveHistory();
+  renderMessages();
+
+  // Load newText into user-input and restore any prior attachments
+  const inputEl = document.getElementById("user-input");
+  inputEl.value = newText;
+  if (oldMsg && oldMsg.attachedImage) {
+    currentAttachedImage = oldMsg.attachedImage;
+    updateAttachmentPreviewBar();
+  }
+  if (oldMsg && oldMsg.attachedDoc) {
+    currentAttachedDoc = oldMsg.attachedDoc;
+    updateAttachmentPreviewBar();
+  }
+  sendMessage();
+}
+
+function newChat() {
+  if (isGenerating && activeAbortController) {
+    activeAbortController.abort();
+  }
+  removeAttachedAttachment();
+  chatHistory = [];
+  localStorage.removeItem(STORAGE_KEY);
+  renderMessages();
+  showToast("Started new chat session", "✦");
+  const input = document.getElementById("user-input");
+  if (input) input.focus();
+}
+
 function copyCode(btn) {
   const code = btn.closest('pre').querySelector('code').innerText;
   navigator.clipboard.writeText(code);
@@ -4762,17 +5789,6 @@ function exportMarkdown() {
   showToast("Exported conversation to Markdown file", "💾");
 }
 
-function newChat() {
-  if (isGenerating) return;
-  removeAttachedImage();
-  chatHistory = [];
-  localStorage.removeItem(STORAGE_KEY);
-  renderMessages();
-  showToast("Started new chat session", "✦");
-  const input = document.getElementById("user-input");
-  if (input) input.focus();
-}
-
 function clearChat() {
   openConfirmModal({
     icon: "🗑️",
@@ -4785,28 +5801,125 @@ function clearChat() {
   });
 }
 
-function retryLastMessage() {
+function enhanceCurrentPrompt() {
+  const inputEl = document.getElementById("user-input");
+  const raw = inputEl.value.trim();
+  if (!raw) {
+    showToast("Type a rough thought or idea first, then click 🪄 to polish it!", "🪄");
+    inputEl.focus();
+    return;
+  }
+
+  const btn = document.getElementById("btn-wand");
+  if (btn) {
+    btn.classList.add("wand-sparkle");
+    setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
+  }
+
+  const lower = raw.toLowerCase();
+  let enhanced = "";
+
+  // Case 1: Game / Interactive Simulation / Artifact Canvas
+  if (lower.includes("game") || lower.includes("html") || lower.includes("app") || lower.includes("canvas") || lower.includes("simulation") || lower.includes("calculator") || lower.includes("visualizer") || lower.includes("dashboard")) {
+    enhanced = `Build a complete, standalone, production-grade interactive single-file HTML5 application for: ${raw}.
+
+### Technical & Aesthetic Specifications:
+1. **Self-Contained Architecture**: Include all semantic HTML5 markup, embedded modern CSS3 styling, and JavaScript logic inside a single runnable file.
+2. **Visual Aesthetics & UI**:
+   - Dark theme palette with sleek cyberpunk/glassmorphic accents, clean typography, responsive layout, and smooth transitions.
+   - Fluid 60fps animations, keyboard and pointer touch controls, visual HUD with score/metrics, and particle effects.
+3. **Robust Engineering**:
+   - Clean state management, restart/pause states, zero runtime console errors, and high frame-rate performance.
+   - Avoid external heavy frameworks unless using standard CDN scripts (like Chart.js, Three.js, or Mermaid) when necessary.
+4. Output the complete runnable source code inside a single \`\`\`html\`\`\` code block.`;
+  }
+  // Case 2: Math / Physics / First-Principles Proofs
+  else if (lower.includes("proof") || lower.includes("math") || lower.includes("physics") || lower.includes("equation") || lower.includes("theorem") || lower.includes("derivation") || lower.includes("quantum")) {
+    enhanced = `Provide a rigorous, first-principles mathematical and theoretical deconstruction of: ${raw}.
+
+### Required Structure:
+1. **Core Axioms & Definitions**: Define all mathematical variables, state vectors, operators, and physical constants with standard LaTeX notation.
+2. **Step-by-Step Derivation**: Formulate the full derivation without skipping intermediate steps using clean display math ($$...$$) and inline math ($...$).
+3. **Intuitive Grounded Analogies**: Provide physical intuition and real-world natural analogies (flowing fluids, wave dynamics, mechanical systems) without cliché toy metaphors.
+4. **Edge Cases & Asymptotic Limits**: Evaluate the boundary conditions and asymptotic behavior.
+5. If visual representations aid comprehension, include structured ASCII schematics or valid Mermaid flowcharts.`;
+  }
+  // Case 3: Code / Backend / Microservices / Architecture
+  else if (lower.includes("code") || lower.includes("go") || lower.includes("python") || lower.includes("api") || lower.includes("backend") || lower.includes("microservice") || lower.includes("database") || lower.includes("refactor")) {
+    enhanced = `Design a high-performance, production-ready implementation and architecture for: ${raw}.
+
+### Technical Constraints:
+1. **Idiomatic Standards**: Clean, robust, production-quality code following best design patterns and concurrency safety.
+2. **Performance & Memory**: Zero unnecessary allocations, optimal algorithmic time/space complexity, and clean error propagation.
+3. **Complete Implementation**: Provide complete, fully runnable code with comments on non-obvious architecture decisions (no placeholders or stubbed logic).
+4. **Unit Verification**: Include realistic test cases or curl examples to verify correctness.`;
+  }
+  // Case 4: General Thought / Explanatory Inquiry
+  else {
+    enhanced = `Provide a comprehensive, first-principles deconstruction of: ${raw}.
+
+### Structure your response with:
+- **Executive Summary**: Core insights distilled into 2-3 precise paragraphs.
+- **Deep Axiomatic Breakdown**: Foundational concepts, mechanisms, and causal chains.
+- **Real-World Applications & Edge Cases**: Practical implications and common pitfalls.
+- **Key Takeaways**: Actionable conclusions formatted with clear bullet points.`;
+  }
+
+  inputEl.value = enhanced;
+  autoResize(inputEl);
+  inputEl.focus();
+  showToast("Prompt expanded with temple-grade specifications!", "🪄");
+}
+
+function printConversation() {
+  if (chatHistory.length === 0) {
+    showToast("No conversation to print", "⚠️");
+    return;
+  }
+  window.print();
+}
+
+function retryWithModel(mode = 'default') {
   if (chatHistory.length === 0 || isGenerating) return;
   const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
   if (!lastUserMsg) return;
-  
+
+  if (mode === 'thinking') {
+    document.getElementById('think-select').value = '@think=0';
+    document.getElementById('model-select').value = 'gemini-3.7-flash-thinking';
+    updateSnippet();
+    updateActiveModelBadge();
+    showToast("Re-running with Deep Thinking (@think=0)...", "🧠");
+  } else if (mode === 'flash') {
+    document.getElementById('think-select').value = '@think=4';
+    document.getElementById('model-select').value = 'gemini-3.7-flash';
+    updateSnippet();
+    updateActiveModelBadge();
+    showToast("Re-running with Fast Flash...", "⚡");
+  }
+
   if (chatHistory[chatHistory.length - 1].role === 'assistant') {
     chatHistory.pop();
   }
   chatHistory.pop();
   saveHistory();
   renderMessages();
-  
+
   const inputEl = document.getElementById("user-input");
   inputEl.value = typeof lastUserMsg.content === 'string' ? lastUserMsg.content : (lastUserMsg.content[0]?.text || '');
   if (lastUserMsg.attachedImage) {
     currentAttachedImage = lastUserMsg.attachedImage;
-    const bar = document.getElementById("attachment-preview");
-    document.getElementById("attachment-img").src = currentAttachedImage.dataUrl;
-    document.getElementById("attachment-name").innerText = currentAttachedImage.name;
-    bar.classList.add("active");
+    updateAttachmentPreviewBar();
+  }
+  if (lastUserMsg.attachedDoc) {
+    currentAttachedDoc = lastUserMsg.attachedDoc;
+    updateAttachmentPreviewBar();
   }
   sendMessage();
+}
+
+function retryLastMessage() {
+  retryWithModel('default');
 }
 
 function saveHistory() {
@@ -4827,10 +5940,10 @@ function loadHistory() {
 
 const STARTER_PROMPTS = {
   grader: "Explain the concept of Quantum Superposition and Entanglement to a bright 5th grader. Use intuitive, grounded real-world physical and natural analogies (such as flowing water, bicycle gears, library books, light, sound, or cooking recipes). If illustrating visual comparisons, output valid Mermaid diagrams or ASCII schematics instead of markdown image links. Avoid cliché analogies like LEGO blocks or toy bricks.",
-  proof: "Formulate a rigorous, step-by-step mathematical proof and KaTeX derivation for [Topic/Formula].",
-  audit: "Perform a comprehensive first-principles architecture review, security assessment, and technical bottleneck audit of [System/Codebase].",
-  physics: "Deconstruct the fundamental axioms, underlying physics, and mathematical equations governing [Concept/Paper].",
-  quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and LaTeX matrices.",
+  snake: "Build a complete, standalone 2D Cyberpunk Snake arcade game in HTML5 Canvas. Include neon glow aesthetics, particle explosions when eating food, increasing difficulty, smooth 60fps game loop, high score tracking, sound effects via Web Audio API, and touch + arrow key controls. Output the entire runnable code inside a single ```html``` block.",
+  orbit: "Build a complete, standalone interactive 3D Planetary Orbit & Gravity Simulation in HTML5 Canvas. Include realistic gravitational attraction (G*m1*m2/r^2), orbital velocity vectors, planetary collision particles, trail lines, camera pan/zoom controls, and real-time physics parameters (time step, mass slider). Output the entire runnable code inside a single ```html``` block.",
+  compound: "Build a complete, standalone interactive Financial Compound Wealth & Freedom Calculator in HTML5 with Chart.js. Include dynamic sliders for Initial Investment, Monthly Contribution, Annual Return %, and Investment Horizon (years). Render an interactive stacked growth chart showing Total Contributed vs Total Interest Earned, with inflation adjustment toggles and annual breakdown data tables. Output the entire runnable code inside a single ```html``` block.",
+  quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a Python script using the OpenAI SDK pointing to http://127.0.0.1:9610/v1 to stream thinking tokens.",
   golang: "Design a resilient microservices architecture in Go for a real-time event pipeline with zero allocations."
 };
@@ -4869,34 +5982,50 @@ function renderMessages() {
         <div class="starter-card" onclick="selectStarter('grader')">
           <div class="badge-chip">
             <span class="mini-orb">🎓</span>
-            <span>${dict.starterGraderChip}</span>
+            <span>FIRST PRINCIPLES</span>
           </div>
-          <div class="starter-card-title">${dict.starterGraderTitle}</div>
-          <div class="starter-card-desc">${dict.starterGraderDesc}</div>
+          <div class="starter-card-title">Explain to a 5th Grader</div>
+          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('quantum')">
+        <div class="starter-card" onclick="selectStarter('snake')">
           <div class="badge-chip">
-            <span class="mini-orb">🧠</span>
-            <span>${dict.starterQuantumChip}</span>
+            <span class="mini-orb">🎮</span>
+            <span>ARTIFACT CANVAS</span>
           </div>
-          <div class="starter-card-title">${dict.starterQuantumTitle}</div>
-          <div class="starter-card-desc">${dict.starterQuantumDesc}</div>
+          <div class="starter-card-title">2D Cyberpunk Snake Game</div>
+          <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
+        </div>
+        <div class="starter-card" onclick="selectStarter('orbit')">
+          <div class="badge-chip">
+            <span class="mini-orb">🪐</span>
+            <span>PHYSICS ENGINE</span>
+          </div>
+          <div class="starter-card-title">3D Planetary Orbit Simulator</div>
+          <div class="starter-card-desc">Interactive N-body gravitational simulator with velocity vectors and mass controls.</div>
+        </div>
+        <div class="starter-card" onclick="selectStarter('compound')">
+          <div class="badge-chip">
+            <span class="mini-orb">📊</span>
+            <span>CHART VISUALIZER</span>
+          </div>
+          <div class="starter-card-title">Compound Wealth Calculator</div>
+          <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
         </div>
         <div class="starter-card" onclick="selectStarter('python')">
           <div class="badge-chip">
             <span class="mini-orb">🐍</span>
-            <span>${dict.starterPythonChip}</span>
+            <span>PYTHON STREAM</span>
           </div>
-          <div class="starter-card-title">${dict.starterPythonTitle}</div>
-          <div class="starter-card-desc">${dict.starterPythonDesc}</div>
+          <div class="starter-card-title">OpenAI SDK Port 9610</div>
+          <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
         </div>
         <div class="starter-card" onclick="selectStarter('golang')">
           <div class="badge-chip">
             <span class="mini-orb">⚙️</span>
-            <span>${dict.starterGoChip}</span>
+            <span>GO ARCHITECTURE</span>
           </div>
-          <div class="starter-card-title">${dict.starterGoTitle}</div>
-          <div class="starter-card-desc">${dict.starterGoDesc}</div>
+          <div class="starter-card-title">Zero-Allocation Microservice</div>
+          <div class="starter-card-desc">Production-grade concurrent server architecture with graceful shutdown and resilience.</div>
         </div>
       </div>
     `;
@@ -4904,10 +6033,12 @@ function renderMessages() {
     return;
   }
 
-  for (const m of chatHistory) {
+  for (let i = 0; i < chatHistory.length; i++) {
+    const m = chatHistory[i];
     if (m.role === 'user') {
       const userDiv = document.createElement("div");
       userDiv.className = "user-row";
+      userDiv.setAttribute("data-msg-idx", i);
       
       let userText = "";
       if (typeof m.content === 'string') {
@@ -4921,8 +6052,12 @@ function renderMessages() {
       if (m.attachedImage) {
         imgHtml = `<img src="${m.attachedImage.dataUrl}" class="user-attached-thumb" alt="Attached user image" onclick="window.open(this.src)">`;
       }
+      let docBadgeHtml = "";
+      if (m.attachedDoc) {
+        docBadgeHtml = `<div class="doc-attachment-chip"><span>📄</span> <span>${escapeHtml(m.attachedDoc.name)}</span></div>`;
+      }
 
-      userDiv.innerHTML = `${imgHtml}<div class="user-bubble">${escapeHtml(userText)}</div>`;
+      userDiv.innerHTML = `${imgHtml}${docBadgeHtml}<div class="user-bubble">${escapeHtml(userText)}</div><button class="btn-user-action" onclick="openEditUserMessage(${i})" title="Edit prompt and re-run from here">✏️</button>`;
       content.appendChild(userDiv);
     } else {
       const storyDiv = document.createElement("div");
@@ -4943,8 +6078,11 @@ function renderMessages() {
           <span class="story-meta-stats">${wordCount} words • ~${estTokens} tokens</span>
         </div>
         <div class="story-header-actions">
-          <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
-          <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+          <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>Listen</span></button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ Retry</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 Think</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ Flash</button>
+          <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">Copy</button>
         </div>
       `;
       storyDiv.appendChild(header);
@@ -5002,7 +6140,7 @@ async function sendMessage() {
       }
     }
   }
-  if ((!text && !currentAttachedImage) || isGenerating) return;
+  if ((!text && !currentAttachedImage && !currentAttachedDoc) || isGenerating) return;
 
   isGenerating = true;
   activeAbortController = new AbortController();
@@ -5026,11 +6164,15 @@ async function sendMessage() {
     contentEl.innerHTML = "";
   }
 
-  // Format message payload (multimodal or text)
+  // Format message payload (multimodal, document attachment, or text)
   let userPayloadContent = text;
   let attachedImgCopy = currentAttachedImage ? {...currentAttachedImage} : null;
+  let attachedDocCopy = currentAttachedDoc ? {...currentAttachedDoc} : null;
 
-  if (attachedImgCopy) {
+  if (attachedDocCopy) {
+    const docPrefix = `[Attached Document: ${attachedDocCopy.name}]\n\`\`\`\n${attachedDocCopy.content}\n\`\`\`\n\n`;
+    userPayloadContent = docPrefix + (text || "Please review and analyze this attached document.");
+  } else if (attachedImgCopy) {
     userPayloadContent = [
       { type: "text", text: text || "Please analyze this image." },
       { type: "image_url", image_url: { url: attachedImgCopy.dataUrl } }
@@ -5038,22 +6180,29 @@ async function sendMessage() {
   }
 
   // User row
+  const msgIdx = chatHistory.length;
   const userDiv = document.createElement("div");
   userDiv.className = "user-row";
+  userDiv.setAttribute("data-msg-idx", msgIdx);
   let imgHtml = "";
   if (attachedImgCopy) {
     imgHtml = `<img src="${attachedImgCopy.dataUrl}" class="user-attached-thumb" alt="Attached user image" onclick="window.open(this.src)">`;
   }
-  userDiv.innerHTML = `${imgHtml}<div class="user-bubble">${escapeHtml(text || "Please analyze this image.")}</div>`;
+  let docBadgeHtml = "";
+  if (attachedDocCopy) {
+    docBadgeHtml = `<div class="doc-attachment-chip"><span>📄</span> <span>${escapeHtml(attachedDocCopy.name)}</span></div>`;
+  }
+  userDiv.innerHTML = `${imgHtml}${docBadgeHtml}<div class="user-bubble">${escapeHtml(text || (attachedDocCopy ? "Analyzed document: " + attachedDocCopy.name : "Please analyze this image."))}</div><button class="btn-user-action" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
   contentEl.appendChild(userDiv);
 
   chatHistory.push({
     role: "user",
     content: userPayloadContent,
-    attachedImage: attachedImgCopy
+    attachedImage: attachedImgCopy,
+    attachedDoc: attachedDocCopy
   });
   saveHistory();
-  removeAttachedImage();
+  removeAttachedAttachment();
 
   // Assistant story card
   const storyDiv = document.createElement("div");
@@ -5070,8 +6219,11 @@ async function sendMessage() {
       <span class="story-meta-stats" id="live-stream-stats">Streaming...</span>
     </div>
     <div class="story-header-actions">
-      <button class="btn-pill-subtle" onclick="retryLastMessage()" title="Retry generation">↻ Retry</button>
-      <button class="btn-pill-subtle" onclick="copyMessageText(this)">Copy</button>
+      <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>Listen</span></button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ Retry</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 Think</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ Flash</button>
+      <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">Copy</button>
     </div>
   `;
   storyDiv.appendChild(header);
@@ -5099,7 +6251,7 @@ async function sendMessage() {
 
   const temp = parseFloat(document.getElementById("temp-range").value) || 1.0;
   const maxTokens = parseInt(document.getElementById("max-tokens-select").value, 10) || 8192;
-  const sysPrompt = document.getElementById("system-prompt").value.trim();
+  const sysPrompt = getEffectiveSystemPrompt();
 
   const reqMessages = [];
   if (sysPrompt) {
@@ -5111,27 +6263,7 @@ async function sendMessage() {
 
   let asstFullText = "";
   let thoughtFullText = "";
-  let renderRafPending = false;
   let lastMathRenderTime = 0;
-
-  function scheduleSmoothRender() {
-    if (renderRafPending) return;
-    renderRafPending = true;
-    requestAnimationFrame(() => {
-      renderRafPending = false;
-      if (thoughtFullText) {
-        thoughtBox.classList.add("active");
-        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
-      }
-      if (asstFullText) {
-        contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
-      }
-
-      if (userIsAtBottom) {
-        msgListEl.scrollTop = msgListEl.scrollHeight;
-      }
-    });
-  }
 
   try {
     const baseUrl = getGatewayBaseUrl();
@@ -5152,22 +6284,23 @@ async function sendMessage() {
       let errMsg = "HTTP " + res.status;
       try {
         const errJson = await res.json();
-        errMsg = errJson.error && errJson.error.message ? errJson.error.message : JSON.stringify(errJson);
+        if (errJson.error && errJson.error.message) {
+          errMsg = errJson.error.message;
+        }
       } catch(e) {}
-      contentSpan.innerText = "Error: " + errMsg;
-      return;
+      throw new Error(errMsg);
     }
 
+    updateGatewayStatusIndicator(true, null);
+
     const reader = res.body.getReader();
-    const decoder = new TextDecoder();
+    const decoder = new TextDecoder("utf-8");
     let partial = "";
-
     let streamDone = false;
-    let rafId = 0; // Track RAF frame ID for proper cancellation
+    let rafId = 0;
 
-    // Override scheduleSmoothRender to capture RAF ID
     function scheduleSmoothRenderTracked() {
-      if (rafId) return; // Already pending
+      if (rafId) return;
       rafId = requestAnimationFrame(() => {
         rafId = 0;
         if (thoughtFullText) {
@@ -5183,12 +6316,11 @@ async function sendMessage() {
       });
     }
 
-    function processSSELines(text) {
-      const lines = text.split("\n");
-      const remaining = lines.pop() || "";
+    function processSSELines(buffer) {
+      const lines = buffer.split("\n");
+      const remaining = lines.pop(); // Incomplete tail
       for (const line of lines) {
         const trimmed = line.trim();
-        if (!trimmed) continue;
         if (trimmed === "data: [DONE]") { streamDone = true; break; }
         if (trimmed.startsWith("data: ")) {
           try {
