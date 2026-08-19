@@ -172,7 +172,8 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 }
 
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
-	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
+	atToken := c.Cookies.GetAtToken(c.HTTP, c.Cfg.AuthUser)
+	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
 	reqURL := BuildURL(c.Cfg)
 
 	var lastErr error
@@ -245,7 +246,8 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 }
 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
-	bodyStr := BuildBody(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg)
+	atToken := c.Cookies.GetAtToken(c.HTTP, c.Cfg.AuthUser)
+	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
 	reqURL := BuildURL(c.Cfg)
 
 	parser := NewStreamParser()

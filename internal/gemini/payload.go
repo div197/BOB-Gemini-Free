@@ -28,7 +28,7 @@ const GeminiPayloadSize = 102
 // - Index 17: Reasoning/thinking mode depth
 // - Index 59: Request UUID
 // - Index 79: Target model mode ID
-func BuildBody(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, cfg config.Config) string {
+func BuildBodyWithAt(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, cfg config.Config, at string) string {
 	inner := make([]any, GeminiPayloadSize)
 
 	if len(fileRefs) > 0 {
@@ -72,11 +72,19 @@ func BuildBody(prompt string, modelID, thinkMode int, fileRefs []string, extra m
 
 	form := url.Values{}
 	form.Set("f.req", string(outerJSON))
-	if cfg.XSRFToken != "" {
-		form.Set("at", cfg.XSRFToken)
+	token := at
+	if token == "" {
+		token = cfg.XSRFToken
+	}
+	if token != "" {
+		form.Set("at", token)
 	}
 
 	return form.Encode()
+}
+
+func BuildBody(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, cfg config.Config) string {
+	return BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, cfg, "")
 }
 
 func BuildURL(cfg config.Config) string {

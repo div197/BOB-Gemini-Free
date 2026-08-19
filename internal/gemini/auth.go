@@ -5,17 +5,27 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"log"
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
 )
 
+var (
+	reAt = regexp.MustCompile(`"(?:SNlM0e|thykhd)":"([^"]+)"`)
+	reBL = regexp.MustCompile(`"cfb2h":"([^"]+)"`)
+)
+
 type CookieInfo struct {
 	Cookie  string
 	SAPISID string
+	At      string
+	BL      string
+	AtTime  time.Time
 }
 
 type CookieCache struct {
@@ -29,31 +39,28 @@ func NewCookieCache(file string) *CookieCache {
 	return &CookieCache{file: file}
 }
 
-func (c *CookieCache) Load() (CookieInfo, error) {
+func (c *CookieCache) loadUnlocked() error {
 	if c.file == "" {
-		return CookieInfo{}, nil
+		return nil
 	}
-
-	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	stat, err := os.Stat(c.file)
 	if err != nil {
 		if c.info.Cookie != "" {
-			log.Printf("Cookie load error: %v", err)
-			return c.info, nil
+			return nil
 		}
-		return CookieInfo{}, err
+		return err
 	}
 
 	if stat.ModTime().Equal(c.mtime) && c.info.Cookie != "" {
-		return c.info, nil
+		return nil
 	}
 
 	contentBytes, err := os.ReadFile(c.file)
 	if err != nil {
-		log.Printf("Cookie load error: %v", err)
-		return c.info, nil
+		if c.info.Cookie != "" {
+			return nil
+		}
+		return err
 	}
 
 	content := strings.TrimSpace(string(contentBytes))
@@ -82,12 +89,66 @@ func (c *CookieCache) Load() (CookieInfo, error) {
 	}
 
 	c.mtime = stat.ModTime()
-	c.info = CookieInfo{
-		Cookie:  cookieStr,
-		SAPISID: sapisid,
+	c.info.Cookie = cookieStr
+	c.info.SAPISID = sapisid
+
+	return nil
+}
+
+func (c *CookieCache) GetAtToken(httpClient Requester, authUser string) string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	_ = c.loadUnlocked()
+
+	if c.info.Cookie == "" {
+		return ""
 	}
 
-	return c.info, nil
+	if time.Since(c.info.AtTime) < 10*time.Minute && c.info.At != "" {
+		return c.info.At
+	}
+
+	reqURL := fmt.Sprintf("https://gemini.google.com%s/app", AccountPrefix(authUser))
+	req, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return c.info.At
+	}
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+	req.Header.Set("Cookie", c.info.Cookie)
+	if c.info.SAPISID != "" {
+		req.Header.Set("Authorization", SAPISIDHash(c.info.SAPISID))
+	}
+
+	resp, err := httpClient.Do(req)
+	if err != nil || resp == nil {
+		return c.info.At
+	}
+	defer resp.Body.Close()
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return c.info.At
+	}
+	html := string(bodyBytes)
+
+	if m := reAt.FindStringSubmatch(html); len(m) > 1 {
+		c.info.At = m[1]
+		c.info.AtTime = time.Now()
+	}
+	if m := reBL.FindStringSubmatch(html); len(m) > 1 {
+		c.info.BL = m[1]
+	}
+
+	return c.info.At
+}
+
+func (c *CookieCache) Load() (CookieInfo, error) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	err := c.loadUnlocked()
+	return c.info, err
 }
 
 func SAPISIDHash(sapisid string) string {
