@@ -159,14 +159,14 @@ var MODELS = map[string]Model{
 	"claude-3-opus":            {Mode: 3, Think: 4, Desc: "Anthropic Claude 3 Opus alias (routed to gemini-3.1-pro)"},
 	"claude-code":              {Mode: 2, Think: 0, Desc: "Anthropic Claude Code alias (routed to gemini-3.7-flash-thinking)"},
 	// Google Image Generation & Multimodal Nano Banana Models
-	"imagen-3":                 {Mode: 1, Think: 4, Desc: "Google Imagen 3 High-Fidelity Photorealistic Image Generation Model"},
-	"imagen-3-fast":            {Mode: 1, Think: 4, Desc: "Google Imagen 3 Fast Generation Model"},
-	"imagen-3.0-generate-002":  {Mode: 1, Think: 4, Desc: "Google Imagen 3.0 Generate 002"},
-	"gemini-nano-banana":       {Mode: 1, Think: 4, Desc: "Google Gemini Nano Banana Multimodal Image Generation Model"},
-	"gemini-nano-banana-2":     {Mode: 1, Think: 4, Desc: "Google Gemini Nano Banana 2 Native Image Generation Model"},
-	"gemini-nano-banana-pro":   {Mode: 3, Think: 4, Desc: "Google Gemini Nano Banana Pro High-Resolution Image Synthesis Model"},
-	"dall-e-3":                 {Mode: 1, Think: 4, Desc: "OpenAI DALL-E 3 alias (routed to Google Imagen 3 / Gemini Nano Banana)"},
-	"dall-e-2":                 {Mode: 1, Think: 4, Desc: "OpenAI DALL-E 2 alias (routed to Google Imagen 3 Fast)"},
+	"imagen-3":                {Mode: 1, Think: 4, Desc: "Google Imagen 3 High-Fidelity Photorealistic Image Generation Model"},
+	"imagen-3-fast":           {Mode: 1, Think: 4, Desc: "Google Imagen 3 Fast Generation Model"},
+	"imagen-3.0-generate-002": {Mode: 1, Think: 4, Desc: "Google Imagen 3.0 Generate 002"},
+	"gemini-nano-banana":      {Mode: 1, Think: 4, Desc: "Google Gemini Nano Banana Multimodal Image Generation Model"},
+	"gemini-nano-banana-2":    {Mode: 1, Think: 4, Desc: "Google Gemini Nano Banana 2 Native Image Generation Model"},
+	"gemini-nano-banana-pro":  {Mode: 3, Think: 4, Desc: "Google Gemini Nano Banana Pro High-Resolution Image Synthesis Model"},
+	"dall-e-3":                {Mode: 1, Think: 4, Desc: "OpenAI DALL-E 3 alias (routed to Google Imagen 3 / Gemini Nano Banana)"},
+	"dall-e-2":                {Mode: 1, Think: 4, Desc: "OpenAI DALL-E 2 alias (routed to Google Imagen 3 Fast)"},
 }
 
 type Resolved struct {

@@ -182,26 +182,30 @@ chmod +x install.sh
 
 ---
 
-### विकल्प C: इंटरैक्टिव वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड (`/playground` व `/ui`)
+### विकल्प C: इंटरैक्टिव लोकल-फ़र्स्ट वेब स्टूडियो (`/playground` व `bob-gemini-free.abcsteps.com`)
 
-अपने किसी भी वेब ब्राउज़र में `http://127.0.0.1:9610/playground` खोलें और इनबिल्ट विज़ुअल इंटरफ़ेस का आनंद लें:
+अपने किसी भी वेब ब्राउज़र में इनबिल्ट विज़ुअल इंटरफ़ेस का उपयोग करें:
+* 🌐 **ऑनलाइन Cloudflare Pages वेब स्टूडियो**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% असीमित स्केलेबल लोकल-फ़र्स्ट PWA)*
+* 🏠 **लोकल सर्वर एड्रेस**: `http://127.0.0.1:9610/playground` (या `/ui`)
 
+#### 🌟 100% असीमित स्केलेबिलिटी व शून्य क्लाउड बिल:
+* 🔒 **100% ऑन-डिवाइस प्राइवेसी**: जब आप [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/) खोलते हैं, तो यह सीधे आपके लोकल गेटवे `http://127.0.0.1:9610` से जुड़ता है। आपकी कोई भी चैट या प्रॉम्प्ट किसी क्लाउड सर्वर पर नहीं जाती।
 * 🧠 **लाइव रीज़निंग विज़ुअलाइज़र**: Gemini 3.7 Flash Thinking के रीज़निंग टोकन्स को रीयल-टाइम में प्रवाहित होते हुए देखें।
 * ⚡ **मॉडल व थिंकिंग स्विचर**: तेज़ मॉडल्स, डीप रीज़निंग, या Imagen 3 इमेज सिंथेसिस को एक क्लिक में टेस्ट करें।
 * 📊 **लाइव टेलीमेट्री व डॉलर बचत ट्रैकर**: अपटाइम, प्रोसेस्ड टोकन्स और कुल डॉलर बचत का लाइव मीटर।
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
 
 <p align="center">
-  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — 5 भव्य थीम्स" width="100%">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — Apple Design Default" width="100%">
 </p>
 
 | थीम | डिज़ाइन सौंदर्यशास्त्र | शॉर्टकट | डायरेक्ट URL प्रिव्यू |
 | :--- | :--- | :---: | :--- |
-| 🍏 **Apple Design** | SF Pro टाइपोग्राफी, फ्रॉस्टेड ग्लास, पार्चमेंट कार्ड्स व एक्शन ब्लू | `T5` | [स्क्रीनशॉट देखें](assets/theme-apple.png) • `/playground?theme=apple` |
+| 🍏 **Apple Design** *(डिफ़ॉल्ट)* | SF Pro टाइपोग्राफी, फ्रॉस्टेड ग्लास, पार्चमेंट कार्ड्स व एक्शन ब्लू | `T5` | [स्क्रीनशॉट देखें](assets/theme-apple.png) • `/playground?theme=apple` |
 | 🏗️ **BOB Builder** | औद्योगिक हाई-कॉन्ट्रास्ट डार्क स्लेट व ऊर्जावान अंबर | `T1` | [स्क्रीनशॉट देखें](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
-| 📰 **Vodafone Editorial** | स्वच्छ लाइट एडिटोरियल पेपर, सेरिफ़ टाइपोग्राफी व क्रिम्सन | `T2` | [स्क्रीनशॉट देखें](assets/theme-vodafone.png) • `/playground?theme=vodafone` |
-| 🎧 **Spotify Dark** | शुद्ध AMOLED ऑब्सीडियन पिच डार्क व एमराल्ड हरा | `T3` | [स्क्रीनशॉट देखें](assets/theme-spotify.png) • `/playground?theme=spotify` |
-| ⚛️ **Gemini Quantum** | साइबर डीप इंडिगो कैनवास व नियॉन सियान चमक | `T4` | [स्क्रीनशॉट देखें](assets/theme-quantum.png) • `/playground?theme=quantum` |
+| 📰 **Vodafone Editorial** | स्वच्छ लाइट एडिटोरियल paper, serif typography व crimson | `T2` | [स्क्रीनशॉट देखें](assets/theme-vodafone.png) • `/playground?theme=vodafone` |
+| 🎧 **Spotify Dark** | शुद्ध AMOLED obsidian deep dark व emerald हरा | `T3` | [स्क्रीनशॉट देखें](assets/theme-spotify.png) • `/playground?theme=spotify` |
+| ⚛️ **Gemini Quantum** | साइबर deep indigo canvas व luminescent cyan glow | `T4` | [स्क्रीनशॉट देखें](assets/theme-quantum.png) • `/playground?theme=quantum` |
 
 ---
 

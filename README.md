@@ -217,10 +217,14 @@ Query live metrics, token throughput, and estimated dollar savings from any runn
 
 ---
 
-### Option 4: Interactive Web Playground & Telemetry Studio (`/playground` & `/ui`)
+### Option 4: Interactive Local-First Web Studio (`/playground` & `bob-gemini-free.abcsteps.com`)
 
-Open `http://127.0.0.1:9610/playground` (or `/ui`) in any web browser to access the built-in, zero-dependency, temple-grade visual studio:
+Access the built-in, zero-dependency, temple-grade visual studio directly in your web browser:
+* 🌐 **Online Cloudflare Pages Web Studio**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% Unlimited Scalable Local-First PWA)*
+* 🏠 **Local Server Address**: `http://127.0.0.1:9610/playground` (or `/ui`)
 
+#### 🌟 100% Unlimited Scalability & Zero Cloud Compute Costs:
+* 🔒 **100% On-Device Privacy**: When loaded from [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/), the static web studio auto-discovers and connects directly to your local BOB gateway engine at `http://127.0.0.1:9610` using Chrome Private Network Access (PNA). No prompts, chats, or thinking tokens ever touch intermediate cloud servers.
 * 👁️ **Multimodal Vision Engine**: Attach files (`📎`), drag-and-drop images onto the canvas, or paste screenshots directly from your clipboard (`⌘V` / `Ctrl+V`).
 * 🧠 **Real-Time Reasoning Visualizer**: Stream step-by-step thinking tokens live inside isolated reasoning cards without distracting from the main response.
 * 📐 **Synchronous Scientific Typography (KaTeX)**: Zero-flicker mathematical rendering for Dirac bra-kets ($\langle \psi | \phi \rangle$), Hilbert spaces, matrices ($\begin{pmatrix}1\\0\end{pmatrix}$), integrals, and proofs.
@@ -228,17 +232,17 @@ Open `http://127.0.0.1:9610/playground` (or `/ui`) in any web browser to access 
 * 📊 **Interactive Architecture Diagrams (Mermaid.js)**: Automatically renders ````mermaid ```` blocks into live interactive SVG flowcharts and sequence diagrams.
 * ⌨️ **Spotlight Command Palette (`⌘K` / `Ctrl+K`) & Keybindings**:
   * `1`–`5`: Switch between flagship models (`gemini-3.7-flash`, `thinking`, `gemini-3.1-pro`, `imagen-3`).
-  * `T1`–`T5`: Switch Sacred Themes (BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum, Apple Design).
-  * `N`: Start a new chat session • `[` / `]`: Toggle sidebars • `E`: Export conversation to Markdown.
+  * `T1`–`T5`: Switch Sacred Themes (Apple Design, BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum).
+  * `G`: Open Gateway Engine Status & Endpoint Config • `N`: New Chat • `[` / `]`: Toggle sidebars • `E`: Export Markdown.
 * 📊 **Live On-Device Telemetry & Savings**: Real-time ticker tracking uptime, requests served, token throughput, and estimated USD financial savings.
 
 <p align="center">
-  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard — 5 Sacred Themes" width="100%">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard — Apple Design Default" width="100%">
 </p>
 
 | Theme | Aesthetic Philosophy | Keybinding | Direct URL Preview |
 | :--- | :--- | :---: | :--- |
-| 🍏 **Apple Design** | SF Pro typography, frosted glass, parchment cards & Action Blue | `T5` | [View Snapshot](assets/theme-apple.png) • `/playground?theme=apple` |
+| 🍏 **Apple Design** *(Default)* | SF Pro typography, frosted glass, parchment cards & Action Blue | `T5` | [View Snapshot](assets/theme-apple.png) • `/playground?theme=apple` |
 | 🏗️ **BOB Builder** | Industrial high-contrast dark slate & energetic builder amber | `T1` | [View Snapshot](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
 | 📰 **Vodafone Editorial** | Clean light editorial paper, serif typography & crisp crimson | `T2` | [View Snapshot](assets/theme-vodafone.png) • `/playground?theme=vodafone` |
 | 🎧 **Spotify Dark** | Pure AMOLED obsidian deep pitch & electric emerald green | `T3` | [View Snapshot](assets/theme-spotify.png) • `/playground?theme=spotify` |

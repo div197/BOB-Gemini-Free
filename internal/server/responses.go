@@ -130,8 +130,8 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		// 2. output_item.added (message item)
 		itemID := fmt.Sprintf("item_%s", format.RandHex(8))
 		_ = writeSSEEvent(w, "response.output_item.added", map[string]any{
-			"type":            "response.output_item.added",
-			"output_index":    0,
+			"type":         "response.output_item.added",
+			"output_index": 0,
 			"item": map[string]any{
 				"id":      itemID,
 				"type":    "message",

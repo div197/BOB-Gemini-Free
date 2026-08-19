@@ -364,4 +364,3 @@ func TestPlaygroundEndpoint(t *testing.T) {
 		}
 	}
 }
-

@@ -162,15 +162,15 @@ func handleStatus(targetURL string) {
 	defer resp.Body.Close()
 
 	var data struct {
-		Status               string   `json:"status"`
-		Version              string   `json:"version"`
-		Models               []string `json:"models"`
-		RequestsServed       uint64   `json:"requests_served"`
-		TokensProcessed      uint64   `json:"tokens_processed"`
-		EstimatedSavingsUSD  string   `json:"estimated_savings_usd"`
-		UptimeSeconds        int      `json:"uptime_seconds"`
-		PoolSessionsTotal    int      `json:"pool_sessions_total"`
-		PoolSessionsHealthy  int      `json:"pool_sessions_healthy"`
+		Status              string   `json:"status"`
+		Version             string   `json:"version"`
+		Models              []string `json:"models"`
+		RequestsServed      uint64   `json:"requests_served"`
+		TokensProcessed     uint64   `json:"tokens_processed"`
+		EstimatedSavingsUSD string   `json:"estimated_savings_usd"`
+		UptimeSeconds       int      `json:"uptime_seconds"`
+		PoolSessionsTotal   int      `json:"pool_sessions_total"`
+		PoolSessionsHealthy int      `json:"pool_sessions_healthy"`
 	}
 
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {

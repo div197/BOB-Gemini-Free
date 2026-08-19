@@ -8,11 +8,17 @@ BINARY_NAME=bob-gemini-free
 VERSION=v0.1.3
 LDFLAGS=-s -w -X main.Version=$(VERSION)
 
-.PHONY: all build run test test-cover dist clean
+.PHONY: all build web run test test-cover dist clean
 
 all: build test
 
-build:
+web:
+	@echo "Syncing static web studio distribution to ./web..."
+	@mkdir -p web
+	@cp internal/server/playground.html web/index.html
+	@echo "Web distribution bundle ready in ./web"
+
+build: web
 	@echo "Building $(BINARY_NAME) $(VERSION)..."
 	CGO_ENABLED=0 go build -ldflags="$(LDFLAGS)" -o $(BINARY_NAME) .
 	@echo "Build complete: ./$(BINARY_NAME)"

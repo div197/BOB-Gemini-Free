@@ -74,6 +74,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, *")
 		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, x-ratelimit-limit-requests, x-ratelimit-remaining-requests, x-ratelimit-reset-requests, content-length, *")
+		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 
 		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusNoContent)

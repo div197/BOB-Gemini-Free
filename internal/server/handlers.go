@@ -149,4 +149,3 @@ func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
 		"model":         req.Model,
 	})
 }
-

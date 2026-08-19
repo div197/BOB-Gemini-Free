@@ -1,0 +1,19 @@
+{
+  "name": "BOB Gemini Free — Universal AI Gateway Studio",
+  "short_name": "BOB Gemini Free",
+  "description": "High-Performance Local AI Gateway & Universal Studio by ABCsteps and Divyanshu Singh Chouhan",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f5f5f7",
+  "theme_color": "#f5f5f7",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

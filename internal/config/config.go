@@ -251,4 +251,3 @@ func FindCookiePool() []string {
 	}
 	return pool
 }
-
