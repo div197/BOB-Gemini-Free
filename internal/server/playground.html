@@ -2604,7 +2604,9 @@ function setSidebarState(side, isOpen) {
 }
 
 function initTheme() {
-  const saved = localStorage.getItem(THEME_KEY) || "bob-builder";
+  const urlParams = new URLSearchParams(window.location.search);
+  const themeParam = urlParams.get('theme');
+  const saved = themeParam || localStorage.getItem(THEME_KEY) || "bob-builder";
   changeTheme(saved);
   const sel = document.getElementById("theme-selector");
   if (sel) sel.value = saved;
