@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Automatic `[ Run SQL ⚡ ]` action card chips on all ` ```sql ` code blocks.
   - Interactive table viewer rendering formatted data with column headers, formatted numbers, row counts, and microsecond execution timer (`⚡ 0.8ms`).
   - Interactive SQL query editor allowing users to run live `SELECT`, `INSERT`, `UPDATE`, and `CREATE TABLE` queries directly in the browser sandbox.
-- **1,000,000-Student Scale In-Browser Pyodide WASM Python Execution Engine**:
+- **Institutional-Grade In-Browser Pyodide WASM Python Execution Engine**:
   - Live client-side CPython 3.11 execution in an isolated in-memory WebAssembly sandbox with **zero server-side execution risk, zero Python installation required, and zero cloud billing**.
   - Dedicated **`🐍 Python WASM Live Sandbox` [ Run WASM ⚡ ]** interactive Artifact Card Chips automatically attached to all Python code blocks.
   - **Dynamic Code Sanitization Engine (`sanitizePythonCode`)**: Automatically strips conversational text, markdown headers, and trailing fences before AST parsing to prevent `SyntaxError` crashes.
