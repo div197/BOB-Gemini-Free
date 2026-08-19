@@ -64,3 +64,31 @@ dist/
 ├── bob-gemini-free-linux-arm64
 └── bob-gemini-free-windows-amd64.exe
 ```
+
+---
+
+## 🔄 Self-Updating Standalone Binaries (`--update`)
+
+Once downloaded, you can upgrade your standalone binary in place at any time:
+
+```bash
+./bob-gemini-free --update
+```
+
+---
+
+## ⚙️ Running as a 24/7 OS Service Daemon (`service`)
+
+Run BOB Gemini Free silently in the background across system reboots:
+
+```bash
+# Register & start background daemon
+./bob-gemini-free service install
+
+# Check background daemon health
+./bob-gemini-free service status
+
+# Stop / Uninstall daemon
+./bob-gemini-free service stop
+./bob-gemini-free service uninstall
+```
