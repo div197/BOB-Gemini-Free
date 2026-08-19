@@ -9,6 +9,7 @@ import (
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/models"
+	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
 func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -148,4 +149,17 @@ func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
 		"total_tokens":  totalTokens,
 		"model":         req.Model,
 	})
+}
+
+func (a *App) handleUpdateCheck(w http.ResponseWriter, r *http.Request) {
+	res, err := updater.CheckLatest(a.Version)
+	if err != nil {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"current_version": a.Version,
+			"has_update":      false,
+			"error":           err.Error(),
+		})
+		return
+	}
+	writeJSON(w, http.StatusOK, res)
 }

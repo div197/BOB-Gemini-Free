@@ -22,6 +22,8 @@ import (
 	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/server"
+	"github.com/div197/bob-gemini-free/internal/service"
+	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
 var Version = "dev"
@@ -265,8 +267,91 @@ func min(a, b int) int {
 	return b
 }
 
+func handleUpdate(currentVersion string) {
+	fmt.Println("==================================================================")
+	fmt.Println("    BOB Gemini Free - In-Place Auto-Updater                       ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
+	fmt.Println("==================================================================")
+	fmt.Printf("Current Version: %s\n\n", currentVersion)
+
+	logFn := func(format string, args ...any) {
+		fmt.Printf(format+"\n", args...)
+	}
+
+	if err := updater.SelfUpdate(currentVersion, logFn); err != nil {
+		fmt.Printf("\n[!] Update error: %v\n", err)
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
+func handleService(action string, port int) {
+	fmt.Println("==================================================================")
+	fmt.Println("    BOB Gemini Free - Native OS Service Daemon Manager            ")
+	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
+	fmt.Println("==================================================================")
+
+	logFn := func(format string, args ...any) {
+		fmt.Printf(format+"\n", args...)
+	}
+
+	if port <= 0 {
+		port = 9610
+	}
+
+	var err error
+	switch strings.ToLower(action) {
+	case "install", "enable":
+		err = service.Install(port, logFn)
+	case "uninstall", "remove", "disable":
+		err = service.Uninstall(logFn)
+	case "start":
+		err = service.Start(logFn)
+	case "stop":
+		err = service.Stop(logFn)
+	case "status", "check":
+		err = service.Status(port, logFn)
+	default:
+		fmt.Printf("Unknown service action: %q\n\n", action)
+		fmt.Println("Available service commands:")
+		fmt.Println("  ./bob-gemini-free service install [--port 9610]")
+		fmt.Println("  ./bob-gemini-free service start")
+		fmt.Println("  ./bob-gemini-free service stop")
+		fmt.Println("  ./bob-gemini-free service status")
+		fmt.Println("  ./bob-gemini-free service uninstall")
+		os.Exit(1)
+	}
+
+	if err != nil {
+		fmt.Printf("\n[!] Service operation failed: %v\n", err)
+		os.Exit(1)
+	}
+	os.Exit(0)
+}
+
 func main() {
 	currentVersion := resolveVersion()
+
+	// Direct subcommand routing for "service" and "update"
+	if len(os.Args) > 1 {
+		firstArg := strings.ToLower(os.Args[1])
+		if firstArg == "update" || firstArg == "--update" {
+			handleUpdate(currentVersion)
+		}
+		if firstArg == "service" {
+			action := "status"
+			if len(os.Args) > 2 {
+				action = os.Args[2]
+			}
+			port := 9610
+			for i := 2; i < len(os.Args); i++ {
+				if os.Args[i] == "--port" && i+1 < len(os.Args) {
+					fmt.Sscanf(os.Args[i+1], "%d", &port)
+				}
+			}
+			handleService(action, port)
+		}
+	}
 
 	portFlag := flag.Int("port", 0, "Server port")
 	hostFlag := flag.String("host", "", "Server host address")
@@ -284,12 +369,26 @@ func main() {
 	benchFlag := flag.Bool("bench", false, "Run performance and throughput benchmark against a running gateway")
 	benchConcurrencyFlag := flag.Int("bench-concurrency", 3, "Number of concurrent workers for benchmarking")
 	benchRequestsFlag := flag.Int("bench-requests", 6, "Total number of requests for benchmarking")
+	updateFlag := flag.Bool("update", false, "Check for updates and automatically update bob-gemini-free to the latest release")
+	serviceFlag := flag.String("service", "", "Manage background service: install | uninstall | start | stop | status")
 	versionFlag := flag.Bool("version", false, "Show version")
 	flag.Parse()
 
 	if *versionFlag {
 		fmt.Printf("BOB-Gemini-Free %s (Break Ordinary Boundaries by ABCsteps - https://abcsteps.com)\n", currentVersion)
 		os.Exit(0)
+	}
+
+	if *updateFlag {
+		handleUpdate(currentVersion)
+	}
+
+	if *serviceFlag != "" {
+		port := 9610
+		if *portFlag != 0 {
+			port = *portFlag
+		}
+		handleService(*serviceFlag, port)
 	}
 
 	if *statusFlag {

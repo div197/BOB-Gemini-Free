@@ -4080,6 +4080,7 @@ const STARTER_PROMPTS_HI = {
   orbit: "Three.js (CDN के माध्यम से) का उपयोग करके HTML5 में एक पूर्ण, यथार्थवादी, इंटरैक्टिव 3D सौर मंडल व ग्रहीय कक्षा सिमुलेशन बनाएं। इसमें प्रकाशयुक्त सूर्य, G*m1*m2/r^2 गुरुत्वाकर्षण के साथ केप्लेरियन कक्षीय भौतिकी, चमकती कक्षीय रेखाएं, शनि के छल्ले, 360° OrbitControls (pan, rotate, zoom) और गति स्लाइडर शामिल करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   compound: "Chart.js के साथ HTML5 में एक पूर्ण, स्टैंडअलोन इंटरैक्टिव वित्तीय चक्रवृद्धि ब्याज व धन वृद्धि कैलकुलेटर बनाएं। इसमें प्रारंभिक निवेश, मासिक योगदान, वार्षिक रिटर्न % और अवधि के लिए स्लाइडर्स शामिल करें। संचयी विकास का इंटरैक्टिव चार्ट प्रस्तुत करें। संपूर्ण कोड एक ```html``` ब्लॉक में दें।",
   py_finance: "Pyodide WebAssembly के लिए NumPy का उपयोग करके एक संपूर्ण परिमाणात्मक वित्त (Quantitative Finance) स्क्रिप्ट लिखें। ब्लैक-स्कोल्स मॉडल (Black-Scholes Model) का उपयोग करके कॉल और पुट विकल्पों का सटीक मूल्य निर्धारण करें, 5 जोखिम ग्रीक्स (Delta, Gamma, Theta, Vega, Rho) की गणना करें और 95% और 99% वैल्यू एट रिस्क (VaR) का अनुमान लगाने के लिए 10,000-पाथ मोंटे कार्लो सिमुलेशन चलाएं। एक संरचित वित्तीय डैशबोर्ड और जोखिम तालिका आउटपुट करें। संपूर्ण कोड एक ```python``` ब्लॉक में दें ताकि यह सीधे BOB के WASM सैंडबॉक्स में चले।",
+  sql_analytics: "एक संपूर्ण इन-मेमोरी SQLite स्कीमा और विश्लेषणात्मक क्वेरी सुइट बनाएं। ग्राहक (customers), उत्पाद (products), और लेन-देन (orders) तालिकाओं का निर्माण करें, 15+ यथार्थवादी रिकॉर्ड सम्मिलित करें, और विंडो फ़ंक्शंस (RANK, DENSE_RANK), CTEs, और समूहीकरण का उपयोग करके शीर्ष राजस्व श्रेणियों, ग्राहक प्रतिधारण (retention), और मार्जिन का विश्लेषण करने के लिए जटिल SQL क्वेरी लिखें। संपूर्ण कोड एक ```sql``` ब्लॉक में दें ताकि यह सीधे BOB के SQLite WASM सैंडबॉक्स में चले।",
   schrodinger: "डी ब्रोग्ली तरंग संबंधों और हैमिल्टनियन यांत्रिकी का उपयोग करते हुए प्रथम सिद्धांतों से समय-निर्भर श्रोडिंगर तरंग समीकरण (Time-Dependent Schrödinger Wave Equation) की KaTeX LaTeX गणितीय व्युत्पत्ति तैयार करें। प्रत्येक चरण को स्पष्ट समीकरणों के साथ समझाएं।",
   proof: "[विषय/सूत्र] के लिए चरण-दर-चरण गणितीय प्रमाण और KaTeX व्युत्पत्ति तैयार करें।",
   audit: "[सिस्टम/कोडबेस] का व्यापक प्रथम-सिद्धांत वास्तुकला विश्लेषण, सुरक्षा समीक्षा और तकनीकी बॉटलनेक ऑडिट करें।",
@@ -4542,6 +4543,15 @@ async function pingGatewayManual() {
       }
       if (badge) badge.innerText = "Latency: " + latency + "ms";
       updateGatewayStatusIndicator(true, latency);
+
+      // Check for latest release updates from GitHub
+      fetch(getGatewayBaseUrl() + "/v1/update/check")
+        .then(r => r.json())
+        .then(up => {
+          if (up && up.has_update) {
+            if (badge) badge.innerHTML = `Latency: ${latency}ms • <span style="color:#f59e0b; font-weight:600;">✨ Update ${escapeHtml(up.latest_version)} Available</span> (run <code>bob-gemini-free --update</code>)`;
+          }
+        }).catch(() => {});
     } else {
       throw new Error("HTTP " + res.status);
     }
@@ -5164,7 +5174,12 @@ function extractArtifactMeta(code, lang) {
     icon = "🐍";
     title = "Python WASM Live Sandbox";
     isInteractive = true;
-  } else if (['go', 'golang', 'javascript', 'js', 'typescript', 'ts', 'rust', 'cpp', 'json', 'sql', 'bash', 'sh'].includes(cleanLang)) {
+  } else if (cleanLang === 'sql') {
+    type = "sql";
+    icon = "🗄️";
+    title = "SQLite WASM Live Database";
+    isInteractive = true;
+  } else if (['go', 'golang', 'javascript', 'js', 'typescript', 'ts', 'rust', 'cpp', 'json', 'bash', 'sh'].includes(cleanLang)) {
     type = cleanLang;
     icon = "📦";
     title = cleanLang.toUpperCase() + " Artifact";
@@ -5182,6 +5197,22 @@ function sanitizePythonCode(code) {
     const parts = cleaned.split('```');
     if (cleaned.startsWith('```')) {
       cleaned = parts[1].replace(/^(?:python|py)?\n/i, '');
+    } else {
+      cleaned = parts[0];
+    }
+  }
+  
+  return cleaned.trim();
+}
+
+function sanitizeSqlCode(code) {
+  if (!code) return '';
+  let cleaned = code.trim();
+  
+  if (cleaned.includes('```')) {
+    const parts = cleaned.split('```');
+    if (cleaned.startsWith('```')) {
+      cleaned = parts[1].replace(/^(?:sql)?\n/i, '');
     } else {
       cleaned = parts[0];
     }
@@ -5401,6 +5432,220 @@ function openArtifactCanvas(artId) {
   <\/script>
 </body>
 </html>`;
+    } else if (art.type === 'sql') {
+      const cleanSql = sanitizeSqlCode(art.code);
+      iframe.srcdoc = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>SQLite WASM Studio</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/sql-wasm.js"><\/script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 16px;
+      background: #090d16;
+      color: #f1f5f9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .sql-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid #1e293b;
+      margin-bottom: 12px;
+    }
+    .sql-status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: #94a3b8;
+    }
+    .sql-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #f59e0b;
+      animation: pulse 1s infinite alternate;
+    }
+    .sql-dot.ready { background: #38bdf8; animation: none; }
+    .sql-dot.error { background: #ef4444; animation: none; }
+    @keyframes pulse { from { opacity: 0.4; } to { opacity: 1; } }
+    .sql-actions { display: flex; gap: 8px; }
+    .sql-btn {
+      background: #1e293b;
+      color: #f8fafc;
+      border: 1px solid #334155;
+      padding: 5px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+    .sql-btn:hover { background: #38bdf8; color: #000; border-color: #38bdf8; }
+    .sql-btn.btn-run { background: #38bdf8; color: #000; font-weight: 600; border-color: #38bdf8; }
+    .sql-btn.btn-run:hover { background: #0284c7; }
+    .sql-editor-wrap {
+      margin-bottom: 12px;
+      background: #030712;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 10px;
+    }
+    #sql-input {
+      width: 100%;
+      height: 85px;
+      background: transparent;
+      border: none;
+      color: #38bdf8;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      resize: vertical;
+      outline: none;
+      line-height: 1.5;
+    }
+    .sql-results-wrap {
+      flex: 1;
+      background: #030712;
+      border: 1px solid #1e293b;
+      border-radius: 8px;
+      padding: 14px;
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 8px;
+    }
+    th {
+      background: #1e293b;
+      color: #38bdf8;
+      text-align: left;
+      padding: 8px 10px;
+      font-weight: 600;
+      border: 1px solid #334155;
+    }
+    td {
+      padding: 6px 10px;
+      border: 1px solid #1e293b;
+      color: #e2e8f0;
+      font-family: 'JetBrains Mono', monospace;
+    }
+    tr:nth-child(even) { background: rgba(255,255,255,0.02); }
+    tr:hover { background: rgba(56, 189, 248, 0.08); }
+    .sql-msg { color: #94a3b8; font-family: monospace; font-size: 12px; margin: 4px 0; }
+    .sql-err { color: #f87171; font-weight: 600; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="sql-header">
+    <div class="sql-status">
+      <div class="sql-dot" id="sql-dot"></div>
+      <span id="sql-status-text">Initializing In-Browser SQLite WASM Database...</span>
+    </div>
+    <div class="sql-actions">
+      <button class="sql-btn btn-run" onclick="executeCurrentSQL()">▶ Execute SQL</button>
+      <button class="sql-btn" onclick="resetDatabase()">↺ Reset DB</button>
+    </div>
+  </div>
+  <div class="sql-editor-wrap">
+    <textarea id="sql-input" placeholder="Enter SQL query here... (e.g. SELECT * FROM ...)"></textarea>
+  </div>
+  <div class="sql-results-wrap" id="sql-output">
+    <div class="sql-msg">🗄️ Loading SQLite WebAssembly engine...</div>
+  </div>
+  <script>
+    let db = null;
+    let SQL = null;
+    const initialSQL = ${JSON.stringify(cleanSql)};
+
+    async function initSQL() {
+      try {
+        SQL = await initSqlJs({
+          locateFile: file => 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.3/' + file
+        });
+        db = new SQL.Database();
+        document.getElementById('sql-dot').className = 'sql-dot ready';
+        document.getElementById('sql-status-text').textContent = 'SQLite WASM Ready • In-Memory Safe Sandbox';
+        document.getElementById('sql-input').value = initialSQL;
+        executeSQL(initialSQL);
+      } catch(err) {
+        document.getElementById('sql-dot').className = 'sql-dot error';
+        document.getElementById('sql-status-text').textContent = 'SQLite Load Failed';
+        document.getElementById('sql-output').innerHTML = '<div class="sql-err">Failed to load SQLite WASM: ' + err.message + '</div>';
+      }
+    }
+
+    function executeCurrentSQL() {
+      const code = document.getElementById('sql-input').value.trim();
+      if (code) executeSQL(code);
+    }
+
+    function resetDatabase() {
+      if (SQL) {
+        db = new SQL.Database();
+        document.getElementById('sql-output').innerHTML = '<div class="sql-msg">✨ Database reset to fresh in-memory state.</div>';
+        document.getElementById('sql-input').value = initialSQL;
+        executeSQL(initialSQL);
+      }
+    }
+
+    function executeSQL(query) {
+      if (!db) return;
+      const out = document.getElementById('sql-output');
+      out.innerHTML = '';
+      const t0 = performance.now();
+      try {
+        const results = db.exec(query);
+        const t1 = performance.now();
+        const duration = (t1 - t0).toFixed(2);
+
+        if (!results || results.length === 0) {
+          out.innerHTML = '<div class="sql-msg">✔ Query executed successfully with 0 result sets (' + duration + 'ms).</div>';
+          return;
+        }
+
+        let html = '<div class="sql-msg">✔ Query executed in <b>' + duration + 'ms</b> (' + results.length + ' result set' + (results.length > 1 ? 's' : '') + ')</div>';
+
+        results.forEach((res, idx) => {
+          html += '<div style="margin-top:12px; margin-bottom:4px; font-weight:600; color:#38bdf8; font-size:11px;">RESULT SET #' + (idx + 1) + ' (' + res.values.length + ' ROWS)</div>';
+          html += '<table><thead><tr>';
+          res.columns.forEach(col => {
+            html += '<th>' + col + '</th>';
+          });
+          html += '</tr></thead><tbody>';
+          res.values.forEach(row => {
+            html += '<tr>';
+            row.forEach(val => {
+              html += '<td>' + (val === null ? '<i style="color:#64748b;">NULL</i>' : String(val)) + '</td>';
+            });
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+        });
+
+        out.innerHTML = html;
+      } catch(err) {
+        out.innerHTML = '<div class="sql-err">❌ SQL Error: ' + err.message + '</div>';
+      }
+    }
+
+    initSQL();
+  <\/script>
+</body>
+</html>`;
     } else {
       iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; padding:24px; background:#0f172a; color:#e2e8f0; font-family:monospace; font-size:14px; white-space:pre-wrap;}</style></head><body>${escapeHtml(art.code)}</body></html>`;
     }
@@ -5541,6 +5786,17 @@ if (window.marked) {
             </div>
           </div>
           <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Run WASM ⚡</button>
+        </div>`;
+      } else if (meta.type === 'sql') {
+        artifactChip = `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
+          <div class="artifact-chip-left">
+            <span class="artifact-chip-icon">🗄️</span>
+            <div class="artifact-chip-info">
+              <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
+              <span class="artifact-chip-sub">In-Browser SQLite WASM Database • Run SQL & inspect tables</span>
+            </div>
+          </div>
+          <button class="btn-launch-art" onclick="event.stopPropagation(); openArtifactCanvas('${artId}')">Run SQL ⚡</button>
         </div>`;
       } else if (meta.type === 'html' || meta.type === 'svg') {
         artifactChip = `<div class="artifact-card-chip" onclick="openArtifactCanvas('${artId}')">
@@ -6536,6 +6792,7 @@ const STARTER_PROMPTS = {
   orbit: "Build a complete, photorealistic, interactive 3D Solar System & Planetary Orbit Simulation in standalone HTML5 using Three.js (via CDN). Include a glowing Sun with point light illumination, multi-planet Keplerian orbital mechanics with G*m1*m2/r^2 gravity, glowing orbital trail lines, textured planets, Saturn planetary rings, particle starfield galaxy background, full 360° OrbitControls (pan, rotate, mouse/touch zoom), and real-time physics controls (Simulation Speed 1x-100x, Pause/Play, Reset). Output the entire runnable self-contained code inside a single ```html``` block.",
   compound: "Build a complete, standalone interactive Financial Compound Wealth & Freedom Calculator in HTML5 with Chart.js. Include dynamic sliders for Initial Investment, Monthly Contribution, Annual Return %, and Investment Horizon (years). Render an interactive stacked growth chart showing Total Contributed vs Total Interest Earned, with inflation adjustment toggles and annual breakdown data tables. Output the entire runnable code inside a single ```html``` block.",
   py_finance: "Write a complete, production-grade Python quantitative finance script using numpy and scipy (or math/numpy) to evaluate European Option Pricing using the Black-Scholes Model. Calculate exact pricing for both Call and Put options, determine the 5 risk sensitivities / Greeks (Delta, Gamma, Theta, Vega, Rho), and run a 10,000-path Monte Carlo asset path simulation to compute the 95% and 99% Value at Risk (VaR) and Expected Shortfall (CVaR). Output a structured, formatted financial analytics dashboard and risk summary table. Output the entire runnable code inside a single ```python``` block so it executes directly in BOB's in-browser WebAssembly sandbox.",
+  sql_analytics: "Write a complete in-memory SQLite schema and analytics query suite. Create relational tables for `customers`, `products`, `orders`, and `order_items` with realistic demo data (15+ rows across diverse dates/categories). Then formulate 4 complex analytical queries using Common Table Expressions (CTEs), Window Functions (RANK, DENSE_RANK), and cohort revenue aggregation to identify top spending tiers, repeat customer retention rates, and category margin analysis. Output the entire runnable code inside a single ```sql``` block so it executes directly in BOB's in-browser SQLite WASM database engine.",
   schrodinger: "Derive the Time-Dependent Schrödinger Wave Equation from first principles using de Broglie matter wave relations (E = \\hbar\\omega, p = \\hbar k), the classical energy conservation equation (E = p^2/2m + V), and differential wave operators. Formulate every step with clean, rigorous KaTeX LaTeX mathematical notation, detailing boundary conditions, the physical meaning of the complex probability wave function \\Psi(x,t), and probability conservation. Output clear LaTeX equations.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a complete Python script using the official openai-python SDK configured to stream responses from BOB Gemini Free at http://127.0.0.1:9610/v1 with model gemini-3.7-flash and extract reasoning_content thinking tokens in real-time.",
