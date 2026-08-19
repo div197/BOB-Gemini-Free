@@ -1,9 +1,7 @@
 package format
 
 import (
-	"strings"
 	"unicode"
-	"unicode/utf8"
 
 	"github.com/div197/bob-gemini-free/internal/models"
 )
@@ -20,25 +18,28 @@ func EstimateTokens(text string) int {
 	}
 
 	var tokens int
-	var currentWord strings.Builder
+	var currentWordRunes int
 
 	flushWord := func() {
-		if currentWord.Len() == 0 {
+		if currentWordRunes == 0 {
 			return
 		}
-		w := currentWord.String()
-		currentWord.Reset()
-
-		runeCount := utf8.RuneCountInString(w)
-		if runeCount <= 4 {
+		if currentWordRunes <= 4 {
 			tokens += 1
 		} else {
 			// Subword approximation: ~3.5 to 4 characters per token
-			tokens += (runeCount + 3) / 4
+			tokens += (currentWordRunes + 3) / 4
 		}
+		currentWordRunes = 0
 	}
 
+	var hasNonSpace bool
+
 	for _, r := range text {
+		if !unicode.IsSpace(r) {
+			hasNonSpace = true
+		}
+
 		// 1. CJK Ideographs / Hiragana / Katakana / Hangul: typically 1 token per character
 		if unicode.Is(unicode.Han, r) || unicode.Is(unicode.Hiragana, r) ||
 			unicode.Is(unicode.Katakana, r) || unicode.Is(unicode.Hangul, r) {
@@ -68,12 +69,12 @@ func EstimateTokens(text string) int {
 		}
 
 		// Standard alphanumeric + Devanagari/Indic script runes
-		currentWord.WriteRune(r)
+		currentWordRunes++
 	}
 
 	flushWord()
 
-	if tokens == 0 && len(strings.TrimSpace(text)) > 0 {
+	if tokens == 0 && hasNonSpace {
 		tokens = 1
 	}
 

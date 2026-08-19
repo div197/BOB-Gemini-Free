@@ -71,33 +71,39 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 		splitter := format.NewThinkingStreamSplitter()
 
+		baseMsg := &models.OpenAIMessage{}
+		baseChunk := models.OpenAIChatResponse{
+			ID:                cid,
+			Object:            "chat.completion.chunk",
+			Created:           time.Now().Unix(),
+			Model:             resolved.Name,
+			SystemFingerprint: "fp_bob_gemini",
+			Choices: []models.OpenAIChoice{
+				{
+					Index:        0,
+					Delta:        baseMsg,
+					FinishReason: nil,
+				},
+			},
+		}
+
 		emitChunk := func(ch format.StreamChunk) error {
 			if ch.Text == "" {
 				return nil
 			}
-			var msg *models.OpenAIMessage
+
+			// Reset the reused message
+			baseMsg.Content = nil
+			baseMsg.ReasoningContent = ""
+
 			if ch.Type == format.DeltaThinking {
-				msg = &models.OpenAIMessage{ReasoningContent: ch.Text}
+				baseMsg.ReasoningContent = ch.Text
 			} else if ch.Type == format.DeltaContent {
-				msg = &models.OpenAIMessage{Content: ch.Text}
+				baseMsg.Content = ch.Text
 			} else {
 				return nil
 			}
-			chunk := models.OpenAIChatResponse{
-				ID:                cid,
-				Object:            "chat.completion.chunk",
-				Created:           time.Now().Unix(),
-				Model:             resolved.Name,
-				SystemFingerprint: "fp_bob_gemini",
-				Choices: []models.OpenAIChoice{
-					{
-						Index:        0,
-						Delta:        msg,
-						FinishReason: nil,
-					},
-				},
-			}
-			return writeSSEData(w, chunk)
+			return writeSSEData(w, baseChunk)
 		}
 
 		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {

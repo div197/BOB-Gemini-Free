@@ -3,7 +3,7 @@ package server
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
+	"sync"
 	"net/http"
 
 	"github.com/div197/bob-gemini-free/internal/format"
@@ -20,18 +20,10 @@ func writeJSON(w http.ResponseWriter, status int, data any) {
 	_ = enc.Encode(data)
 }
 
-func marshalNoEscapeHTML(data any) ([]byte, error) {
-	var buf bytes.Buffer
-	enc := json.NewEncoder(&buf)
-	enc.SetEscapeHTML(false)
-	if err := enc.Encode(data); err != nil {
-		return nil, err
-	}
-	b := buf.Bytes()
-	if len(b) > 0 && b[len(b)-1] == '\n' {
-		b = b[:len(b)-1]
-	}
-	return b, nil
+var bufPool = sync.Pool{
+	New: func() any {
+		return new(bytes.Buffer)
+	},
 }
 
 func startSSE(w http.ResponseWriter) bool {
@@ -47,12 +39,19 @@ func startSSE(w http.ResponseWriter) bool {
 }
 
 func writeSSEData(w http.ResponseWriter, data any) error {
-	enc, err := marshalNoEscapeHTML(data)
-	if err != nil {
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
+	buf.WriteString("data: ")
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
+	buf.WriteByte('\n') // json.Encode adds one \n. We need two for SSE
 
-	_, err = fmt.Fprintf(w, "data: %s\n\n", string(enc))
+	_, err := w.Write(buf.Bytes())
 	if err != nil {
 		return err
 	}
@@ -64,12 +63,22 @@ func writeSSEData(w http.ResponseWriter, data any) error {
 }
 
 func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
-	enc, err := marshalNoEscapeHTML(data)
-	if err != nil {
+	buf := bufPool.Get().(*bytes.Buffer)
+	buf.Reset()
+	defer bufPool.Put(buf)
+
+	buf.WriteString("event: ")
+	buf.WriteString(event)
+	buf.WriteString("\ndata: ")
+	
+	enc := json.NewEncoder(buf)
+	enc.SetEscapeHTML(false)
+	if err := enc.Encode(data); err != nil {
 		return err
 	}
+	buf.WriteByte('\n')
 
-	_, err = fmt.Fprintf(w, "event: %s\ndata: %s\n\n", event, string(enc))
+	_, err := w.Write(buf.Bytes())
 	if err != nil {
 		return err
 	}
@@ -81,7 +90,7 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
 }
 
 func writeSSEDone(w http.ResponseWriter) error {
-	_, err := fmt.Fprintf(w, "data: [DONE]\n\n")
+	_, err := w.Write([]byte("data: [DONE]\n\n"))
 	if err != nil {
 		return err
 	}

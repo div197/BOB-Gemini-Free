@@ -13,9 +13,15 @@ import (
 )
 
 func RandHex(n int) string {
-	bytes := make([]byte, (n+1)/2)
-	_, _ = rand.Read(bytes)
-	return hex.EncodeToString(bytes)[:n]
+	var b [16]byte // 16 bytes = 32 hex chars max
+	reqBytes := (n + 1) / 2
+	if reqBytes > 16 {
+		reqBytes = 16
+	}
+	_, _ = rand.Read(b[:reqBytes])
+	var hexBuf [32]byte
+	hex.Encode(hexBuf[:], b[:reqBytes])
+	return string(hexBuf[:n])
 }
 
 func BuildToolChoiceInstruction(toolChoice any) string {

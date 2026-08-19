@@ -13,6 +13,7 @@ import (
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"slices"
 	"syscall"
 	"time"
 
@@ -446,6 +447,7 @@ func main() {
 	for k := range models.MODELS {
 		modelKeys = append(modelKeys, k)
 	}
+	slices.Sort(modelKeys)
 
 	cookieStatus := "none (anonymous free tier)"
 	if cfg.CookieFile != "" {

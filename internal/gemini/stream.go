@@ -1,37 +1,44 @@
 package gemini
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 )
 
 type StreamParser struct {
 	prevText string
-	buf      string
+	buf      []byte
 }
 
 func NewStreamParser() *StreamParser {
-	return &StreamParser{}
+	return &StreamParser{
+		buf: make([]byte, 0, 4096),
+	}
 }
 
 // ResetBuffer clears the line buffer before a retry attempt while preserving prevText across retries.
 func (p *StreamParser) ResetBuffer() {
-	p.buf = ""
+	p.buf = p.buf[:0]
 }
 
 func (p *StreamParser) Feed(chunk string) ([]string, error) {
-	p.buf += chunk
+	p.buf = append(p.buf, chunk...)
 
-	if strings.Contains(p.buf, "BardErrorInfo") {
-		if code, ok := IsBardError(p.buf); ok {
+	if bytes.Contains(p.buf, []byte("BardErrorInfo")) {
+		if code, ok := IsBardError(string(p.buf)); ok {
 			return nil, fmt.Errorf("%s", FormatBardError(code))
 		}
 	}
 
 	var deltas []string
-	for strings.Contains(p.buf, "\n") {
-		idx := strings.Index(p.buf, "\n")
-		line := p.buf[:idx]
+	for {
+		idx := bytes.IndexByte(p.buf, '\n')
+		if idx < 0 {
+			break
+		}
+
+		line := string(p.buf[:idx])
 		p.buf = p.buf[idx+1:]
 
 		texts := ExtractTextsFromLine(line)
