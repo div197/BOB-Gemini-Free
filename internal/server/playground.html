@@ -982,75 +982,82 @@ input[type="range"] {
   50% { opacity: 0; }
 }
 
-/* Welcome Hero Grid */
+/* Welcome Hero Grid (Radha-Krishna Pure Harmony & Spacious Zen) */
 .welcome-hero {
   margin: 0 auto;
   width: 100%;
+  max-width: 860px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
 }
 .hero-title-band {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 14px 20px;
-  margin-bottom: 2px;
+  padding: 18px 24px;
   box-shadow: var(--shadow-main);
 }
 .hero-headline {
-  font-size: 1.42rem;
+  font-size: 1.55rem;
   font-weight: 900;
   letter-spacing: -0.6px;
   text-transform: uppercase;
   color: var(--text-main);
-  line-height: 1.15;
-  margin-bottom: 4px;
+  line-height: 1.2;
+  margin-bottom: 6px;
 }
 .hero-headline .accent {
   color: var(--accent-primary);
 }
 .hero-subline {
-  font-size: 0.8rem;
+  font-size: 0.88rem;
   color: var(--text-muted);
-  line-height: 1.4;
+  line-height: 1.45;
 }
 .starters-grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
 }
 .starter-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-card);
-  padding: 10px 12px;
+  padding: 16px 20px;
   cursor: pointer;
-  transition: all 0.18s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   box-shadow: var(--shadow-main);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  min-height: 100px;
+  gap: 6px;
+  min-height: 110px;
 }
 .starter-card:hover {
   border-color: var(--accent-primary);
   transform: translateY(-2px);
   background: var(--bg-card-hover);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
 }
-.starter-card .badge-chip { margin-bottom: 6px; align-self: flex-start; padding: 2px 7px; font-size: 0.6rem; }
+.starter-card .badge-chip {
+  margin-bottom: 4px;
+  align-self: flex-start;
+  padding: 3px 8px;
+  font-size: 0.65rem;
+}
 .starter-card-title {
   font-weight: 800;
   color: var(--text-main);
-  font-size: 0.84rem;
-  letter-spacing: -0.15px;
-  margin-bottom: 3px;
-  line-height: 1.2;
+  font-size: 0.96rem;
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+  line-height: 1.25;
 }
 .starter-card-desc {
-  font-size: 0.72rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  line-height: 1.35;
+  line-height: 1.45;
 }
 
 /* 
@@ -3589,14 +3596,6 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             </div>
           </div>
           <div class="starters-grid">
-            <div class="starter-card" onclick="selectStarter('grader')">
-              <div class="badge-chip">
-                <span class="mini-orb">🎓</span>
-                <span>FIRST PRINCIPLES</span>
-              </div>
-              <div class="starter-card-title">Explain to a 5th Grader</div>
-              <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
-            </div>
             <div class="starter-card" onclick="selectStarter('snake')">
               <div class="badge-chip">
                 <span class="mini-orb">🎮</span>
@@ -3604,6 +3603,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               </div>
               <div class="starter-card-title">2D Cyberpunk Snake Game</div>
               <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
+            </div>
+            <div class="starter-card" onclick="selectStarter('py_snake')">
+              <div class="badge-chip">
+                <span class="mini-orb">🐍</span>
+                <span>PYTHON WASM SANDBOX</span>
+              </div>
+              <div class="starter-card-title">Classic Nokia Snake (Python)</div>
+              <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
             </div>
             <div class="starter-card" onclick="selectStarter('orbit')">
               <div class="badge-chip">
@@ -3613,45 +3620,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <div class="starter-card-title">3D Solar System & Orbit Lab</div>
               <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('compound')">
+            <div class="starter-card" onclick="selectStarter('grader')">
               <div class="badge-chip">
-                <span class="mini-orb">📊</span>
-                <span>CHART VISUALIZER</span>
+                <span class="mini-orb">🎓</span>
+                <span>FIRST PRINCIPLES</span>
               </div>
-              <div class="starter-card-title">Compound Wealth Calculator</div>
-              <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
-            </div>
-            <div class="starter-card" onclick="selectStarter('py_snake')">
-              <div class="badge-chip">
-                <span class="mini-orb">🐍</span>
-                <span>PYTHON WASM</span>
-              </div>
-              <div class="starter-card-title">Classic Nokia Snake (Python)</div>
-              <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
-            </div>
-            <div class="starter-card" onclick="selectStarter('schrodinger')">
-              <div class="badge-chip">
-                <span class="mini-orb">📐</span>
-                <span>RIGOROUS PROOF</span>
-              </div>
-              <div class="starter-card-title">Quantum Wave Mechanics</div>
-              <div class="starter-card-desc">Step-by-step first-principles KaTeX derivation of the Time-Dependent Schrödinger Wave Equation.</div>
-            </div>
-            <div class="starter-card" onclick="selectStarter('python')">
-              <div class="badge-chip">
-                <span class="mini-orb">⚡</span>
-                <span>LOCAL SDK BRIDGE</span>
-              </div>
-              <div class="starter-card-title">OpenAI SDK Port 9610</div>
-              <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
-            </div>
-            <div class="starter-card" onclick="selectStarter('golang')">
-              <div class="badge-chip">
-                <span class="mini-orb">⚙️</span>
-                <span>GO ARCHITECTURE</span>
-              </div>
-              <div class="starter-card-title">Zero-Allocation Microservice</div>
-              <div class="starter-card-desc">Production-grade concurrent server architecture with graceful shutdown and resilience.</div>
+              <div class="starter-card-title">Explain to a 5th Grader</div>
+              <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
             </div>
           </div>
         </div>
@@ -6310,14 +6285,6 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="selectStarter('grader')">
-          <div class="badge-chip">
-            <span class="mini-orb">🎓</span>
-            <span>FIRST PRINCIPLES</span>
-          </div>
-          <div class="starter-card-title">Explain to a 5th Grader</div>
-          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
-        </div>
         <div class="starter-card" onclick="selectStarter('snake')">
           <div class="badge-chip">
             <span class="mini-orb">🎮</span>
@@ -6325,6 +6292,14 @@ function renderMessages() {
           </div>
           <div class="starter-card-title">2D Cyberpunk Snake Game</div>
           <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
+        </div>
+        <div class="starter-card" onclick="selectStarter('py_snake')">
+          <div class="badge-chip">
+            <span class="mini-orb">🐍</span>
+            <span>PYTHON WASM SANDBOX</span>
+          </div>
+          <div class="starter-card-title">Classic Nokia Snake (Python)</div>
+          <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
         </div>
         <div class="starter-card" onclick="selectStarter('orbit')">
           <div class="badge-chip">
@@ -6334,45 +6309,13 @@ function renderMessages() {
           <div class="starter-card-title">3D Solar System & Orbit Lab</div>
           <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('compound')">
+        <div class="starter-card" onclick="selectStarter('grader')">
           <div class="badge-chip">
-            <span class="mini-orb">📊</span>
-            <span>CHART VISUALIZER</span>
+            <span class="mini-orb">🎓</span>
+            <span>FIRST PRINCIPLES</span>
           </div>
-          <div class="starter-card-title">Compound Wealth Calculator</div>
-          <div class="starter-card-desc">Dynamic financial growth calculator with interactive sliders and Chart.js stacked graphs.</div>
-        </div>
-        <div class="starter-card" onclick="selectStarter('py_snake')">
-          <div class="badge-chip">
-            <span class="mini-orb">🐍</span>
-            <span>PYTHON WASM</span>
-          </div>
-          <div class="starter-card-title">Classic Nokia Snake (Python)</div>
-          <div class="starter-card-desc">Playable retro Nokia Snake in pure Python running client-side inside the in-memory WASM sandbox.</div>
-        </div>
-        <div class="starter-card" onclick="selectStarter('schrodinger')">
-          <div class="badge-chip">
-            <span class="mini-orb">📐</span>
-            <span>RIGOROUS PROOF</span>
-          </div>
-          <div class="starter-card-title">Quantum Wave Mechanics</div>
-          <div class="starter-card-desc">Step-by-step first-principles KaTeX derivation of the Time-Dependent Schrödinger Wave Equation.</div>
-        </div>
-        <div class="starter-card" onclick="selectStarter('python')">
-          <div class="badge-chip">
-            <span class="mini-orb">⚡</span>
-            <span>LOCAL SDK BRIDGE</span>
-          </div>
-          <div class="starter-card-title">OpenAI SDK Port 9610</div>
-          <div class="starter-card-desc">Drop-in Python client pointing to local BOB gateway for real-time reasoning streaming.</div>
-        </div>
-        <div class="starter-card" onclick="selectStarter('golang')">
-          <div class="badge-chip">
-            <span class="mini-orb">⚙️</span>
-            <span>GO ARCHITECTURE</span>
-          </div>
-          <div class="starter-card-title">Zero-Allocation Microservice</div>
-          <div class="starter-card-desc">Production-grade concurrent server architecture with graceful shutdown and resilience.</div>
+          <div class="starter-card-title">Explain to a 5th Grader</div>
+          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
         </div>
       </div>
     `;
