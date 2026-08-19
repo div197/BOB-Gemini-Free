@@ -28,6 +28,14 @@ func TestDiagnosticsRunner(t *testing.T) {
 	})
 
 	mux.HandleFunc("POST /v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+		var reqBody map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&reqBody)
+		if isStream, _ := reqBody["stream"].(bool); isStream {
+			w.Header().Set("Content-Type", "text/event-stream")
+			w.WriteHeader(http.StatusOK)
+			_, _ = w.Write([]byte("data: {\"choices\":[{\"delta\":{\"content\":\"1, 2\"}}]}\n\ndata: [DONE]\n\n"))
+			return
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"choices": []map[string]any{
 				{

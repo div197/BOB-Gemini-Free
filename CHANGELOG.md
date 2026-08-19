@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.4] - 2026-08-19
+
+### Zero-Download Cloudflare Pages Web Studio, BOB Builder Default & Stream Completion Engine
+
+#### Added
+- **Zero-Download Cloudflare Pages Serverless Edge Studio**: Deployed native Cloudflare Pages Edge Functions (`/functions/v1/chat/completions.js`, `/functions/v1/models.js`, `/functions/health.js`) executing serverless Web RPC streaming directly in V8 isolates without requiring local binary downloads.
+- **BOB Builder Default Theme**: Established high-contrast **BOB Builder** dark developer theme as the primary default across all browsers and devices.
+- **Direct GitHub Navbar Integration**: Added top navbar GitHub repository link and icon pill directly in `playground.html` and `web/index.html` for 1-click open-source repository exploration.
+- **Public GitHub Raw Install Snippets**: Standardized 1-click terminal setup commands to point directly to raw public GitHub repository URLs (`curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash`).
+
+#### Fixed
+- **Clean HTTP/2 Stream Conclusion**: Engineered Google RPC batch end-marker detection (`["e", ...]` and `["di", ...]`) with explicit upstream `reader.cancel()` and downstream `writer.close()`, eliminating stream hanging and HTTP/2 stream errors.
+- **Mobile Privacy & Security Standardization**: Removed background localhost probes from public HTTPS domains to eliminate Private Network Access (PNA) permission dialogs on mobile Chrome/Android and Apple Safari.
+- **Instant Token & Word Telemetry Badge**: Resolved stream conclusion lifecycle in `playground.html` so word/token counts and the `SEND ➤` button reset immediately upon generation completion.
+
+---
+
 ## [0.1.3] - 2026-08-19
 
 ### Port 9610 Architecture, PSIDTS Session Harvester, Multimodal SDK & Real-Time Test Streaming

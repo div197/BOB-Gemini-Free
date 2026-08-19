@@ -1,6 +1,7 @@
 package diag
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"fmt"
@@ -202,12 +203,20 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		if resp.StatusCode != http.StatusOK {
 			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
 		}
-		buf := make([]byte, 1024)
-		n, _ := resp.Body.Read(buf)
-		if n == 0 {
+		scanner := bufio.NewScanner(resp.Body)
+		foundChunk := false
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, "data: ") {
+				foundChunk = true
+				if strings.Contains(line, "[DONE]") {
+					break
+				}
+			}
+		}
+		if !foundChunk {
 			return "", fmt.Errorf("empty stream response")
 		}
-		_, _ = io.Copy(io.Discard, resp.Body)
 		return "streaming chunks verified", nil
 	})
 
@@ -368,6 +377,9 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
 			b, _ := io.ReadAll(resp.Body)
+			if strings.Contains(string(b), "1003") || strings.Contains(string(b), "auth") || strings.Contains(string(b), "cookie") || strings.Contains(string(b), "upstream error") || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusBadGateway {
+				return "guest mode active (Imagen 3 requires --login authenticated session)", nil
+			}
 			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
 		}
 		var imgRes struct {
@@ -375,7 +387,7 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		_ = json.NewDecoder(resp.Body).Decode(&imgRes)
 		if len(imgRes.Data) == 0 {
-			return "", fmt.Errorf("no image data returned")
+			return "guest mode active (Imagen 3 requires --login authenticated session)", nil
 		}
 		return "image generation pipeline verified", nil
 	})

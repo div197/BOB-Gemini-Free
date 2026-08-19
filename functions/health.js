@@ -6,7 +6,7 @@
 export async function onRequestGet() {
   return new Response(JSON.stringify({
     status: "ok",
-    version: "v0.1.3",
+    version: "v0.1.4",
     engine: "cloudflare-pages-edge",
     uptime_sec: 999999,
     requests_served: 100,
