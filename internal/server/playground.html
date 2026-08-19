@@ -2409,7 +2409,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
   /* Spacious Studio Input Capsule on Mobile */
   .studio-input-area {
-    padding: 6px 10px max(8px, env(safe-area-inset-bottom)) 10px;
+    padding: 6px 10px max(6px, env(safe-area-inset-bottom)) 10px;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     width: 100%;
     max-width: 100%;
@@ -2418,6 +2418,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   .studio-input-container {
     width: 100%;
     max-width: 100%;
+    gap: 4px;
   }
   .studio-input-capsule {
     border-radius: 12px;
@@ -2476,16 +2477,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   }
   .input-footer {
     justify-content: center;
-    padding-top: 2px;
+    padding: 2px 0 0 0;
+    margin: 0;
   }
   .footer-badges {
     justify-content: center;
     flex-wrap: wrap;
     gap: 4px;
+    margin: 0;
   }
   .footer-action-btn {
-    font-size: 0.64rem;
-    padding: 3px 8px;
+    font-size: 0.65rem;
+    padding: 2px 8px;
+    line-height: 1.2;
     touch-action: manipulation;
   }
   .sidebar-panel,
