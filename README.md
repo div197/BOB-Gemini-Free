@@ -237,13 +237,13 @@ Access the built-in, zero-dependency, temple-grade visual studio directly in you
 * 📊 **Live On-Device Telemetry & Savings**: Real-time ticker tracking uptime, requests served, token throughput, and estimated USD financial savings.
 
 <p align="center">
-  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard — Apple Design Default" width="100%">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard — BOB Builder Theme Default" width="100%">
 </p>
 
 | Theme | Aesthetic Philosophy | Keybinding | Direct URL Preview |
 | :--- | :--- | :---: | :--- |
-| 🍏 **Apple Design** *(Default)* | SF Pro typography, frosted glass, parchment cards & Action Blue | `T5` | [View Snapshot](assets/theme-apple.png) • `/playground?theme=apple` |
-| 🏗️ **BOB Builder** | Industrial high-contrast dark slate & energetic builder amber | `T1` | [View Snapshot](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
+| 🏗️ **BOB Builder** *(Default)* | Industrial high-contrast dark slate & energetic builder amber | `T1` | [View Snapshot](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
+| 🍏 **Apple Design** | SF Pro typography, frosted glass, parchment cards & Action Blue | `T5` | [View Snapshot](assets/theme-apple.png) • `/playground?theme=apple` |
 | 📰 **Vodafone Editorial** | Clean light editorial paper, serif typography & crisp crimson | `T2` | [View Snapshot](assets/theme-vodafone.png) • `/playground?theme=vodafone` |
 | 🎧 **Spotify Dark** | Pure AMOLED obsidian deep pitch & electric emerald green | `T3` | [View Snapshot](assets/theme-spotify.png) • `/playground?theme=spotify` |
 | ⚛️ **Gemini Quantum** | Cyber deep indigo canvas & luminescent cyan neon glow | `T4` | [View Snapshot](assets/theme-quantum.png) • `/playground?theme=quantum` |

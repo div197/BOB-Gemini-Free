@@ -196,13 +196,13 @@ chmod +x install.sh
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
 
 <p align="center">
-  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — Apple Design Default" width="100%">
+  <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — BOB Builder Theme Default" width="100%">
 </p>
 
 | थीम | डिज़ाइन सौंदर्यशास्त्र | शॉर्टकट | डायरेक्ट URL प्रिव्यू |
 | :--- | :--- | :---: | :--- |
-| 🍏 **Apple Design** *(डिफ़ॉल्ट)* | SF Pro टाइपोग्राफी, फ्रॉस्टेड ग्लास, पार्चमेंट कार्ड्स व एक्शन ब्लू | `T5` | [स्क्रीनशॉट देखें](assets/theme-apple.png) • `/playground?theme=apple` |
-| 🏗️ **BOB Builder** | औद्योगिक हाई-कॉन्ट्रास्ट डार्क स्लेट व ऊर्जावान अंबर | `T1` | [स्क्रीनशॉट देखें](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
+| 🏗️ **BOB Builder** *(डिफ़ॉल्ट)* | औद्योगिक हाई-कॉन्ट्रास्ट डार्क स्लेट व ऊर्जावान अंबर | `T1` | [स्क्रीनशॉट देखें](assets/theme-bob-builder.png) • `/playground?theme=bob-builder` |
+| 🍏 **Apple Design** | SF Pro टाइपोग्राफी, फ्रॉस्टेड ग्लास, पार्चमेंट कार्ड्स व एक्शन ब्लू | `T5` | [स्क्रीनशॉट देखें](assets/theme-apple.png) • `/playground?theme=apple` |
 | 📰 **Vodafone Editorial** | स्वच्छ लाइट एडिटोरियल paper, serif typography व crimson | `T2` | [स्क्रीनशॉट देखें](assets/theme-vodafone.png) • `/playground?theme=vodafone` |
 | 🎧 **Spotify Dark** | शुद्ध AMOLED obsidian deep dark व emerald हरा | `T3` | [स्क्रीनशॉट देखें](assets/theme-spotify.png) • `/playground?theme=spotify` |
 | ⚛️ **Gemini Quantum** | साइबर deep indigo canvas व luminescent cyan glow | `T4` | [स्क्रीनशॉट देखें](assets/theme-quantum.png) • `/playground?theme=quantum` |
