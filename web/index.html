@@ -1069,6 +1069,7 @@ input[type="range"] {
   Spacious Sacred Geometry Studio Input Dock
   Vision Multimodal Upload & Attachment Previews
 */
+/* Sacred Geometry Studio Input Capsule (Unified ChatGPT/Claude/Linear Architecture) */
 .studio-input-area {
   position: absolute;
   bottom: 0;
@@ -1076,7 +1077,7 @@ input[type="range"] {
   right: 0;
   background: var(--bg-workspace);
   border-top: 1px solid var(--border-color);
-  padding: 10px 18px 10px 18px;
+  padding: 10px 18px max(10px, env(safe-area-inset-bottom)) 18px;
   display: flex;
   justify-content: center;
   box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.12);
@@ -1091,7 +1092,7 @@ input[type="range"] {
   position: relative;
 }
 
-/* Image Attachment Staging Pill */
+/* Image Attachment Staging Pill inside Capsule */
 .attachment-preview-bar {
   display: none;
   align-items: center;
@@ -1100,6 +1101,7 @@ input[type="range"] {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 6px;
+  margin-bottom: 4px;
 }
 .attachment-preview-bar.active { display: inline-flex; }
 .attachment-thumb {
@@ -1128,92 +1130,38 @@ input[type="range"] {
 }
 .btn-remove-attachment:hover { color: #ef4444; }
 
-.input-row {
-  display: flex;
-  align-items: flex-end;
-  gap: 8px;
+/* The Unified Input Capsule */
+.studio-input-capsule {
   width: 100%;
-}
-.input-actions-bar {
-  display: contents;
-}
-.input-tools-left {
-  order: 1;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-.input-box-wrap {
-  order: 2;
-  flex: 1;
-  display: flex;
-  min-width: 0;
-}
-.btn-pill-cta {
-  order: 3;
-}
-.btn-attachment-pill {
-  background: var(--bg-card);
-  color: var(--text-muted);
+  background: var(--bg-input);
   border: 1px solid var(--border-color);
-  width: 44px;
-  height: 44px;
-  border-radius: 8px;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.1rem;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
+  border-radius: 14px;
+  padding: 10px 12px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  box-sizing: border-box;
 }
-.btn-attachment-pill:hover {
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-}
-.btn-translit-pill {
-  font-weight: 800;
-  font-size: 1rem;
-  font-family: inherit;
-  user-select: none;
-}
-.btn-translit-pill.active {
-  background: var(--bg-card-hover);
-  border-color: var(--accent-primary);
-  color: var(--accent-primary);
-  box-shadow: 0 0 12px var(--border-glow);
-}
-.btn-mic-pill {
-  font-size: 1.05rem;
-  user-select: none;
-}
-.btn-mic-pill.recording {
-  background: rgba(239, 68, 68, 0.2) !important;
-  border-color: #ef4444 !important;
-  color: #ef4444 !important;
-  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
-  animation: pulse-mic 1.2s infinite ease-in-out;
-}
-@keyframes pulse-mic {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.08); }
-  100% { transform: scale(1); }
+.studio-input-capsule:focus-within {
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 1px var(--border-focus), 0 0 16px var(--border-glow);
 }
 
 #user-input {
-  flex: 1;
-  min-height: 44px;
-  max-height: 200px;
+  width: 100%;
+  min-height: 24px;
+  max-height: 180px;
   resize: none;
   line-height: 1.45;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.92rem;
-  background: var(--bg-input);
-  border: 1px solid var(--border-color);
-  outline: none;
+  padding: 2px 4px;
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  box-shadow: none !important;
   font-family: inherit;
+  font-size: 0.92rem;
   color: var(--text-main);
   font-weight: 500;
   overflow-x: hidden !important;
@@ -1223,16 +1171,11 @@ input[type="range"] {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
   box-sizing: border-box;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 #user-input::-webkit-scrollbar {
   display: none !important;
   width: 0px !important;
   height: 0px !important;
-}
-#user-input:focus {
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 1px var(--border-focus);
 }
 #user-input::placeholder {
   color: var(--text-subdued);
@@ -1241,23 +1184,99 @@ input[type="range"] {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+.capsule-bottom-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding-top: 2px;
+}
+.capsule-tools-left {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.capsule-tool-btn {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid transparent;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95rem;
+  transition: all 0.15s ease;
+  touch-action: manipulation;
+}
+.capsule-tool-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-main);
+  border-color: var(--border-color);
+}
+.capsule-tool-btn.active {
+  background: var(--bg-card-hover);
+  border-color: var(--accent-primary);
+  color: var(--accent-primary);
+  box-shadow: 0 0 8px var(--border-glow);
+}
+.capsule-tool-btn.recording {
+  background: rgba(239, 68, 68, 0.2) !important;
+  border-color: #ef4444 !important;
+  color: #ef4444 !important;
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.5) !important;
+  animation: pulse-mic 1.2s infinite ease-in-out;
+}
+.btn-translit-pill {
+  font-weight: 800;
+  font-size: 0.92rem;
+  font-family: inherit;
+  user-select: none;
+}
+.btn-mic-pill {
+  font-size: 0.95rem;
+  user-select: none;
+}
+.btn-wand-pill {
+  font-size: 0.95rem;
+  user-select: none;
+}
+.capsule-tools-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
 .btn-pill-cta {
   background: var(--accent-primary);
   color: var(--accent-primary-text);
   border: none;
   font-weight: 800;
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   text-transform: uppercase;
-  letter-spacing: 0.6px;
-  padding: 0 22px;
-  height: 44px;
+  letter-spacing: 0.5px;
+  padding: 0 16px;
+  height: 32px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
+  gap: 4px;
   transition: all 0.15s ease;
+  box-shadow: var(--shadow-cta);
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+.btn-pill-cta:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+.btn-pill-cta:active {
+  transform: translateY(0);
+}
   box-shadow: var(--shadow-cta);
   flex-shrink: 0;
 }
@@ -2377,13 +2396,20 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     margin-bottom: 8px;
     padding-bottom: 6px;
   }
-  .story-meta-stats {
-    display: none;
+  /* Clean Minimal Sub-Bar on Mobile (No Cryptic Duplicate Icons) */
+  .sub-desktop-only {
+    display: none !important;
+  }
+  .sub-clear-text {
+    display: inline-block !important;
+  }
+  .btn-clear-pill {
+    padding: 3px 10px !important;
   }
 
-  /* Spacious Studio Input Dock */
+  /* Spacious Studio Input Capsule on Mobile */
   .studio-input-area {
-    padding: 6px 8px max(8px, env(safe-area-inset-bottom)) 8px;
+    padding: 6px 10px max(8px, env(safe-area-inset-bottom)) 10px;
     box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.15);
     width: 100%;
     max-width: 100%;
@@ -2393,61 +2419,48 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     width: 100%;
     max-width: 100%;
   }
-  .input-row {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    width: 100%;
-    max-width: 100%;
+  .studio-input-capsule {
+    border-radius: 12px;
+    padding: 8px 10px 6px 10px;
+    gap: 4px;
   }
-  .input-box-wrap {
-    order: 1;
-    width: 100%;
-    display: flex;
-  }
+  /* Prevent iOS Safari 16px Auto-Zoom */
   #user-input {
-    width: 100% !important;
-    min-width: 100% !important;
-    max-width: 100% !important;
-    min-height: 42px;
-    max-height: 140px;
     font-size: 16px !important;
-    line-height: 20px;
-    padding: 10px 12px;
-    border-radius: 10px;
-    box-sizing: border-box;
+    line-height: 1.4;
+    padding: 2px 2px;
+    min-height: 24px;
+    max-height: 120px;
   }
-  .input-actions-bar {
-    order: 2;
-    display: flex !important;
+  .capsule-bottom-bar {
+    display: flex;
     justify-content: space-between;
     align-items: center;
     width: 100%;
+    padding-top: 2px;
   }
-  .input-tools-left {
+  .capsule-tools-left {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     align-items: center;
   }
-  .btn-attachment-pill {
-    width: 36px !important;
-    height: 36px !important;
-    min-width: 36px !important;
+  .capsule-tool-btn {
+    width: 32px !important;
+    height: 32px !important;
     font-size: 0.95rem !important;
-    border-radius: 8px !important;
-    padding: 0 !important;
+    border-radius: 6px !important;
     touch-action: manipulation;
-    flex-shrink: 0;
+  }
+  .capsule-tools-right {
+    display: flex;
+    align-items: center;
   }
   .btn-pill-cta {
-    order: 2;
-    padding: 0 16px !important;
-    min-width: 60px !important;
-    height: 36px !important;
-    font-size: 0.78rem !important;
+    height: 32px !important;
+    padding: 0 14px !important;
+    font-size: 0.76rem !important;
     border-radius: 8px !important;
     touch-action: manipulation;
-    flex-shrink: 0;
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
@@ -2458,7 +2471,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   }
   #send-btn-icon {
     display: inline-block !important;
-    font-size: 0.8rem !important;
+    font-size: 0.75rem !important;
     margin: 0 !important;
   }
   .input-footer {
@@ -3736,13 +3749,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
       </div>
       <div class="sub-bar-actions">
-        <button class="btn-pill-subtle" id="btn-reading-zoom" onclick="cycleReadingZoom()" title="Reading Text Zoom (⌘+ / ⌘-) — Click to toggle text size">
+        <button class="btn-pill-subtle sub-desktop-only" id="btn-reading-zoom" onclick="cycleReadingZoom()" title="Reading Text Zoom (⌘+ / ⌘-) — Click to toggle text size">
           <span>🔍</span> <span class="sub-btn-text" id="zoom-level-label">100%</span>
         </button>
-        <button class="btn-pill-subtle" onclick="copyFullTranscript()" title="Copy entire chat transcript">
+        <button class="btn-pill-subtle sub-desktop-only" onclick="copyFullTranscript()" title="Copy entire chat transcript">
           <span>📋</span> <span class="sub-btn-text">Copy</span>
         </button>
-        <button class="btn-pill-subtle" onclick="exportMarkdown()" title="Download conversation as Markdown">
+        <button class="btn-pill-subtle sub-desktop-only" onclick="exportMarkdown()" title="Download conversation as Markdown">
           <span>💾</span> <span class="sub-btn-text">Export</span>
         </button>
         <button class="btn-pill-subtle btn-clear-pill" onclick="clearChat()" title="Reset conversation">
@@ -3827,31 +3840,35 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     <!-- Sacred Geometry Studio Input Dock with Multimodal Vision Engine -->
     <div class="studio-input-area">
       <div class="studio-input-container">
-        <!-- Staged Image or Document Attachment Chip -->
-        <div class="attachment-preview-bar" id="attachment-preview">
-          <img class="attachment-thumb" id="attachment-img" src="" alt="Attached image" style="display:none;">
-          <span id="attachment-doc-icon" style="font-size:1.1rem; display:none;">📄</span>
-          <span class="attachment-name" id="attachment-name">attachment</span>
-          <button class="btn-remove-attachment" onclick="removeAttachedAttachment()" title="Remove attachment">✕</button>
+        <div class="studio-input-capsule">
+          <!-- Staged Image or Document Attachment Chip -->
+          <div class="attachment-preview-bar" id="attachment-preview">
+            <img class="attachment-thumb" id="attachment-img" src="" alt="Attached image" style="display:none;">
+            <span id="attachment-doc-icon" style="font-size:1.1rem; display:none;">📄</span>
+            <span class="attachment-name" id="attachment-name">attachment</span>
+            <button class="btn-remove-attachment" onclick="removeAttachedAttachment()" title="Remove attachment">✕</button>
+          </div>
+
+          <!-- Integrated Textarea -->
+          <textarea id="user-input" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
+
+          <!-- Integrated Action Dock inside the capsule -->
+          <div class="capsule-bottom-bar">
+            <div class="capsule-tools-left">
+              <button class="capsule-tool-btn" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
+              <button class="capsule-tool-btn btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
+              <button class="capsule-tool-btn btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
+              <button class="capsule-tool-btn btn-wand-pill" id="btn-wand" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
+            </div>
+            <div class="capsule-tools-right">
+              <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
+                <span id="send-btn-label">Send</span>
+                <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div class="input-row">
-          <div class="input-box-wrap">
-            <textarea id="user-input" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
-          </div>
-          <div class="input-actions-bar">
-            <div class="input-tools-left">
-              <button class="btn-attachment-pill" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
-              <button class="btn-attachment-pill btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
-              <button class="btn-attachment-pill btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
-              <button class="btn-attachment-pill btn-wand-pill" id="btn-wand" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with structured specifications">🪄</button>
-            </div>
-            <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
-              <span id="send-btn-label">Send</span>
-              <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
-            </button>
-          </div>
-        </div>
         <div class="input-footer">
           <div class="footer-badges">
             <button class="footer-action-btn footer-desktop-only" type="button" onclick="insertNewline()" title="Insert line break into prompt">
@@ -4780,8 +4797,8 @@ function autoResize(el) {
   el.style.height = 'auto';
   el.style.overflowX = 'hidden';
   const isMobile = window.innerWidth <= 640;
-  const minH = isMobile ? 40 : 44;
-  const maxH = isMobile ? 130 : 200;
+  const minH = 24;
+  const maxH = isMobile ? 120 : 180;
   const scrollH = el.scrollHeight;
   if (scrollH > maxH) {
     el.style.height = maxH + 'px';
