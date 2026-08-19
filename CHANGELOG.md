@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.3] - 2026-08-19
+
+### Port 9610 Architecture, PSIDTS Session Harvester, Multimodal SDK & Real-Time Test Streaming
+
+#### Added
+- **Default Port Migration to 9610**: Moved default listening interface to `http://127.0.0.1:9610` across all binaries, scripts, Docker configurations, and documentation to eliminate port conflicts with common web frameworks.
+- **Strict `__Secure-1PSIDTS` Session Token Capture (`--login`)**: Enhanced the 1-click CDP browser harvester (`captureCookies`) to verify and await the rolling `__Secure-1PSIDTS` timestamp token, permanently unlocking Google Scotty multimodal uploads and Vision analysis without `BardErrorInfo [1003]`.
+- **Real-Time Event-Driven Diagnostic Streaming (`diag.RunDiagnosticsWithProgress`)**: Enhanced `./bob-gemini-free --test` to emit pass/fail results for each of the 13 diagnostic checks in real time as they finish, with connection body draining to prevent socket exhaustion.
+- **Embedded Go Multimodal Methods (`pkg/gateway`)**: Added `GenerateWithMedia` and `GenerateStreamWithMedia` methods on `*gateway.Engine` allowing in-process Go programs to execute multimodal inference with image attachments.
+- **Client-Side Document & PDF Ingestion in Playground**: Added client-side file reading in `playground.html` for text files, source code (`.py`, `.js`, `.go`, `.html`, `.css`), markdown, and PDFs directly into the prompt context for 100% Guest Mode access.
+- **First-Principles ELI5 Reasoning & Mermaid Visual Guidelines**: Configured Starter Cards and Command Palette (`⌘K` $\rightarrow$ `P1`) to instruct models to emit standard Mermaid vector diagrams (` ```mermaid ... ``` `) and ASCII schematics for structural visualization instead of hallucinated markdown image tags.
+- **5-Theme High-Fidelity Showcase Asset Generation**: Captured real-time screenshots of the Apple Light, BOB Builder Orange, Vodafone Red, Spotify Dark, and Quantum Neon themes on port 9610 and compiled them into the master collage in `assets/bob-gemini-free-playground.png`.
+
+---
+
 ## [0.1.2] - 2026-08-18
 
 ### Real-Time Thinking Stream Splitter, Anthropic Multi-Block Lifecycle & SDK Engine Parity

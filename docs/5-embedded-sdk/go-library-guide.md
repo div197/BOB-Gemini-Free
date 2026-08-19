@@ -104,6 +104,14 @@ func main() {
 	if err != nil {
 		log.Fatalf("Stream error: %v", err)
 	}
+
+	// 3. Multimodal vision with image attachments directly in Go
+	imageRefs := []string{"/test/remy/skills/dropzone/diagram.png"}
+	analysis, err := engine.GenerateWithMedia(ctx, "Analyze this architecture diagram.", "gemini-3.7-flash", imageRefs)
+	if err != nil {
+		log.Fatalf("Vision error: %v", err)
+	}
+	fmt.Println("\nVision Analysis:\n", analysis)
 }
 ```
 
