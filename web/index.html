@@ -7,7 +7,7 @@
 <html lang="en" data-theme="bob-builder">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
 <meta name="generator" content="BOB Gemini Free by ABCsteps">
 <meta name="theme-color" content="#030712">
@@ -371,8 +371,10 @@ body {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
   transition: background 0.25s ease, color 0.25s ease;
 }
 
@@ -1880,11 +1882,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
 @media (max-width: 640px) {
   header {
-    padding: 6px 10px;
+    padding-top: max(6px, env(safe-area-inset-top));
+    padding-left: max(8px, env(safe-area-inset-left));
+    padding-right: max(8px, env(safe-area-inset-right));
+    padding-bottom: 6px;
     min-height: 44px;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
   }
+  header::-webkit-scrollbar { display: none; }
+  
   .brand-title {
-    font-size: 0.98rem;
+    font-size: 0.95rem;
   }
   .brand-sep {
     display: inline-block;
@@ -1897,24 +1907,33 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   }
   .header-controls {
     gap: 4px;
+    flex-shrink: 0;
   }
   .nav-pill-btn {
     padding: 0 8px;
     font-size: 0.75rem;
-    height: 28px;
+    height: 30px;
+    touch-action: manipulation;
   }
   .theme-selector {
     padding: 0 6px;
-    font-size: 0.68rem;
-    height: 28px;
-    max-width: 100px;
+    font-size: 0.7rem;
+    height: 30px;
+    max-width: 105px;
+    touch-action: manipulation;
   }
   .sub-bar {
     padding: 6px 10px;
     gap: 6px;
   }
   .messages-scroll {
-    padding: 12px 10px 170px 10px;
+    padding: 10px 10px calc(140px + env(safe-area-inset-bottom)) 10px;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+  .story-card {
+    padding: 16px 14px;
+    border-radius: 12px;
   }
   .story-card-header {
     flex-wrap: wrap;
@@ -1924,8 +1943,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     display: none;
   }
   .hero-title-band {
-    padding: 16px 16px;
+    padding: 16px 14px;
     margin-bottom: 10px;
+    border-radius: 12px;
   }
   .hero-headline {
     font-size: 1.25rem;
@@ -1940,19 +1960,31 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   }
   .starter-card {
     padding: 12px 14px;
+    border-radius: 10px;
+    touch-action: manipulation;
+  }
+  .studio-input-area {
+    padding: 8px 10px max(8px, env(safe-area-inset-bottom)) 10px;
   }
   .input-row {
     gap: 6px;
+  }
+  /* Prevent iOS Safari 16px Auto-Zoom */
+  #user-input {
+    font-size: 16px !important;
+    line-height: 1.4;
   }
   .btn-attachment-pill {
     width: 38px;
     height: 38px;
     font-size: 0.95rem;
+    touch-action: manipulation;
   }
   .btn-pill-cta {
     padding: 0 16px;
     height: 38px;
-    font-size: 0.75rem;
+    font-size: 0.78rem;
+    touch-action: manipulation;
   }
   .input-footer {
     justify-content: center;
@@ -1963,17 +1995,23 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     gap: 4px;
   }
   .footer-action-btn {
-    font-size: 0.62rem;
-    padding: 2px 6px;
+    font-size: 0.64rem;
+    padding: 3px 8px;
+    touch-action: manipulation;
   }
   .sidebar-panel {
-    width: 86vw;
-    min-width: 86vw;
-    max-width: 86vw;
+    width: 88vw;
+    min-width: 88vw;
+    max-width: 88vw;
+    padding-top: max(14px, env(safe-area-inset-top));
+    padding-bottom: max(14px, env(safe-area-inset-bottom));
   }
   .about-dialog-box {
-    padding: 20px;
+    padding: 18px;
     gap: 12px;
+    max-height: 90vh;
+    max-height: 90dvh;
+    overflow-y: auto;
   }
 }
 </style>
