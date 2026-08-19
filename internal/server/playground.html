@@ -7133,23 +7133,40 @@ async function sendMessage() {
     const decoder = new TextDecoder("utf-8");
     let partial = "";
     let streamDone = false;
-    let rafId = 0;
+    let pendingRender = false;
+    let lastRenderTime = 0;
+    let fallbackTimer = 0;
+
+    function doRender() {
+      pendingRender = false;
+      if (fallbackTimer) {
+        clearTimeout(fallbackTimer);
+        fallbackTimer = 0;
+      }
+      lastRenderTime = performance.now();
+      if (thoughtFullText) {
+        thoughtBox.classList.add("active");
+        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+      }
+      if (asstFullText) {
+        contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
+      }
+      if (userIsAtBottom) {
+        msgListEl.scrollTop = msgListEl.scrollHeight;
+      }
+    }
 
     function scheduleSmoothRenderTracked() {
-      if (rafId) return;
-      rafId = requestAnimationFrame(() => {
-        rafId = 0;
-        if (thoughtFullText) {
-          thoughtBox.classList.add("active");
-          thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
-        }
-        if (asstFullText) {
-          contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
-        }
-        if (userIsAtBottom) {
-          msgListEl.scrollTop = msgListEl.scrollHeight;
-        }
-      });
+      if (pendingRender) return;
+      pendingRender = true;
+      const elapsed = performance.now() - lastRenderTime;
+      // Throttle heavy marked/DOMPurify execution to ~15fps (66ms) during active streaming.
+      // This prevents UI thread lockups and severe battery drain on huge 20k token responses.
+      if (elapsed > 66) {
+        requestAnimationFrame(doRender);
+      } else {
+        fallbackTimer = setTimeout(() => requestAnimationFrame(doRender), 66 - elapsed);
+      }
     }
 
     function processSSELines(buffer) {
@@ -7194,8 +7211,9 @@ async function sendMessage() {
       processSSELines(partial + "\n");
     }
 
-    // Cancel any pending RAF and do a synchronous final render
-    if (rafId) { cancelAnimationFrame(rafId); rafId = 0; }
+    // Clear throttles and do a synchronous final render
+    if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = 0; }
+    pendingRender = false;
 
     if (thoughtFullText) {
       thoughtBox.classList.add("active");

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"sync"
 	"sync/atomic"
 	"time"
 
@@ -22,6 +23,7 @@ type App struct {
 	RequestsServed  atomic.Uint64
 	TokensProcessed atomic.Uint64
 	StartTime       time.Time
+	ImageCache      sync.Map // Caches SHA256 -> Scotty FileRef to prevent redundant uploads in long multi-turn vision chats
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {

@@ -2,6 +2,8 @@ package server
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"sync"
 	"net/http"
@@ -123,12 +125,21 @@ func (a *App) uploadImages(images []format.Image) []string {
 			continue
 		}
 
+		// Fast path: Check image cache to avoid redundant uploads to Scotty
+		hashBytes := sha256.Sum256(data)
+		hashStr := hex.EncodeToString(hashBytes[:])
+		if cachedRef, ok := a.ImageCache.Load(hashStr); ok {
+			fileRefs = append(fileRefs, cachedRef.(string))
+			continue
+		}
+
 		ref, err := multimodal.UploadImage(requester, tokens, data, img.MIME, a.Gem.Cookies, a.Cfg.AuthUser)
 		if err != nil {
 			a.Logf("Image upload failed: %v", err)
 			continue
 		}
 		if ref != "" {
+			a.ImageCache.Store(hashStr, ref)
 			fileRefs = append(fileRefs, ref)
 		}
 	}
