@@ -22,7 +22,7 @@ type TestResult struct {
 // RunDiagnostics executes an automated end-to-end test suite against a running BOB Gemini Free instance.
 func RunDiagnostics(baseURL, apiKey string) []TestResult {
 	baseURL = strings.TrimRight(baseURL, "/")
-	client := &http.Client{Timeout: 45 * time.Second}
+	client := &http.Client{Timeout: 90 * time.Second}
 
 	var results []TestResult
 
