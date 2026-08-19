@@ -258,6 +258,9 @@ export async function onRequestPost(context) {
           console.error("Stream pump error:", e);
         } finally {
           try {
+            await reader.cancel();
+          } catch (e) {}
+          try {
             await writer.close();
           } catch (e) {}
         }
