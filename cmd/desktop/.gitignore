@@ -1,0 +1,4 @@
+build/bin/
+build/obj/
+frontend/dist/
+frontend/node_modules/

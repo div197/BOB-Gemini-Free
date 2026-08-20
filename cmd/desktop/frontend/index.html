@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>BOB Gemini Free Studio</title>
+    <style>
+        body { margin: 0; padding: 0; background: #0b0f19; color: white; display: flex; align-items: center; justify-content: center; height: 100vh; font-family: -apple-system, sans-serif; }
+        .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+    </style>
+    <script>
+        // Once the Webview loads, wait 500ms for the Go background server to bind, then redirect.
+        setTimeout(() => {
+            window.location.href = "http://127.0.0.1:9610/playground";
+        }, 500);
+    </script>
+</head>
+<body>
+    <div class="loader"></div>
+    <div>Booting Native AI Engine...</div>
+</body>
+</html>
