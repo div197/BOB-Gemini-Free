@@ -1,0 +1,93 @@
+name: Release
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-cli:
+    name: Build CLI Engines
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Build cross-platform CLI binaries
+        run: make dist
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: cli-binaries
+          path: dist/*
+
+  build-desktop-mac:
+    name: Build Wails App (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Build Wails Desktop
+        run: |
+          make web
+          cd cmd/desktop
+          wails build -clean -platform darwin/universal
+          cd build/bin
+          zip -r ../../../bob-gemini-free-macOS.zip "bob-gemini-free-wails.app"
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: bob-gemini-free-macOS.zip
+
+  build-desktop-windows:
+    name: Build Wails App (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Install Wails
+        run: go install github.com/wailsapp/wails/v2/cmd/wails@latest
+      - name: Build Wails Desktop
+        run: |
+          make web
+          cd cmd/desktop
+          wails build -clean -platform windows/amd64
+      - name: Rename and zip
+        run: |
+          mv cmd/desktop/build/bin/bob-gemini-free-wails.exe ./bob-gemini-free-desktop-windows-amd64.exe
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: bob-gemini-free-desktop-windows-amd64.exe
+
+  publish:
+    name: Publish Release
+    needs: [build-cli, build-desktop-mac, build-desktop-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Prepare assets
+        run: |
+          mkdir -p release-assets
+          cp -r artifacts/cli-binaries/* release-assets/
+          cp -r artifacts/desktop-macos/* release-assets/
+          cp -r artifacts/desktop-windows/* release-assets/
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: release-assets/*
+          generate_release_notes: true
