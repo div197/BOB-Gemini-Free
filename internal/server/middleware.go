@@ -110,7 +110,16 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		w.Header().Set("x-ratelimit-remaining-requests", "999")
 		w.Header().Set("x-ratelimit-reset-requests", "1s")
 
-		if len(a.Cfg.APIKeys) > 0 && !authorize(r, a.Cfg.APIKeys) {
+		isPublicRoute := false
+		publicPrefixes := []string{"/playground", "/health", "/favicon.ico", "/manifest.json", "/sw.js", "/icons/", "/v1/update/check"}
+		for _, prefix := range publicPrefixes {
+			if strings.HasPrefix(r.URL.Path, prefix) || r.URL.Path == "/" {
+				isPublicRoute = true
+				break
+			}
+		}
+
+		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys) {
 			writeJSON(lrw, http.StatusUnauthorized, map[string]any{
 				"error": map[string]any{
 					"message": "invalid api key",
