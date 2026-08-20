@@ -7263,9 +7263,13 @@ async function sendMessage() {
 
     while (true) {
       try {
+        let timer;
         const readPromise = reader.read();
-        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Stream timeout')), 15000));
+        const timeoutPromise = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error('Stream timeout')), 15000);
+        });
         const {done, value} = await Promise.race([readPromise, timeoutPromise]);
+        clearTimeout(timer);
         if (done) break;
         partial += decoder.decode(value, {stream: true});
         partial = processSSELines(partial);
