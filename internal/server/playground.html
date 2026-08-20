@@ -7364,7 +7364,24 @@ async function sendMessage() {
         `;
       }
 
-      contentSpan.innerHTML = errorHtml;
+      let errorWrapper = `<div style="padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
+      if (asstFullText.trim() !== "" || thoughtFullText.trim() !== "") {
+        errorWrapper = `<div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
+        contentSpan.innerHTML = renderMarkdown(asstFullText) + errorWrapper;
+        renderAllMath(storyDiv);
+        highlightAllCode(storyDiv);
+        renderAllMermaid(storyDiv);
+        storyDiv.setAttribute('data-raw', asstFullText + `\n\n> ⚠️ **Error**: ${err.message}`);
+        
+        chatHistory.push({
+          role: "assistant", 
+          content: asstFullText + `\n\n> ⚠️ **Stream Interrupted**: ${err.message}`, 
+          thought: thoughtFullText
+        });
+        saveHistory();
+      } else {
+        contentSpan.innerHTML = errorWrapper;
+      }
     }
   } finally {
     isGenerating = false;

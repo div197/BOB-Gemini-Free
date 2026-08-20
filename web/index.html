@@ -1276,7 +1276,6 @@ input[type="range"] {
 }
 .btn-pill-cta:active {
   transform: translateY(0);
-}
   box-shadow: var(--shadow-cta);
   flex-shrink: 0;
 }
@@ -2879,6 +2878,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     background: #fff !important;
     color: #000 !important;
     overflow: visible !important;
+  }
+}
+
 /* Floating Audio Speech Control Bar (Dharmic Glassmorphism) */
 .floating-audio-bar {
   position: absolute;
@@ -5049,6 +5051,68 @@ async function refreshTelemetry() {
     updateGatewayStatusIndicator(false, null);
   }
 }
+// --- LOCAL ENGINE PROBE (POSTMAN MODE) ---
+async function probeLocalEngine() {
+  const isPublicDomain = !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+  if (!isPublicDomain) return; // Already local
+
+  // If user explicitly set a custom gateway, respect it
+  if (localStorage.getItem('bob_gemini_endpoint')) return;
+
+  try {
+    const res = await fetch("http://127.0.0.1:9610/", { method: "GET" });
+    if (res.ok) {
+      // Local engine found! Auto-bind to it.
+      localStorage.setItem('bob_gemini_endpoint', 'http://127.0.0.1:9610');
+      showToast("🚀 Local BOB Engine Detected & Connected!", "✅");
+      refreshTelemetry();
+      return;
+    }
+  } catch (err) {
+    // Local engine offline. Show Postman-like onboarding modal.
+    showLocalOnboardingModal();
+  }
+}
+
+function showLocalOnboardingModal() {
+  const existing = document.getElementById("local-onboard-modal");
+  if (existing) {
+    existing.classList.add("open");
+    return;
+  }
+  
+  const modalHTML = `
+    <div id="local-onboard-modal" class="modal-overlay open" style="z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="max-width: 550px; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.4);">
+        <h2 style="color: var(--accent-primary); display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; margin-top: 0;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Connect Local Engine
+        </h2>
+        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+          You are currently using the public web preview. 
+          For unrestricted access and pure local execution, run the BOB Gemini engine directly on your machine.
+        </p>
+        
+        <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">macOS / Linux Installer</span>
+          <code style="color: #10b981; user-select: all;">curl -sSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</code>
+          <br><br>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the Engine</span>
+          <code style="color: #3b82f6; user-select: all;">./bob-gemini-free --port 9610</code>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+          <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue in Browser</button>
+          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View GitHub</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+// ----------------------------------------
+
+probeLocalEngine();
 setInterval(refreshTelemetry, 2500);
 refreshTelemetry();
 
@@ -6586,7 +6650,7 @@ async function enhanceCurrentPrompt() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6500);
 
-    const res = await fetch("/v1/chat/completions", {
+    const res = await fetch(getGatewayBaseUrl() + "/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -6796,7 +6860,10 @@ const STARTER_PROMPTS = {
   schrodinger: "Derive the Time-Dependent Schrödinger Wave Equation from first principles using de Broglie matter wave relations (E = \\hbar\\omega, p = \\hbar k), the classical energy conservation equation (E = p^2/2m + V), and differential wave operators. Formulate every step with clean, rigorous KaTeX LaTeX mathematical notation, detailing boundary conditions, the physical meaning of the complex probability wave function \\Psi(x,t), and probability conservation. Output clear LaTeX equations.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a complete Python script using the official openai-python SDK configured to stream responses from BOB Gemini Free at http://127.0.0.1:9610/v1 with model gemini-3.7-flash and extract reasoning_content thinking tokens in real-time.",
-  golang: "Write a production-grade, zero-allocation concurrent HTTP reverse proxy microservice in Go (Go 1.22+) using standard library net/http and sync.Pool. Include graceful shutdown on SIGINT/SIGTERM, custom round-tripper with connection pooling, structured slog logging, and health probe endpoints."
+  golang: "Write a production-grade, zero-allocation concurrent HTTP reverse proxy microservice in Go (Go 1.22+) using standard library net/http and sync.Pool. Include graceful shutdown on SIGINT/SIGTERM, custom round-tripper with connection pooling, structured slog logging, and health probe endpoints.",
+  proof: "Provide a rigorous mathematical proof of Euler's Identity (e^{iπ} + 1 = 0) from first principles using Taylor series expansions for e^x, sin(x), and cos(x). Present each derivation step in clean LaTeX notation with precise justifications for analytic continuation into the complex plane.",
+  audit: "Perform a comprehensive Systems Architecture Audit of a distributed microservices platform. Evaluate: (1) Service coupling and bounded context alignment, (2) Data consistency guarantees (eventual vs strong), (3) Failure isolation and circuit breaker patterns, (4) Observability strategy (logs, metrics, traces), (5) Security surface area and zero-trust network design. Output a structured audit report with severity-ranked findings and actionable remediation roadmap.",
+  physics: "Deconstruct the physical mechanism of nuclear fusion from first principles: begin with the strong nuclear force and quantum tunneling probability (Gamow factor), derive the Lawson criterion for energy breakeven, explain plasma confinement via magnetic mirror and tokamak geometry (∇B drift, curvature drift), and compute the ideal ignition temperature for deuterium-tritium fusion. Use rigorous LaTeX equations throughout."
 };
 
 function selectStarter(key) {
@@ -6979,6 +7046,7 @@ async function sendMessage() {
   if ((!text && !currentAttachedImage && !currentAttachedDoc) || isGenerating) return;
 
   isGenerating = true;
+  try {
   activeAbortController = new AbortController();
 
   const sendBtn = document.getElementById("send-btn");
@@ -7101,7 +7169,6 @@ async function sendMessage() {
   let thoughtFullText = "";
   let lastMathRenderTime = 0;
 
-  try {
     const baseUrl = getGatewayBaseUrl();
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
@@ -7136,8 +7203,10 @@ async function sendMessage() {
     let pendingRender = false;
     let lastRenderTime = 0;
     let fallbackTimer = 0;
+    let streamRenderActive = true;
 
     function doRender() {
+      if (!streamRenderActive) return;
       pendingRender = false;
       if (fallbackTimer) {
         clearTimeout(fallbackTimer);
@@ -7200,18 +7269,32 @@ async function sendMessage() {
     }
 
     while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-      partial += decoder.decode(value, {stream: true});
-      partial = processSSELines(partial);
-      if (streamDone) break;
+      try {
+        let timer;
+        const readPromise = reader.read();
+        const timeoutPromise = new Promise((_, reject) => {
+          timer = setTimeout(() => reject(new Error('Stream timeout')), 15000);
+        });
+        const {done, value} = await Promise.race([readPromise, timeoutPromise]);
+        clearTimeout(timer);
+        if (done) break;
+        partial += decoder.decode(value, {stream: true});
+        partial = processSSELines(partial);
+        if (streamDone) break;
+      } catch (err) {
+        console.warn("Stream interrupted:", err);
+        break; // Break gracefully on timeout or disconnect
+      }
     }
+    try { await reader.cancel(); } catch (e) {}
+    try { reader.releaseLock(); } catch (e) {}
     // Flush any remaining partial buffer (safety net for truncated streams)
     if (partial.trim()) {
       processSSELines(partial + "\n");
     }
 
     // Clear throttles and do a synchronous final render
+    streamRenderActive = false;
     if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = 0; }
     pendingRender = false;
 
@@ -7281,7 +7364,24 @@ async function sendMessage() {
         `;
       }
 
-      contentSpan.innerHTML = errorHtml;
+      let errorWrapper = `<div style="padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
+      if (asstFullText.trim() !== "" || thoughtFullText.trim() !== "") {
+        errorWrapper = `<div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
+        contentSpan.innerHTML = renderMarkdown(asstFullText) + errorWrapper;
+        renderAllMath(storyDiv);
+        highlightAllCode(storyDiv);
+        renderAllMermaid(storyDiv);
+        storyDiv.setAttribute('data-raw', asstFullText + `\n\n> ⚠️ **Error**: ${err.message}`);
+        
+        chatHistory.push({
+          role: "assistant", 
+          content: asstFullText + `\n\n> ⚠️ **Stream Interrupted**: ${err.message}`, 
+          thought: thoughtFullText
+        });
+        saveHistory();
+      } else {
+        contentSpan.innerHTML = errorWrapper;
+      }
     }
   } finally {
     isGenerating = false;
