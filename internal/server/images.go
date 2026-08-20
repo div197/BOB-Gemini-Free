@@ -49,7 +49,7 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 
 	text, err := a.Gem.GenerateContext(r.Context(), imagePrompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{
 			"error": map[string]any{
 				"message": fmt.Sprintf("upstream error: %v", err),
 				"type":    "api_error",

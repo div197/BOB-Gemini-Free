@@ -239,7 +239,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	// --- Non-streaming path (or streaming with tools: buffer then replay) ---
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
 		return
 	}
 

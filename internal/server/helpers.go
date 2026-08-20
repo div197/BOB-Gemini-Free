@@ -5,6 +5,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"sync"
 	"net/http"
 
@@ -12,6 +13,16 @@ import (
 	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/multimodal"
 )
+
+// ErrorToStatusCode maps an upstream error to an appropriate HTTP status code.
+// Default is 502 Bad Gateway if the error isn't a recognized UpstreamError.
+func ErrorToStatusCode(err error) int {
+	var upErr *gemini.UpstreamError
+	if errors.As(err, &upErr) && upErr.Status > 0 {
+		return upErr.Status
+	}
+	return http.StatusBadGateway
+}
 
 func writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")

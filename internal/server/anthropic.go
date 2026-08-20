@@ -270,7 +270,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	// Non-streaming response
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{
 			"type": "error",
 			"error": map[string]any{
 				"type":    "api_error",
