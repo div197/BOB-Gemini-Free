@@ -111,7 +111,12 @@ func (c *Client) buildHeaders(session *AccountSession) http.Header {
 	h.Set("Origin", "https://gemini.google.com")
 	h.Set("Referer", fmt.Sprintf("https://gemini.google.com%s/app", prefix))
 	h.Set("X-Same-Domain", "1")
-	h.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+	
+	// Dynamic Fingerprint matching (Mobile/iOS High-Trust Rotation)
+	fp := ResolveFingerprint(c.Cfg.Impersonate)
+	for k, v := range fp.Headers {
+		h.Set(k, v)
+	}
 
 	if prefix != "" && authUser != "" {
 		h.Set("X-Goog-AuthUser", authUser)

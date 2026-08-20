@@ -4,9 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	fhttp "github.com/bogdanfinn/fhttp"
 	http_client "github.com/bogdanfinn/tls-client"
@@ -20,35 +22,65 @@ type tlsClientAdapter struct {
 var (
 	clientMap   = make(map[string]*tlsClientAdapter)
 	clientMapMu sync.Mutex
+	seededRand  = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
 
-func resolveProfile(name string) profiles.ClientProfile {
-	switch strings.ToLower(name) {
-	case "chrome_120":
-		return profiles.Chrome_120
-	case "chrome_124":
-		return profiles.Chrome_124
-	case "chrome_131":
-		return profiles.Chrome_131
-	case "chrome_133":
-		return profiles.Chrome_133
-	case "chrome_144":
-		return profiles.Chrome_144
-	case "chrome_146":
-		return profiles.Chrome_146
-	case "firefox_120":
-		return profiles.Firefox_120
-	case "firefox_123":
-		return profiles.Firefox_123
-	case "firefox_147":
-		return profiles.Firefox_147
-	case "safari_16_0":
-		return profiles.Safari_16_0
-	case "safari_ios_17_0":
-		return profiles.Safari_IOS_17_0
-	default:
-		return profiles.Chrome_146
+type Fingerprint struct {
+	Profile profiles.ClientProfile
+	Headers map[string]string
+}
+
+var highTrustProfiles = []Fingerprint{
+	{
+		Profile: profiles.Safari_IOS_17_0,
+		Headers: map[string]string{
+			"User-Agent": "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1",
+			"Accept-Language": "en-US,en;q=0.9",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+		},
+	},
+	{
+		Profile: profiles.Safari_16_0,
+		Headers: map[string]string{
+			"User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.0 Safari/605.1.15",
+			"Accept-Language": "en-US,en;q=0.9",
+			"Sec-Fetch-Dest": "empty",
+			"Sec-Fetch-Mode": "cors",
+			"Sec-Fetch-Site": "same-origin",
+		},
+	},
+}
+
+func ResolveFingerprint(name string) Fingerprint {
+	name = strings.ToLower(name)
+	if name == "" || name == "random" || name == "iphone" || name == "ios" {
+		return highTrustProfiles[seededRand.Intn(len(highTrustProfiles))]
 	}
+
+	switch name {
+	case "chrome_120", "chrome":
+		return Fingerprint{
+			Profile: profiles.Chrome_120,
+			Headers: map[string]string{
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+				"sec-ch-ua": "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
+				"sec-ch-ua-mobile": "?0",
+				"sec-ch-ua-platform": "\"Windows\"",
+			},
+		}
+	case "firefox_120", "firefox":
+		return Fingerprint{
+			Profile: profiles.Firefox_120,
+			Headers: map[string]string{
+				"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
+				"Accept-Language": "en-US,en;q=0.5",
+			},
+		}
+	}
+	// Fallback to a random high trust profile
+	return highTrustProfiles[0]
 }
 
 func getTLSClient(profileName string, timeoutSec int) (*tlsClientAdapter, error) {
@@ -60,8 +92,10 @@ func getTLSClient(profileName string, timeoutSec int) (*tlsClientAdapter, error)
 		return adapter, nil
 	}
 
+	fp := ResolveFingerprint(profileName)
+
 	options := []http_client.HttpClientOption{
-		http_client.WithClientProfile(resolveProfile(profileName)),
+		http_client.WithClientProfile(fp.Profile),
 		http_client.WithTimeoutSeconds(timeoutSec),
 		http_client.WithNotFollowRedirects(),
 	}

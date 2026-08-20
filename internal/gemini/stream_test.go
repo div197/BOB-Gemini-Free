@@ -50,7 +50,7 @@ func TestFingerprintProfiles(t *testing.T) {
 	}
 
 	for _, p := range profiles {
-		_ = resolveProfile(p)
+		_ = ResolveFingerprint(p)
 	}
 
 	client, err := getTLSClient("chrome_133", 10)
