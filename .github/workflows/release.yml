@@ -62,14 +62,16 @@ jobs:
           make web
           cd cmd/desktop
           wails build -clean -platform windows/amd64
+          wails build -clean -platform windows/arm64
       - name: Rename and zip
         run: |
           mv cmd/desktop/build/bin/bob-gemini-free-wails.exe ./bob-gemini-free-desktop-windows-amd64.exe
+          mv cmd/desktop/build/bin/bob-gemini-free-wails-arm64.exe ./bob-gemini-free-desktop-windows-arm64.exe
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: desktop-windows
-          path: bob-gemini-free-desktop-windows-amd64.exe
+          path: bob-gemini-free-desktop-windows-*.exe
 
   publish:
     name: Publish Release
