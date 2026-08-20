@@ -5086,7 +5086,7 @@ function showLocalOnboardingModal() {
         </h2>
         <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
           You are currently using the public web preview. 
-          For unrestricted access and pure local execution, run the BOB Gemini engine directly on your machine.
+          For unrestricted access and pure local execution, download the Native Desktop App or run the CLI engine.
         </p>
         
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
@@ -5099,7 +5099,7 @@ function showLocalOnboardingModal() {
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
           <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue in Browser</button>
-          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View GitHub</button>
+          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free/releases', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">Download App</button>
         </div>
       </div>
     </div>
@@ -7354,7 +7354,7 @@ async function sendMessage() {
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
             Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
-            Ensure the engine is running (<code>./bob-gemini-free --port 9610</code>) or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
+            Ensure the engine is running (<code>./bob-gemini-free</code>), download the Native Desktop App, or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
           </div>
           ${mixedContentHint}
         `;
