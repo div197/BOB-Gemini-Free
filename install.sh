@@ -35,14 +35,14 @@ fi
 # 2. Check if local binary already exists
 if [ -f "./$APP_NAME" ]; then
     echo -e "${GREEN}[✔] Existing $APP_NAME binary found locally.${NC}"
-# 3. Check if Go is installed to compile from source
-elif command -v go >/dev/null 2>&1; then
+# 3. Check if Go is installed and we are inside the source repository
+elif command -v go >/dev/null 2>&1 && [ -f "go.mod" ] && grep -q "bob-gemini-free" go.mod; then
     echo -e "${BLUE}[*] Go detected ($(go version)). Compiling from source...${NC}"
     CGO_ENABLED=0 go build -ldflags="-s -w" -o "$APP_NAME" .
     echo -e "${GREEN}[+] Successfully built $APP_NAME binary!${NC}"
-# 4. Check if Docker is installed
-elif command -v docker >/dev/null 2>&1; then
-    echo -e "${YELLOW}[!] Go is not installed, but Docker was detected.${NC}"
+# 4. Check if Docker is installed and we are in the source repository
+elif command -v docker >/dev/null 2>&1 && [ -f "Dockerfile" ]; then
+    echo -e "${YELLOW}[!] Go is not installed locally, but Docker was detected.${NC}"
     echo -e "${BLUE}[*] Building local Docker image: $APP_NAME...${NC}"
     docker build -t "$APP_NAME" .
     echo -e "${GREEN}[+] Docker container built successfully!${NC}"
@@ -50,7 +50,7 @@ elif command -v docker >/dev/null 2>&1; then
     exit 0
 # 5. Zero-dependency fallback: Auto-download pre-compiled binary for OS & Architecture
 else
-    echo -e "${BLUE}[*] No Go or Docker detected. Fetching pre-compiled standalone binary...${NC}"
+    echo -e "${BLUE}[*] Fetching pre-compiled standalone binary...${NC}"
     OS=$(uname -s | tr '[:upper:]' '[:lower:]')
     ARCH=$(uname -m)
     case "$ARCH" in
