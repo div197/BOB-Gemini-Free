@@ -299,3 +299,43 @@ func LaunchLoginSession(ctx context.Context, logFn func(format string, args ...a
 		}
 	}
 }
+
+// LaunchStudioWindow opens the local BOB Gemini Free playground in a standalone,
+// chromeless native browser window (App Mode).
+func LaunchStudioWindow(ctx context.Context, port int, logFn func(format string, args ...any)) error {
+	if logFn == nil {
+		logFn = func(format string, args ...any) {
+			log.Printf(format, args...)
+		}
+	}
+
+	browser, err := FindBrowser()
+	if err != nil {
+		return err
+	}
+
+	appURL := fmt.Sprintf("http://127.0.0.1:%d/playground", port)
+	args := []string{
+		fmt.Sprintf("--app=%s", appURL),
+		"--window-size=1200,900",
+		"--disable-features=Translate,OptimizationHints",
+		"--no-first-run",
+		"--no-default-browser-check",
+	}
+
+	logFn("🖥️  Opening Native Studio Window using %s...", browser.Name)
+
+	cmd := exec.CommandContext(ctx, browser.Path, args...)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("failed to start %s: %w", browser.Name, err)
+	}
+
+	// We don't block. The window runs independently.
+	// We detach it so the Go server can continue running.
+	go func() {
+		_ = cmd.Wait()
+		logFn("🖥️  Native Studio Window closed.")
+	}()
+
+	return nil
+}

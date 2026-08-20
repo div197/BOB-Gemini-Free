@@ -504,19 +504,19 @@ func main() {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond) // Give server time to bind
-		url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
-
-		var err error
-		switch runtime.GOOS {
-		case "linux":
-			err = exec.Command("xdg-open", url).Start()
-		case "windows":
-			err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-		case "darwin":
-			err = exec.Command("open", url).Start()
-		}
-		if err == nil {
-			log.Printf("🚀 Opened Studio in default browser: %s", url)
+		err := browser.LaunchStudioWindow(context.Background(), cfg.Port, log.Printf)
+		if err != nil {
+			// Fallback to standard default browser if no Chromium browser found for App Mode
+			url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
+			switch runtime.GOOS {
+			case "linux":
+				_ = exec.Command("xdg-open", url).Start()
+			case "windows":
+				_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+			case "darwin":
+				_ = exec.Command("open", url).Start()
+			}
+			log.Printf("🚀 Opened Studio in default browser tab: %s", url)
 		}
 	}()
 
