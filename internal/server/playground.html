@@ -4474,10 +4474,6 @@ function getGatewayBaseUrl() {
   if (isLocal && window.location.port) {
     return window.location.origin;
   }
-  // When loaded via public web domain (e.g. bob-gemini-free.abcsteps.com on Cloudflare Pages)
-  if (window.location.protocol.startsWith('http') && window.location.hostname) {
-    return window.location.origin;
-  }
   return "http://127.0.0.1:9610";
 }
 
@@ -7350,7 +7346,7 @@ async function sendMessage() {
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ API Rate Limit / Upstream Error</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
             The server successfully received your request, but Google Gemini blocked it: <strong>${escapeHtml(err.message)}</strong>.<br>
-            If you are using Cloudflare Pages, this means Google is rate-limiting the Cloudflare IPs due to too many anonymous requests. Wait a few moments or switch to a local Go server with an authenticated Cookie Pool.
+            Consider using an authenticated Cookie Pool to bypass limits.
           </div>
         `;
       } else {
