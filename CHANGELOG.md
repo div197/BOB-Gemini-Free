@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.6] - 2026-08-20
+
+### Enterprise Readiness Audit: Multi-Modal Hardening, Classroom Deployments, and CLI Telemetry Fixes
+
+#### Added
+- **Classroom LAN Guide (`docs/1-getting-started/classroom-lan-guide.md`)**: Comprehensive operational runbook for deploying local instances in dense environments.
+- **Dynamic Prompt Injection**: Automatically prepends "Please analyze the attached image" when users attach multimodal images without prompt text.
+- **Support for OpenAI Responses API Multipart**: Added seamless parsing for Codex CLI `image_url` and `input_image` blocks natively.
+
+#### Changed
+- **Multi-Modal Upload Resilience (`internal/multimodal/upload.go`)**:
+  - Enforced a hard 20MB limit on remote image fetches using `io.LimitReader` to prevent memory-bomb attacks.
+  - Implemented strict MIME detection before hitting upstream Google infrastructure.
+- **Cloudflare Edge Error Granularity (`functions/v1/chat/completions.js`)**:
+  - Cloudflare workers now actively passthrough upstream Google `429` (Rate Limit) and `403` (Forbidden) errors accurately instead of masking them as hardcoded `502 Bad Gateway` timeouts.
+- **Web UI Diagnostics (`playground.html`)**:
+  - UI now cleanly separates and displays specific API connection failures versus API rate-limiting errors, preventing users from receiving misleading "Ensure engine is running" alerts.
+
+#### Fixed
+- **CLI Telemetry Auth Bypass (`main.go`)**: 
+  - Fixed a critical bug where `--status` would fail with `401 Unauthorized` on gateways secured with `api_keys`. The telemetry check now correctly supports the `--test-key` flag for secured diagnostics.
+
+---
+
 ## [0.1.5] - 2026-08-20
 
 ### 2022–2026 AI Innovations Suite: In-Place Auto-Updater, Native OS Daemons, In-Browser SQLite & Pyodide WASM, Live AI Metaprompter Wand, Non-Breaking Reading Zoom, 2D/3D Artifact Studios & Steve Jobs Mobile Ergonomics

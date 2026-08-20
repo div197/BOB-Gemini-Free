@@ -9,7 +9,7 @@ export async function onRequestGet() {
   const uptime = Math.floor(Date.now() / 1000) - DEPLOY_EPOCH;
   return new Response(JSON.stringify({
     status: "ok",
-    version: "v0.1.5",
+    version: "v0.1.6",
     engine: "cloudflare-pages-edge",
     uptime_seconds: uptime,
     requests_served: 0,
