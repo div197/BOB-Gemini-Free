@@ -41,6 +41,22 @@ docker run -d \
 
 Once started, the gateway listens at `http://127.0.0.1:9610`.
 
+### Classroom / Computer Lab Mode
+
+For a classroom where many students connect at the same time, run the gateway on one teacher machine or local lab server:
+
+```bash
+./bob-gemini-free --host 0.0.0.0 --port 9610 --cookie-pool-dir ./cookies
+```
+
+Then students open:
+
+```text
+http://TEACHER_LAN_IP:9610/playground
+```
+
+Use the [Classroom LAN Deployment Guide](./classroom-lan-guide.md) before a live class. It explains why the Cloudflare Pages demo can hit datacenter egress rate limits during concentrated student bursts, and how to verify the local LAN path before class.
+
 ---
 
 ## 🎯 Model Tiers

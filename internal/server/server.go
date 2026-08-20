@@ -47,6 +47,7 @@ func createHTTPClient(cfg config.Config) *http.Client {
 }
 
 func New(cfg config.Config, version string) *App {
+	config.Normalize(&cfg)
 	gemClient := gemini.NewClient(cfg)
 
 	logFn := func(format string, args ...any) {

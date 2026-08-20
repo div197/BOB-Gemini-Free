@@ -10,6 +10,7 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 - [**Quickstart Guide**](./1-getting-started/quickstart.md): 30-second installation & execution for macOS, Linux, and Windows.
 - [**Zero-Dependency Standalone Binaries**](./1-getting-started/zero-dependency-binary.md): Running with zero Go, Python, or runtime dependencies.
 - [**Docker & OrbStack Deployment**](./1-getting-started/docker-and-orbstack.md): Containerization, healthchecks, and Compose setup.
+- [**Classroom LAN Deployment Guide**](./1-getting-started/classroom-lan-guide.md): Choosing local LAN gateway vs Cloudflare Pages for concentrated student traffic.
 
 ### 2. Authentication & Session Routing
 - [**1-Click Interactive Login Window**](./2-authentication-and-routing/1-click-login.md): Zero-friction session extraction via `--login`.
@@ -32,6 +33,9 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 
 ### 5. Embedded Go SDK
 - [**Embedded Go Library Guide (`pkg/gateway`)**](./5-embedded-sdk/go-library-guide.md): Embedding the gateway directly inside Go microservices.
+
+### 6. Operations
+- [**Live Verification Runbook**](./6-operations/live-verification-runbook.md): Deployment, local gateway, upstream, diagnostics, benchmark, and release-build proof levels.
 
 ---
 

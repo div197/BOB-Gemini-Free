@@ -103,14 +103,56 @@ func TestFetchImageBytes(t *testing.T) {
 	}
 
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		imageBytes := createTestImage(4, 4)
 		w.Header().Set("Content-Type", "image/png")
-		_, _ = w.Write([]byte("fake-png-data"))
+		_, _ = w.Write(imageBytes)
 	}))
 	defer ts.Close()
 
 	b, err := FetchImageBytes(ts.Client(), ts.URL)
-	if err != nil || string(b) != "fake-png-data" {
-		t.Errorf("Expected fake-png-data, got err=%v, data=%q", err, string(b))
+	if err != nil {
+		t.Fatalf("Expected image fetch to succeed, got %v", err)
+	}
+	if len(b) == 0 {
+		t.Fatalf("Expected non-empty image bytes")
+	}
+}
+
+func TestFetchImageBytesRejectsHTTPError(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "missing", http.StatusNotFound)
+	}))
+	defer ts.Close()
+
+	_, err := FetchImageBytes(ts.Client(), ts.URL)
+	if err == nil {
+		t.Fatalf("Expected error for non-2xx image fetch")
+	}
+}
+
+func TestFetchImageBytesRejectsNonImageContent(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html")
+		_, _ = w.Write([]byte("<html>not an image</html>"))
+	}))
+	defer ts.Close()
+
+	_, err := FetchImageBytes(ts.Client(), ts.URL)
+	if err == nil {
+		t.Fatalf("Expected error for non-image fetch response")
+	}
+}
+
+func TestFetchImageBytesRejectsSpoofedImageHeader(t *testing.T) {
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "image/png")
+		_, _ = w.Write([]byte("<html>not actually an image</html>"))
+	}))
+	defer ts.Close()
+
+	_, err := FetchImageBytes(ts.Client(), ts.URL)
+	if err == nil {
+		t.Fatalf("Expected error for spoofed image content type")
 	}
 }
 

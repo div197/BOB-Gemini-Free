@@ -11,6 +11,8 @@ import (
 	"github.com/div197/bob-gemini-free/internal/gemini"
 )
 
+const MaxRemoteImageFetchBytes = 20 * 1024 * 1024
+
 func UploadImage(client gemini.Requester, tokens PageTokens, imgBytes []byte, mime string, cookieCache *gemini.CookieCache, authUser string) (string, error) {
 	if mime == "" {
 		mime = "image/png"
@@ -139,5 +141,22 @@ func FetchImageBytes(client gemini.Requester, imageURL string) ([]byte, error) {
 	}
 	defer resp.Body.Close()
 
-	return io.ReadAll(resp.Body)
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return nil, fmt.Errorf("image fetch returned HTTP %d", resp.StatusCode)
+	}
+
+	body, err := io.ReadAll(io.LimitReader(resp.Body, MaxRemoteImageFetchBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if len(body) > MaxRemoteImageFetchBytes {
+		return nil, fmt.Errorf("image fetch exceeded %d bytes", MaxRemoteImageFetchBytes)
+	}
+
+	detectedType := http.DetectContentType(body)
+	if !strings.HasPrefix(detectedType, "image/") {
+		return nil, fmt.Errorf("image fetch returned non-image content type %q", detectedType)
+	}
+
+	return body, nil
 }

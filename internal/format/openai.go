@@ -123,6 +123,10 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 									images = append(images, Image{Data: dec, MIME: mime})
 								}
 							}
+						} else if strings.HasPrefix(urlStr, "http://") || strings.HasPrefix(urlStr, "https://") {
+							images = append(images, Image{URL: urlStr})
+						} else if strings.Contains(urlStr, "://") {
+							images = append(images, Image{URL: urlStr})
 						} else if dec, err := base64.StdEncoding.DecodeString(urlStr); err == nil && len(dec) > 0 {
 							images = append(images, Image{Data: dec, MIME: "image/png"})
 						}

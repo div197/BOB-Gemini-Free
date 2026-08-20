@@ -47,6 +47,12 @@ func Default() Config {
 	}
 }
 
+func Normalize(cfg *Config) {
+	if cfg.RetryAttempts < 1 {
+		cfg.RetryAttempts = 1
+	}
+}
+
 func Load(path string) (Config, error) {
 	cfg := Default()
 	if path != "" {
@@ -185,7 +191,7 @@ func Load(path string) (Config, error) {
 		cfg.LogRequests = envLog == "true" || envLog == "1" || envLog == "yes"
 	}
 	if envRetry := os.Getenv("BOB_GEMINI_FREE_RETRY_ATTEMPTS"); envRetry != "" {
-		if n, err := strconv.Atoi(envRetry); err == nil && n >= 0 {
+		if n, err := strconv.Atoi(envRetry); err == nil {
 			cfg.RetryAttempts = n
 		}
 	}
@@ -200,6 +206,7 @@ func Load(path string) (Config, error) {
 		}
 	}
 
+	Normalize(&cfg)
 	return cfg, nil
 }
 

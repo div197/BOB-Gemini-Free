@@ -89,11 +89,24 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
+		prompt = "Please analyze the attached image."
+	}
 
 	// Upload any multimodal image attachments if present
 	var fileRefs []string
 	if len(images) > 0 {
-		fileRefs = a.uploadImages(images)
+		fileRefs, err = a.uploadImages(images)
+		if err != nil {
+			writeJSON(w, http.StatusBadGateway, map[string]any{
+				"type": "error",
+				"error": map[string]any{
+					"type":    "api_error",
+					"message": err.Error(),
+				},
+			})
+			return
+		}
 	}
 
 	msgID := fmt.Sprintf("msg_%s", format.RandHex(24))

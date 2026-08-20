@@ -92,6 +92,48 @@ func TestResponsesInputToMessagesMultiPartText(t *testing.T) {
 	}
 }
 
+func TestResponsesInputToMessagesPreservesInputImage(t *testing.T) {
+	input := []any{
+		map[string]any{
+			"role": "user",
+			"content": []any{
+				map[string]any{"type": "input_text", "text": "Describe this."},
+				map[string]any{"type": "input_image", "image_url": "https://example.com/image.png"},
+			},
+		},
+	}
+
+	messages, err := ResponsesInputToMessages(input, "")
+	if err != nil {
+		t.Fatalf("ResponsesInputToMessages error: %v", err)
+	}
+	if len(messages) != 1 {
+		t.Fatalf("Expected 1 message, got %d", len(messages))
+	}
+
+	content, ok := messages[0]["content"].([]any)
+	if !ok {
+		t.Fatalf("Expected multipart content, got %#v", messages[0]["content"])
+	}
+	if len(content) != 2 {
+		t.Fatalf("Expected 2 content parts, got %d", len(content))
+	}
+
+	chatReq := models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{{Role: "user", Content: content}},
+	}
+	prompt, images, err := MessagesToPromptAndImages(chatReq)
+	if err != nil {
+		t.Fatalf("MessagesToPromptAndImages failed: %v", err)
+	}
+	if !strings.Contains(prompt, "Describe this.") {
+		t.Fatalf("Expected prompt text to be preserved, got %q", prompt)
+	}
+	if len(images) != 1 || images[0].URL != "https://example.com/image.png" {
+		t.Fatalf("Expected remote input image to be preserved, got %#v", images)
+	}
+}
+
 func TestMessagesToPromptAndImages(t *testing.T) {
 	fakeBase64 := "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="
 	req := models.OpenAIChatRequest{
@@ -130,6 +172,41 @@ func TestMessagesToPromptAndImages(t *testing.T) {
 
 	if len(images[0].Data) == 0 {
 		t.Errorf("Expected non-empty image bytes")
+	}
+}
+
+func TestMessagesToPromptAndImagesRemoteURL(t *testing.T) {
+	req := models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{
+			{
+				Role: "user",
+				Content: []any{
+					map[string]any{
+						"type": "image_url",
+						"image_url": map[string]any{
+							"url": "https://example.com/diagram.png",
+						},
+					},
+				},
+			},
+		},
+	}
+
+	prompt, images, err := MessagesToPromptAndImages(req)
+	if err != nil {
+		t.Fatalf("MessagesToPromptAndImages failed: %v", err)
+	}
+	if strings.TrimSpace(prompt) != "" {
+		t.Errorf("expected empty prompt for image-only request, got %q", prompt)
+	}
+	if len(images) != 1 {
+		t.Fatalf("expected 1 remote image, got %d", len(images))
+	}
+	if images[0].URL != "https://example.com/diagram.png" {
+		t.Errorf("expected remote image URL to be preserved, got %q", images[0].URL)
+	}
+	if len(images[0].Data) != 0 {
+		t.Errorf("expected remote image data to be fetched later, got %d bytes", len(images[0].Data))
 	}
 }
 

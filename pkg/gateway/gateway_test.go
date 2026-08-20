@@ -86,6 +86,16 @@ func TestNewEngine(t *testing.T) {
 	}
 }
 
+func TestNewEngineClampsRetryAttempts(t *testing.T) {
+	engine := NewEngine(WithRetry(0, 0))
+	if engine == nil {
+		t.Fatalf("Expected non-nil Engine")
+	}
+	if engine.app.Cfg.RetryAttempts != 1 {
+		t.Errorf("Expected retry attempts to be clamped to 1, got %d", engine.app.Cfg.RetryAttempts)
+	}
+}
+
 func TestEngineGenerateMethods(t *testing.T) {
 	engine := NewEngine(
 		WithDefaultModel("gemini-3.7-flash"),

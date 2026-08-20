@@ -2,13 +2,43 @@ package server
 
 import (
 	"encoding/json"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
 	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/format"
 )
+
+type fakeGeminiRequester struct {
+	body string
+}
+
+func (f fakeGeminiRequester) Do(req *http.Request) (*http.Response, error) {
+	if req.Method == http.MethodGet {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`<html></html>`)),
+		}, nil
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(f.body)),
+	}, nil
+}
+
+func mockGeminiBody(text string) string {
+	padded := text + " " + strings.Repeat("x", 220)
+	inner := []any{nil, nil, nil, nil, []any{[]any{nil, []any{padded}}}}
+	innerBytes, _ := json.Marshal(inner)
+	outer := []any{[]any{"wrb.fr", nil, string(innerBytes)}}
+	outerBytes, _ := json.Marshal(outer)
+	return string(outerBytes) + "\n"
+}
 
 func TestHealthEndpoint(t *testing.T) {
 	testVer := "test-version-1.0"
@@ -114,7 +144,6 @@ func TestCORSPreflight(t *testing.T) {
 		t.Errorf("Expected CORS origin *, got %s", rec.Header().Get("Access-Control-Allow-Origin"))
 	}
 }
-
 
 func TestDefaultHost(t *testing.T) {
 	cfg := config.Default()
@@ -258,6 +287,68 @@ func TestBadRequestHandling(t *testing.T) {
 	handler.ServeHTTP(rec7, req7)
 	if rec7.Code != http.StatusBadRequest {
 		t.Errorf("Expected 400 for empty prompt in image generations, got %d", rec7.Code)
+	}
+}
+
+func TestUploadImagesRejectsUnsupportedRemoteURL(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+
+	_, err := app.uploadImages([]format.Image{{URL: "file:///etc/passwd"}})
+	if err == nil {
+		t.Fatalf("expected unsupported image URL error")
+	}
+	if !strings.Contains(err.Error(), "unsupported image URL scheme") {
+		t.Fatalf("expected unsupported image URL scheme error, got %v", err)
+	}
+}
+
+func TestResponsesRejectsUnsupportedInputImageURL(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	handler := app.Handler()
+
+	body := `{
+		"model": "gemini-3.7-flash",
+		"input": [{
+			"role": "user",
+			"content": [
+				{"type": "input_text", "text": "Describe this."},
+				{"type": "input_image", "image_url": "file:///etc/passwd"}
+			]
+		}]
+	}`
+	req := httptest.NewRequest("POST", "/v1/responses", strings.NewReader(body))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("expected status 502 for unsupported input image URL, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "unsupported image URL scheme") {
+		t.Fatalf("expected unsupported image URL scheme error, got %s", rec.Body.String())
+	}
+}
+
+func TestImageGenerationNoExtractedURLReturnsError(t *testing.T) {
+	cfg := config.Default()
+	cfg.RetryAttempts = 1
+	app := New(cfg, "test-version")
+	app.Gem.HTTP = fakeGeminiRequester{body: mockGeminiBody("No image was generated.")}
+	handler := app.Handler()
+
+	req := httptest.NewRequest("POST", "/v1/images/generations", strings.NewReader(`{"prompt":"draw a lotus","model":"imagen-3"}`))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("expected status 502 when upstream returns no image URL, got %d body=%s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "placeholder.png") {
+		t.Fatalf("image generation must not return placeholder URL as success: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "upstream response did not contain a generated image URL") {
+		t.Fatalf("expected explicit missing-image error, got %s", rec.Body.String())
 	}
 }
 

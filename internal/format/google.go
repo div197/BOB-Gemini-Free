@@ -13,6 +13,7 @@ import (
 type Image struct {
 	Data []byte
 	MIME string
+	URL  string
 }
 
 func BuildToolPrompt(defs []models.GoogleFunctionDeclaration) string {

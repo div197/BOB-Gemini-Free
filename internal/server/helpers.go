@@ -6,8 +6,9 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"sync"
+	"fmt"
 	"net/http"
+	"sync"
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/gemini"
@@ -83,7 +84,7 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
 	buf.WriteString("event: ")
 	buf.WriteString(event)
 	buf.WriteString("\ndata: ")
-	
+
 	enc := json.NewEncoder(buf)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(data); err != nil {
@@ -113,13 +114,14 @@ func writeSSEDone(w http.ResponseWriter) error {
 	return nil
 }
 
-func (a *App) uploadImages(images []format.Image) []string {
+func (a *App) uploadImages(images []format.Image) ([]string, error) {
 	if len(images) == 0 {
-		return nil
+		return nil, nil
 	}
 
-	tokens := a.Tokens.Get()
 	var fileRefs []string
+	var tokens multimodal.PageTokens
+	var haveTokens bool
 
 	var requester gemini.Requester = a.Gem.HTTP
 	if requester == nil {
@@ -132,6 +134,15 @@ func (a *App) uploadImages(images []format.Image) []string {
 
 	for _, img := range images {
 		data := img.Data
+		mime := img.MIME
+		if len(data) == 0 && img.URL != "" {
+			fetched, err := multimodal.FetchImageBytes(requester, img.URL)
+			if err != nil {
+				return nil, fmt.Errorf("image fetch failed for %s: %w", img.URL, err)
+			}
+			data = fetched
+			mime = http.DetectContentType(data)
+		}
 		if len(data) == 0 {
 			continue
 		}
@@ -144,10 +155,14 @@ func (a *App) uploadImages(images []format.Image) []string {
 			continue
 		}
 
-		ref, err := multimodal.UploadImage(requester, tokens, data, img.MIME, a.Gem.Cookies, a.Cfg.AuthUser)
+		if !haveTokens {
+			tokens = a.Tokens.Get()
+			haveTokens = true
+		}
+
+		ref, err := multimodal.UploadImage(requester, tokens, data, mime, a.Gem.Cookies, a.Cfg.AuthUser)
 		if err != nil {
-			a.Logf("Image upload failed: %v", err)
-			continue
+			return nil, fmt.Errorf("image upload failed: %w", err)
 		}
 		if ref != "" {
 			a.ImageCache.Store(hashStr, ref)
@@ -156,7 +171,7 @@ func (a *App) uploadImages(images []format.Image) []string {
 	}
 
 	if len(fileRefs) == 0 {
-		return nil
+		return nil, fmt.Errorf("no image attachments could be uploaded")
 	}
-	return fileRefs
+	return fileRefs, nil
 }

@@ -7260,14 +7260,28 @@ async function sendMessage() {
           </div>
         `;
       }
-      contentSpan.innerHTML = `
-        <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
-        <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
-          Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
-          Ensure the engine is running (<code>./bob-gemini-free --port 9610</code>) or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
-        </div>
-        ${mixedContentHint}
-      `;
+
+      let errorHtml = "";
+      if (err.message && err.message.includes("Upstream")) {
+        errorHtml = `
+          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ API Rate Limit / Upstream Error</div>
+          <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+            The server successfully received your request, but Google Gemini blocked it: <strong>${escapeHtml(err.message)}</strong>.<br>
+            If you are using Cloudflare Pages, this means Google is rate-limiting the Cloudflare IPs due to too many anonymous requests. Wait a few moments or switch to a local Go server with an authenticated Cookie Pool.
+          </div>
+        `;
+      } else {
+        errorHtml = `
+          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
+          <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
+            Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
+            Ensure the engine is running (<code>./bob-gemini-free --port 9610</code>) or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
+          </div>
+          ${mixedContentHint}
+        `;
+      }
+
+      contentSpan.innerHTML = errorHtml;
     }
   } finally {
     isGenerating = false;

@@ -102,6 +102,8 @@ func ResponsesInputToMessages(input any, instructions string) ([]map[string]any,
 						role = "user"
 					}
 					var contentStr string
+					var contentParts []any
+					var hasImage bool
 					rawContent := mapItem["content"]
 					if cList, ok := rawContent.([]any); ok {
 						var parts []string
@@ -111,6 +113,29 @@ func ResponsesInputToMessages(input any, instructions string) ([]map[string]any,
 								if cType == "text" || cType == "input_text" {
 									if txt, ok := cMap["text"].(string); ok {
 										parts = append(parts, txt)
+										contentParts = append(contentParts, map[string]any{
+											"type": "text",
+											"text": txt,
+										})
+									}
+								} else if cType == "image_url" || cType == "input_image" {
+									var imageURL string
+									if imgMap, ok := cMap["image_url"].(map[string]any); ok {
+										imageURL, _ = imgMap["url"].(string)
+									} else if imgStr, ok := cMap["image_url"].(string); ok {
+										imageURL = imgStr
+									}
+									if imageURL == "" {
+										imageURL, _ = cMap["url"].(string)
+									}
+									if imageURL != "" {
+										hasImage = true
+										contentParts = append(contentParts, map[string]any{
+											"type": "image_url",
+											"image_url": map[string]any{
+												"url": imageURL,
+											},
+										})
 									}
 								}
 							}
@@ -120,9 +145,13 @@ func ResponsesInputToMessages(input any, instructions string) ([]map[string]any,
 						contentStr = strC
 					}
 
+					content := any(contentStr)
+					if hasImage {
+						content = contentParts
+					}
 					messages = append(messages, map[string]any{
 						"role":    role,
-						"content": contentStr,
+						"content": content,
 					})
 				}
 			}

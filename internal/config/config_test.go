@@ -123,6 +123,34 @@ func TestEnvVarRetryAttempts(t *testing.T) {
 	}
 }
 
+func TestRetryAttemptsClampedFromEnv(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_RETRY_ATTEMPTS", "0")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.RetryAttempts != 1 {
+		t.Errorf("expected retry_attempts to be clamped to 1, got %d", cfg.RetryAttempts)
+	}
+}
+
+func TestRetryAttemptsClampedFromConfigFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+	content := `{"retry_attempts": 0}`
+	if err := os.WriteFile(configFile, []byte(content), 0644); err != nil {
+		t.Fatalf("failed to write test config file: %v", err)
+	}
+
+	cfg, err := Load(configFile)
+	if err != nil {
+		t.Fatalf("failed to load config file: %v", err)
+	}
+	if cfg.RetryAttempts != 1 {
+		t.Errorf("expected retry_attempts to be clamped to 1, got %d", cfg.RetryAttempts)
+	}
+}
+
 func TestEnvVarRequestTimeout(t *testing.T) {
 	t.Setenv("BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC", "300")
 	cfg, err := Load("")

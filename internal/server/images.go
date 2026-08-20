@@ -83,10 +83,14 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if len(imageObjects) == 0 {
-		imageObjects = append(imageObjects, models.OpenAIImageObject{
-			URL:           "https://generativelanguage.googleapis.com/v1beta/images/placeholder.png",
-			RevisedPrompt: text,
+		writeJSON(w, http.StatusBadGateway, map[string]any{
+			"error": map[string]any{
+				"message": "upstream response did not contain a generated image URL",
+				"type":    "api_error",
+				"details": text,
+			},
 		})
+		return
 	}
 
 	a.RequestsServed.Add(1)

@@ -93,9 +93,18 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		ToolChoice: toolChoice,
 	}
 
-	prompt, err := format.MessagesToPrompt(chatReq)
-	if err != nil || strings.TrimSpace(prompt) == "" {
+	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
+	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty input"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
+		prompt = "Please analyze the attached image."
+	}
+
+	fileRefs, err := a.uploadImages(images)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
 		return
 	}
 
@@ -155,7 +164,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 
 		// 4. Real-time delta stream
 		var fullStreamText string
-		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra, func(delta string) error {
+		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
 			fullStreamText += delta
 			return writeSSEEvent(w, "response.output_text.delta", map[string]any{
 				"type":          "response.output_text.delta",
@@ -237,7 +246,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// --- Non-streaming path (or streaming with tools: buffer then replay) ---
-	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
+	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
 		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
 		return

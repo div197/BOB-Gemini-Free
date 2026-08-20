@@ -75,12 +75,19 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	hasTools := len(req.Tools) > 0 && fcMode != "NONE"
 
 	prompt, images, err := format.GoogleContentsToPrompt(req)
-	if err != nil || len(prompt) == 0 {
+	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty content"}})
 		return
 	}
+	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
+		prompt = "Please analyze the attached image."
+	}
 
-	fileRefs := a.uploadImages(images)
+	fileRefs, err := a.uploadImages(images)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		return
+	}
 	a.Logf("Google API: model=%s stream=%t tools=%t prompt_len=%d", resolved.Name, stream, hasTools, len(prompt))
 
 	if stream && !hasTools {

@@ -52,12 +52,19 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	prompt, images, err := format.MessagesToPromptAndImages(req)
-	if err != nil || strings.TrimSpace(prompt) == "" {
+	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty prompt"}})
 		return
 	}
+	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
+		prompt = "Please analyze the attached image."
+	}
 
-	fileRefs := a.uploadImages(images)
+	fileRefs, err := a.uploadImages(images)
+	if err != nil {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		return
+	}
 	cid := fmt.Sprintf("chatcmpl-%s", format.RandHex(12))
 	a.RequestsServed.Add(1)
 
