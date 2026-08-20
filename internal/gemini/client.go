@@ -52,6 +52,9 @@ func NewClient(cfg config.Config) *Client {
 			DisableCompression:    true,
 			ResponseHeaderTimeout: time.Duration(cfg.RequestTimeoutSec) * time.Second,
 			IdleConnTimeout:       90 * time.Second,
+			MaxIdleConns:          1000,
+			MaxIdleConnsPerHost:   100,
+			MaxConnsPerHost:       1000,
 		}
 
 		if cfg.Proxy != "" {

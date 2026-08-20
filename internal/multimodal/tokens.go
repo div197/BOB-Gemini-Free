@@ -115,12 +115,21 @@ func (c *TokenCache) fetchPageTokens() PageTokens {
 
 func (c *TokenCache) Get() PageTokens {
 	c.mu.Lock()
-	defer c.mu.Unlock()
-
 	if time.Since(c.ts) > TokenCacheTTL {
-		c.tokens = c.fetchPageTokens()
+		// Immediately update the timestamp to prevent a dog-pile of concurrent fetches.
+		// Other requests will safely fall back to the stale tokens while we fetch in the background.
 		c.ts = time.Now()
+		c.mu.Unlock()
+
+		newTokens := c.fetchPageTokens()
+
+		c.mu.Lock()
+		c.tokens = newTokens
+		c.mu.Unlock()
+		return newTokens
 	}
 
-	return c.tokens
+	t := c.tokens
+	c.mu.Unlock()
+	return t
 }

@@ -27,7 +27,12 @@ type App struct {
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {
-	transport := &http.Transport{}
+	transport := &http.Transport{
+		MaxIdleConns:        1000,
+		MaxIdleConnsPerHost: 100,
+		MaxConnsPerHost:     1000,
+		IdleConnTimeout:     90 * time.Second,
+	}
 	if cfg.Proxy != "" {
 		if proxyURL, err := url.Parse(cfg.Proxy); err == nil {
 			transport.Proxy = http.ProxyURL(proxyURL)
