@@ -1,0 +1,10 @@
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/zerovec_derive-8c2a95e6161716ec.d: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_ule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_varule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/ule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/utils.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/varule.rs
+
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/libzerovec_derive-8c2a95e6161716ec.dylib: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_ule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_varule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/ule.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/utils.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/varule.rs
+
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/lib.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_ule.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/make_varule.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/ule.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/utils.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/zerovec-derive-0.11.5/src/varule.rs:

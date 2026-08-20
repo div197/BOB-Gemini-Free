@@ -371,6 +371,7 @@ func main() {
 	proxyFlag := flag.String("proxy", "", "HTTP proxy URL")
 	impersonateFlag := flag.String("impersonate", "", "TLS impersonation profile")
 	loginFlag := flag.Bool("login", false, "1-Click interactive browser sign-in window (zero copy-paste)")
+	headlessFlag := flag.Bool("headless", false, "Run without opening a native window")
 	setupCookieFlag := flag.Bool("setup-cookie", false, "Automated Gemini cookie setup helper (paste prompt)")
 	cookieStringFlag := flag.String("cookie-string", "", "Raw cookie string for non-interactive setup")
 	testFlag := flag.Bool("test", false, "Run automated diagnostic test kit against a running gateway")
@@ -504,7 +505,21 @@ func main() {
 
 	go func() {
 		time.Sleep(500 * time.Millisecond) // Give server time to bind
-		err := browser.LaunchStudioWindow(context.Background(), cfg.Port, log.Printf)
+		if !*headlessFlag {
+			err := browser.LaunchStudioWindow(context.Background(), cfg.Port, log.Printf)
+			if err != nil {
+				url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
+				switch runtime.GOOS {
+				case "linux":
+					_ = exec.Command("xdg-open", url).Start()
+				case "windows":
+					_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+				case "darwin":
+					_ = exec.Command("open", url).Start()
+				}
+				log.Printf("🚀 Opened Studio in default browser tab: %s", url)
+			}
+		}
 		if err != nil {
 			// Fallback to standard default browser if no Chromium browser found for App Mode
 			url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)

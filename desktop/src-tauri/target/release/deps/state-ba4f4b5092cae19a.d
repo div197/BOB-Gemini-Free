@@ -1,0 +1,12 @@
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/state-ba4f4b5092cae19a.d: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/ident_hash.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/storage.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/init.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/shim.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/container.rs
+
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/libstate-ba4f4b5092cae19a.rlib: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/ident_hash.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/storage.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/init.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/shim.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/container.rs
+
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/libstate-ba4f4b5092cae19a.rmeta: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/ident_hash.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/storage.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/init.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/shim.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/container.rs
+
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/lib.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/ident_hash.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/storage.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/init.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/shim.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/state-0.5.3/src/container.rs:

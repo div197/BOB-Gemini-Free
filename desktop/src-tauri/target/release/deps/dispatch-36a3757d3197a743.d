@@ -1,0 +1,12 @@
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/dispatch-36a3757d3197a743.d: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/ffi.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/group.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/queue.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/once.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/sem.rs
+
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/libdispatch-36a3757d3197a743.rlib: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/ffi.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/group.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/queue.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/once.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/sem.rs
+
+/Users/suru/Documents/BOB-Gemini-Free/desktop/src-tauri/target/release/deps/libdispatch-36a3757d3197a743.rmeta: /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/lib.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/ffi.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/group.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/queue.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/once.rs /Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/sem.rs
+
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/lib.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/ffi.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/group.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/queue.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/once.rs:
+/Users/suru/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/dispatch-0.2.0/src/sem.rs:
