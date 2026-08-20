@@ -27,15 +27,15 @@ if (!(Test-Path "$ConfigDir\config.json")) {
 if (Test-Path ".\$AppName") {
     Write-Host "[✔] Existing $AppName binary found locally." -ForegroundColor Green
     Write-Host "Start with: .\$AppName --port 9610" -ForegroundColor Yellow
-} elseif (Get-Command go -ErrorAction SilentlyContinue) {
-    Write-Host "[*] Go detected. Compiling $AppName from source..." -ForegroundColor Cyan
+} elseif ((Get-Command go -ErrorAction SilentlyContinue) -and (Test-Path "go.mod") -and (Select-String -Path "go.mod" -Pattern "bob-gemini-free" -Quiet -ErrorAction SilentlyContinue)) {
+    Write-Host "[*] Go detected in source directory. Compiling $AppName from source..." -ForegroundColor Cyan
     $env:CGO_ENABLED = "0"
     go build -ldflags="-s -w" -o $AppName .
     Write-Host "[✔] Successfully built $AppName!" -ForegroundColor Green
     Write-Host ""
     Write-Host "Start the server by running:" -ForegroundColor Yellow
     Write-Host "  .\$AppName --port 9610" -ForegroundColor White
-} elseif (Get-Command docker -ErrorAction SilentlyContinue) {
+} elseif ((Get-Command docker -ErrorAction SilentlyContinue) -and (Test-Path "Dockerfile")) {
     Write-Host "[*] Building Docker container..." -ForegroundColor Cyan
     docker build -t bob-gemini-free .
     Write-Host "[✔] Docker container built!" -ForegroundColor Green
