@@ -189,7 +189,7 @@ export async function onRequestPost(context) {
           type: "api_error"
         }
       }), {
-        status: 502,
+        status: upstreamRes.status === 429 || upstreamRes.status === 403 ? upstreamRes.status : 502,
         headers: { ...corsHeaders(), "Content-Type": "application/json" }
       });
     }
