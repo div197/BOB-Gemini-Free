@@ -155,9 +155,13 @@ func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
 	os.Exit(0)
 }
 
-func handleStatus(targetURL string) {
+func handleStatus(targetURL, apiKey string) {
 	client := &http.Client{Timeout: 5 * time.Second}
-	resp, err := client.Get(targetURL + "/")
+	req, _ := http.NewRequest("GET", targetURL+"/", nil)
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Printf("❌ Failed to reach running BOB Gemini Free gateway at %s: %v\n", targetURL, err)
 		os.Exit(1)
@@ -393,7 +397,7 @@ func main() {
 	}
 
 	if *statusFlag {
-		handleStatus(*testURLFlag)
+		handleStatus(*testURLFlag, *testKeyFlag)
 	}
 
 	if *loginFlag {
