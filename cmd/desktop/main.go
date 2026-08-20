@@ -22,7 +22,7 @@ func main() {
 	cfg := config.Default()
 	cfg.Port = 9610
 	cfg.APIKeys = nil // Disable global config API keys for local desktop app
-	
+
 	srv := server.New(cfg, "v0.1.7")
 	go func() {
 		fmt.Println("🚀 Wails Internal Gateway listening on :9610")
@@ -40,7 +40,7 @@ func main() {
 			Assets: assets,
 		},
 		OnStartup: func(ctx context.Context) {},
-		Bind: []interface{}{},
+		Bind:      []interface{}{},
 	})
 
 	if err != nil {

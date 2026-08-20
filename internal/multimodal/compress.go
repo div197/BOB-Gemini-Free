@@ -86,4 +86,3 @@ func CompressIfNeeded(b64 string, maxSize int) (string, error) {
 
 	return base64.StdEncoding.EncodeToString(compressedBytes), nil
 }
-

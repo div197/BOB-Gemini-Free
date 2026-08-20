@@ -270,7 +270,6 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	}
 	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
 
-
 	if stream {
 		// Tool-call streaming: replay synchronously after buffering
 		if !startSSE(w) {

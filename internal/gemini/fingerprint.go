@@ -35,7 +35,6 @@ func safeRandIntn(n int) int {
 	return v
 }
 
-
 type Fingerprint struct {
 	Profile profiles.ClientProfile
 	Headers map[string]string
