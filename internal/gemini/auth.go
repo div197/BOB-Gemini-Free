@@ -114,7 +114,7 @@ func (c *CookieCache) GetAtToken(httpClient Requester, authUser string) string {
 		return c.info.At
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-	req.Header.Set("Cookie", c.info.Cookie)
+	req.Header.Set("Cookie", cookie)
 	if c.info.SAPISID != "" {
 		req.Header.Set("Authorization", SAPISIDHash(c.info.SAPISID))
 	}

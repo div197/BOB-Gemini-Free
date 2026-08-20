@@ -216,9 +216,15 @@ export async function onRequestPost(context) {
             const { done, value } = await reader.read();
             if (done) break;
             const chunk = decoder.decode(value, { stream: true });
-            const isGoogleEnd = chunk.includes('["e",') || chunk.includes('["di",');
+            
+            // Fix BardErrorInfo silent dropping
+            if (chunk.includes("BardErrorInfo")) {
+               throw new Error("Upstream Error: BardErrorInfo (Auth/RateLimit)");
+            }
 
             const deltas = parser.feed(chunk);
+            // Properly check for Google end marker to avoid false positives in code blocks
+            const isGoogleEnd = chunk.includes('\n[["e",') || chunk.includes('\n[["di",') || chunk.startsWith('[["e",') || chunk.startsWith('[["di",');
             for (const delta of deltas) {
               const sseObj = {
                 id: chatId,

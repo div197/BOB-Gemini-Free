@@ -111,7 +111,7 @@ func (c *Client) buildHeaders(session *AccountSession) http.Header {
 	h.Set("Origin", "https://gemini.google.com")
 	h.Set("Referer", fmt.Sprintf("https://gemini.google.com%s/app", prefix))
 	h.Set("X-Same-Domain", "1")
-	
+
 	// Dynamic Fingerprint matching (Mobile/iOS High-Trust Rotation)
 	fp := ResolveFingerprint(c.Cfg.Impersonate)
 	for k, v := range fp.Headers {
@@ -180,7 +180,7 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 }
 
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
-	atToken := c.Cookies.GetAtToken(c.HTTP, c.Cfg.AuthUser)
+	atToken := c.Cookies.GetAtToken(ctx, c.HTTP, c.Cfg.AuthUser)
 	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
 	reqURL := BuildURL(c.Cfg)
 
@@ -254,7 +254,7 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 }
 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
-	atToken := c.Cookies.GetAtToken(c.HTTP, c.Cfg.AuthUser)
+	atToken := c.Cookies.GetAtToken(ctx, c.HTTP, c.Cfg.AuthUser)
 	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
 	reqURL := BuildURL(c.Cfg)
 
@@ -315,10 +315,12 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 
 		if attempt < c.Cfg.RetryAttempts-1 {
 			c.Logf("Stream retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
+			timer := time.NewTimer(time.Duration(c.Cfg.RetryDelaySec) * time.Second)
 			select {
 			case <-ctx.Done():
+				timer.Stop()
 				return ctx.Err()
-			case <-time.After(time.Duration(c.Cfg.RetryDelaySec) * time.Second):
+			case <-timer.C:
 			}
 		}
 	}

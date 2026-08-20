@@ -5055,13 +5055,13 @@ async function probeLocalEngine() {
   if (!isPublicDomain) return; // Already local
 
   // If user explicitly set a custom gateway, respect it
-  if (localStorage.getItem('bob_gateway_url')) return;
+  if (localStorage.getItem('bob_gemini_endpoint')) return;
 
   try {
     const res = await fetch("http://127.0.0.1:9610/", { method: "GET" });
     if (res.ok) {
       // Local engine found! Auto-bind to it.
-      localStorage.setItem('bob_gateway_url', 'http://127.0.0.1:9610');
+      localStorage.setItem('bob_gemini_endpoint', 'http://127.0.0.1:9610');
       showToast("🚀 Local BOB Engine Detected & Connected!", "✅");
       refreshTelemetry();
       return;
@@ -7041,6 +7041,7 @@ async function sendMessage() {
   if ((!text && !currentAttachedImage && !currentAttachedDoc) || isGenerating) return;
 
   isGenerating = true;
+  try {
   activeAbortController = new AbortController();
 
   const sendBtn = document.getElementById("send-btn");
@@ -7163,7 +7164,6 @@ async function sendMessage() {
   let thoughtFullText = "";
   let lastMathRenderTime = 0;
 
-  try {
     const baseUrl = getGatewayBaseUrl();
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
@@ -7198,8 +7198,10 @@ async function sendMessage() {
     let pendingRender = false;
     let lastRenderTime = 0;
     let fallbackTimer = 0;
+    let streamRenderActive = true;
 
     function doRender() {
+      if (!streamRenderActive) return;
       pendingRender = false;
       if (fallbackTimer) {
         clearTimeout(fallbackTimer);
@@ -7279,12 +7281,15 @@ async function sendMessage() {
         break; // Break gracefully on timeout or disconnect
       }
     }
+    try { await reader.cancel(); } catch (e) {}
+    try { reader.releaseLock(); } catch (e) {}
     // Flush any remaining partial buffer (safety net for truncated streams)
     if (partial.trim()) {
       processSSELines(partial + "\n");
     }
 
     // Clear throttles and do a synchronous final render
+    streamRenderActive = false;
     if (fallbackTimer) { clearTimeout(fallbackTimer); fallbackTimer = 0; }
     pendingRender = false;
 
