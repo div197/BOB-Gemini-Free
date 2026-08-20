@@ -7200,11 +7200,18 @@ async function sendMessage() {
     }
 
     while (true) {
-      const {done, value} = await reader.read();
-      if (done) break;
-      partial += decoder.decode(value, {stream: true});
-      partial = processSSELines(partial);
-      if (streamDone) break;
+      try {
+        const readPromise = reader.read();
+        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Stream timeout')), 15000));
+        const {done, value} = await Promise.race([readPromise, timeoutPromise]);
+        if (done) break;
+        partial += decoder.decode(value, {stream: true});
+        partial = processSSELines(partial);
+        if (streamDone) break;
+      } catch (err) {
+        console.warn("Stream interrupted:", err);
+        break; // Break gracefully on timeout or disconnect
+      }
     }
     // Flush any remaining partial buffer (safety net for truncated streams)
     if (partial.trim()) {
