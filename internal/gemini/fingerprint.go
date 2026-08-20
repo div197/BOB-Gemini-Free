@@ -22,8 +22,19 @@ type tlsClientAdapter struct {
 var (
 	clientMap   = make(map[string]*tlsClientAdapter)
 	clientMapMu sync.Mutex
-	seededRand  = rand.New(rand.NewSource(time.Now().UnixNano()))
+	// randMu protects seededRand: math/rand.Rand is NOT safe for concurrent use.
+	randMu     sync.Mutex
+	seededRand = rand.New(rand.NewSource(time.Now().UnixNano()))
 )
+
+// safeRandIntn returns a random int in [0,n) in a concurrency-safe manner.
+func safeRandIntn(n int) int {
+	randMu.Lock()
+	v := seededRand.Intn(n)
+	randMu.Unlock()
+	return v
+}
+
 
 type Fingerprint struct {
 	Profile profiles.ClientProfile
@@ -56,7 +67,7 @@ var highTrustProfiles = []Fingerprint{
 func ResolveFingerprint(name string) Fingerprint {
 	name = strings.ToLower(name)
 	if name == "" || name == "random" || name == "iphone" || name == "ios" {
-		return highTrustProfiles[seededRand.Intn(len(highTrustProfiles))]
+		return highTrustProfiles[safeRandIntn(len(highTrustProfiles))]
 	}
 
 	switch name {
@@ -122,7 +133,7 @@ func (a *tlsClientAdapter) Do(req *http.Request) (*http.Response, error) {
 		req.Body = io.NopCloser(bytes.NewReader(bodyBytes))
 	}
 
-	freq, err := fhttp.NewRequest(req.Method, req.URL.String(), bytes.NewReader(bodyBytes))
+	freq, err := fhttp.NewRequestWithContext(req.Context(), req.Method, req.URL.String(), bytes.NewReader(bodyBytes))
 	if err != nil {
 		return nil, err
 	}

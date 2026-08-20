@@ -292,7 +292,7 @@ func handleUpdate(currentVersion string) {
 	os.Exit(0)
 }
 
-func handleService(action string, port int) {
+func handleService(action string, port int, extraArgs []string) {
 	fmt.Println("==================================================================")
 	fmt.Println("    BOB Gemini Free - Native OS Service Daemon Manager            ")
 	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
@@ -309,7 +309,7 @@ func handleService(action string, port int) {
 	var err error
 	switch strings.ToLower(action) {
 	case "install", "enable":
-		err = service.Install(port, logFn)
+		err = service.Install(port, extraArgs, logFn)
 	case "uninstall", "remove", "disable":
 		err = service.Uninstall(logFn)
 	case "start":
@@ -345,18 +345,22 @@ func main() {
 		if firstArg == "update" || firstArg == "--update" {
 			handleUpdate(currentVersion)
 		}
-		if firstArg == "service" {
+		if len(os.Args) > 1 && os.Args[1] == "service" {
 			action := "status"
 			if len(os.Args) > 2 {
 				action = os.Args[2]
 			}
 			port := 9610
+			var extraArgs []string
 			for i := 2; i < len(os.Args); i++ {
 				if os.Args[i] == "--port" && i+1 < len(os.Args) {
 					fmt.Sscanf(os.Args[i+1], "%d", &port)
+					i++ // skip the value
+				} else if os.Args[i] != action {
+					extraArgs = append(extraArgs, os.Args[i])
 				}
 			}
-			handleService(action, port)
+			handleService(action, port, extraArgs)
 		}
 	}
 
@@ -395,7 +399,7 @@ func main() {
 		if *portFlag != 0 {
 			port = *portFlag
 		}
-		handleService(*serviceFlag, port)
+		handleService(*serviceFlag, port, nil)
 	}
 
 	if *statusFlag {

@@ -252,6 +252,12 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Strip thinking blocks from the raw response before exposing to user.
+	// This mirrors chat.go and anthropic.go which both call ExtractThinking.
+	if thinking, cleanText := format.ExtractThinking(text); thinking != "" {
+		text = cleanText
+	}
+
 	var toolCalls []models.OpenAIToolCall
 	if len(reqTools) > 0 && text != "" && !isToolNone {
 		text, toolCalls = format.ParseToolCalls(text)
@@ -263,6 +269,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		outputTokens = 1
 	}
 	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+
 
 	if stream {
 		// Tool-call streaming: replay synchronously after buffering

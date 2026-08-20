@@ -111,9 +111,15 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		w.Header().Set("x-ratelimit-reset-requests", "1s")
 
 		isPublicRoute := false
-		publicPrefixes := []string{"/playground", "/health", "/favicon.ico", "/manifest.json", "/sw.js", "/icons/", "/v1/update/check"}
+		// Routes that must always be publicly accessible (never blocked by api_keys):
+		// - /playground and /ui: the embedded Web Studio must always load
+		// - /sw.js, /manifest.json, /favicon.ico, /icons/: PWA assets
+		// - /v1/update/check: version check used by the UI without credentials
+		// NOTE: "/" (health) is intentionally NOT in this list — it is protected
+		// by api_keys when configured, matching the OpenAI API behavior.
+		publicPrefixes := []string{"/playground", "/ui", "/favicon.ico", "/manifest.json", "/sw.js", "/icons/", "/v1/update/check"}
 		for _, prefix := range publicPrefixes {
-			if strings.HasPrefix(r.URL.Path, prefix) || r.URL.Path == "/" {
+			if strings.HasPrefix(r.URL.Path, prefix) {
 				isPublicRoute = true
 				break
 			}

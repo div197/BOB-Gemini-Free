@@ -117,12 +117,23 @@ func (p *CookiePool) Reload() int {
 	sourceDir := p.sourceDir
 	p.mu.RUnlock()
 
+	// Build a deduplicated set to avoid loading directory files twice
+	// (they were already appended to p.sources in LoadFromDirectory)
+	seen := make(map[string]bool, len(sources))
+	for _, s := range sources {
+		seen[s] = true
+	}
+
 	if sourceDir != "" {
 		entries, err := os.ReadDir(sourceDir)
 		if err == nil {
 			for _, e := range entries {
 				if !e.IsDir() && strings.HasSuffix(e.Name(), ".txt") {
-					sources = append(sources, filepath.Join(sourceDir, e.Name()))
+					p := filepath.Join(sourceDir, e.Name())
+					if !seen[p] {
+						sources = append(sources, p)
+						seen[p] = true
+					}
 				}
 			}
 		}

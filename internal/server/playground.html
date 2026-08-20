@@ -1276,7 +1276,6 @@ input[type="range"] {
 }
 .btn-pill-cta:active {
   transform: translateY(0);
-}
   box-shadow: var(--shadow-cta);
   flex-shrink: 0;
 }
@@ -2879,6 +2878,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     background: #fff !important;
     color: #000 !important;
     overflow: visible !important;
+  }
+}
+
 /* Floating Audio Speech Control Bar (Dharmic Glassmorphism) */
 .floating-audio-bar {
   position: absolute;
@@ -6648,7 +6650,7 @@ async function enhanceCurrentPrompt() {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 6500);
 
-    const res = await fetch("/v1/chat/completions", {
+    const res = await fetch(getGatewayBaseUrl() + "/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -6858,7 +6860,10 @@ const STARTER_PROMPTS = {
   schrodinger: "Derive the Time-Dependent Schrödinger Wave Equation from first principles using de Broglie matter wave relations (E = \\hbar\\omega, p = \\hbar k), the classical energy conservation equation (E = p^2/2m + V), and differential wave operators. Formulate every step with clean, rigorous KaTeX LaTeX mathematical notation, detailing boundary conditions, the physical meaning of the complex probability wave function \\Psi(x,t), and probability conservation. Output clear LaTeX equations.",
   quantum: "Explain the mathematical principles of quantum superposition and entanglement with step-by-step reasoning and Dirac bra-ket matrices.",
   python: "Write a complete Python script using the official openai-python SDK configured to stream responses from BOB Gemini Free at http://127.0.0.1:9610/v1 with model gemini-3.7-flash and extract reasoning_content thinking tokens in real-time.",
-  golang: "Write a production-grade, zero-allocation concurrent HTTP reverse proxy microservice in Go (Go 1.22+) using standard library net/http and sync.Pool. Include graceful shutdown on SIGINT/SIGTERM, custom round-tripper with connection pooling, structured slog logging, and health probe endpoints."
+  golang: "Write a production-grade, zero-allocation concurrent HTTP reverse proxy microservice in Go (Go 1.22+) using standard library net/http and sync.Pool. Include graceful shutdown on SIGINT/SIGTERM, custom round-tripper with connection pooling, structured slog logging, and health probe endpoints.",
+  proof: "Provide a rigorous mathematical proof of Euler's Identity (e^{iπ} + 1 = 0) from first principles using Taylor series expansions for e^x, sin(x), and cos(x). Present each derivation step in clean LaTeX notation with precise justifications for analytic continuation into the complex plane.",
+  audit: "Perform a comprehensive Systems Architecture Audit of a distributed microservices platform. Evaluate: (1) Service coupling and bounded context alignment, (2) Data consistency guarantees (eventual vs strong), (3) Failure isolation and circuit breaker patterns, (4) Observability strategy (logs, metrics, traces), (5) Security surface area and zero-trust network design. Output a structured audit report with severity-ranked findings and actionable remediation roadmap.",
+  physics: "Deconstruct the physical mechanism of nuclear fusion from first principles: begin with the strong nuclear force and quantum tunneling probability (Gamow factor), derive the Lawson criterion for energy breakeven, explain plasma confinement via magnetic mirror and tokamak geometry (∇B drift, curvature drift), and compute the ideal ignition temperature for deuterium-tritium fusion. Use rigorous LaTeX equations throughout."
 };
 
 function selectStarter(key) {

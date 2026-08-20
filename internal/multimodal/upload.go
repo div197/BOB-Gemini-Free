@@ -33,7 +33,10 @@ func UploadImage(client gemini.Requester, tokens PageTokens, imgBytes []byte, mi
 		pctx = DefaultPctx
 	}
 
-	cookieInfo, _ := cookieCache.Load()
+	var cookieInfo gemini.CookieInfo
+	if cookieCache != nil {
+		cookieInfo, _ = cookieCache.Load()
+	}
 
 	// Step 1: Initiate resumable upload
 	startHeaders := make(http.Header)

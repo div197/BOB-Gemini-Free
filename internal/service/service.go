@@ -14,9 +14,10 @@ import (
 
 // ServiceConfig holds parameters needed to render service unit files.
 type ServiceConfig struct {
-	ExePath string
-	Port    int
-	LogPath string
+	ExePath   string
+	Port      int
+	LogPath   string
+	ExtraArgs []string
 }
 
 const macOSPlistTemplate = `<?xml version="1.0" encoding="UTF-8"?>
@@ -29,7 +30,8 @@ const macOSPlistTemplate = `<?xml version="1.0" encoding="UTF-8"?>
     <array>
         <string>{{.ExePath}}</string>
         <string>--port</string>
-        <string>{{.Port}}</string>
+        <string>{{.Port}}</string>{{range .ExtraArgs}}
+        <string>{{.}}</string>{{end}}
     </array>
     <key>RunAtLoad</key>
     <true/>
@@ -48,7 +50,7 @@ Description=BOB Gemini Free AI Gateway Daemon
 After=network.target
 
 [Service]
-ExecStart={{.ExePath}} --port {{.Port}}
+ExecStart={{.ExePath}} --port {{.Port}} {{range .ExtraArgs}}'{{.}}' {{end}}
 Restart=always
 RestartSec=3
 
@@ -57,11 +59,11 @@ WantedBy=default.target
 `
 
 const windowsBatchTemplate = `@echo off
-start "" "{{.ExePath}}" --port {{.Port}}
+start "" "{{.ExePath}}" --port {{.Port}} {{range .ExtraArgs}}"{{.}}" {{end}}
 `
 
 // Install registers and starts the native OS background daemon.
-func Install(port int, logFn func(string, ...any)) error {
+func Install(port int, extraArgs []string, logFn func(string, ...any)) error {
 	if logFn == nil {
 		logFn = func(string, ...any) {}
 	}
@@ -88,9 +90,10 @@ func Install(port int, logFn func(string, ...any)) error {
 	logPath := filepath.Join(logDir, "daemon.log")
 
 	cfg := ServiceConfig{
-		ExePath: exePath,
-		Port:    port,
-		LogPath: logPath,
+		ExePath:   exePath,
+		Port:      port,
+		LogPath:   logPath,
+		ExtraArgs: extraArgs,
 	}
 
 	switch runtime.GOOS {
@@ -262,13 +265,18 @@ func Status(port int, logFn func(string, ...any)) error {
 		logFn("[!] Service Definition: Not Installed (run: bob-gemini-free service install)")
 	}
 
-	// Check HTTP ping
+	// Check HTTP ping — accept both 200 (no API keys) and 401 (API keys configured)
+	// as evidence the daemon is alive and listening.
 	targetURL := fmt.Sprintf("http://127.0.0.1:%d/", port)
 	client := &http.Client{Timeout: 1500 * time.Millisecond}
 	resp, err := client.Get(targetURL)
-	if err == nil && resp.StatusCode == http.StatusOK {
-		logFn("[✔] Daemon Gateway Process: RUNNING (listening on http://127.0.0.1:%d)", port)
-		resp.Body.Close()
+	if err == nil {
+		defer resp.Body.Close() // Always close body to prevent TCP socket leak
+		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusUnauthorized {
+			logFn("[✔] Daemon Gateway Process: RUNNING (listening on http://127.0.0.1:%d)", port)
+		} else {
+			logFn("[!] Daemon Gateway Process: RESPONDING but unhealthy (HTTP %d) on port %d", resp.StatusCode, port)
+		}
 	} else {
 		logFn("[!] Daemon Gateway Process: STOPPED / NOT RESPONDING on port %d", port)
 	}

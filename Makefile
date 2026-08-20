@@ -5,7 +5,7 @@
 # ==============================================================================
 
 BINARY_NAME=bob-gemini-free
-VERSION=v0.1.5
+VERSION=v0.1.7
 LDFLAGS=-s -w -X main.Version=$(VERSION)
 
 .PHONY: all build web run test test-cover dist clean

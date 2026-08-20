@@ -88,6 +88,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
 		return
 	}
+	a.RequestsServed.Add(1) // Track all Google API requests, not just countTokens
 	a.Logf("Google API: model=%s stream=%t tools=%t prompt_len=%d", resolved.Name, stream, hasTools, len(prompt))
 
 	if stream && !hasTools {
@@ -121,11 +122,17 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		if emitErr == nil {
 			promptTokens := format.EstimateTokens(prompt)
 			candidatesTokens := format.EstimateTokens(fullText)
+			a.TokensProcessed.Add(uint64(promptTokens + candidatesTokens))
+			// Final chunk: must include Content with empty parts so Google client SDKs don't nil-pointer
 			finalChunk := models.GoogleGenerateResponse{
 				Candidates: []models.GoogleCandidate{
 					{
 						Index:        0,
 						FinishReason: "STOP",
+						Content: &models.GoogleContent{
+							Role:  "model",
+							Parts: []models.GooglePart{{Text: ""}},
+						},
 					},
 				},
 				UsageMetadata: &models.GoogleUsageMetadata{
@@ -192,6 +199,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	promptTokens := format.EstimateTokens(prompt)
 	candidatesTokens := format.EstimateTokens(text)
+	a.TokensProcessed.Add(uint64(promptTokens + candidatesTokens))
 
 	responseObj := models.GoogleGenerateResponse{
 		Candidates: []models.GoogleCandidate{

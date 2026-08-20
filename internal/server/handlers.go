@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
@@ -73,8 +74,12 @@ func (a *App) handleModels(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 	modelName := r.PathValue("model")
-	m, exists := models.MODELS[modelName]
-	if !exists {
+	// Strip prefixes/suffixes to check actual existence before resolving
+	lookupName := strings.TrimPrefix(modelName, "models/")
+	if idx := strings.LastIndex(lookupName, "@think="); idx != -1 {
+		lookupName = lookupName[:idx]
+	}
+	if _, exists := models.MODELS[lookupName]; !exists {
 		writeJSON(w, http.StatusNotFound, map[string]any{
 			"error": map[string]any{
 				"message": "The model '" + modelName + "' does not exist",
@@ -86,6 +91,23 @@ func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Now safe to use Resolve() to handle aliases correctly
+	resolved, err := models.Resolve(modelName, a.Cfg.DefaultModel)
+	if err != nil {
+		writeJSON(w, http.StatusNotFound, map[string]any{
+			"error": map[string]any{
+				"message": err.Error(),
+				"type":    "invalid_request_error",
+				"param":   "model",
+				"code":    "model_not_found",
+			},
+		})
+		return
+	}
+
+	// Look up description from the canonical resolved model
+	m := models.MODELS[resolved.Name]
+
 	writeJSON(w, http.StatusOK, map[string]any{
 		"id":          modelName,
 		"object":      "model",
@@ -94,7 +116,7 @@ func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 		"description": m.Desc,
 		"permission": []map[string]any{
 			{
-				"id":                   "modelperm-" + modelName,
+				"id":                   "modelperm-" + resolved.Name,
 				"object":               "model_permission",
 				"created":              1700000000,
 				"allow_create_engine":  false,

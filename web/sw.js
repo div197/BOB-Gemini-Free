@@ -3,7 +3,7 @@
   Engineered by ABCsteps (abcsteps.com) & Divyanshu Singh Chouhan (@div197)
 */
 
-const CACHE_NAME = 'bob-gemini-studio-v0.1.5';
+const CACHE_NAME = 'bob-gemini-studio-v0.1.7';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -58,7 +58,13 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse;
       }
       return fetch(event.request).then((networkResponse) => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type !== 'basic') {
+        if (!networkResponse || networkResponse.status !== 200) {
+          return networkResponse;
+        }
+        // Allow both 'basic' (same-origin) and 'cors' (cross-origin CDN like jsdelivr.net)
+        // Previously only 'basic' was allowed, breaking ALL CDN asset caching.
+        // 'opaque' responses (type === 'opaque') are excluded as their status cannot be verified.
+        if (networkResponse.type !== 'basic' && networkResponse.type !== 'cors') {
           return networkResponse;
         }
         const responseToCache = networkResponse.clone();
@@ -75,3 +81,4 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+

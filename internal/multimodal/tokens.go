@@ -76,7 +76,10 @@ func (c *TokenCache) fetchPageTokens() PageTokens {
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-	cookieInfo, _ := c.cookie.Load()
+	var cookieInfo gemini.CookieInfo
+	if c.cookie != nil {
+		cookieInfo, _ = c.cookie.Load()
+	}
 	if cookieInfo.Cookie != "" {
 		req.Header.Set("Cookie", cookieInfo.Cookie)
 	}

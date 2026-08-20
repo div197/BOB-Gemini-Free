@@ -72,10 +72,18 @@ func CompressIfNeeded(b64 string, maxSize int) (string, error) {
 		return "", fmt.Errorf("failed to decode base64 image: %w", err)
 	}
 
-	compressedBytes, _, err := CompressImageBytesIfNeeded(imgData, "image/jpeg", maxSize)
+	// Convert base64 char limit to raw byte limit: base64 expands by ~4/3
+	// so raw bytes ≈ base64_chars * 3/4
+	maxBytes := (maxSize * 3) / 4
+	if maxBytes <= 0 {
+		maxBytes = MaxImageByteSize
+	}
+
+	compressedBytes, _, err := CompressImageBytesIfNeeded(imgData, "image/jpeg", maxBytes)
 	if err != nil {
 		return "", err
 	}
 
 	return base64.StdEncoding.EncodeToString(compressedBytes), nil
 }
+
