@@ -9,11 +9,13 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"runtime/debug"
-	"strings"
 	"slices"
+	"strings"
 	"syscall"
 	"time"
 
@@ -493,6 +495,24 @@ func main() {
 	go func() {
 		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			log.Fatalf("Server failed: %v", err)
+		}
+	}()
+
+	go func() {
+		time.Sleep(500 * time.Millisecond) // Give server time to bind
+		url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
+
+		var err error
+		switch runtime.GOOS {
+		case "linux":
+			err = exec.Command("xdg-open", url).Start()
+		case "windows":
+			err = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
+		case "darwin":
+			err = exec.Command("open", url).Start()
+		}
+		if err == nil {
+			log.Printf("🚀 Opened Studio in default browser: %s", url)
 		}
 	}()
 

@@ -5049,6 +5049,68 @@ async function refreshTelemetry() {
     updateGatewayStatusIndicator(false, null);
   }
 }
+// --- LOCAL ENGINE PROBE (POSTMAN MODE) ---
+async function probeLocalEngine() {
+  const isPublicDomain = !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
+  if (!isPublicDomain) return; // Already local
+
+  // If user explicitly set a custom gateway, respect it
+  if (localStorage.getItem('bob_gateway_url')) return;
+
+  try {
+    const res = await fetch("http://127.0.0.1:9610/", { method: "GET" });
+    if (res.ok) {
+      // Local engine found! Auto-bind to it.
+      localStorage.setItem('bob_gateway_url', 'http://127.0.0.1:9610');
+      showToast("🚀 Local BOB Engine Detected & Connected!", "✅");
+      refreshTelemetry();
+      return;
+    }
+  } catch (err) {
+    // Local engine offline. Show Postman-like onboarding modal.
+    showLocalOnboardingModal();
+  }
+}
+
+function showLocalOnboardingModal() {
+  const existing = document.getElementById("local-onboard-modal");
+  if (existing) {
+    existing.classList.add("open");
+    return;
+  }
+  
+  const modalHTML = `
+    <div id="local-onboard-modal" class="modal-overlay open" style="z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
+      <div class="modal-content" style="max-width: 550px; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.4);">
+        <h2 style="color: var(--accent-primary); display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; margin-top: 0;">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+          Supercharge with the Local Engine
+        </h2>
+        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+          You are currently connected to the public Cloudflare demo, which restricts heavy usage via Google Datacenter Rate Limits (HTTP 429). 
+          To unlock <strong>unlimited 1M+ context streaming</strong> and <strong>100% privacy</strong>, run the BOB Gemini engine locally on your machine.
+        </p>
+        
+        <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">macOS / Linux Installer</span>
+          <code style="color: #10b981; user-select: all;">curl -sSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</code>
+          <br><br>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the Engine</span>
+          <code style="color: #3b82f6; user-select: all;">./bob-gemini-free --port 9610</code>
+        </div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
+          <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue on Cloudflare</button>
+          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View GitHub</button>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+}
+// ----------------------------------------
+
+probeLocalEngine();
 setInterval(refreshTelemetry, 2500);
 refreshTelemetry();
 
