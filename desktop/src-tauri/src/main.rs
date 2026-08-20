@@ -13,7 +13,7 @@ fn main() {
             // The sidecar name must match the `externalBin` array in tauri.conf.json
             let (mut rx, child) = Command::new_sidecar("bob-gemini-free")
                 .expect("failed to create `bob-gemini-free` binary command")
-                .args(["--port", "9610", "--headless"])
+                .args(["--port", "9610", "--headless", "--config", "none"])
                 .spawn()
                 .expect("Failed to spawn sidecar");
 

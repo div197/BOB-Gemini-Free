@@ -423,11 +423,14 @@ func main() {
 		handleCookieSetup(*cookieStringFlag)
 	}
 
-	configPath := *configFlag
-	if configPath == "" {
-		configPath = os.Getenv("BOB_GEMINI_FREE_CONFIG")
-	}
-	if configPath == "" {
+	var configPath string
+	if configFlag != nil && *configFlag != "" {
+		if *configFlag == "none" {
+			configPath = "" // Explicitly bypass auto-discovery
+		} else {
+			configPath = *configFlag
+		}
+	} else {
 		configPath = config.Find()
 	}
 
