@@ -145,6 +145,14 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 
 ---
 
+### Option 0: The Native Desktop App (Recommended)
+BOB Gemini Free now ships as a **100% Native Desktop App** (powered by Wails & Go). It bundles the AI studio interface and the background gateway engine into a single click-to-run application (`.app` / `.exe`).
+* No terminal needed! Just double-click the app.
+* [**Download the Desktop App from GitHub Releases**](https://github.com/div197/BOB-Gemini-Free/releases)
+* Or compile it yourself: `make desktop`
+
+---
+
 ### Option 1: Automatic Installer (No Go Required)
 
 #### macOS & Linux

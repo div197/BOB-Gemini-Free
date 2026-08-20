@@ -47,3 +47,9 @@ dist: clean
 clean:
 	rm -f $(BINARY_NAME) $(BINARY_NAME).exe coverage.txt
 	rm -rf dist/
+	rm -rf cmd/desktop/build/bin/
+
+desktop: web
+	@echo "Building Wails Native Desktop App (Requires CGO & Wails CLI)..."
+	cd cmd/desktop && wails build -clean
+	@echo "Desktop build complete! Check cmd/desktop/build/bin/"
