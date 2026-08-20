@@ -11,7 +11,8 @@ BOLD='\033[1m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
-NC='\033[0m' # No Color
+RED='\033[0;31m'
+NC='\033[0m'
 
 echo -e "${BLUE}${BOLD}================================================================${NC}"
 echo -e "${GREEN}${BOLD}    BOB Gemini Free - Break Ordinary Boundaries                ${NC}"
@@ -21,61 +22,76 @@ echo ""
 
 APP_NAME="bob-gemini-free"
 CONFIG_DIR="$HOME/.config/bob-gemini-free"
-INSTALL_DIR="/usr/local/bin"
+LOCAL_BIN="$HOME/.local/bin"
 
-# 1. Ensure config directory exists
 mkdir -p "$CONFIG_DIR"
-if [ ! -f "$CONFIG_DIR/config.json" ]; then
-    if [ -f "config.example.json" ]; then
-        cp config.example.json "$CONFIG_DIR/config.json"
-        echo -e "${GREEN}[+] Created default config at $CONFIG_DIR/config.json${NC}"
-    fi
+if [ ! -f "$CONFIG_DIR/config.json" ] && [ -f "config.example.json" ]; then
+    cp config.example.json "$CONFIG_DIR/config.json"
+    echo -e "${GREEN}[✔] Created default config at $CONFIG_DIR/config.json${NC}"
 fi
 
-# 2. Check if local binary already exists
-if [ -f "./$APP_NAME" ]; then
-    echo -e "${GREEN}[✔] Existing $APP_NAME binary found locally.${NC}"
-# 3. Check if Go is installed and we are inside the source repository
-elif command -v go >/dev/null 2>&1 && [ -f "go.mod" ] && grep -q "bob-gemini-free" go.mod; then
-    echo -e "${BLUE}[*] Go detected ($(go version)). Compiling from source...${NC}"
-    CGO_ENABLED=0 go build -ldflags="-s -w" -o "$APP_NAME" .
-    echo -e "${GREEN}[+] Successfully built $APP_NAME binary!${NC}"
-# 4. Check if Docker is installed and we are in the source repository
-elif command -v docker >/dev/null 2>&1 && [ -f "Dockerfile" ]; then
-    echo -e "${YELLOW}[!] Go is not installed locally, but Docker was detected.${NC}"
-    echo -e "${BLUE}[*] Building local Docker image: $APP_NAME...${NC}"
-    docker build -t "$APP_NAME" .
-    echo -e "${GREEN}[+] Docker container built successfully!${NC}"
-    echo -e "${GREEN}[*] Run anytime with:${NC} docker run -d --name $APP_NAME -p 9610:9610 $APP_NAME"
-    exit 0
-# 5. Zero-dependency fallback: Auto-download pre-compiled binary for OS & Architecture
-else
-    echo -e "${BLUE}[*] Fetching pre-compiled standalone binary...${NC}"
-    OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-    ARCH=$(uname -m)
-    case "$ARCH" in
-        x86_64|amd64) ARCH="amd64" ;;
-        arm64|aarch64) ARCH="arm64" ;;
-        *) echo -e "${YELLOW}[!] Unsupported architecture: $ARCH. Please build from source.${NC}"; exit 1 ;;
-    esac
+# Detect OS and Arch
+OS=$(uname -s | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+case "$ARCH" in
+    x86_64|amd64) ARCH="amd64" ;;
+    arm64|aarch64) ARCH="arm64" ;;
+    *) echo -e "${RED}[!] Unsupported architecture: $ARCH. Please build from source.${NC}"; exit 1 ;;
+esac
 
+TARGET_BIN=""
+
+# 1. Check if compiling from source is possible/intended
+if command -v go >/dev/null 2>&1 && [ -f "go.mod" ] && grep -q "bob-gemini-free" go.mod; then
+    echo -e "${BLUE}[*] Go detected in source tree. Compiling locally...${NC}"
+    CGO_ENABLED=0 go build -ldflags="-s -w" -o "$APP_NAME" .
+    TARGET_BIN="./$APP_NAME"
+    echo -e "${GREEN}[✔] Successfully built $APP_NAME binary!${NC}"
+else
+    # 2. Download Pre-compiled release
+    echo -e "${BLUE}[*] Fetching latest pre-compiled standalone binary for ${OS}-${ARCH}...${NC}"
     DOWNLOAD_URL="https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-${OS}-${ARCH}"
-    echo -e "${BLUE}[*] Downloading from: $DOWNLOAD_URL${NC}"
-    if curl -fsSL "$DOWNLOAD_URL" -o "$APP_NAME" 2>/dev/null || wget -qO "$APP_NAME" "$DOWNLOAD_URL" 2>/dev/null; then
-        chmod +x "$APP_NAME"
-        echo -e "${GREEN}[+] Standalone binary installed successfully!${NC}"
+    
+    TMP_FILE="/tmp/${APP_NAME}"
+    if curl -fsSL "$DOWNLOAD_URL" -o "$TMP_FILE" 2>/dev/null || wget -qO "$TMP_FILE" "$DOWNLOAD_URL" 2>/dev/null; then
+        chmod +x "$TMP_FILE"
+        
+        # Try to install globally or to ~/.local/bin
+        if [ -w "/usr/local/bin" ]; then
+            mv "$TMP_FILE" "/usr/local/bin/$APP_NAME"
+            TARGET_BIN="/usr/local/bin/$APP_NAME"
+            echo -e "${GREEN}[✔] Installed globally to $TARGET_BIN${NC}"
+        else
+            mkdir -p "$LOCAL_BIN"
+            mv "$TMP_FILE" "$LOCAL_BIN/$APP_NAME"
+            TARGET_BIN="$LOCAL_BIN/$APP_NAME"
+            echo -e "${GREEN}[✔] Installed to $TARGET_BIN${NC}"
+            
+            # Warn if ~/.local/bin is not in PATH
+            if [[ ":$PATH:" != *":$LOCAL_BIN:"* ]]; then
+                echo -e "${YELLOW}[!] Note: $LOCAL_BIN is not in your PATH.${NC}"
+                echo -e "    Add it by running: ${BOLD}export PATH=\"\$HOME/.local/bin:\$PATH\"${NC}"
+            fi
+        fi
     else
-        echo -e "${YELLOW}[!] Pre-compiled binary not yet available on GitHub Releases.${NC}"
-        echo -e "${BLUE}[*] Please install Go (https://go.dev/dl/) to build locally, or download a release binary.${NC}"
+        echo -e "${RED}[!] Pre-compiled binary not yet available on GitHub Releases.${NC}"
+        echo -e "${BLUE}[*] Please install Go (https://go.dev/dl/) to build locally.${NC}"
         exit 1
     fi
 fi
 
 echo ""
-echo -e "${GREEN}${BOLD}[✔] Setup Complete!${NC}"
-echo -e "Start the server by running:"
-echo -e "  ${BOLD}./$APP_NAME --port 9610${NC}"
+echo -e "${GREEN}${BOLD}================================================================${NC}"
+echo -e "${GREEN}${BOLD}    INSTALLATION COMPLETE! 🚀${NC}"
+echo -e "${GREEN}${BOLD}================================================================${NC}"
 echo ""
-echo -e "Base URL: ${BOLD}http://127.0.0.1:9610/v1${NC}"
-echo -e "Visit ABCsteps: ${BLUE}https://abcsteps.com/${NC}"
+echo -e "To launch the gateway and open the Web Studio, run:"
+if [[ "$TARGET_BIN" == "./"* ]]; then
+    echo -e "  ${BOLD}${TARGET_BIN} --port 9610${NC}"
+else
+    echo -e "  ${BOLD}${APP_NAME} --port 9610${NC}"
+fi
+echo ""
+echo -e "API Base URL: ${BLUE}http://127.0.0.1:9610/v1${NC}"
+echo -e "UI Dashboard: ${BLUE}http://127.0.0.1:9610/playground${NC}"
 echo ""
