@@ -49,6 +49,9 @@ make build
 
 # Cross-compile for all platforms (macOS ARM/Intel, Linux AMD64/ARM64, Windows)
 make dist
+
+# Build Native Desktop App (Requires Wails CLI & CGO)
+make desktop
 ```
 
 ### Testing & Verification

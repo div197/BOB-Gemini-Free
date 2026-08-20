@@ -13,6 +13,9 @@ make build
 # Cross-compile for all operating systems (macOS, Linux, Windows)
 make dist
 
+# Build Native Desktop App (Requires Wails CLI & CGO)
+make desktop
+
 # Run all tests across all packages
 go test -count=1 ./...
 
