@@ -274,6 +274,26 @@ func min(a, b int) int {
 	return b
 }
 
+type studioLauncher func(context.Context, int, func(string, ...any)) error
+
+func launchStudioOrFallback(ctx context.Context, port int, launch studioLauncher, fallback func(string)) {
+	if err := launch(ctx, port, log.Printf); err != nil {
+		fallback(fmt.Sprintf("http://localhost:%d/playground", port))
+	}
+}
+
+func openStudioFallback(studioURL string) {
+	switch runtime.GOOS {
+	case "linux":
+		_ = exec.Command("xdg-open", studioURL).Start()
+	case "windows":
+		_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", studioURL).Start()
+	case "darwin":
+		_ = exec.Command("open", studioURL).Start()
+	}
+	log.Printf("🚀 Opened Studio in default browser tab: %s", studioURL)
+}
+
 func handleUpdate(currentVersion string) {
 	fmt.Println("==================================================================")
 	fmt.Println("    BOB Gemini Free - In-Place Auto-Updater                       ")
@@ -509,32 +529,7 @@ func main() {
 	go func() {
 		time.Sleep(500 * time.Millisecond) // Give server time to bind
 		if !*headlessFlag {
-			err := browser.LaunchStudioWindow(context.Background(), cfg.Port, log.Printf)
-			if err != nil {
-				url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
-				switch runtime.GOOS {
-				case "linux":
-					_ = exec.Command("xdg-open", url).Start()
-				case "windows":
-					_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-				case "darwin":
-					_ = exec.Command("open", url).Start()
-				}
-				log.Printf("🚀 Opened Studio in default browser tab: %s", url)
-			}
-		}
-		if err != nil {
-			// Fallback to standard default browser if no Chromium browser found for App Mode
-			url := fmt.Sprintf("http://localhost:%d/playground", cfg.Port)
-			switch runtime.GOOS {
-			case "linux":
-				_ = exec.Command("xdg-open", url).Start()
-			case "windows":
-				_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", url).Start()
-			case "darwin":
-				_ = exec.Command("open", url).Start()
-			}
-			log.Printf("🚀 Opened Studio in default browser tab: %s", url)
+			launchStudioOrFallback(context.Background(), cfg.Port, browser.LaunchStudioWindow, openStudioFallback)
 		}
 	}()
 

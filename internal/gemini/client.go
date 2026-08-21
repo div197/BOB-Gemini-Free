@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
+	"github.com/div197/bob-gemini-free/internal/metrics"
 )
 
 type UpstreamError struct {
@@ -34,6 +35,7 @@ type Client struct {
 	Cookies *CookieCache
 	Pool    *CookiePool
 	Logf    func(format string, args ...any)
+	Metrics *metrics.Registry
 }
 
 func NewClient(cfg config.Config) *Client {
@@ -150,6 +152,27 @@ func (c *Client) buildHeaders(session *AccountSession) http.Header {
 	return h
 }
 
+func (c *Client) doUpstream(req *http.Request) (*http.Response, error) {
+	started := time.Now()
+	if c.Metrics != nil {
+		c.Metrics.UpstreamRequests.Add(1)
+	}
+	resp, err := c.HTTP.Do(req)
+	if c.Metrics != nil {
+		c.Metrics.UpstreamLatency.Observe(time.Since(started))
+		if err != nil {
+			c.Metrics.UpstreamErrors.Add(1)
+		}
+		if resp != nil && resp.StatusCode >= http.StatusBadRequest {
+			c.Metrics.UpstreamErrors.Add(1)
+			if resp.StatusCode == http.StatusTooManyRequests {
+				c.Metrics.Upstream429.Add(1)
+			}
+		}
+	}
+	return resp, err
+}
+
 func (c *Client) triageStatus(resp *http.Response) error {
 	if resp.StatusCode == http.StatusFound || resp.StatusCode == http.StatusMovedPermanently {
 		return &UpstreamError{
@@ -201,7 +224,7 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 		}
 		req.Header = headers.Clone()
 
-		resp, err := c.HTTP.Do(req)
+		resp, err := c.doUpstream(req)
 		if err != nil {
 			if ctx.Err() != nil {
 				return "", ctx.Err()
@@ -271,6 +294,10 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 		// Reset the chunk buffer on each retry, but preserve the prevText state.
 		// This ensures we don't emit duplicate deltas to the client if a stream connection drops halfway.
 		parser.ResetBuffer()
+		if attempt > 0 && c.Metrics != nil {
+			c.Metrics.StreamRetries.Add(1)
+			c.Metrics.SessionFailovers.Add(1)
+		}
 
 		session := c.Pool.GetHealthySession()
 		headers := c.buildHeaders(session)
@@ -281,7 +308,7 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 		}
 		req.Header = headers.Clone()
 
-		resp, err := c.HTTP.Do(req)
+		resp, err := c.doUpstream(req)
 		if err != nil {
 			if ctx.Err() != nil {
 				return ctx.Err()
@@ -345,6 +372,15 @@ func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(s
 		}
 		if err != nil {
 			if err == io.EOF {
+				deltas, parseErr := parser.Flush()
+				if parseErr != nil {
+					return &UpstreamError{Kind: "bard", Msg: parseErr.Error()}
+				}
+				for _, delta := range deltas {
+					if emitErr := emit(delta); emitErr != nil {
+						return emitErr
+					}
+				}
 				return nil
 			}
 			return &UpstreamError{Kind: "transport", Msg: err.Error()}

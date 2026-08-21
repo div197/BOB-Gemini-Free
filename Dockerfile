@@ -23,6 +23,6 @@ ENV BOB_GEMINI_FREE_HOST=0.0.0.0 \
     BOB_GEMINI_FREE_PORT=9610
 
 HEALTHCHECK --interval=20s --timeout=3s --start-period=3s --retries=3 \
-  CMD wget -qO- http://127.0.0.1:9610/ >/dev/null 2>&1 || exit 1
+  CMD wget -qO- http://127.0.0.1:9610/healthz >/dev/null 2>&1 || exit 1
 
 ENTRYPOINT ["/app/bob-gemini-free"]

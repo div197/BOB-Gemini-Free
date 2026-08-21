@@ -11,6 +11,7 @@
   "api_keys": [
     "sk-gemini"
   ],
+  "allowed_origins": [],
   "cookie_file": null,
   "cookie_pool": [],
   "proxy": null,

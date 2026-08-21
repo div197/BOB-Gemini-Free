@@ -5,8 +5,8 @@
 <h1 align="center">BOB Gemini Free</h1>
 
 <p align="center">
-  <strong>Universal 3-in-1 AI Gateway Engine</strong><br>
-  <em>Drop-in OpenAI, Anthropic, and Google Gemini API for Developers & Agents</em>
+  <strong>Multi-Protocol AI Gateway Engine</strong><br>
+  <em>OpenAI-shaped, Anthropic-shaped, and Google Gemini adapter routes for developers and agents</em>
 </p>
 
 <p align="center">
@@ -30,6 +30,27 @@
 
 ---
 
+## Engineering Status & Evidence Boundary
+
+Phase II has regression-locked the fragile protocol core and documented what
+is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md).
+
+| Status | Current meaning |
+|---|---|
+| **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, Wails port selection, and aggregate metrics |
+| **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
+| **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
+| **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md); they are not Google latency or rate-limit measurements |
+| **Upstream-dependent** | Google model identity, entitlements, context limits, live compatibility, rate limits, authenticated vision/Imagen, and “free/unlimited” behavior |
+| **Experimental** | Pro/model aliases, image-generation routing, live browser login, and any capability not proven by an authorized live session |
+
+The Go gateway sends no automatic telemetry, but the browser studio loads
+third-party CDN assets and an input-tools endpoint. Hosted Studio access to a
+local gateway requires an exact configured origin (and should also use an API
+key); PNA is not authentication.
+
+---
+
 ## 🌟 The Philosophy: Why "Break Ordinary Boundaries"?
 
 In the modern AI landscape, learners, independent creators, and developers constantly hit **three ordinary boundaries**:
@@ -38,10 +59,10 @@ In the modern AI landscape, learners, independent creators, and developers const
 2. 🔒 **The Ecosystem Boundary (Platform Lock-in)**: Closed ecosystems trap developers — Anthropic tools only talk to Anthropic, OpenAI tools only talk to OpenAI, and Google Gemini's web power remains trapped inside a browser tab.
 3. ⚙️ **The Complexity Boundary (Friction & Setup Hell)**: Most proxy tools require compiling dependencies, installing runtimes (Python, Go, Node), or copy-pasting cryptic tokens with confusing error dialogs.
 
-**BOB breaks all three boundaries at once**:
-- ✨ **Zero Cost**: Unlocks Google's flagship **Gemini 3.7 Flash**, **Flash Thinking**, **3.1 Pro**, **Imagen 3**, and **Gemini Nano Banana** for every Google account.
-- 🔓 **The "API-Less AI" Architecture**: No cloud console setup, no credit cards, no billing accounts, and zero risk of API key leaks. Your local session powers everything directly.
-- 🌉 **Universal 4-in-1 Protocol**: One single local gateway translates Google's web stream simultaneously into **OpenAI Standard** (`/v1/chat/completions`, `/v1/responses`, `/v1/tokens/count`), **Anthropic Standard** (`/v1/messages` for Claude Code CLI), **Google Gemini Standard** (`/v1beta/models`, `:countTokens`), and **Embedded Go Library** (`pkg/gateway`).
+**BOB is designed to address all three**:
+- 🧭 **Session-Dependent Access**: The available model, reasoning, image, quota, and context behavior follows the configured Google web session.
+- 🔓 **The "API-Less AI" Architecture**: No gateway billing account is required, but a Google session and Google's current entitlements still govern upstream access.
+- 🌉 **Multiple Adapter Surfaces**: One local gateway exposes OpenAI-shaped, Anthropic-shaped, Google Gemini-shaped, and embedded Go interfaces. Compatibility is endpoint-specific and tool calling is emulated in some paths.
 - ⚡ **Zero-Friction Simplicity**: Runs as a single, self-contained native binary with **No Go, No Python, and No runtime required**. Includes a **1-Click Native Login Window (`--login`)** that sets up everything in seconds.
 
 ---
@@ -53,10 +74,10 @@ Traditional developer tools force you through a maze of cloud billing setups, cr
 | Traditional Cloud API Model | The BOB API-Less Architecture |
 | :--- | :--- |
 | 💳 Requires credit card & billing account | **$0.00 / Zero credit cards needed** |
-| 💸 Pay per million tokens & reasoning steps | **Unlimited daily coding on Flash & Thinking** |
+| 💸 Pay per million tokens & reasoning steps | **No gateway billing; upstream quotas still apply** |
 | 🔑 Fragile API keys prone to leaks & theft | **Secure local session locked with `0600` permissions** |
-| 🔒 Locked to single vendor CLI or protocol | **Universal 4-in-1 translation (OpenAI, Claude, Google, Go)** |
-| 📊 Blind monthly invoices | **Live on-device token & dollar savings tracking (`GET /`)** |
+| 🔒 Locked to single vendor CLI or protocol | **Multiple adapter surfaces (OpenAI, Anthropic, Google, Go)** |
+| 📊 Blind monthly invoices | **Local estimated usage and savings counters (`GET /`)** |
 
 ---
 
@@ -79,7 +100,7 @@ Think of **BOB Gemini Free** as a fast, private **Universal Translator** that ru
                                ▼
 ┌─────────────────────────────────────────────────────────────┐
 │  ⚡ BOB Gemini Free (Local Gateway on your machine)          │
-│  Translates requests instantly with zero cloud tracking     │
+│  Translates requests locally; UI asset calls are separate   │
 └──────────────────────────────┬──────────────────────────────┘
                                │ Speaks Google Web RPC Stream
                                ▼
@@ -88,7 +109,7 @@ Think of **BOB Gemini Free** as a fast, private **Universal Translator** that ru
 └─────────────────────────────┘
 ```
 
-When **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, or **Grok Build** asks for an API response, it sends a request to BOB. BOB translates that request into Gemini's format, fetches the response with full reasoning and vision support, and hands it back in milliseconds.
+When a supported client asks for an API response, it sends a request to BOB. BOB translates the supported request shape into Gemini's web format and returns the adapter response; reasoning, vision, latency, and model behavior remain endpoint- and session-dependent.
 
 ---
 
@@ -96,25 +117,25 @@ When **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, or **Grok Build** as
 
 The **BOB Series** by **ABCsteps** is a developer-first collection of open-source runtimes and engines designed to remove paywalls and artificial constraints from modern software workflows:
 
-* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — Universal 4-in-1 local gateway unlocking Google Gemini Web for coding agents, IDEs, and developer tools.
+* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — Multi-protocol local gateway exposing Google Gemini Web through adapter routes for coding agents, IDEs, and developer tools.
 * 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — Docker-first YouTube ingestion and transcription runtime for developers, products, and AI agents.
 
 ---
 
 ## Key Features
 
-* **Free for Every Gmail User**: Out of the box, every Google account includes free Gemini access with high-speed Flash, adaptive Flash Lite, and deep Flash Thinking (up to 20,000+ characters of reasoning).
-* **Universal 4-in-1 Protocol**: Drop-in compatible with OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, Google GenAI SDKs, and in-process Go applications.
-* **Native Token Counting Engine**: Accurate multi-script token counting via `POST /v1beta/models/{model}:countTokens` and `POST /v1/tokens/count`.
-* **Live Telemetry & Cost Savings Tracking**: Real-time dollar savings reported in `GET /` (`estimated_savings_usd`).
-* **13-Point Automated Diagnostic Suite**: Built-in verification command (`./bob-gemini-free --test`) and concurrency stress runner (`--bench`).
-* **1-Click Native Login Window (`--login`)**: Standalone Google sign-in window automatically captures session tokens without Developer Tools or scary Keychain prompts.
+* **Session-Dependent Google Routing**: Model access, reasoning, image, quota, and context behavior follows the current Google web session.
+* **Multiple Protocol Adapters**: OpenAI-shaped, Anthropic-shaped, Google-shaped, and embedded Go endpoints are implemented and fixture-tested; this is not a universal/native guarantee for every client feature.
+* **Estimated Token Counting**: `POST /v1beta/models/{model}:countTokens` and `POST /v1/tokens/count` provide local estimates, not Google's authoritative tokenizer.
+* **Local Aggregate Metrics**: Safe request, latency, pool, upload, cache, and token-estimate counters are available locally; no automatic telemetry is transmitted.
+* **Live Diagnostic Suite**: The built-in `./bob-gemini-free --test` command and `--bench` runner need an explicitly running gateway and may depend on upstream access.
+* **1-Click Native Login Window (`--login`)**: The browser workflow attempts to capture session tokens in an isolated profile; login success remains dependent on the local browser and Google.
 * **Multi-Account Cookie Pool (`cookie_pool`)**: Distribute requests across multiple Google accounts with automatic 60-second backoff and transparent failover on rate limits.
-* **Gemini Advanced ($20/mo) Integration**: Attach your session cookie to legitimately route to Google's flagship **Pro** model (`gemini-3.1-pro`) for deep mathematical and coding capabilities.
-* **Imagen 3 & Gemini Nano Banana 2/Pro**: Standard OpenAI image generation endpoint (`/v1/images/generations`) with photorealistic and native visual rendering.
-* **Claude 3.7 / 3.5 Native Thinking Support**: Accepts `thinking: { type: "enabled" }` and emits structured reasoning blocks and prompt caching counters for Claude Code CLI.
-* **Full Multimodal Vision**: Send base64 images or image URLs via standard OpenAI payloads — automatically uploaded via Google's Scotty Resumable Upload protocol with automatic compression.
-* **Zero Cost, Privacy First & Local Only**: Single static binary with near-zero memory footprint (<15MB RAM baseline), safe local-first binding (`127.0.0.1`), and zero external telemetry.
+* **Authenticated Pro Routing Path**: A configured session may expose Google's Pro aliases when the upstream account and current web protocol support them; this is not guaranteed by the gateway.
+* **Image-Generation Routing Path**: `/v1/images/generations` is implemented, but Imagen/Nano Banana output remains experimental and upstream-dependent.
+* **Anthropic-Shaped Thinking Support**: Accepts Anthropic-style thinking fields and emits the adapter's reasoning blocks; it is not native Claude inference.
+* **Multimodal Vision Path**: Send base64 images or public image URLs via standard OpenAI payloads — uploaded through Google's Scotty resumable path when an authenticated session permits it.
+* **Privacy First & Local Gateway**: Safe default loopback binding (`127.0.0.1`) and no automatic telemetry from the Go gateway; memory and upstream performance must be measured for the target build.
 
 ## Supported Tools & Ecosystem
 
@@ -146,7 +167,7 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 ---
 
 ### Option 0: The Native Desktop App (Recommended)
-BOB Gemini Free now ships as a **100% Native Desktop App** (powered by Wails & Go). It bundles the AI studio interface and the background gateway engine into a single click-to-run application (`.app` / `.exe`).
+BOB Gemini Free now ships a **Wails desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * No terminal needed! Just double-click the app.
 * [**Download the Desktop App from GitHub Releases**](https://github.com/div197/BOB-Gemini-Free/releases)
 * Or compile it yourself: `make desktop`
@@ -252,16 +273,21 @@ Keep BOB Gemini Free updated with the latest releases directly from GitHub with 
 ./bob-gemini-free --update
 ```
 
+Updates now fail closed unless the release publishes a signed `SHA256SUMS`
+manifest and the matching Ed25519 public key is configured as
+`BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` (base64 or hexadecimal). See
+[`docs/engineering/UPDATE-VERIFICATION.md`](docs/engineering/UPDATE-VERIFICATION.md).
+
 ---
 
 ### Option 6: Interactive Local-First Web Studio (`/playground` & `bob-gemini-free.abcsteps.com`)
 
-Access the built-in, zero-dependency visual studio directly in your web browser:
-* 🌐 **Online Cloudflare Pages Web Studio**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% Unlimited Scalable Local-First PWA)*
+Access the built-in visual studio directly in your web browser:
+* 🌐 **Online Cloudflare Pages Web Studio**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(static UI; gateway, session, and upstream limits still apply)*
 * 🏠 **Local Server Address**: `http://127.0.0.1:9610/playground` (or `/ui`)
 
-#### 🌟 100% Unlimited Scalability & State-of-the-Art Client Capabilities:
-* 🔒 **100% On-Device Privacy**: When loaded from [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/), the static web studio auto-discovers and connects directly to your local BOB gateway engine at `http://127.0.0.1:9610` using Chrome Private Network Access (PNA). No prompts, chats, or thinking tokens ever touch intermediate cloud servers.
+#### 🌟 Client Capabilities (subject to browser, gateway, and upstream limits):
+* 🔒 **Local-First Privacy**: The static studio can connect to a local gateway, but a hosted origin must be explicitly listed in `allowed_origins`/`BOB_GEMINI_FREE_ALLOWED_ORIGINS`; PNA is not authentication. No prompts or thinking tokens are sent to an intermediate BOB server by the Go gateway.
 * 🐍 **Institutional-Grade In-Browser Pyodide WASM Python Sandbox**: Live client-side CPython 3.11 execution in an isolated WebAssembly sandbox with zero server-side execution risk, zero Python setup, interactive `input()` support, and automatic scientific package wheel streaming (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`).
 * 🗄️ **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)**: In-memory relational database powered by official SQLite WebAssembly (`sql.js`). Run queries in <1ms with `[ Run SQL ⚡ ]` chips, inspect schemas, and view interactive styled data tables with zero cloud costs.
 * ⚡ **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
@@ -298,7 +324,7 @@ Access the built-in, zero-dependency visual studio directly in your web browser:
 
 ---
 
-### Option 5: Build from Source with Make or Go (Go 1.22+)
+### Option 5: Build from Source with Make or Go (Go 1.26.5 in this snapshot)
 
 ```bash
 # Build binary
@@ -488,37 +514,41 @@ func main() {
 
 | Dimension / Metric | Google AI Studio (Free Tier) | **BOB Gemini Free (Local Gateway Engine)** |
 | :--- | :--- | :--- |
-| **Flash Daily Limit (RPD)** | **1,500 Requests / Day** (Hard daily shutoff) | **Practically Unlimited Interactive Queries** |
-| **Flash Rate Limits (RPM)** | **15 Requests / Minute** (`429 RESOURCE_EXHAUSTED`) | **High-Throughput Web Session (30+ RPM burst)** |
+| **Flash Daily Limit (RPD)** | **1,500 Requests / Day** (provider limit) | **Not established; depends on the Google web session** |
+| **Flash Rate Limits (RPM)** | **15 Requests / Minute** (`429 RESOURCE_EXHAUSTED`) | **Not established; do not infer a gateway quota** |
 | **Flash Token Rate (TPM)** | 1,000,000 Tokens / Minute | Stream-buffered interactive throughput |
-| **Pro Daily Limit (RPD)** | **50 Requests / Day** (Punishing hard cap) | **Essentially Unlimited Pro Queries** *(with Advanced cookie)* |
+| **Pro Daily Limit (RPD)** | **50 Requests / Day** (Punishing hard cap) | **Not established; depends on the Google web session** |
 | **Pro Rate Limits (RPM)** | **2 Requests / Minute** (Severe throttling) | **Standard interactive web concurrency** |
-| **Thinking Reasoning Depth** | Restricted / suppressed on free keys | **20,000+ characters of deep step-by-step reasoning** |
-| **OpenAI Protocol Support** | ❌ None (Requires custom SDK / glue code) | **✅ 100% Native Drop-In (`/v1/chat/completions`, `/v1/responses`)** |
-| **Developer Role Support** | ❌ None | **✅ Full OpenAI `developer` & `system` role parsing** |
+| **Thinking Reasoning Depth** | Restricted / suppressed on free keys | **Upstream-dependent; no fixed character guarantee** |
+| **OpenAI Protocol Support** | ❌ None (Requires custom SDK / glue code) | **✅ Implemented adapter routes; compatibility is fixture-tested, not universal/full** |
+| **Developer Role Support** | ❌ None | **✅ Adapter parsing with prompt transformation; not native role semantics** |
 | **Reasoning Tokens Export** | ❌ Proprietary format | **✅ Standard `reasoning_content` (renders cards in Cursor/OpenWebUI)** |
 | **Data Training & Logging** | ⚠️ **Logged and reviewed by Google reviewers for training** | **🛡️ 100% Local Gateway (Bound to `127.0.0.1`, zero telemetry)** |
-| **Setup Friction** | Cloud console, project creation, API key rotation | **Zero config: `./bob-gemini-free` and start coding** |
-| **Total Financial Cost** | $0 (until throttled) or paid per-token bill | **100% Free forever** |
+| **Setup Friction** | Cloud console, project creation, API key rotation | **Single binary; Google session/configuration may still be required** |
+| **Total Financial Cost** | $0 (until throttled) or paid per-token bill | **No gateway billing; Google account/session entitlements still apply** |
+
+The Pro, thinking-depth, and concurrency values sometimes shown in older material are
+not verified release guarantees. Model access, quotas, context limits, and output depth
+remain dependent on Google's current web session and should be measured in the target
+environment.
 
 ---
 
-### Ultimate Maximum Limits & Operational Thresholds
+### Operational Limits & Measurement Boundary
 
-To achieve maximum stability and zero upstream rate limiting, follow these empirical thresholds:
+The following values are not verified release guarantees. Provider quotas, account state,
+network conditions, and model behavior must be measured in the target environment:
 
-* **Maximum Output Token Length**: Google Flash models return up to **8,192 tokens (~32,000 characters)** per response. Thinking traces can exceed **20,000 characters** before emitting the final answer.
-* **Optimal Concurrency Bandwidth**:
-  * **Flash 3.7 / 3.6 / Flash Lite**: **3 to 5 simultaneous streams** per IP/instance.
-  * **Deep Thinking & Pro 3.1**: **2 to 3 simultaneous streams** (to prevent payload chunk congestion).
-* **Automatic Retry Strategy**: Built-in exponential backoff (`retry_attempts: 3`, `retry_delay_sec: 2`) handles momentary network hiccups without breaking client requests.
-* **Maximum Image Dimension**: Automatic downscaling engine resizes large screenshots and photos to **1024px JPEG quality 75 (<1MB)** before uploading to Google Scotty storage.
+* **Output/context limits**: Not established as fixed gateway values; Google web behavior is upstream-dependent.
+* **Concurrency**: The repository includes local benchmark profiles at 1, 10, 50, and 100 concurrent requests. Those results do not establish Google rate limits or safe live concurrency.
+* **Automatic retry strategy**: Configurable retry attempts and a fixed retry delay are implemented; upstream errors and rate limits can still surface.
+* **Images**: The compression path attempts to reduce oversized inputs and cap dimensions before upload; an exact final byte size is not guaranteed.
 
 ---
 
 ## Live Performance & Stress Benchmark
 
-BOB Gemini Free includes a built-in stress tester and throughput benchmark:
+BOB Gemini Free includes a live-endpoint stress tester and a separate local-only benchmark:
 
 ```bash
 # Run benchmark with 3 concurrent workers and 6 batch queries
@@ -528,19 +558,11 @@ BOB Gemini Free includes a built-in stress tester and throughput benchmark:
 ./scripts/bench.sh http://127.0.0.1:9610 3 6 your_api_key
 ```
 
-```text
-------------------------------------------------------------------
-                    BENCHMARK RESULTS & METRICS                   
-------------------------------------------------------------------
-  • Completed Requests:   6 / 6 (100.0% Success)
-  • Total Elapsed Time:   4.12s
-  • Average Latency:      1.85s
-  • Median Latency (P50): 1.72s
-  • 90th Percentile (P90):2.10s
-  • Request Throughput:   1.46 req/sec
-  • Token Throughput:     48.5 tokens/sec
-==================================================================
-```
+The reproducible local-only profiles are `go run ./cmd/benchmark-local -requests 100`
+with concurrency `1,10,50,100`; measured results and methodology are in
+[`docs/engineering/LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md).
+The live benchmark is upstream-dependent and must not be compared with that
+local baseline without recording environment, date, version, and session.
 
 ---
 
@@ -703,7 +725,7 @@ Run the login command in your terminal:
 
 1. A standalone Google Gemini sign-in window will open on your screen.
 2. Sign in to your Google Account (supports Passkeys, 2FA, SMS).
-3. As soon as login completes, BOB Gemini Free **automatically captures all 19+ session tokens via the Chrome DevTools Protocol**, saves `cookie.txt` (`mode 0600`), and closes the window.
+3. As soon as login completes, BOB Gemini Free **attempts to capture the required session cookies via the Chrome DevTools Protocol**, saves `cookie.txt` (`mode 0600`) when successful, and closes the window.
 4. **Zero DevTools, zero copy-pasting, zero Keychain password prompts!**
 
 ---
@@ -847,6 +869,7 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
   "request_timeout_sec": 180,
   "default_model": "gemini-3.6-flash",
   "api_keys": ["sk-your-secret-key"],
+  "allowed_origins": [],
   "cookie_file": null,
   "proxy": null,
   "impersonate": "chrome_133",
@@ -856,6 +879,7 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 
 * **`host`**: Defaults to `127.0.0.1` for maximum security.
 * **`api_keys`**: When empty `[]`, authentication is disabled. When configured, requests require `Authorization: Bearer <key>`.
+* **`allowed_origins`**: Exact browser origins allowed to call the gateway. Loopback origins are allowed by default; hosted origins require explicit opt-in. `BOB_GEMINI_FREE_ALLOWED_ORIGINS` is the environment equivalent.
 * **`impersonate`**: Mimic browser TLS signatures (`chrome_120`, `chrome_131`, `chrome_133`, `chrome_146`, `firefox_147`, `safari_16_0`).
 * **`proxy`**: Route requests through an HTTP/HTTPS/SOCKS5 proxy (e.g. `http://127.0.0.1:7890`).
 
@@ -894,7 +918,7 @@ Google provides access to Gemini (Flash 3.7, Flash 3.6, Flash Lite, and Flash Th
 <summary><strong>3. How does this compare to Google AI Studio Free Tier or Paid OpenAI / Anthropic APIs?</strong></summary>
 
 * **Google AI Studio Free Tier**: Enforces a strict 15 RPM (Requests Per Minute) and a hard daily token quota. Once you hit the quota, your app stops working until midnight UTC.
-* **BOB Gemini Free**: Operates on Google's interactive web backend with **essentially unlimited daily interactive queries**, $0 token cost, and up to **20,000+ characters of deep reasoning** (`gemini-3.7-flash-thinking` / `gemini-thinking`).
+* **BOB Gemini Free**: Operates on Google's interactive web backend; daily limits, cost, and reasoning length remain Google-session-dependent and are not guaranteed by the gateway.
 </details>
 
 <details>
@@ -915,7 +939,7 @@ When querying thinking models (`gemini-3.7-flash-thinking` or any model with `@t
 <details>
 <summary><strong>6. Can I run this on headless Linux VPS, Raspberry Pi, or Docker? What if datacenter IPs are challenged?</strong></summary>
 
-Yes! BOB Gemini Free is a single lightweight static binary (<15MB RAM) with official multi-arch Docker support (`alpine:3.21`).
+Yes. BOB Gemini Free is a single Go binary with official multi-arch Docker support (`alpine:3.21`). Memory usage is build/environment dependent; see the measured local baseline.
 * To bind publicly on a VPS, set `BOB_GEMINI_FREE_HOST=0.0.0.0` and configure `BOB_GEMINI_FREE_API_KEYS`.
 * If a cloud datacenter IP (AWS, Hetzner, DigitalOcean) encounters Google WAF challenges, route traffic through a residential/SOCKS5 proxy via `--proxy socks5://...` or enable TLS browser impersonation (`--impersonate chrome_133`).
 </details>
@@ -923,13 +947,13 @@ Yes! BOB Gemini Free is a single lightweight static binary (<15MB RAM) with offi
 <details>
 <summary><strong>7. Does this support Tool / Function Calling and Structured JSON Outputs?</strong></summary>
 
-Yes. BOB Gemini Free automatically injects tool schemas into system instructions and parses markdown ` ```tool_call ` outputs back into standard OpenAI `tool_calls` JSON objects. Passing `response_format: {"type": "json_object"}` strictly enforces structured JSON generation.
+Partially. BOB Gemini Free injects tool schemas into prompts and parses Markdown ` ```tool_call ` outputs into standard objects. This is emulated tool calling, not native Google function calling, and model compliance is not strictly enforced. `response_format` adds a JSON instruction; it is not a provider-side guarantee.
 </details>
 
 <details>
 <summary><strong>8. How do I use Vision and multimodal image inputs? Why is a session cookie required for images?</strong></summary>
 
-Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or image files. BOB Gemini Free optimizes oversized images (downscaling to max 1024px, 75% JPEG quality, <1MB) and uploads them via Google's Scotty Resumable Upload protocol (`content-push.googleapis.com`). 
+Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or image files. BOB Gemini Free attempts to optimize oversized images and uploads them via Google's Scotty Resumable Upload protocol (`content-push.googleapis.com`) when an authenticated session permits it.
 
 * **Session Requirement**: Google strictly binds Scotty file uploads to authenticated Google account sessions (`SAPISIDHASH` + `__Secure-1PSIDTS`). Unauthenticated requests will fail with `BardErrorInfo [1003]`.
 * **Resolution**: Run `./bob-gemini-free --login` once to authenticate your session and permanently unlock vision.
@@ -944,21 +968,21 @@ Yes. Set `api_keys: ["sk-team-key-1", "sk-team-key-2"]` in `config.json` or pass
 <details>
 <summary><strong>10. Is there any telemetry, tracking, or external logging?</strong></summary>
 
-Zero. BOB Gemini Free is 100% open source under the MIT License, written in pure Go, with zero analytics, zero external logging, and network calls made strictly between your machine and Google's official endpoints over TLS.
+The Go gateway has no automatic telemetry or analytics. The repository includes third-party Go/runtime and browser dependencies, and the browser studio loads CDN assets plus an input-tools endpoint. Network calls are therefore not limited to Google in every UI path.
 </details>
 
 <details>
 <summary><strong>11. Why Go instead of Python or Node.js?</strong></summary>
 
-* **Single Static Binary**: No Python virtual environments, pip dependencies, or heavy `node_modules` folders.
-* **Instant Startup**: Cold boots in <5ms with <15MB baseline RAM usage.
-* **High Concurrency**: Handles multiple concurrent SSE streaming delta connections effortlessly with zero garbage collection pauses.
+* **Single Go Binary**: The gateway does not require a separately managed Python or Node runtime.
+* **Startup and memory**: Measure the target build; no fixed cold-boot or RAM number is promised.
+* **High Concurrency**: Uses Go's concurrent HTTP and SSE primitives; capacity and latency should be measured for the target build and upstream session.
 </details>
 
 <details>
 <summary><strong>12. Can I use Claude Code CLI directly with BOB Gemini Free without LiteLLM or an external router?</strong></summary>
 
-**Yes, 100% natively.** BOB Gemini Free implements the complete **Anthropic Messages API protocol (`POST /v1/messages`)** with standard SSE lifecycle events (`message_start`, `content_block_start`, `content_block_delta`, `message_delta`, `message_stop`) and bash/tool execution.
+The Anthropic-shaped adapter implements `POST /v1/messages` and its documented SSE event names, but this is an adapter/emulation layer rather than native Claude inference; tool execution and full client compatibility remain endpoint-specific.
 
 Simply export the official environment variables and launch Claude Code:
 ```bash
@@ -995,7 +1019,7 @@ BOB Gemini Free stands on the collective wisdom and engineering breakthroughs of
 
 1. **Google Research & DeepMind**: For publishing the foundational Transformer architecture (*"Attention Is All You Need"*, Vaswani et al., 2017) and for engineering the state-of-the-art Gemini 3.7 Flash, Flash Thinking, 3.1 Pro, and Imagen 3 models with generous public web accessibility.
 2. **OpenAI & Anthropic**: For establishing the open API standards, Messages schemas, reasoning block conventions, and coding agent CLI patterns that unite modern developer workflows.
-3. **The Go Language Team & Chromium Engineers**: For the systems-level foundations (Go standard library concurrency, zero-dependency static compilation, and Chrome DevTools Protocol) enabling high-performance, local-first, zero-friction execution.
+3. **The Go Language Team & Chromium Engineers**: For the systems-level foundations (Go standard library concurrency, static single-binary builds without a separately managed runtime, and Chrome DevTools Protocol) enabling local-first execution.
 4. **The Global Open-Source Community**: The creators and maintainers of Cursor, Windsurf, Aider, Continue.dev, OpenWebUI, Cherry Studio, ChatBox, and the global indie hacker ecosystem pushing the frontiers of software engineering.
 5. **ABCsteps Technologies (Jodhpur, Rajasthan)**: For championing truthful, first-principles AI engineering education, open learning foundations, and the **Break Ordinary Boundaries (BOB)** developer empowerment mission.
 

@@ -13,6 +13,21 @@ import (
 	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
+// handleHealthz is intentionally smaller than the human-facing / telemetry
+// route. It performs no upstream, cookie, or GitHub work and is safe for
+// container orchestration probes even when API keys protect the main API.
+func (a *App) handleHealthz(w http.ResponseWriter, _ *http.Request) {
+	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (a *App) handleMetrics(w http.ResponseWriter, _ *http.Request) {
+	if a.Metrics != nil {
+		a.Metrics.SessionPoolTotal.Store(int64(a.Gem.Pool.Count()))
+		a.Metrics.SessionPoolHealthy.Store(int64(a.Gem.Pool.CountHealthy()))
+	}
+	writeJSON(w, http.StatusOK, a.Metrics.Snapshot())
+}
+
 func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path != "/" {
 		writeJSON(w, http.StatusNotFound, map[string]any{"error": "not found"})
@@ -37,6 +52,10 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 	}
 	poolTotal := a.Gem.Pool.Count()
 	poolHealthy := a.Gem.Pool.CountHealthy()
+	if a.Metrics != nil {
+		a.Metrics.SessionPoolTotal.Store(int64(poolTotal))
+		a.Metrics.SessionPoolHealthy.Store(int64(poolHealthy))
+	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"status":                "ok",
@@ -51,6 +70,7 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"uptime_seconds":        int(time.Since(a.StartTime).Seconds()),
 		"pool_sessions_total":   poolTotal,
 		"pool_sessions_healthy": poolHealthy,
+		"metrics":               a.Metrics.Snapshot(),
 	})
 }
 
@@ -164,7 +184,7 @@ func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
 
 	totalTokens := format.CountOpenAITokens(req)
 	a.RequestsServed.Add(1)
-	a.TokensProcessed.Add(uint64(totalTokens))
+	a.addEstimatedTokens(uint64(totalTokens))
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"prompt_tokens": totalTokens,

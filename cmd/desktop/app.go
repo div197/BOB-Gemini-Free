@@ -7,7 +7,8 @@ import (
 
 // App struct
 type App struct {
-	ctx context.Context
+	ctx        context.Context
+	gatewayURL string
 }
 
 // NewApp creates a new App application struct
@@ -24,4 +25,11 @@ func (a *App) startup(ctx context.Context) {
 // Greet returns a greeting for the given name
 func (a *App) Greet(name string) string {
 	return fmt.Sprintf("Hello %s, It's show time!", name)
+}
+
+// GatewayURL returns the actual loopback endpoint selected for this desktop
+// process. The frontend primarily receives it through the Wails event, while
+// this binding remains available for a later explicit pairing/bootstrap flow.
+func (a *App) GatewayURL() string {
+	return a.gatewayURL
 }

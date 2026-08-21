@@ -6,6 +6,8 @@ import (
 	"image"
 	"image/color"
 	"image/png"
+	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -102,20 +104,29 @@ func TestFetchImageBytes(t *testing.T) {
 		t.Error("Expected error for file:// scheme, got nil")
 	}
 
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		imageBytes := createTestImage(4, 4)
-		w.Header().Set("Content-Type", "image/png")
-		_, _ = w.Write(imageBytes)
-	}))
-	defer ts.Close()
-
-	b, err := FetchImageBytes(ts.Client(), ts.URL)
+	imageBytes := createTestImage(4, 4)
+	fixtureClient := imageFixtureRequester{body: imageBytes}
+	b, err := fetchImageBytes(fixtureClient, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
 	if err != nil {
 		t.Fatalf("Expected image fetch to succeed, got %v", err)
 	}
 	if len(b) == 0 {
 		t.Fatalf("Expected non-empty image bytes")
 	}
+}
+
+type imageFixtureRequester struct {
+	body []byte
+}
+
+func (f imageFixtureRequester) Do(_ *http.Request) (*http.Response, error) {
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Content-Type": []string{"image/png"}},
+		Body:       io.NopCloser(bytes.NewReader(f.body)),
+	}, nil
 }
 
 func TestFetchImageBytesRejectsHTTPError(t *testing.T) {
@@ -127,6 +138,45 @@ func TestFetchImageBytesRejectsHTTPError(t *testing.T) {
 	_, err := FetchImageBytes(ts.Client(), ts.URL)
 	if err == nil {
 		t.Fatalf("Expected error for non-2xx image fetch")
+	}
+}
+
+func TestFetchImageBytesRejectsPrivateAndLocalHosts(t *testing.T) {
+	for _, imageURL := range []string{
+		"http://127.0.0.1/image.png",
+		"http://169.254.169.254/latest/meta-data",
+		"http://localhost/image.png",
+	} {
+		if _, err := FetchImageBytes(nil, imageURL); err == nil {
+			t.Errorf("expected private/local URL %q to be rejected", imageURL)
+		}
+	}
+}
+
+func TestFetchImageBytesRejectsPrivateDNSResolution(t *testing.T) {
+	_, err := fetchImageBytes(nil, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("10.0.0.7")}, nil
+	})
+	if err == nil {
+		t.Fatal("private DNS result was accepted")
+	}
+}
+
+func TestFetchImageBytesDoesNotFollowCrossHostRedirect(t *testing.T) {
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		_, _ = w.Write(createTestImage(2, 2))
+	}))
+	defer target.Close()
+	redirect := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, target.URL, http.StatusFound)
+	}))
+	defer redirect.Close()
+
+	_, err := fetchImageBytes(redirect.Client(), redirect.URL, func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil {
+		t.Fatal("cross-host redirect was accepted")
 	}
 }
 
@@ -166,6 +216,11 @@ func TestTokenCache(t *testing.T) {
 		t.Fatalf("Expected non-nil TokenCache")
 	}
 
+	// Keep the core suite hermetic. The live page-token path is covered by
+	// TestLiveImageUpload when a caller explicitly provides a cookie/session.
+	tc.mu.Lock()
+	tc.ts = time.Now()
+	tc.mu.Unlock()
 	tokens := tc.Get()
 	if tokens.PushID == "" || tokens.Pctx == "" {
 		t.Errorf("Expected valid PushID and Pctx tokens, got: %+v", tokens)

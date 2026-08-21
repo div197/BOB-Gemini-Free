@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -70,7 +71,26 @@ func authorize(r *http.Request, apiKeys []string) bool {
 
 func (a *App) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
+		origin := strings.TrimSpace(r.Header.Get("Origin"))
+		if origin != "" && !isAllowedOrigin(origin, a.Cfg.AllowedOrigins) {
+			w.Header().Set("Vary", "Origin")
+			writeJSON(w, http.StatusForbidden, map[string]any{
+				"error": map[string]any{
+					"message": "origin is not allowed",
+					"type":    "invalid_request_error",
+				},
+			})
+			return
+		}
+
+		if origin == "" {
+			// Native clients do not send Origin. Retain the historical wildcard
+			// header for them; browsers always send an origin on CORS requests.
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		} else {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+			w.Header().Add("Vary", "Origin")
+		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, *")
 		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, x-ratelimit-limit-requests, x-ratelimit-remaining-requests, x-ratelimit-reset-requests, content-length, *")
@@ -85,10 +105,46 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 	})
 }
 
+func isAllowedOrigin(origin string, configured []string) bool {
+	parsed, err := url.Parse(origin)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.User != nil {
+		return false
+	}
+
+	normalized := strings.TrimRight(origin, "/")
+	for _, candidate := range configured {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "" || candidate == "*" {
+			continue
+		}
+		if strings.TrimRight(candidate, "/") == normalized {
+			return true
+		}
+	}
+
+	host := strings.ToLower(parsed.Hostname())
+	if host == "localhost" || host == "wails.localhost" || host == "tauri.localhost" {
+		return true
+	}
+	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {
+		return true
+	}
+	return false
+}
+
 const maxRequestBodySize = 32 << 20 // 32 MB limit
 
 func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestStart := time.Now()
+		if a.Metrics != nil {
+			a.Metrics.RequestsTotal.Add(1)
+			a.Metrics.RequestsInFlight.Add(1)
+			defer func() {
+				a.Metrics.RequestsInFlight.Add(-1)
+				a.Metrics.RequestLatency.Observe(time.Since(requestStart))
+			}()
+		}
 		if r.Body != nil {
 			r.Body = http.MaxBytesReader(w, r.Body, maxRequestBodySize)
 		}
@@ -117,12 +173,15 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		// - /v1/update/check: version check used by the UI without credentials
 		// NOTE: "/" (health) is intentionally NOT in this list — it is protected
 		// by api_keys when configured, matching the OpenAI API behavior.
-		publicPrefixes := []string{"/playground", "/ui", "/favicon.ico", "/manifest.json", "/sw.js", "/icons/", "/v1/update/check"}
-		for _, prefix := range publicPrefixes {
-			if strings.HasPrefix(r.URL.Path, prefix) {
+		publicRoutes := []string{"/playground", "/ui", "/favicon.ico", "/manifest.json", "/sw.js", "/v1/update/check", "/healthz"}
+		for _, route := range publicRoutes {
+			if r.URL.Path == route {
 				isPublicRoute = true
 				break
 			}
+		}
+		if strings.HasPrefix(r.URL.Path, "/icons/") {
+			isPublicRoute = true
 		}
 
 		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys) {

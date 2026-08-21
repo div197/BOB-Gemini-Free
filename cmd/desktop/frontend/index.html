@@ -9,11 +9,21 @@
         .loader { border: 3px solid rgba(255,255,255,0.1); border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; margin-right: 10px; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
-    <script>
-        // Once the Webview loads, wait 500ms for the Go background server to bind, then redirect.
-        setTimeout(() => {
-            window.location.href = "http://127.0.0.1:9610/playground";
-        }, 500);
+    <script type="module">
+        import { EventsOn } from "/wailsjs/runtime/runtime.js";
+
+        const showGatewayError = (message) => {
+            document.body.innerHTML = `<div style="max-width:720px;padding:32px;font-family:-apple-system,sans-serif;color:#fff;background:#161b27;border-radius:12px"><h2>Gateway startup failed</h2><p>${String(message || "The local gateway could not start.")}</p></div>`;
+        };
+
+        EventsOn("gateway-ready", (endpoint) => {
+            if (typeof endpoint !== "string" || !endpoint) {
+                showGatewayError("The desktop gateway did not provide an endpoint.");
+                return;
+            }
+            window.location.replace(`${endpoint}/playground`);
+        });
+        EventsOn("gateway-error", showGatewayError);
     </script>
 </head>
 <body>

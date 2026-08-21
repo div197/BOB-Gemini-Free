@@ -1,16 +1,16 @@
 # BOB Gemini Free — Static Web Studio (`web/`)
 
-This directory contains the zero-server, 100% static, local-first production web studio for **BOB Gemini Free** by **ABCsteps** ([abcsteps.com](https://abcsteps.com/)) and **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)).
+This directory contains the static, local-first web studio for **BOB Gemini Free** by **ABCsteps** ([abcsteps.com](https://abcsteps.com/)) and **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)). The static bundle does not replace the Go gateway or Google's upstream/session limits.
 
 ---
 
-## 🌟 100% Unlimited Scalability: The Local-First Architecture
+## 🌟 Static Hosting with a Local-First Architecture
 
 Unlike server-side proxy architectures that incur cloud bandwidth bills, API request limits (e.g. Cloudflare Workers 100k req/day free limit), or centralized data privacy concerns:
 
-* 🚀 **Zero Server Compute Costs**: The frontend is 100% static HTML, CSS, and JavaScript. It can be hosted on **Cloudflare Pages**, **GitHub Pages**, **Vercel**, **Netlify**, or AWS S3 for **unlimited requests at $0.00 cost**.
-* 🔒 **100% On-Device Privacy & Zero Cloud Tracking**: All prompts, system instructions, thinking reasoning streams, and multi-modal attachments stream directly between the user's browser and their local gateway engine (`http://127.0.0.1:9610`). No conversations ever touch an intermediate server.
-* ⚡ **Chrome Private Network Access (PNA) Compliant**: Fully compliant with modern browser security standards. The static HTTPS web application (`https://bob-gemini-free.abcsteps.com`) connects to private loopback addresses (`http://127.0.0.1:9610`) seamlessly.
+* 🚀 **Static Hosting**: The frontend is static HTML, CSS, and JavaScript and can be hosted on **Cloudflare Pages**, **GitHub Pages**, **Vercel**, **Netlify**, or AWS S3. Hosting scale does not establish unlimited gateway or Google capacity.
+* 🔒 **Local Gateway Privacy Boundary**: When configured to use a local gateway, prompts and attachments go from the browser to that gateway; the Go gateway sends no automatic telemetry. CDN assets and browser input tools remain separate network dependencies.
+* ⚡ **Origin-Gated Private Network Access**: A hosted HTTPS application must be explicitly listed in the gateway's `allowed_origins` configuration. PNA is a browser permission mechanism, not authentication; configure API keys for application-level access.
 * 📱 **PWA & Offline Ready**: Installable as a standalone native-feeling desktop app on macOS Dock, Windows Taskbar, iOS Home Screen, or Android.
 
 ---

@@ -96,21 +96,21 @@
 
 ABCsteps की **BOB सीरीज़** का उद्देश्य डेवलपर्स, छात्रों और एआई इंजीनियरों के लिए बिना किसी पेवॉल या महँगे सब्सक्रिप्शन के शक्तिशाली टूल्स और रनटाइम्स उपलब्ध कराना है:
 
-* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — OpenAI, Anthropic, Google REST और Go SDK को सपोर्ट करने वाला यूनिवर्सल 4-इन-1 गेटवे।
+* ⚡ [**BOB Gemini Free**](https://github.com/div197/bob-gemini-free) — OpenAI-shaped, Anthropic-shaped, Google और Go interfaces वाला multi-protocol लोकल गेटवे; compatibility endpoint-specific है।
 * 🎥 [**BOB YouTube**](https://github.com/div197/BOB-Youtube) — डेवलपर्स और एआई एजेंट्स के लिए डॉकर-फर्स्ट यूट्यूब डेटा इंजेक्शन और प्रोसेसिंग टूल।
 
 ---
 
 ## मुख्य विशेषताएँ
 
-* **प्रत्येक जीमेल (Gmail) यूज़र के लिए मुफ़्त**: दुनिया के हर व्यक्ति के पास जीमेल के साथ जेमिनी का मुफ़्त एक्सेस होता है। बिना किसी अतिरिक्त शुल्क के Flash 3.7, Flash Lite और Deep Thinking (20,000+ अक्षरों की रीज़निंग) का उपयोग करें।
-* **यूनिवर्सल 3-इन-1 प्रोटोकॉल**: OpenAI SDKs, Claude Code CLI, Anthropic SDKs, Codex CLI, और Google GenAI SDKs के साथ सीधे कम्पैटिबल।
+* **Google वेब सेशन पर निर्भर रूटिंग**: मॉडल, कोटा, context, reasoning और image access वर्तमान Google session पर निर्भर हैं; कोई fixed free/unlimited guarantee नहीं है।
+* **Multi-Protocol Adapter**: OpenAI, Anthropic, Google और Go interfaces implement और fixture-tested हैं; हर client feature के लिए native/drop-in guarantee नहीं है।
 * **1-क्लिक नेटिव लॉगिन (`--login`)**: बिना DevTools या चाबी (Keychain) पॉपअप के एक क्लिक में गूगल अकाउंट जोड़ें।
 * **मल्टी-अकाउंट कुकी पूल (`cookie_pool`)**: कई गूगल खातों में लोड-बैलेंसिंग और 429 एरर पर ऑटोमैटिक फ़ेलओवर।
-* **Gemini Advanced ($20/माह) प्रो अनलॉक**: लोकल कुकी जोड़कर गूगल के फ्लैगशिप **Pro** (`gemini-3.1-pro`) और **Imagen 3 / Nano Banana** को सक्रिय करें।
-* **Claude 3.7 / 3.5 नेटिव थिंकिंग**: Claude Code CLI के लिए थिंकिंग ब्लॉक्स का सीधा समर्थन।
+* **Authenticated Pro/Image path**: सही session और upstream support होने पर Pro/Image aliases उपलब्ध हो सकते हैं; gateway इसे guarantee नहीं करता।
+* **Anthropic-shaped thinking**: Claude Code-shaped requests के लिए reasoning blocks मिलते हैं; यह native Claude inference नहीं है।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — ऑटोमैटिक कम्प्रेशन के साथ।
-* **शून्य लागत, पूर्ण प्राइवेसी**: सिंगल स्टैटिक बाइनरी, <15MB मेमोरी, और ज़ीरो टेलीमेट्री (`127.0.0.1`)।
+* **लोकल privacy boundary**: Go gateway automatic telemetry नहीं भेजता; binary memory और upstream performance target build पर मापनी होगी।
 ## समर्थित टूल्स और इकोसिस्टम (Supported Tools & Ecosystem)
 
 BOB Gemini Free बिना किसी अतिरिक्त कॉन्फ़िगरेशन के सभी प्रमुख AI कोडिंग टूल्स और एजेंटिक फ़्रेमवर्क्स के साथ काम करता है:
@@ -249,7 +249,7 @@ GitHub से 1 कमांड में BOB Gemini Free को नवीनत
 
 ---
 
-### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.22+)
+### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.26.5 snapshot)
 
 ```bash
 make build
@@ -417,31 +417,31 @@ func main() {
 
 | पैमाना / विशेषता | Google AI Studio (Free Tier) | **BOB Gemini Free (लोकल गेटवे)** |
 | :--- | :--- | :--- |
-| **Flash दैनिक सीमा (RPD)** | **1,500 अनुरोध / दिन** (दैनिक सीमा पार होते ही बंद) | **व्यावहारिक रूप से असीमित इंटरैक्टिव प्रश्न** |
-| **Flash प्रति मिनट अनुरोध (RPM)** | **15 RPM** (`429 RESOURCE_EXHAUSTED`) | **हाई-थ्रूपुट वेब सेशन (30+ RPM बर्स्ट)** |
+| **Flash दैनिक सीमा (RPD)** | **1,500 अनुरोध / दिन** (दैनिक सीमा पार होते ही बंद) | **स्थापित नहीं; Google web session पर निर्भर** |
+| **Flash प्रति मिनट अनुरोध (RPM)** | **15 RPM** (`429 RESOURCE_EXHAUSTED`) | **स्थापित नहीं; gateway quota न मानें** |
 | **Flash टोकन दर (TPM)** | 1,000,000 टोकन / मिनट | बफ़र्ड हाई-स्पीड थ्रूपुट |
-| **Pro दैनिक सीमा (RPD)** | **50 अनुरोध / दिन** (अत्यंत सीमित) | **व्यावहारिक रूप से असीमित Pro प्रश्न** *(Advanced कुकी के साथ)* |
+| **Pro दैनिक सीमा (RPD)** | **50 अनुरोध / दिन** (अत्यंत सीमित) | **स्थापित नहीं; Google web session पर निर्भर** |
 | **Pro प्रति मिनट अनुरोध (RPM)** | **2 RPM** (भारी थ्रॉटलिंग) | **सामान्य इंटरैक्टिव वेब कंकरेंसी** |
-| **रीज़निंग / थिंकिंग गहराई** | मुफ़्त कुंजियों पर सीमित | **20,000+ अक्षरों का गहरा रीज़निंग आउटपुट** |
-| **OpenAI प्रोटोकॉल सपोर्ट** | ❌ शून्य (कस्टम SDK कोड चाहिए) | **✅ 100% ड्रॉप-इन (`/v1/chat/completions`, `/v1/responses`)** |
-| **Developer रोल सपोर्ट** | ❌ नहीं | **✅ पूर्ण OpenAI `developer` व `system` पार्सिंग** |
+| **रीज़निंग / थिंकिंग गहराई** | मुफ़्त कुंजियों पर सीमित | **Upstream-dependent; fixed character guarantee नहीं** |
+| **OpenAI प्रोटोकॉल सपोर्ट** | ❌ शून्य (कस्टम SDK कोड चाहिए) | **✅ Adapter routes; fixture-tested, universal/full नहीं** |
+| **Developer रोल सपोर्ट** | ❌ नहीं | **✅ Prompt transformation; native role semantics नहीं** |
 | **रीज़निंग टोकन एक्सपोर्ट** | ❌ प्रोप्राइटरी फ़ॉर्मेट | **✅ स्टैंडर्ड `reasoning_content` (Cursor/OpenWebUI में कार्ड)** |
 | **डेटा प्राइवेसी व ट्रेनिंग** | ⚠️ **गूगल समीक्षकों द्वारा डेटा ट्रेनिंग के लिए लॉग किया जाता है** | **🛡️ 100% लोकल गेटवे (`127.0.0.1` पर बंधा, शून्य ट्रैकिंग)** |
 | **सेटअप जटिलता** | क्लाउड कंसोल, प्रोजेक्ट निर्माण, API Key प्रबंधन | **जीरो कॉन्फ़िग: `./bob-gemini-free` चलाएँ और कोडिंग शुरू करें** |
-| **कुल वित्तीय लागत** | $0 (थ्रॉटल होने तक) या महँगे पेड टोकन | **100% मुफ़्त हमेशा के लिए** |
+| **कुल वित्तीय लागत** | $0 (थ्रॉटल होने तक) या महँगे पेड टोकन | **Gateway billing नहीं; Google account/session rules लागू** |
 
 ---
 
 ### अधिकतम ऑपरेशनल सीमाएँ और अनुशंसित दिशानिर्देश
 
-गेटवे की अधिकतम स्थिरता और शून्य थ्रॉटलिंग के लिए:
+नीचे के पुराने आँकड़े release guarantee नहीं हैं। Quota, context, concurrency और output depth को target environment और current Google session में मापें:
 
-* **अधिकतम आउटपुट टोकन लंबाई**: गूगल फ़्लैश मॉडल्स प्रति प्रतिक्रिया **8,192 टोकन (~32,000 अक्षर)** तक देते हैं। थिंकिंग ट्रेस अंतिम उत्तर से पहले **20,000 अक्षर** तक का विस्तृत विश्लेषण देता है।
+* **Output/context limits**: gateway द्वारा कोई fixed सीमा स्थापित नहीं है; Google web behavior upstream-dependent है।
 * **अनुकूलतम कंकरेंसी बैंडविड्थ**:
   * **Flash 3.7 / 3.6 / Flash Lite**: **3 से 5 समवर्ती स्ट्रीम्स** प्रति IP/इंस्टेंस।
   * **Deep Thinking और Pro 3.1**: **2 से 3 समवर्ती स्ट्रीम्स**।
-* **ऑटोमैटिक री-ट्राई रणनीति**: इनबिल्ट एक्सपोनेंशियल बैकऑफ़ (`retry_attempts: 3`, `retry_delay_sec: 2`) क्षणिक नेटवर्क समस्याओं को स्वचालित रूप से संभालता है।
-* **अधिकतम इमेज साइज़**: ऑटोमैटिक कंप्रेशन इंजन बड़ी छवियों को **1024px JPEG (क्वालिटी 75, <1MB)** में बदलकर गूगल के Scotty स्टोरेज पर अपलोड करता है।
+* **Retry strategy**: configurable attempts और fixed retry delay हैं; upstream errors/rate limits फिर भी आ सकते हैं।
+* **Images**: compression path oversized inputs को घटाने की कोशिश करता है; exact final byte size guarantee नहीं है।
 
 ---
 
@@ -781,7 +781,7 @@ docker logs bob-gemini-free
 <summary><strong>3. यह Google AI Studio Free Tier या Paid OpenAI APIs की तुलना में कैसा है?</strong></summary>
 
 * **Google AI Studio Free Tier**: 15 RPM और सख्त दैनिक कोटा सीमा लगाता है (दैनिक सीमा समाप्त होने पर मध्यरात्रि UTC तक सेवा बंद हो जाती है)।
-* **BOB Gemini Free**: गूगल के इंटरैक्टिव वेब बैकएंड पर काम करता है जिसमें **व्यावहारिक रूप से असीमित दैनिक प्रश्न**, शून्य टोकन लागत, और **20,000+ अक्षरों की डीप रीज़निंग** मुफ़्त मिलती है।
+* **BOB Gemini Free**: Google के interactive web backend के लिए adapter है; दैनिक सीमा, token cost, model access और reasoning depth current session/provider rules पर निर्भर हैं।
 </details>
 
 <details>
@@ -802,7 +802,7 @@ docker logs bob-gemini-free
 <details>
 <summary><strong>6. क्या मैं इसे Linux VPS, Raspberry Pi या Docker पर चला सकता हूँ?</strong></summary>
 
-हाँ! BOB Gemini Free एक हल्की स्टैटिक बाइनरी (<15MB RAM) और आधिकारिक Multi-Arch Docker इमेज (`alpine:3.21`) के साथ आता है।
+हाँ! BOB Gemini Free एक single static binary और multi-arch Docker path (`alpine:3.21`) के साथ आता है। RAM target build पर मापें; कोई fixed <15MB claim नहीं है।
 * VPS पर पब्लिक होस्टिंग के लिए `BOB_GEMINI_FREE_HOST=0.0.0.0` और `BOB_GEMINI_FREE_API_KEYS` सेट करें।
 * यदि क्लाउड डेटासेंटर IP पर गूगल WAF चुनौती आए, तो `--proxy socks5://...` या TLS ब्राउज़र इंपर्सनेशन (`--impersonate chrome_133`) का उपयोग करें।
 </details>
@@ -810,7 +810,7 @@ docker logs bob-gemini-free
 <details>
 <summary><strong>7. क्या यह Tool / Function Calling और Structured JSON आउटपुट को सपोर्ट करता है?</strong></summary>
 
-हाँ। यह ऑटोमैटिक रूप से टूल स्कीमा को सिस्टम प्रॉम्ट में इंजेक्ट करता है और ` ```tool_call ` आउटपुट को स्टैंडर्ड OpenAI `tool_calls` JSON में बदलता है। `response_format: {"type": "json_object"}` सख्त JSON आउटपुट सुनिश्चित करता है।
+आंशिक रूप से। यह tool schema को prompt में inject करता है और ` ```tool_call ` output को parse करता है; यह native Google function calling नहीं है। `response_format: {"type": "json_object"}` केवल instruction है, strict provider guarantee नहीं।
 </details>
 
 <details>
@@ -819,7 +819,7 @@ docker logs bob-gemini-free
 OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भेजें। BOB Gemini Free बड़ी छवियों को कंप्रेस करके गूगल के Scotty Resumable Upload प्रोटोकॉल (`content-push.googleapis.com`) पर अपलोड करता है।
 
 * **सेशन अनिवार्यता**: गूगल Scotty स्टोरेज अपलोड्स को प्रामाणिक गूगल खाते (`SAPISIDHASH` + `__Secure-1PSIDTS`) से जोड़ता है। बिना लॉगिन वाले अनुरोधों पर गूगल `BardErrorInfo [1003]` रिटर्न करता है।
-* **समाधान**: केवल एक बार `./bob-gemini-free --login` चलाकर लॉगिन करें; विज़न हमेशा के लिए सक्रिय हो जाएगा।
+* **समाधान**: `./bob-gemini-free --login` से session capture का प्रयास करें; vision availability और validity Google session पर निर्भर हैं।
 </details>
 
 <details>
@@ -831,21 +831,21 @@ OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भ�
 <details>
 <summary><strong>10. क्या कोई टेलीमेट्री, ट्रैकिंग या बाहरी डेटा भेजा जाता है?</strong></summary>
 
-शून्य। BOB Gemini Free 100% ओपन-सोर्स (MIT लाइसेंस) है, इसमें कोई ट्रैकिंग नहीं है, और नेटवर्क अनुरोध केवल सीधे आपके कंप्यूटर और गूगल सर्वर के बीच TLS पर होते हैं।
+Go gateway automatic telemetry नहीं भेजता। Browser studio CDN assets और input-tools endpoint जैसे अलग network dependencies लोड कर सकता है; इसलिए हर UI request केवल Google तक सीमित होने का दावा नहीं किया जा सकता।
 </details>
 
 <details>
 <summary><strong>11. Python या Node.js के बजाय Go भाषा क्यों?</strong></summary>
 
 * **सिंगल स्टैटिक बाइनरी**: कोई virtualenv या `node_modules` की झंझट नहीं।
-* **तुरंत स्टार्टअप**: <5ms में शुरू और <15MB RAM की न्यूनतम खपत।
-* **अभूतपूर्व कंकरेंसी**: एक साथ कई SSE स्ट्रीमिंग डेल्टा कनेक्शन बिना किसी रुकावट के।
+* **Startup और memory**: target build पर मापें; fixed cold-boot/RAM claim नहीं है।
+* **Concurrency**: Go concurrent HTTP/SSE primitives का उपयोग करता है; capacity और latency target build तथा upstream session पर निर्भर हैं।
 </details>
 
 <details>
 <summary><strong>12. क्या मैं बिना LiteLLM या प्रॉक्सी के Claude Code CLI को सीधे BOB Gemini Free से जोड़ सकता हूँ?</strong></summary>
 
-**हाँ, 100% सीधे।** BOB Gemini Free में आधिकारिक **Anthropic Messages API प्रोटोकॉल (`POST /v1/messages`)** का पूर्ण इनबिल्ट सपोर्ट है, जिसमें सभी SSE इवेंट्स (`message_start`, `content_block_start`, `content_block_delta`, `message_delta`, `message_stop`) और bash टूल कॉलिंग शामिल हैं।
+Anthropic-shaped adapter में `POST /v1/messages` और documented SSE event names implement हैं, लेकिन यह native Claude inference नहीं है; tool execution और full client compatibility endpoint-specific हैं।
 
 बस अपने टर्मिनल में ये वैरिएबल्स सेट करें और Claude Code शुरू करें:
 ```bash

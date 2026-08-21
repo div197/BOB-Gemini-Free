@@ -12,7 +12,7 @@ BOB Gemini Free is a high-performance, single-binary local AI gateway written in
 ```bash
 curl -fsSL https://raw.githubusercontent.com/div197/bob-gemini-free/main/install.sh | bash
 ```
-*(Auto-detects OS and architecture, compiles from source if Go is present, or downloads the standalone zero-dependency binary directly).*
+*(Auto-detects OS and architecture, compiles from source if Go is present, or downloads a standalone binary that needs no separately managed Go/Python/Node runtime.)*
 
 ### Windows (PowerShell)
 ```powershell
@@ -63,8 +63,8 @@ Use the [Classroom LAN Deployment Guide](./classroom-lan-guide.md) before a live
 
 | Tier | Required Setup | Available Models | Pricing |
 | :--- | :--- | :--- | :--- |
-| **Anonymous Free Tier** | Zero setup (no cookies) | `gemini-3.7-flash`, `gemini-3.6-flash`, `gemini-3.5-flash-thinking`, `gemini-flash-lite` | $0.00 / Free |
-| **Authenticated Pro Tier** | 1-Click Login (`--login`) | `gemini-3.1-pro`, `gemini-3.1-pro-enhanced`, `imagen-3`, `gemini-nano-banana-2`, `gemini-nano-banana-pro` | $0.00 / Free ($20/mo subscription) |
+| **Unauthenticated route** | No cookie configured | Flash/thinking aliases may be available if the current Google web session permits them | Upstream-dependent |
+| **Authenticated route** | 1-Click Login (`--login`) | Pro/image aliases may be available if the current Google account and web protocol permit them | Upstream/account-dependent |
 
 ---
 

@@ -160,13 +160,20 @@ func (c *CookieCache) Load() (CookieInfo, error) {
 }
 
 func SAPISIDHash(sapisid string) string {
+	return SAPISIDHashAt(sapisid, time.Now().Unix())
+}
+
+// SAPISIDHashAt computes the Google SAPISIDHASH authorization value for a
+// caller-supplied Unix timestamp. Keeping the timestamped primitive separate
+// makes the protocol invariant deterministic in tests while preserving the
+// existing wall-clock behavior for production requests.
+func SAPISIDHashAt(sapisid string, timestamp int64) string {
 	if sapisid == "" {
 		return ""
 	}
-	ts := time.Now().Unix()
-	input := fmt.Sprintf("%d %s https://gemini.google.com", ts, sapisid)
+	input := fmt.Sprintf("%d %s https://gemini.google.com", timestamp, sapisid)
 	h := sha1.Sum([]byte(input))
-	return fmt.Sprintf("SAPISIDHASH %d_%s", ts, hex.EncodeToString(h[:]))
+	return fmt.Sprintf("SAPISIDHASH %d_%s", timestamp, hex.EncodeToString(h[:]))
 }
 
 func AccountPrefix(authUser string) string {

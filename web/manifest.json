@@ -1,7 +1,7 @@
 {
   "name": "BOB Gemini Free — Universal AI Gateway Studio",
   "short_name": "BOB Gemini Free",
-  "description": "High-Performance Local AI Gateway & Universal Studio by ABCsteps and Divyanshu Singh Chouhan (@div197). Free, Private, Unlimited — Break Ordinary Boundaries.",
+  "description": "Static local-first AI gateway studio by ABCsteps and Divyanshu Singh Chouhan (@div197). Session- and upstream-dependent — Break Ordinary Boundaries.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

@@ -272,7 +272,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 
-		a.TokensProcessed.Add(uint64(promptTokens + outTokens))
+		a.addEstimatedTokens(uint64(promptTokens + outTokens))
 
 		_ = writeSSEEvent(w, "message_stop", map[string]any{
 			"type": "message_stop",
@@ -317,7 +317,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		outputTokens = 1
 	}
 
-	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+	a.addEstimatedTokens(uint64(promptTokens + outputTokens))
 
 	resp := models.AnthropicMessagesResponse{
 		ID:           msgID,

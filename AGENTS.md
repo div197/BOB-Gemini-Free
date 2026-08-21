@@ -21,7 +21,7 @@ It translates three major protocol standards into Google's internal web RPC prot
 ```
 .
 ├── main.go                     # Entrypoint & CLI flag routing
-├── go.mod / go.sum             # Go module definition (Go 1.22+)
+├── go.mod / go.sum             # Go module definition (Go 1.26.5 in this snapshot)
 ├── Makefile                    # Multi-arch compilation & test commands
 ├── install.sh / install.ps1    # Cross-platform automated setup scripts
 ├── test-kit.sh / test-kit.ps1  # Automated diagnostic runners
@@ -137,11 +137,11 @@ For AI agents managing or configuring authenticated Pro routing (`gemini-3.1-pro
 ### Session Requirements & Capability Matrix
 | Capability | Anonymous / Guest Session | Authenticated Google Session (`./cookie.txt` via `--login`) |
 | :--- | :--- | :--- |
-| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | ✅ Unlocked | ✅ Full 1M+ Context & Peak Speed |
-| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | ✅ Unlocked | ✅ Full Deep Thinking Blocks |
-| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | ❌ **Blocked by Google** (`BardErrorInfo [1003]`) | ✅ **Fully Unlocked** |
-| **Imagen 3 Image Synthesis** (`imagen-3`) | ❌ **Blocked by Google** | ✅ **Fully Unlocked** |
-| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Reverts to Flash | ✅ **Fully Unlocked** |
+| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | Upstream/session-dependent | Upstream/session-dependent; no fixed context or speed guarantee |
+| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | Upstream/session-dependent | Upstream/session-dependent; local reasoning splitter is fixture-tested |
+| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | May fail without an authenticated session | Authenticated session may permit it; live capability is unverified |
+| **Imagen 3 Image Synthesis** (`imagen-3`) | May fail without an authenticated session | Authenticated session may permit it; route is experimental/upstream-dependent |
+| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | May fall back or fail | Authenticated session may permit it; model identity is unverified |
 
 ### Why Images Require Session Binding (`BardErrorInfo 1003`)
 Image attachments are uploaded to Google Scotty storage (`content-push.googleapis.com/upload/`). Google requires the storage bucket and downstream `StreamGenerate` RPC call to be signed by an active session with valid `SAPISIDHASH` and `__Secure-1PSIDTS`. Unauthenticated attempts will fail with `BardErrorInfo [1003]`.
@@ -151,7 +151,7 @@ Image attachments are uploaded to Google Scotty storage (`content-push.googleapi
    ```bash
    ./bob-gemini-free --login
    ```
-   Opens a standalone window $\rightarrow$ user logs in once $\rightarrow$ automatically extracts cookies via CDP and saves `./cookie.txt`.
+   Opens a standalone window $\rightarrow$ user logs in once $\rightarrow$ attempts to extract cookies via CDP and saves `./cookie.txt` when the required tokens are available.
 2. **Manual DevTools Copy**:
    - **Instant**: Open `gemini.google.com/app` $\rightarrow$ DevTools Network tab $\rightarrow$ click `app?eom=1...` (or `batchexecute`) $\rightarrow$ copy `Cookie:` from Request Headers.
    - **Chat**: Send `"hi"` in Gemini web $\rightarrow$ click `StreamGenerate` in Network list $\rightarrow$ copy `Cookie:`.
