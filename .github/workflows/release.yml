@@ -186,10 +186,12 @@ jobs:
       - name: Create signed SHA256 manifest
         env:
           BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY: ${{ secrets.BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY }}
+          BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY: ${{ vars.BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY }}
         run: |
           set -euo pipefail
           test -n "$BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY"
-          go run ./cmd/release-manifest -dir release-assets
+          test -n "$BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY"
+          go run ./cmd/release-manifest -dir release-assets -public-key "$BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY"
           test -s release-assets/SHA256SUMS
           test -s release-assets/SHA256SUMS.sig
 

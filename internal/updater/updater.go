@@ -288,6 +288,12 @@ func configuredUpdatePublicKey() (ed25519.PublicKey, error) {
 }
 
 func decodeEncodedBytes(value string) ([]byte, error) {
+	value = strings.TrimSpace(value)
+	if len(value)%2 == 0 {
+		if decoded, err := hex.DecodeString(value); err == nil {
+			return decoded, nil
+		}
+	}
 	if decoded, err := base64.StdEncoding.DecodeString(value); err == nil {
 		return decoded, nil
 	}

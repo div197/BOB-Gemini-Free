@@ -13,6 +13,48 @@ import (
 	"testing"
 )
 
+func TestConfiguredUpdatePublicKeyPrefersEmbeddedKey(t *testing.T) {
+	embeddedPublic, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("generate embedded key: %v", err)
+	}
+	environmentPublic, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("generate environment key: %v", err)
+	}
+	previous := BuildUpdatePublicKey
+	BuildUpdatePublicKey = base64.StdEncoding.EncodeToString(embeddedPublic)
+	t.Cleanup(func() { BuildUpdatePublicKey = previous })
+	t.Setenv("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY", base64.StdEncoding.EncodeToString(environmentPublic))
+
+	got, err := configuredUpdatePublicKey()
+	if err != nil {
+		t.Fatalf("configuredUpdatePublicKey: %v", err)
+	}
+	if string(got) != string(embeddedPublic) {
+		t.Fatal("runtime environment unexpectedly overrode embedded update trust anchor")
+	}
+}
+
+func TestConfiguredUpdatePublicKeyUsesEnvironmentFallback(t *testing.T) {
+	previous := BuildUpdatePublicKey
+	BuildUpdatePublicKey = ""
+	t.Cleanup(func() { BuildUpdatePublicKey = previous })
+	publicKey, _, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("generate key: %v", err)
+	}
+	t.Setenv("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY", base64.StdEncoding.EncodeToString(publicKey))
+
+	got, err := configuredUpdatePublicKey()
+	if err != nil {
+		t.Fatalf("configuredUpdatePublicKey: %v", err)
+	}
+	if string(got) != string(publicKey) {
+		t.Fatal("environment update trust anchor was not loaded")
+	}
+}
+
 func TestCreateSignedManifestIsDeterministicAndVerifiable(t *testing.T) {
 	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
 	if err != nil {
