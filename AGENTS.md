@@ -21,7 +21,7 @@ It translates three major protocol standards into Google's internal web RPC prot
 ```
 .
 ├── main.go                     # Entrypoint & CLI flag routing
-├── go.mod / go.sum             # Go module definition (Go 1.26.5 in this snapshot)
+├── go.mod / go.sum             # Go module definition (Go 1.26.6 in this snapshot)
 ├── Makefile                    # Multi-arch compilation & test commands
 ├── install.sh / install.ps1    # Cross-platform automated setup scripts
 ├── test-kit.sh / test-kit.ps1  # Automated diagnostic runners

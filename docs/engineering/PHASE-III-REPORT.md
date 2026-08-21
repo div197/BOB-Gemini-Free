@@ -270,3 +270,16 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
   refused to run because `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
   `BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY` were not configured. Unsigned binaries
   were deliberately not uploaded because the updater is fail-closed.
+
+## Security and public-repository follow-up — 2026-08-21
+
+- Go's official `govulncheck` initially found one reachable `golang.org/x/image`
+  vulnerability and standard-library advisories fixed by Go 1.26.6.
+- Updated the module floor to Go 1.26.6, upgraded `golang.org/x/image` to
+  v0.45.0, refreshed the required `x/sys` and `x/text` modules, and reran the
+  scan. The result was zero reachable vulnerabilities.
+- Added a public `SECURITY.md` responsible-disclosure policy and a focused
+  `CONTRIBUTING.md` with the hermetic/no-Actions validation contract.
+- Enabled GitHub secret scanning and push protection, and protected `main`
+  against direct changes, force-pushes, and deletion while retaining the
+  pull-request workflow.
