@@ -1,0 +1,89 @@
+package main
+
+import (
+	"context"
+	"io"
+	"net"
+	"net/http"
+	"net/http/httptest"
+	"strconv"
+	"testing"
+	"time"
+)
+
+func TestStartDesktopGatewayChoosesFallbackWhenPortBelongsToAnotherProcess(t *testing.T) {
+	occupied, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("occupy port: %v", err)
+	}
+	defer occupied.Close()
+	occupiedPort := occupied.Addr().(*net.TCPAddr).Port
+
+	gateway, err := startDesktopGateway(occupiedPort, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusNoContent)
+	}))
+	if err != nil {
+		t.Fatalf("startDesktopGateway: %v", err)
+	}
+	defer gateway.Shutdown(context.Background())
+	if gateway.reused {
+		t.Fatal("unrelated occupied port was incorrectly treated as compatible")
+	}
+	if gateway.Endpoint() == "http://127.0.0.1:"+strconv.Itoa(occupiedPort) {
+		t.Fatalf("gateway reused occupied endpoint %s", gateway.Endpoint())
+	}
+	client := &http.Client{Timeout: time.Second}
+	resp, err := client.Get(gateway.Endpoint())
+	if err != nil {
+		t.Fatalf("fallback endpoint request: %v", err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("fallback status = %d", resp.StatusCode)
+	}
+}
+
+func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen compatible gateway: %v", err)
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+	server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = io.WriteString(w, `{"status":"ok"}`)
+			return
+		}
+		http.NotFound(w, r)
+	})}
+	go server.Serve(listener)
+	defer server.Shutdown(context.Background())
+
+	gateway, err := startDesktopGateway(port, http.NotFoundHandler())
+	if err != nil {
+		t.Fatalf("startDesktopGateway reuse: %v", err)
+	}
+	if !gateway.reused {
+		t.Fatal("compatible gateway was not reused")
+	}
+	if gateway.Endpoint() != "http://127.0.0.1:"+strconv.Itoa(port) {
+		t.Fatalf("reused endpoint = %q", gateway.Endpoint())
+	}
+	if err := gateway.Shutdown(context.Background()); err != nil {
+		t.Fatalf("reused shutdown: %v", err)
+	}
+}
+
+func TestProbeCompatibleGatewayRejectsNonBOBResponse(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		_, _ = io.WriteString(w, `{"status":"other"}`)
+	}))
+	defer server.Close()
+	compatible, err := probeCompatibleGateway(server.URL)
+	if compatible || err == nil {
+		t.Fatalf("probe result = compatible %v, err %v", compatible, err)
+	}
+}
