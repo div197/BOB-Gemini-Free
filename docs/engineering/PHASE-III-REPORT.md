@@ -257,3 +257,16 @@ BOB Gemini Free is safer to evolve because its fragile protocol behavior remains
 fixture-protected, its desktop runtime boundary is tested on the device, its
 brand assets are deterministic and shared, and its claims now distinguish what
 is implemented, emulated, measured, upstream-dependent, and still unknown.
+
+## Publication follow-up — 2026-08-21
+
+- The Wails-only archival branch was pushed to GitHub as
+  `phase-iii/release-desktop-docs-hardening`.
+- Pull request [#2](https://github.com/div197/BOB-Gemini-Free/pull/2) was
+  promoted from draft and merged into `main` as `5ccbebe`.
+- No GitHub Actions workflow was used or restored. The visible Cloudflare Pages
+  check was green at merge time.
+- No `v0.1.7` binary release was published. The local release script correctly
+  refused to run because `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
+  `BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY` were not configured. Unsigned binaries
+  were deliberately not uploaded because the updater is fail-closed.
