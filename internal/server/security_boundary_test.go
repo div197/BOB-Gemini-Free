@@ -84,6 +84,15 @@ func TestHealthzIsUnauthenticatedAndStable(t *testing.T) {
 	if got := rec.Body.String(); got != "{\"status\":\"ok\"}\n" {
 		t.Fatalf("healthz body = %q", got)
 	}
+	if got := rec.Header().Get("X-BOB-Gateway"); got != "bob-gemini-free" {
+		t.Fatalf("healthz gateway identity = %q", got)
+	}
+	if got := rec.Header().Get("X-BOB-Protocol"); got != HealthzProtocolVersion {
+		t.Fatalf("healthz protocol = %q", got)
+	}
+	if got := rec.Header().Get("X-BOB-Auth-Required"); got != "true" {
+		t.Fatalf("healthz auth marker = %q", got)
+	}
 }
 
 func TestProtectedRoutePrefixDoesNotBypassAPIKey(t *testing.T) {

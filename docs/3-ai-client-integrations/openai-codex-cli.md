@@ -1,6 +1,9 @@
 # OpenAI Codex CLI (Responses API)
 
-BOB Gemini Free natively implements OpenAI's next-generation **Responses API** (`POST /v1/responses`), designed for terminal coding agents, repository indexers, and autonomous developer loops.
+BOB Gemini Free implements a selected OpenAI-shaped **Responses API** route
+(`POST /v1/responses`) for terminal coding agents and developer loops. The
+route is adapter behavior backed by Google's web protocol; broad OpenAI
+Responses parity and tool-streaming compatibility are not certified.
 
 ---
 
@@ -43,7 +46,7 @@ Codex CLI will automatically detect and load these variables when launched in th
 
 ---
 
-## 🔄 Supported Responses API Features
+## 🔄 Tested Responses API Surface
 
 - **`input` String / Multi-Part Array**: Automatically parsed into system, user, and tool turns.
 - **`instructions` System Prompt**: Injected into top-level system context for precise role adherence.
@@ -51,7 +54,9 @@ Codex CLI will automatically detect and load these variables when launched in th
   - `response.created`
   - `response.output_text.done`
   - `response.completed`
-- **Tool Calling & Function Output**: Intercepts `function_call` output items and resolves `function_call_output` returns seamlessly.
+- **Tool Calling & Function Output**: Parses selected `function_call` and
+  `function_call_output` shapes through the adapter; tool execution and full
+  streaming semantics remain endpoint-specific.
 
 ---
 

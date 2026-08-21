@@ -92,7 +92,7 @@ curl http://127.0.0.1:9610/v1/messages \
   }'
 ```
 
-### 3. Google Gemini Native v1beta
+### 3. Google-shaped v1beta adapter
 ```bash
 curl http://127.0.0.1:9610/v1beta/models/gemini-3.7-flash:generateContent \
   -H "Content-Type: application/json" \

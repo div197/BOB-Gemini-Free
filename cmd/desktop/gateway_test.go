@@ -53,6 +53,9 @@ func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
 	server := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path == "/healthz" {
 			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
+			w.Header().Set("X-BOB-Protocol", "1")
+			w.Header().Set("X-BOB-Auth-Required", "false")
 			_, _ = io.WriteString(w, `{"status":"ok"}`)
 			return
 		}
@@ -85,5 +88,42 @@ func TestProbeCompatibleGatewayRejectsNonBOBResponse(t *testing.T) {
 	compatible, err := probeCompatibleGateway(server.URL)
 	if compatible || err == nil {
 		t.Fatalf("probe result = compatible %v, err %v", compatible, err)
+	}
+}
+
+func TestProbeCompatibleGatewayRejectsStatusOnlyLookalike(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			w.Header().Set("Content-Type", "application/json")
+			_, _ = io.WriteString(w, `{"status":"ok"}`)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
+
+	compatible, err := probeCompatibleGateway(server.URL)
+	if compatible || err == nil {
+		t.Fatalf("status-only probe result = compatible %v, err %v", compatible, err)
+	}
+}
+
+func TestProbeCompatibleGatewayRejectsAuthenticatedGateway(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
+			w.Header().Set("X-BOB-Protocol", "1")
+			w.Header().Set("X-BOB-Auth-Required", "true")
+			_, _ = io.WriteString(w, `{"status":"ok"}`)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
+
+	compatible, err := probeCompatibleGateway(server.URL)
+	if compatible || err == nil {
+		t.Fatalf("authenticated probe result = compatible %v, err %v", compatible, err)
 	}
 }

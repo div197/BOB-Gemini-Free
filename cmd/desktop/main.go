@@ -24,17 +24,28 @@ func main() {
 	cfg.APIKeys = nil // Disable global config API keys for local desktop app
 
 	srv := server.New(cfg, "v0.1.7")
+	app := NewApp()
 	gateway, err := startDesktopGateway(cfg.Port, srv.Handler())
 	if err != nil {
 		fmt.Printf("Gateway startup failed: %v\n", err)
+		if windowErr := wails.Run(desktopOptions(app, nil, err)); windowErr != nil {
+			fmt.Printf("Desktop startup error window failed: %v\n", windowErr)
+		}
 		return
 	}
 	fmt.Printf("🚀 Wails Internal Gateway listening on %s\n", gateway.Endpoint())
-	app := NewApp()
 	app.gatewayURL = gateway.Endpoint()
 
 	// 2. Launch the Wails Native Window, pointing it to our Gateway UI
-	err = wails.Run(&options.App{
+	err = wails.Run(desktopOptions(app, gateway, nil))
+
+	if err != nil {
+		println("Error:", err.Error())
+	}
+}
+
+func desktopOptions(app *App, gateway *desktopGateway, startupErr error) *options.App {
+	return &options.App{
 		Title:  "BOB Gemini Free",
 		Width:  1100,
 		Height: 800,
@@ -43,9 +54,16 @@ func main() {
 		},
 		OnStartup: func(ctx context.Context) {
 			app.startup(ctx)
+			if startupErr != nil {
+				runtime.EventsEmit(ctx, "gateway-error", startupErr.Error())
+				return
+			}
 			runtime.EventsEmit(ctx, "gateway-ready", gateway.Endpoint())
 		},
 		OnShutdown: func(ctx context.Context) {
+			if gateway == nil {
+				return
+			}
 			shutdownCtx, cancel := context.WithTimeout(ctx, 5*time.Second)
 			defer cancel()
 			if shutdownErr := gateway.Shutdown(shutdownCtx); shutdownErr != nil {
@@ -53,9 +71,5 @@ func main() {
 			}
 		},
 		Bind: []interface{}{app},
-	})
-
-	if err != nil {
-		println("Error:", err.Error())
 	}
 }

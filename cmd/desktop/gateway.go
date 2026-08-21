@@ -8,6 +8,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/div197/bob-gemini-free/internal/server"
 )
 
 type desktopGateway struct {
@@ -93,6 +95,15 @@ func probeCompatibleGateway(endpoint string) (bool, error) {
 	}
 	if payload.Status != "ok" {
 		return false, fmt.Errorf("healthz status %q", payload.Status)
+	}
+	if resp.Header.Get("X-BOB-Gateway") != "bob-gemini-free" {
+		return false, fmt.Errorf("healthz did not identify BOB Gemini Free")
+	}
+	if resp.Header.Get("X-BOB-Protocol") != server.HealthzProtocolVersion {
+		return false, fmt.Errorf("unsupported BOB health protocol %q", resp.Header.Get("X-BOB-Protocol"))
+	}
+	if resp.Header.Get("X-BOB-Auth-Required") != "false" {
+		return false, fmt.Errorf("existing gateway requires API-key authentication")
 	}
 	return true, nil
 }

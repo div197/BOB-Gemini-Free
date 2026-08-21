@@ -123,7 +123,7 @@ func isAllowedOrigin(origin string, configured []string) bool {
 	}
 
 	host := strings.ToLower(parsed.Hostname())
-	if host == "localhost" || host == "wails.localhost" || host == "tauri.localhost" {
+	if host == "localhost" || host == "wails.localhost" {
 		return true
 	}
 	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {

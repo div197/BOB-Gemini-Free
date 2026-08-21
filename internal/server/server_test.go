@@ -426,7 +426,7 @@ func TestPlaygroundEndpoint(t *testing.T) {
 	app := New(cfg, "test-version")
 	handler := app.Handler()
 
-	for _, path := range []string{"/playground", "/ui"} {
+	for _, path := range []string{"/playground", "/ui", "/favicon.ico"} {
 		req := httptest.NewRequest("GET", path, nil)
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
@@ -434,10 +434,16 @@ func TestPlaygroundEndpoint(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Errorf("Expected 200 for %s, got %d", path, rec.Code)
 		}
-		if !strings.Contains(rec.Body.String(), "BOB GEMINI FREE") {
+		if path != "/favicon.ico" && !strings.Contains(rec.Body.String(), "BOB GEMINI FREE") {
 			t.Errorf("Expected playground HTML content for %s", path)
 		}
-		if rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
+		if path != "/favicon.ico" && (strings.Contains(rec.Body.String(), "sql.js") || strings.Contains(rec.Body.String(), "SQLite WASM")) {
+			t.Errorf("Removed SQLite WASM studio still advertised by %s", path)
+		}
+		if path == "/favicon.ico" && len(rec.Body.Bytes()) == 0 {
+			t.Error("favicon response was empty")
+		}
+		if path != "/favicon.ico" && rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
 			t.Errorf("Expected text/html Content-Type for %s, got %s", path, rec.Header().Get("Content-Type"))
 		}
 	}

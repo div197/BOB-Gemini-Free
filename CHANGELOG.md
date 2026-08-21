@@ -13,14 +13,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 - **Pure Go Native Desktop App (Wails)**: Engineered a standalone click-to-run desktop application (`cmd/desktop`) using Wails. It bundles the UI and the Gateway engine natively with zero NPM dependencies and zero IPC overhead. (`make desktop`)
-- **Tauri Native Workspace**: Added an alternative Tauri desktop workspace (`desktop/`) that wraps the Headless Go sidecar in a blazingly fast Rust shell.
+- **Wails-only Desktop Path**: Consolidated native desktop distribution on the Wails application (`cmd/desktop`); the former alternate wrapper is archived in Git history and is not shipped.
 - **100% Static Cloudflare Pages**: Eradicated the Cloudflare Functions (Edge proxy). The public web UI is now completely static and connects directly to your local `http://127.0.0.1:9610`, bypassing the 100k daily request limit entirely.
 - **Headless Mode (`--headless`)**: Added to prevent the Go binary from spawning a system browser when running inside Native Desktop wrappers.
 - **Global Config Isolation**: The Native App dynamically ignores `~/.config/bob-gemini-free/config.json` API keys to ensure the bundled UI boots cleanly out-of-the-box.
 
 #### Fixed
 - **Architectural & Concurrency Hotfixes**: Resolved deep JS event loop locks, Go mutex bottlenecks, memory leaks, and stream chunking races across the Edge and Core during the rigorous audit.
-- **Tauri Connection Hanging**: Fixed a bug where missing API keys caused the frontend to silently swallow 401 Unauthorized errors and hang.
+- **Native Lifecycle Hardening**: The Wails window now receives the actual loopback endpoint, surfaces startup errors, and closes only the gateway process it owns.
 - **Safari Unhandled Rejections**: Cleared stream timeout promises on resolve to prevent unhandled rejection crashes that caused the UI to hang on STOP in Safari.
 - **Robust AST-like State Scanner**: Replaced brittle stream regex with a precise AST-like scanner for perfect thinking-token isolation.
 

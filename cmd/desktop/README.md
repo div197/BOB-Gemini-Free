@@ -1,19 +1,36 @@
-# README
+# BOB Gemini Free — Wails Desktop
 
-## About
+This is the supported native desktop entrypoint. The packaged Wails
+application contains the Go gateway and opens the shared BOB Builder studio;
+end users do not need a separate Go installation, local server, SQLite
+database, or memory service.
 
-This is the official Wails Vanilla template.
+The bootstrap page in `frontend/index.html` validates the gateway endpoint
+before handing off to `/playground`. It also has a durable `GatewayURL` fallback
+for the one-shot startup event, so a fast local gateway cannot strand the
+window on its loading screen.
 
-You can configure the project by editing `wails.json`. More information about the project settings can be found
-here: https://wails.io/docs/reference/project-config
+## Development prerequisites
 
-## Live Development
+Building from source requires Go, CGO, the host platform toolchain, and the
+Wails CLI. Those are build-time prerequisites only; they are not runtime
+dependencies of a packaged application.
 
-To run in live development mode, run `wails dev` in the project directory. This will run a Vite development
-server that will provide very fast hot reload of your frontend changes. If you want to develop in a browser
-and have access to your Go methods, there is also a dev server that runs on http://localhost:34115. Connect
-to this in your browser, and you can call your Go code from devtools.
+## Build and smoke test
 
-## Building
+From the repository root:
 
-To build a redistributable, production mode package, use `wails build`.
+```bash
+make web
+cd cmd/desktop
+wails build -clean
+```
+
+The app starts an embedded loopback gateway, reuses only an identified
+compatible existing BOB gateway, or selects a safe free port. The actual
+endpoint is passed to the frontend and the owned gateway is closed with the
+desktop lifecycle.
+
+For the complete local release and clean-machine acceptance boundary, see
+`docs/engineering/RELEASE-PROCESS.md` and
+`docs/engineering/DESKTOP-ARCHITECTURE.md`.

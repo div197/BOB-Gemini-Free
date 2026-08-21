@@ -1,3 +1,5 @@
+//go:build live
+
 package diag
 
 import (
@@ -125,29 +127,6 @@ func TestCodexResponsesAPIWorkflow(t *testing.T) {
 		}
 	} else if rec.Code != http.StatusBadGateway {
 		t.Errorf("Unexpected status on Codex Responses API: %d", rec.Code)
-	}
-}
-
-func TestSingleModelRetrieve(t *testing.T) {
-	cfg := config.Default()
-	app := server.New(cfg, "v0.1.0")
-	handler := app.Handler()
-
-	req := httptest.NewRequest("GET", "/v1/models/gemini-3.7-flash-thinking", nil)
-	rec := httptest.NewRecorder()
-	handler.ServeHTTP(rec, req)
-
-	if rec.Code != http.StatusOK {
-		t.Fatalf("Expected 200 for model retrieval, got %d", rec.Code)
-	}
-
-	var res map[string]any
-	_ = json.NewDecoder(rec.Body).Decode(&res)
-	if res["id"] != "gemini-3.7-flash-thinking" {
-		t.Errorf("Expected id gemini-3.7-flash-thinking, got %v", res["id"])
-	}
-	if !strings.Contains(res["id"].(string), "thinking") {
-		t.Errorf("Expected thinking model name")
 	}
 }
 

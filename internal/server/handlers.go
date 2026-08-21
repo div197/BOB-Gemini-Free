@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -13,10 +14,17 @@ import (
 	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
+// HealthzProtocolVersion identifies the local gateway handshake understood by
+// desktop wrappers. It is not an authentication credential.
+const HealthzProtocolVersion = "1"
+
 // handleHealthz is intentionally smaller than the human-facing / telemetry
 // route. It performs no upstream, cookie, or GitHub work and is safe for
 // container orchestration probes even when API keys protect the main API.
 func (a *App) handleHealthz(w http.ResponseWriter, _ *http.Request) {
+	w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
+	w.Header().Set("X-BOB-Protocol", HealthzProtocolVersion)
+	w.Header().Set("X-BOB-Auth-Required", strconv.FormatBool(len(a.Cfg.APIKeys) > 0))
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
 

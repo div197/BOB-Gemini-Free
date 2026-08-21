@@ -1,8 +1,14 @@
 # BOB Gemini Free — Mission 0 Verification Matrix
 
 **Audit date:** 2026-08-21 (Asia/Kolkata)  
-**Audit scope:** Current workspace snapshot at `/Users/apple31/Documents/BOB-Gemini-Free`, the two supplied attachments, and read-only local execution.  
+**Audit scope:** Mission 0 baseline for the supplied workspace snapshot at
+`/Users/apple31/Documents/BOB-Gemini-Free`, the two supplied attachments, and
+read-only local execution.
 **Production-source changes during this mission:** None.
+
+This file preserves the Mission 0 evidence boundary. The repository has since
+advanced through Phase II and Phase III work; the current Git-backed state and
+new desktop/release evidence are summarized in the Phase III addendum below.
 
 ## Purpose and evidence boundary
 
@@ -160,8 +166,8 @@ package-local results were: root 0.6%, `cmd/desktop` 55.7%,
 | The updater verifies release authenticity | VERIFIED_BY_UNIT_TEST | `internal/updater/updater.go`; `internal/updater/golden_test.go` verifies Ed25519-signed `SHA256SUMS`, tampering, and checksum mismatch | Release operators still need to publish the manifest/signature and configure the trusted public key. Missing or invalid verification material fails closed. |
 | Updater replacement is atomic and rollback-safe on all platforms | VERIFIED_BY_UNIT_TEST | Unix uses same-filesystem temp download plus rename; mocked tests isolate the candidate binary and verify bytes/checksum before replacement | Windows retains a platform-specific rollback/copy path; a real installed executable was deliberately not touched. |
 | Updater tests cover download verification and replacement | VERIFIED_BY_INTEGRATION_TEST | `internal/updater/golden_test.go` uses an `httptest` release server and isolated temp candidates | Network transport and GitHub release behavior remain unverified live. |
-| Wails desktop deterministically starts the gateway and reports the actual port | VERIFIED_BY_INTEGRATION_TEST | `cmd/desktop/gateway.go` and tests cover occupied-port fallback, compatible reuse, and non-BOB rejection; Wails app lifecycle wires endpoint/shutdown | A native Wails GUI run was not performed because the Wails CLI is absent on this host. |
-| Tauri is legacy and Wails is the canonical desktop architecture | VERIFIED_IN_SOURCE | `docs/engineering/DESKTOP-ARCHITECTURE.md` and `desktop/README.md`; reference scan found no required Tauri-only capability | Tauri files remain for history because this snapshot has no Git metadata and deletion would be irreversible; active docs point to Wails. |
+| Wails desktop deterministically starts the gateway and reports the actual port | VERIFIED_BY_INTEGRATION_TEST | `cmd/desktop/gateway.go` and tests cover occupied-port fallback, compatible reuse, and non-BOB rejection; the Wails bundle was built and smoke-tested on this Mac, reaching `/playground` with the actual loopback endpoint | Live Google behavior, signed/notarized distribution, and occupied-port GUI fallback still need release-device acceptance. |
+| Wails is the sole active native desktop architecture | VERIFIED_IN_SOURCE | `cmd/desktop`, `docs/engineering/DESKTOP-ARCHITECTURE.md`, and the archival commit remove the alternate wrapper from the active tree; Git history retains recovery provenance | Wails distribution still needs Developer ID signing/notarization and clean-machine acceptance. |
 | The CLI has a duplicate browser fallback bug | VERIFIED_BY_INTEGRATION_TEST | `main.go` now routes startup through one `launchStudioOrFallback` call; `main_test.go` asserts a single fallback invocation | The fix is intentionally narrow and does not refactor unrelated CLI startup. |
 
 ### Performance, diagnostics, and test confidence
@@ -172,7 +178,7 @@ package-local results were: root 0.6%, `cmd/desktop` 55.7%,
 | The README sample values (P50 ~1.72 s, proxy overhead <1.5 ms, RAM <15 MB, 100+ streams under 50 MB) are measured release baselines | STALE_OR_INCORRECT | The old wording was removed from the active benchmark section; the dossier and historical text had no reproducible artifact | No Google/live release performance number is established. |
 | The benchmark supports requested local-only profiles and RSS/allocation metrics | MEASURED | `internal/diag/local_benchmark.go`, `cmd/benchmark-local`, and `docs/engineering/LOCAL-BENCHMARK-2026-08-21.md` record 1/10/50/100 profiles with P50/P90/P95/P99, allocations, RSS, goroutines, connections, and throughput | This is a mocked local gateway benchmark; live upstream profiles remain optional and unrun. |
 | The core has a deterministic golden fixture suite | VERIFIED_BY_UNIT_TEST | `docs/engineering/CORE-REGRESSION-HARNESS.md`; `internal/gemini/golden_test.go`; `internal/format/golden_test.go`; `internal/multimodal/golden_test.go` | These are synthetic protocol-shaped fixtures, not live Google captures. Live acceptance remains unknown. |
-| All existing tests are hermetic and provider-independent | STALE_OR_INCORRECT | `internal/diag/agent_test.go:16-222` still contains best-effort paths that permit 502; multimodal token-cache tests are now hermetic | The core fixture and local security/updater/benchmark suites are hermetic, but the legacy diagnostic package still has upstream-aware tests. |
+| The default Go suite is hermetic and provider-independent | VERIFIED_IN_SOURCE | Upstream-facing diagnostic workflows are tagged `live`; the default suite excludes them, while `go test -tags=live ./internal/diag` is documented separately | A live-tagged run remains provider/session-dependent and is intentionally not part of the default validation gate. |
 | Current package coverage is at least 80% everywhere | STALE_OR_INCORRECT | `go test -cover ./...` measured 6.9% browser, 34.2% gemini, 46.0% multimodal, 33.4% server, 0.0% service, and 17.6% updater among others | The local package numbers directly contradict a blanket 80% claim. Coverage is not the only quality metric, but the claim is not current. |
 | The existing suite proves live Google compatibility | DOCUMENTED_ONLY | The supplied dossier says tests and vet passed; current tests pass locally, but no controlled live acceptance run was performed and no live gateway was listening | Requires separately authorized provider/session verification. |
 
@@ -217,5 +223,18 @@ two justified protected-core changes described in
   pairing/token design.
 - Authenticated Scotty upload and Imagen generation.
 - Release authenticity and safe updater replacement under mocked downloads.
-- Wails/Tauri product decision.
+- Final Wails-only desktop product decision (completed after the Phase III
+  device comparison).
 - Environment-tagged performance baselines.
+
+## Phase III evidence update (2026-08-21)
+
+The historical Mission 0 statements above are not the current branch status.
+The following later evidence is now available:
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| Current branch and remote provenance are verifiable | VERIFIED_IN_SOURCE | Git branch `phase-iii/release-desktop-docs-hardening`, origin `github.com/div197/BOB-Gemini-Free`, and Phase II merge commit `0e2e35e` were inspected locally | This is repository provenance, not proof that a release is published or accepted by users. |
+| Packaged Wails users need no separate Go runtime, database, or memory service | VERIFIED_BY_INTEGRATION_TEST | `scripts/build-wails-local.sh` produced an ad-hoc signed macOS app; Computer Use opened the app, reached the BOB Builder studio at `127.0.0.1:9610/playground`, and closing the window released the listener | Source builds still require Go, CGO, Wails, and the host toolchain; macOS notarization/signing is an external release gate. |
+| The active desktop/browser icon set is coherent | VERIFIED_IN_SOURCE | `scripts/build-desktop-icons.sh` rebuilds Wails PNG, browser favicon, and server favicon from `assets/bob-gemini-free-logo.jpg`; non-empty outputs and the native studio were inspected | Visual brand approval remains a product-owner judgment; no alternate desktop icon set is shipped. |
+| The gateway has no SQLite or server memory database | VERIFIED_IN_SOURCE | No SQLite dependency exists in the Go module or server; the browser studio's SQLite WASM surface and claims were removed, leaving only client UI preference/history storage | Browser `localStorage` remains client-only UI state; it is not a gateway database or memory service. |

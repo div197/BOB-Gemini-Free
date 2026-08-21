@@ -1,28 +1,53 @@
-# Desktop Architecture Decision — Mission 9
+# Desktop Architecture Decision — Wails-only
 
-## Comparison
-
-| Capability | Wails (`cmd/desktop`) | Tauri (`desktop`) |
-|---|---|---|
-| Gateway packaging | Embeds the Go gateway in the desktop process | Spawns the CLI as a sidecar |
-| Port behavior | Probes/reuses compatible `9610` or selects a free loopback port | Hardcodes `--port 9610` |
-| Actual endpoint handoff | Wails `gateway-ready` event and `GatewayURL` binding | Frontend remains tied to the static web bundle/default port |
-| Shutdown | Wails `OnShutdown` calls the owned HTTP server shutdown | Tauri sidecar lifecycle kills the child, but does not own gateway port selection |
-| Required product capability | Covers the current native studio and embedded engine | No currently required capability absent from Wails |
-| Current verification | Go tests cover collision, reuse, and shutdown behavior | No equivalent deterministic port/lifecycle tests |
+**Decision status:** Wails is the sole supported native desktop architecture.
+The former alternate desktop wrapper was archived by deletion from the active
+tree after the capability comparison; Git history preserves its provenance.
 
 ## Decision
 
-Wails is the canonical desktop architecture. The Tauri workspace is legacy and
-must not be presented as a second supported desktop path for new releases.
-Root build/documentation references already point to `make desktop` and
-`cmd/desktop`; the Tauri files have no dependency from the Go build graph.
+`cmd/desktop` is the canonical and only active desktop product path. It embeds
+the Go gateway in the Wails process, so a packaged user does not need a
+separate Go runtime, local server, SQLite database, memory service, Node
+installation, or Rust installation.
 
-The Tauri directory is retained in this source snapshot because the workspace
-has no `.git` history and therefore cannot preserve or prove its historical
-provenance while deleting it. A future Git-backed cleanup can archive or
-remove it in a reviewable commit after downstream consumers are checked.
+The Wails gateway boundary is deliberately explicit:
 
-This decision does not claim that the old Tauri sidecar is safe for current
-production use; its fixed-port behavior is intentionally outside the
-canonical release path until it is removed or separately repaired.
+- probe the requested loopback port;
+- reuse only a compatible identified BOB gateway;
+- select a safe loopback port when the requested port is occupied by another
+  process;
+- expose the actual endpoint to the frontend;
+- surface startup errors in the native window; and
+- close only a gateway owned by the app during shutdown.
+
+The deleted alternate wrapper provided no capability required by Wails. It used
+a fixed port, a sidecar process, and no compatible-gateway endpoint handoff.
+Keeping it active would create a second release surface without adding product
+value. Its deletion is therefore a product simplification and a security
+boundary reduction, not a protocol refactor.
+
+## Release and acceptance boundary
+
+`make desktop` is a developer build and requires the Wails CLI, CGO, and the
+host platform toolchain. For a macOS checkout hosted by File Provider, use
+[`scripts/build-wails-local.sh`](../../scripts/build-wails-local.sh); it stages
+the source in `/tmp`, builds with the pinned Wails module version, and verifies
+an ad-hoc signed bundle.
+
+A successful Go package build is not native GUI acceptance. Every supported
+release still needs a device smoke test for window startup, dynamic endpoint
+handoff, chat, shutdown, and occupied-port fallback. Published releases also
+need Developer ID signing/notarization and a clean-machine install/open check.
+
+## Recovery record
+
+The removed wrapper and its build metadata remain available through Git history:
+
+```text
+git log --all -- desktop
+git show <pre-archival-commit>:desktop/
+```
+
+No active Make target, release script, icon generator, server origin allow-list,
+or current product document depends on that archived path.
