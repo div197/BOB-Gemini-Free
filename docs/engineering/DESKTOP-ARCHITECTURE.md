@@ -1,46 +1,53 @@
-# Desktop Architecture Decision — Phase III
+# Desktop Architecture Decision — Wails-only
 
-**Decision status:** Wails is canonical for supported desktop releases. Tauri
-is legacy source retained for a deliberate, reviewable follow-up removal.
-
-## Comparison
-
-| Capability | Wails (`cmd/desktop`) | Tauri (`desktop`) |
-|---|---|---|
-| Gateway packaging | Embeds the Go HTTP handler in the desktop process | Spawns the CLI as a sidecar |
-| Port behavior | Probes the requested loopback port, reuses only an identified compatible BOB gateway, or selects a free loopback port | Passes a fixed `--port 9610` to the sidecar |
-| Actual endpoint handoff | Emits `gateway-ready` with the actual endpoint and exposes `GatewayURL` to the frontend | Uses the static web bundle/default endpoint; no dynamic endpoint contract is implemented |
-| Reuse safety | Requires BOB identity, health protocol version, and no API-key requirement before reuse | No compatible-gateway probe |
-| Startup failure | Opens the desktop error state and emits `gateway-error` | Uses `expect(...)`, so startup failure is not surfaced through a tested product state |
-| Shutdown | `OnShutdown` closes only a gateway owned by this app; reused gateways are left running | Explicit `ExitRequested`/`Exit` handling kills the managed sidecar; the wrapper still uses a fixed port |
-| Tooling | Go tests cover collision, reuse, identity rejection, and lifecycle paths; the Wails bundle was also built and smoke-tested on this Mac | Rust/Cargo build and a device smoke path pass locally, but no deterministic desktop regression suite is present |
-| Release path | Built locally with `make desktop`; local release packaging is documented separately | Excluded from the root Makefile and local release packaging |
+**Decision status:** Wails is the sole supported native desktop architecture.
+The former alternate desktop wrapper was archived by deletion from the active
+tree after the capability comparison; Git history preserves its provenance.
 
 ## Decision
 
-Wails is the canonical desktop architecture. The Tauri workspace must not be
-presented as a second supported desktop path for new releases. Root build and
-release references point to `make desktop` and `cmd/desktop`; a source scan
-found no required Tauri-only capability or Go build dependency.
+`cmd/desktop` is the canonical and only active desktop product path. It embeds
+the Go gateway in the Wails process, so a packaged user does not need a
+separate Go runtime, local server, SQLite database, memory service, Node
+installation, or Rust installation.
 
-The repository now has Git history, so retaining Tauri is a conscious
-reversibility decision rather than a provenance limitation. Its history can be
-removed in a dedicated commit after checking downstream references and release
-consumers. Until then, `desktop/README.md` labels it legacy and the local
-release procedure excludes it.
+The Wails gateway boundary is deliberately explicit:
 
-This decision does not claim that the old Tauri sidecar is a second supported
-release path. Its fixed-port behavior and lack of a dynamic endpoint contract
-remain outside the canonical release path, although its packaged macOS smoke
-test now proves startup, BOB Builder rendering, and sidecar shutdown on this
-device.
+- probe the requested loopback port;
+- reuse only a compatible identified BOB gateway;
+- select a safe loopback port when the requested port is occupied by another
+  process;
+- expose the actual endpoint to the frontend;
+- surface startup errors in the native window; and
+- close only a gateway owned by the app during shutdown.
+
+The deleted alternate wrapper provided no capability required by Wails. It used
+a fixed port, a sidecar process, and no compatible-gateway endpoint handoff.
+Keeping it active would create a second release surface without adding product
+value. Its deletion is therefore a product simplification and a security
+boundary reduction, not a protocol refactor.
 
 ## Release and acceptance boundary
 
 `make desktop` is a developer build and requires the Wails CLI, CGO, and the
 host platform toolchain. For a macOS checkout hosted by File Provider, use
-`scripts/build-wails-local.sh`; it stages the source in `/tmp`, builds with the
-pinned Wails module version, and verifies an ad-hoc signed bundle. A successful
-Go package build is not a native GUI acceptance test; each release still needs
-a device smoke test for window startup, dynamic endpoint handoff, chat,
-shutdown, and the occupied-port fallback.
+[`scripts/build-wails-local.sh`](../../scripts/build-wails-local.sh); it stages
+the source in `/tmp`, builds with the pinned Wails module version, and verifies
+an ad-hoc signed bundle.
+
+A successful Go package build is not native GUI acceptance. Every supported
+release still needs a device smoke test for window startup, dynamic endpoint
+handoff, chat, shutdown, and occupied-port fallback. Published releases also
+need Developer ID signing/notarization and a clean-machine install/open check.
+
+## Recovery record
+
+The removed wrapper and its build metadata remain available through Git history:
+
+```text
+git log --all -- desktop
+git show <pre-archival-commit>:desktop/
+```
+
+No active Make target, release script, icon generator, server origin allow-list,
+or current product document depends on that archived path.

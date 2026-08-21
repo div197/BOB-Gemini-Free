@@ -29,8 +29,6 @@ mkdir -p "$OUTPUT_DIR"
 rsync -a \
   --exclude '.git/' \
   --exclude 'cmd/desktop/build/bin/' \
-  --exclude 'desktop/node_modules/' \
-  --exclude 'desktop/src-tauri/target/' \
   --exclude 'release-assets/' \
   "$ROOT_DIR/" "$STAGE_ROOT/"
 xattr -cr "$STAGE_ROOT" 2>/dev/null || true

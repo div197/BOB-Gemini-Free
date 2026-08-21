@@ -1,8 +1,9 @@
 # Release Process
 
-The supported release path is the Go CLI plus the Wails desktop artifacts. The
-Tauri workspace is legacy and is not built or packaged by the local release
-procedure.
+The supported release path is the Go CLI plus the Wails desktop artifacts.
+Wails is the only active native desktop implementation. The former alternate
+wrapper was removed from the working tree after the Phase III comparison; its
+source remains recoverable through Git history, but it is not part of releases.
 
 ## Preconditions
 

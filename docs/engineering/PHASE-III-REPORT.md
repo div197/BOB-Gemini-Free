@@ -9,10 +9,10 @@
 
 Phase III moved the verified Phase II foundation toward a local, release-shaped
 desktop product without changing the protected Gemini payload, authentication,
-or stream protocol behavior. Wails is now the supported desktop path; Tauri is
-retained as explicitly legacy source. Both native wrappers were built and
-opened on this Mac. Both reached the same BOB Builder studio, and both released
-their local gateway processes on normal window close.
+or stream protocol behavior. Wails is now the sole supported desktop path. The
+former Tauri wrapper was built and opened during the comparison, then removed
+from the active tree after no unique capability was found. Its source remains
+recoverable through Git history.
 
 The remaining boundary is intentional: no live Google session or provider
 compatibility claim was manufactured, no GitHub Actions workflow is required,
@@ -69,21 +69,22 @@ The baseline still had these release/product gaps:
 - The packaged application embeds the Go gateway; the end user does not need a
   separate Go installation, server process, SQLite database, or memory service.
 
-### Tauri legacy wrapper
+### Tauri archival decision
 
-- Added explicit managed sidecar ownership.
-- Added ExitRequested/Exit handling that kills the sidecar before normal
-  application termination.
-- Rebuilt the sidecar/package and removed the previous Rust warnings.
-- Kept the fixed-port wrapper clearly legacy and excluded from supported local
-  release packaging.
+- The former wrapper was explicitly compared with Wails and device-smoke-tested
+  before removal.
+- It had a fixed port, sidecar lifecycle, and no compatible-gateway endpoint
+  handoff; Wails provided the required capability set with fewer moving parts.
+- The complete `desktop/` tree, Cargo/npm metadata, sidecar configuration, and
+  wrapper icons were deleted from the active tree in a dedicated follow-up
+  commit. Git history remains the archive and recovery mechanism.
 
 ### Brand and browser surface
 
 - Added deterministic scripts/build-desktop-icons.sh using the canonical BOB
   wordmark in assets/bob-gemini-free-logo.jpg.
-- Generated aligned Wails PNG, Tauri PNG/ICNS/ICO, browser favicon, and server
-  favicon outputs with BOB Builder gold/cyan treatment.
+- Generated aligned Wails PNG, browser favicon, and server favicon outputs with
+  BOB Builder gold/cyan treatment.
 - Added GET /favicon.ico with a regression test and shared favicon links in the
   studio HTML.
 - Updated the bootstrap/studio copy to use the current v0.1.7 identity and
@@ -138,24 +139,12 @@ completed the same package build and signature verification, so this is an
 environment/build-path issue rather than an unverified GUI result.
 Apple Developer signing/notarization remains an external distribution gate.
 
-### Tauri
+### Archived wrapper evidence
 
-Commands and results:
-
-~~~
-npm ci --ignore-scripts                         PASS
-cargo test --manifest-path desktop/src-tauri/Cargo.toml PASS
-npm run tauri build -- --debug                  PASS
-~~~
-
-The packaged Tauri app opened the shared studio at tauri://localhost, showed
-the BOB Builder theme and 127.0.0.1:9610 gateway status, and was closed using
-its native window. The explicit sidecar lifecycle then left no Tauri process
-and no listener on port 9610.
-
-This proves a current-device legacy wrapper smoke path, not a supported Tauri
-release contract. Tauri still lacks Wails' dynamic endpoint handoff and safe
-compatible-gateway reuse.
+Before archival, the wrapper passed a device smoke build and opened the shared
+BOB Builder studio. That evidence informed the product decision; it is not a
+current release contract. The deleted implementation remains inspectable with
+`git log --all -- desktop` and is deliberately excluded from current builds.
 
 ## 4. Protocol fidelity and security status
 
@@ -229,8 +218,9 @@ passed by this report.
 3. The local release script creates signed artifacts but does not publish them;
    an authorized maintainer must manually upload the binary set, manifest,
    signature, and public trust anchor.
-4. Tauri is retained for reversible history but should not be advertised as a
-   second supported desktop architecture.
+4. The deleted alternate desktop wrapper is preserved only in Git history and
+   must not be reintroduced as a second release surface without a new decision
+   record and capability evidence.
 5. Remote Studio deployment still needs a real browser/PNA acceptance run with
    exact origin configuration and preferably an API key or pairing capability.
 6. The browser studio still uses third-party CDN assets and browser-local

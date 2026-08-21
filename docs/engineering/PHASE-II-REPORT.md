@@ -19,6 +19,11 @@ was listening on `127.0.0.1:9610`, no authenticated Google session was used,
 and the workspace has no `.git` metadata. Provider behavior, model identity,
 entitlements, rate limits, and release publication remain external gates.
 
+Historical boundary: this Phase II report records the alternate desktop
+wrapper as retained because that snapshot lacked Git history. A later Git-backed
+Phase III follow-up compared it with Wails, smoke-tested it, and removed it from
+the active tree while preserving recovery through Git history.
+
 ## 1. Verified architecture corrections
 
 - The repository is a Go `1.26.5` module with non-zero declared dependencies.

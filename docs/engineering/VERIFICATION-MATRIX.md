@@ -167,7 +167,7 @@ package-local results were: root 0.6%, `cmd/desktop` 55.7%,
 | Updater replacement is atomic and rollback-safe on all platforms | VERIFIED_BY_UNIT_TEST | Unix uses same-filesystem temp download plus rename; mocked tests isolate the candidate binary and verify bytes/checksum before replacement | Windows retains a platform-specific rollback/copy path; a real installed executable was deliberately not touched. |
 | Updater tests cover download verification and replacement | VERIFIED_BY_INTEGRATION_TEST | `internal/updater/golden_test.go` uses an `httptest` release server and isolated temp candidates | Network transport and GitHub release behavior remain unverified live. |
 | Wails desktop deterministically starts the gateway and reports the actual port | VERIFIED_BY_INTEGRATION_TEST | `cmd/desktop/gateway.go` and tests cover occupied-port fallback, compatible reuse, and non-BOB rejection; the Wails bundle was built and smoke-tested on this Mac, reaching `/playground` with the actual loopback endpoint | Live Google behavior, signed/notarized distribution, and occupied-port GUI fallback still need release-device acceptance. |
-| Tauri is legacy and Wails is the canonical desktop architecture | VERIFIED_IN_SOURCE | `docs/engineering/DESKTOP-ARCHITECTURE.md`, `desktop/README.md`, and Git history; Wails is the supported path, while Tauri remains deliberately retained legacy source | The Tauri macOS bundle was also built and smoke-tested on this device; it is not a second supported release path because it still uses fixed port 9610 and no dynamic endpoint contract. |
+| Wails is the sole active native desktop architecture | VERIFIED_IN_SOURCE | `cmd/desktop`, `docs/engineering/DESKTOP-ARCHITECTURE.md`, and the archival commit remove the alternate wrapper from the active tree; Git history retains recovery provenance | Wails distribution still needs Developer ID signing/notarization and clean-machine acceptance. |
 | The CLI has a duplicate browser fallback bug | VERIFIED_BY_INTEGRATION_TEST | `main.go` now routes startup through one `launchStudioOrFallback` call; `main_test.go` asserts a single fallback invocation | The fix is intentionally narrow and does not refactor unrelated CLI startup. |
 
 ### Performance, diagnostics, and test confidence
@@ -223,7 +223,8 @@ two justified protected-core changes described in
   pairing/token design.
 - Authenticated Scotty upload and Imagen generation.
 - Release authenticity and safe updater replacement under mocked downloads.
-- Wails/Tauri product decision.
+- Final Wails-only desktop product decision (completed after the Phase III
+  device comparison).
 - Environment-tagged performance baselines.
 
 ## Phase III evidence update (2026-08-21)
@@ -235,6 +236,5 @@ The following later evidence is now available:
 |---|---|---|---|
 | Current branch and remote provenance are verifiable | VERIFIED_IN_SOURCE | Git branch `phase-iii/release-desktop-docs-hardening`, origin `github.com/div197/BOB-Gemini-Free`, and Phase II merge commit `0e2e35e` were inspected locally | This is repository provenance, not proof that a release is published or accepted by users. |
 | Packaged Wails users need no separate Go runtime, database, or memory service | VERIFIED_BY_INTEGRATION_TEST | `scripts/build-wails-local.sh` produced an ad-hoc signed macOS app; Computer Use opened the app, reached the BOB Builder studio at `127.0.0.1:9610/playground`, and closing the window released the listener | Source builds still require Go, CGO, Wails, and the host toolchain; macOS notarization/signing is an external release gate. |
-| Packaged Tauri users need no separate Go runtime | VERIFIED_BY_INTEGRATION_TEST | `npm ci`, Cargo tests, `npm run tauri build -- --debug`, and a native app launch all passed; explicit exit handling removed the sidecar listener on close | Tauri remains legacy: fixed port, sidecar architecture, and no tested dynamic endpoint handoff. |
-| The desktop icon set is coherent across Wails, Tauri, favicon, and studio bootstrap | VERIFIED_IN_SOURCE | `scripts/build-desktop-icons.sh` rebuilds all checked-in sizes from `assets/bob-gemini-free-logo.jpg`; non-empty PNG/ICNS/ICO outputs and the native studio were inspected | Visual brand approval is still a product-owner judgment; the source asset is now BOB-aligned rather than a generic starter icon. |
+| The active desktop/browser icon set is coherent | VERIFIED_IN_SOURCE | `scripts/build-desktop-icons.sh` rebuilds Wails PNG, browser favicon, and server favicon from `assets/bob-gemini-free-logo.jpg`; non-empty outputs and the native studio were inspected | Visual brand approval remains a product-owner judgment; no alternate desktop icon set is shipped. |
 | The gateway has no SQLite or server memory database | VERIFIED_IN_SOURCE | No SQLite dependency exists in the Go module or server; the browser studio's SQLite WASM surface and claims were removed, leaving only client UI preference/history storage | Browser `localStorage` remains client-only UI state; it is not a gateway database or memory service. |
