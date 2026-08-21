@@ -88,6 +88,7 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /v1/metrics", a.handleMetrics)
 	mux.HandleFunc("GET /playground", a.handlePlayground)
 	mux.HandleFunc("GET /ui", a.handlePlayground)
+	mux.HandleFunc("GET /favicon.ico", a.handleFavicon)
 	mux.HandleFunc("GET /v1/models", a.handleModels)
 	mux.HandleFunc("GET /v1/models/{model}", a.handleSingleModel)
 	mux.HandleFunc("POST /v1/chat/completions", a.handleChat)
