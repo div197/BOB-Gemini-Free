@@ -45,6 +45,18 @@ type CheckResult struct {
 	SignatureURL   string         `json:"signature_url,omitempty"`
 }
 
+// MaxUpdateArtifactBytes bounds the amount of untrusted release data that can
+// be written to the temporary update candidate before checksum verification.
+// It is intentionally much larger than the current binaries while preventing
+// an unexpectedly large response from exhausting local disk space.
+const MaxUpdateArtifactBytes int64 = 512 << 20
+
+// BuildUpdatePublicKey is injected into release builds with -ldflags. A
+// release binary therefore carries its trust anchor instead of depending on a
+// mutable runtime environment. Development builds may use the environment
+// fallback documented below.
+var BuildUpdatePublicKey string
+
 // CheckLatest queries the official GitHub repository for the latest release.
 func CheckLatest(currentVersion string) (*CheckResult, error) {
 	apiURL := "https://api.github.com/repos/div197/bob-gemini-free/releases/latest"
@@ -169,6 +181,9 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 	if res.Release != nil {
 		if asset := findAssetByURL(res.Release.Assets, res.DownloadURL); asset != nil {
 			assetName = asset.Name
+			if asset.Size > MaxUpdateArtifactBytes {
+				return fmt.Errorf("release asset %s exceeds the %d-byte safety limit", asset.Name, MaxUpdateArtifactBytes)
+			}
 		}
 	}
 	if assetName == "" {
@@ -255,9 +270,12 @@ func findAssetByURL(assets []ReleaseAsset, downloadURL string) *ReleaseAsset {
 }
 
 func configuredUpdatePublicKey() (ed25519.PublicKey, error) {
-	raw := strings.TrimSpace(os.Getenv("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY"))
+	raw := strings.TrimSpace(BuildUpdatePublicKey)
 	if raw == "" {
-		return nil, fmt.Errorf("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is not configured; refusing unsigned update")
+		raw = strings.TrimSpace(os.Getenv("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY"))
+	}
+	if raw == "" {
+		return nil, fmt.Errorf("no embedded or configured update public key is available; refusing unsigned update")
 	}
 	decoded, err := decodeEncodedBytes(raw)
 	if err != nil {
@@ -347,6 +365,13 @@ func checksumForAsset(manifest []byte, assetName string) (string, error) {
 }
 
 func downloadVerifiedArtifact(client *http.Client, downloadURL, destination, assetName string, manifest, signature []byte, publicKey ed25519.PublicKey) (string, error) {
+	return downloadVerifiedArtifactLimited(client, downloadURL, destination, assetName, manifest, signature, publicKey, MaxUpdateArtifactBytes)
+}
+
+func downloadVerifiedArtifactLimited(client *http.Client, downloadURL, destination, assetName string, manifest, signature []byte, publicKey ed25519.PublicKey, maxBytes int64) (string, error) {
+	if maxBytes <= 0 {
+		return "", fmt.Errorf("invalid update artifact size limit: %d", maxBytes)
+	}
 	if err := verifyReleaseManifest(publicKey, manifest, signature); err != nil {
 		return "", err
 	}
@@ -368,7 +393,7 @@ func downloadVerifiedArtifact(client *http.Client, downloadURL, destination, ass
 		return "", err
 	}
 	hasher := sha256.New()
-	_, copyErr := io.Copy(io.MultiWriter(file, hasher), resp.Body)
+	n, copyErr := io.Copy(io.MultiWriter(file, hasher), io.LimitReader(resp.Body, maxBytes+1))
 	closeErr := file.Close()
 	if copyErr != nil {
 		_ = os.Remove(destination)
@@ -377,6 +402,10 @@ func downloadVerifiedArtifact(client *http.Client, downloadURL, destination, ass
 	if closeErr != nil {
 		_ = os.Remove(destination)
 		return "", closeErr
+	}
+	if n > maxBytes {
+		_ = os.Remove(destination)
+		return "", fmt.Errorf("download exceeded %d-byte safety limit", maxBytes)
 	}
 	actual := hex.EncodeToString(hasher.Sum(nil))
 	if actual != expected {
