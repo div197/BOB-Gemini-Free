@@ -1,7 +1,10 @@
 package updater
 
 import (
+	"bufio"
+	"crypto/ed25519"
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -38,6 +41,8 @@ type CheckResult struct {
 	HasUpdate      bool           `json:"has_update"`
 	Release        *GitHubRelease `json:"release,omitempty"`
 	DownloadURL    string         `json:"download_url,omitempty"`
+	ChecksumURL    string         `json:"checksum_url,omitempty"`
+	SignatureURL   string         `json:"signature_url,omitempty"`
 }
 
 // CheckLatest queries the official GitHub repository for the latest release.
@@ -77,6 +82,14 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	if targetAsset != nil {
 		downloadURL = targetAsset.BrowserDownloadURL
 	}
+	checksumURL := ""
+	if checksumAsset := findAssetByName(release.Assets, "SHA256SUMS"); checksumAsset != nil {
+		checksumURL = checksumAsset.BrowserDownloadURL
+	}
+	signatureURL := ""
+	if signatureAsset := findAssetByName(release.Assets, "SHA256SUMS.sig"); signatureAsset != nil {
+		signatureURL = signatureAsset.BrowserDownloadURL
+	}
 
 	return &CheckResult{
 		CurrentVersion: currentVersion,
@@ -84,6 +97,8 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 		HasUpdate:      hasUpdate,
 		Release:        &release,
 		DownloadURL:    downloadURL,
+		ChecksumURL:    checksumURL,
+		SignatureURL:   signatureURL,
 	}, nil
 }
 
@@ -107,6 +122,13 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 	if res.DownloadURL == "" {
 		return fmt.Errorf("no compatible release binary found for %s/%s in release %s", runtime.GOOS, runtime.GOARCH, res.LatestVersion)
 	}
+	if res.ChecksumURL == "" || res.SignatureURL == "" {
+		return fmt.Errorf("release %s has no signed SHA256SUMS manifest; refusing unsigned update", res.LatestVersion)
+	}
+	publicKey, err := configuredUpdatePublicKey()
+	if err != nil {
+		return err
+	}
 
 	logFn("[*] Found newer release: %s (current: %s)", res.LatestVersion, currentVersion)
 	logFn("[*] Downloading from: %s", res.DownloadURL)
@@ -122,40 +144,50 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 
 	tempFile, err := os.CreateTemp(filepath.Dir(exePath), "bob-gemini-free-update-*.tmp")
 	if err != nil {
-		tempFile, err = os.CreateTemp("", "bob-gemini-free-update-*.tmp")
-		if err != nil {
-			return fmt.Errorf("failed to create temp file: %w", err)
-		}
+		return fmt.Errorf("failed to create same-filesystem temp file: %w", err)
 	}
 	tempPath := tempFile.Name()
+	if err := tempFile.Close(); err != nil {
+		return fmt.Errorf("failed to close update temp file: %w", err)
+	}
 	defer os.Remove(tempPath)
 
 	client := &http.Client{Timeout: 90 * time.Second}
-	dlResp, err := client.Get(res.DownloadURL)
+	manifest, err := downloadBytes(client, res.ChecksumURL, 1<<20)
 	if err != nil {
-		tempFile.Close()
-		return fmt.Errorf("failed to download update: %w", err)
+		return fmt.Errorf("failed to download checksum manifest: %w", err)
 	}
-	defer dlResp.Body.Close()
-
-	if dlResp.StatusCode != http.StatusOK {
-		tempFile.Close()
-		return fmt.Errorf("download server returned HTTP %d", dlResp.StatusCode)
-	}
-
-	hasher := sha256.New()
-	multiWriter := io.MultiWriter(tempFile, hasher)
-	n, err := io.Copy(multiWriter, dlResp.Body)
-	tempFile.Close()
+	signature, err := downloadBytes(client, res.SignatureURL, 16<<10)
 	if err != nil {
-		return fmt.Errorf("failed to save update payload: %w", err)
+		return fmt.Errorf("failed to download checksum signature: %w", err)
 	}
+	if err := verifyReleaseManifest(publicKey, manifest, signature); err != nil {
+		return fmt.Errorf("release authenticity verification failed: %w", err)
+	}
+
+	assetName := ""
+	if res.Release != nil {
+		if asset := findAssetByURL(res.Release.Assets, res.DownloadURL); asset != nil {
+			assetName = asset.Name
+		}
+	}
+	if assetName == "" {
+		return fmt.Errorf("release metadata did not identify downloaded asset; refusing update")
+	}
+	shaSum, err := downloadVerifiedArtifact(client, res.DownloadURL, tempPath, assetName, manifest, signature, publicKey)
+	if err != nil {
+		return fmt.Errorf("verified binary download failed: %w", err)
+	}
+	info, err := os.Stat(tempPath)
+	if err != nil {
+		return fmt.Errorf("failed to inspect verified update: %w", err)
+	}
+	n := info.Size()
 
 	if n < 5*1024*1024 {
 		return fmt.Errorf("downloaded binary payload is suspiciously small (%d bytes), update aborted for safety", n)
 	}
 
-	shaSum := hex.EncodeToString(hasher.Sum(nil))
 	logFn("[+] Downloaded %d bytes successfully (SHA-256: %s).", n, shaSum[:16]+"...")
 
 	// Verify valid executable binary magic bytes
@@ -179,10 +211,7 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 		}
 	} else {
 		if err := os.Rename(tempPath, exePath); err != nil {
-			if err := copyFile(tempPath, exePath); err != nil {
-				return fmt.Errorf("failed to replace binary at %s: %w", exePath, err)
-			}
-			_ = os.Chmod(exePath, 0755)
+			return fmt.Errorf("failed to atomically replace binary at %s: %w", exePath, err)
 		}
 	}
 
@@ -205,6 +234,156 @@ func findMatchingAsset(assets []ReleaseAsset, targetOS, targetArch string) *Rele
 		}
 	}
 	return nil
+}
+
+func findAssetByName(assets []ReleaseAsset, name string) *ReleaseAsset {
+	for i := range assets {
+		if assets[i].Name == name {
+			return &assets[i]
+		}
+	}
+	return nil
+}
+
+func findAssetByURL(assets []ReleaseAsset, downloadURL string) *ReleaseAsset {
+	for i := range assets {
+		if assets[i].BrowserDownloadURL == downloadURL {
+			return &assets[i]
+		}
+	}
+	return nil
+}
+
+func configuredUpdatePublicKey() (ed25519.PublicKey, error) {
+	raw := strings.TrimSpace(os.Getenv("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY"))
+	if raw == "" {
+		return nil, fmt.Errorf("BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is not configured; refusing unsigned update")
+	}
+	decoded, err := decodeEncodedBytes(raw)
+	if err != nil {
+		return nil, fmt.Errorf("invalid update public key encoding: %w", err)
+	}
+	if len(decoded) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("invalid update public key length: got %d bytes, want %d", len(decoded), ed25519.PublicKeySize)
+	}
+	return ed25519.PublicKey(decoded), nil
+}
+
+func decodeEncodedBytes(value string) ([]byte, error) {
+	if decoded, err := base64.StdEncoding.DecodeString(value); err == nil {
+		return decoded, nil
+	}
+	decoded, err := hex.DecodeString(value)
+	if err != nil {
+		return nil, fmt.Errorf("expected base64 or hexadecimal data")
+	}
+	return decoded, nil
+}
+
+func downloadBytes(client *http.Client, downloadURL string, maxBytes int64) ([]byte, error) {
+	resp, err := client.Get(downloadURL)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("download server returned HTTP %d", resp.StatusCode)
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, fmt.Errorf("download exceeded %d-byte limit", maxBytes)
+	}
+	return data, nil
+}
+
+func verifyReleaseManifest(publicKey ed25519.PublicKey, manifest, encodedSignature []byte) error {
+	if len(publicKey) != ed25519.PublicKeySize {
+		return fmt.Errorf("invalid public key length")
+	}
+	signature, err := decodeEncodedBytes(strings.TrimSpace(string(encodedSignature)))
+	if err != nil {
+		return fmt.Errorf("invalid signature encoding: %w", err)
+	}
+	if len(signature) != ed25519.SignatureSize || !ed25519.Verify(publicKey, manifest, signature) {
+		return fmt.Errorf("manifest signature is invalid")
+	}
+	return nil
+}
+
+func checksumForAsset(manifest []byte, assetName string) (string, error) {
+	scanner := bufio.NewScanner(strings.NewReader(string(manifest)))
+	var found string
+	for scanner.Scan() {
+		fields := strings.Fields(scanner.Text())
+		if len(fields) < 2 || strings.HasPrefix(fields[0], "#") {
+			continue
+		}
+		name := strings.TrimPrefix(fields[1], "*")
+		if name != assetName {
+			continue
+		}
+		digest := strings.ToLower(fields[0])
+		if len(digest) != sha256.Size*2 {
+			return "", fmt.Errorf("invalid digest length for %s", assetName)
+		}
+		if _, err := hex.DecodeString(digest); err != nil {
+			return "", fmt.Errorf("invalid digest for %s: %w", assetName, err)
+		}
+		if found != "" && found != digest {
+			return "", fmt.Errorf("conflicting digests for %s", assetName)
+		}
+		found = digest
+	}
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+	if found == "" {
+		return "", fmt.Errorf("manifest has no entry for %s", assetName)
+	}
+	return found, nil
+}
+
+func downloadVerifiedArtifact(client *http.Client, downloadURL, destination, assetName string, manifest, signature []byte, publicKey ed25519.PublicKey) (string, error) {
+	if err := verifyReleaseManifest(publicKey, manifest, signature); err != nil {
+		return "", err
+	}
+	expected, err := checksumForAsset(manifest, assetName)
+	if err != nil {
+		return "", err
+	}
+	resp, err := client.Get(downloadURL)
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return "", fmt.Errorf("download server returned HTTP %d", resp.StatusCode)
+	}
+
+	file, err := os.Create(destination)
+	if err != nil {
+		return "", err
+	}
+	hasher := sha256.New()
+	_, copyErr := io.Copy(io.MultiWriter(file, hasher), resp.Body)
+	closeErr := file.Close()
+	if copyErr != nil {
+		_ = os.Remove(destination)
+		return "", copyErr
+	}
+	if closeErr != nil {
+		_ = os.Remove(destination)
+		return "", closeErr
+	}
+	actual := hex.EncodeToString(hasher.Sum(nil))
+	if actual != expected {
+		_ = os.Remove(destination)
+		return "", fmt.Errorf("SHA-256 mismatch for %s", assetName)
+	}
+	return actual, nil
 }
 
 func isNewerVersion(current, latest string) bool {
