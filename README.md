@@ -324,7 +324,7 @@ Access the built-in visual studio directly in your web browser:
 
 ---
 
-### Option 5: Build from Source with Make or Go (Go 1.26.5 in this snapshot)
+### Option 5: Build from Source with Make or Go (Go 1.26.6 in this snapshot)
 
 ```bash
 # Build binary

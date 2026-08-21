@@ -1,13 +1,13 @@
 module github.com/div197/bob-gemini-free
 
-go 1.26.5
+go 1.26.6
 
 require (
 	github.com/bogdanfinn/fhttp v0.6.8
 	github.com/bogdanfinn/tls-client v1.15.1
 	github.com/bogdanfinn/websocket v1.5.5-barnius
 	github.com/wailsapp/wails/v2 v2.15.0
-	golang.org/x/image v0.44.0
+	golang.org/x/image v0.45.0
 )
 
 require (
@@ -45,6 +45,6 @@ require (
 	github.com/wailsapp/mimetype v1.4.1 // indirect
 	golang.org/x/crypto v0.53.0 // indirect
 	golang.org/x/net v0.56.0 // indirect
-	golang.org/x/sys v0.46.0 // indirect
-	golang.org/x/text v0.40.0 // indirect
+	golang.org/x/sys v0.47.0 // indirect
+	golang.org/x/text v0.41.0 // indirect
 )

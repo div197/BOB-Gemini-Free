@@ -96,7 +96,7 @@ The software domain is protocol translation, local AI tooling integration, brows
 
 ## 3. Technology Stack
 
-The main application stack is Go. The current module declares `go 1.26.5` in
+The main application stack is Go. The current module declares `go 1.26.6` in
 `go.mod`; older Go compatibility has not been verified. The code uses the
 standard library heavily: `net/http`, `http.ServeMux`, `encoding/json`,
 `context`, `sync`, `sync/atomic`, `os`, `path/filepath`, `time`, `regexp`,

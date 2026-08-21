@@ -249,7 +249,7 @@ GitHub से 1 कमांड में BOB Gemini Free को नवीनत
 
 ---
 
-### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.26.5 snapshot)
+### विकल्प D: सोर्स कोड से निर्माण (Build from Source - Go 1.26.6 snapshot)
 
 ```bash
 make build
