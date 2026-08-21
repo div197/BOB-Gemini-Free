@@ -1,8 +1,8 @@
 # Legacy Tauri Desktop Wrapper
 
 This directory is retained for historical compatibility only. It is not the
-canonical desktop build and is not included by the root Makefile or release
-workflow. New desktop work must use the Wails application in
+canonical desktop build and is not included by the root Makefile or local
+release packaging. New desktop work must use the Wails application in
 `cmd/desktop` (`make desktop`), which embeds the Go gateway and handles port
 collisions and lifecycle shutdown.
 

@@ -3,8 +3,10 @@
     windows_subsystem = "windows"
 )]
 
-use tauri::api::process::{Command, CommandEvent};
-use tauri::Manager;
+use std::sync::Mutex;
+
+use tauri::api::process::{Command, CommandChild, CommandEvent};
+use tauri::{Manager, RunEvent};
 
 fn main() {
     tauri::Builder::default()
@@ -17,9 +19,11 @@ fn main() {
                 .spawn()
                 .expect("Failed to spawn sidecar");
 
-            // Store the child process ID so we can kill it when the app exits if needed
-            // Tauri sidecars are automatically killed when the parent process exits,
-            // but we can listen to its logs.
+            // Keep the child owned by the application. Tauri also terminates
+            // sidecars during app shutdown, while this managed state makes the
+            // lifecycle ownership explicit instead of dropping the handle.
+            app.manage(Mutex::new(Some(child)));
+
             tauri::async_runtime::spawn(async move {
                 while let Some(event) = rx.recv().await {
                     if let CommandEvent::Stdout(line) = event {
@@ -32,6 +36,20 @@ fn main() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|app, event| {
+            if matches!(event, RunEvent::ExitRequested { .. } | RunEvent::Exit) {
+                if let Some(child) = app
+                    .state::<Mutex<Option<CommandChild>>>()
+                    .lock()
+                    .expect("sidecar state mutex was poisoned")
+                    .take()
+                {
+                    if let Err(error) = child.kill() {
+                        eprintln!("Failed to stop gateway sidecar: {error}");
+                    }
+                }
+            }
+        });
 }
