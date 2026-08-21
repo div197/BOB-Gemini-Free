@@ -6,16 +6,18 @@ Connect modern AI coding editors and agentic IDE extensions directly to BOB Gemi
 
 ## 🛠️ 1. Cursor IDE Setup (Agent & Composer Mode)
 
-Cursor is the leading AI-first code editor. Connecting BOB enables full **Agent Mode** and multi-file reasoning for free:
+Connecting BOB can enable selected Cursor Agent/Composer requests through the
+OpenAI-shaped adapter. Actual client features, tool execution, quotas, and
+model access remain endpoint- and session-dependent:
 
 1. Open **Cursor Settings** (`Cmd + ,` or `Ctrl + ,`) $\rightarrow$ **Models**.
 2. Under **OpenAI API Key**, configure:
    * **OpenAI Base URL**: `http://127.0.0.1:9610/v1`
    * **API Key**: `none` (or your configured `api_keys`)
 3. Click **Add Model** and add the following models:
-   * `gemini-3.7-flash` (Ultra-fast code edits, Composer, and autocomplete)
-   * `gemini-3.7-flash-thinking` (Deep multi-file reasoning and complex bug triage)
-   * `gemini-3.1-pro` (Flagship Pro model for architectural refactors)
+   * `gemini-3.7-flash` (fast-mode alias)
+   * `gemini-3.7-flash-thinking` (thinking-mode alias)
+   * `gemini-3.1-pro` (experimental/session-dependent Pro alias)
 4. Enable the models in your Cursor dropdown.
 
 ---
@@ -27,7 +29,8 @@ Cursor is the leading AI-first code editor. Connecting BOB enables full **Agent 
    * **Base URL**: `http://127.0.0.1:9610/v1`
    * **API Key**: `none`
    * **Model**: `gemini-3.7-flash`
-3. Cascade will immediately start generating diffs and resolving repo contexts locally!
+3. Cascade may route supported requests through the local adapter; verify the
+specific model and tool behavior on the target setup.
 
 ---
 

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.6-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.7-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -63,7 +63,7 @@ In the modern AI landscape, learners, independent creators, and developers const
 - 🧭 **Session-Dependent Access**: The available model, reasoning, image, quota, and context behavior follows the configured Google web session.
 - 🔓 **The "API-Less AI" Architecture**: No gateway billing account is required, but a Google session and Google's current entitlements still govern upstream access.
 - 🌉 **Multiple Adapter Surfaces**: One local gateway exposes OpenAI-shaped, Anthropic-shaped, Google Gemini-shaped, and embedded Go interfaces. Compatibility is endpoint-specific and tool calling is emulated in some paths.
-- ⚡ **Zero-Friction Simplicity**: Runs as a single, self-contained native binary with **No Go, No Python, and No runtime required**. Includes a **1-Click Native Login Window (`--login`)** that sets up everything in seconds.
+- ⚡ **Zero-Friction Simplicity**: A packaged CLI or desktop release carries its runtime and does not require users to install Go, Python, Node, SQLite, or a separate memory service. Building from source still requires the documented toolchain. The optional **1-Click Native Login Window (`--login`)** remains dependent on the local browser and Google.
 
 ---
 
@@ -143,7 +143,7 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 
 | Category | Supported Clients & Frameworks | Connection Endpoint |
 | :--- | :--- | :--- |
-| **Terminal Coding Agents** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Aider CLI (`aider`), Gemini CLI (`gemini`) | Native Base URLs |
+| **Terminal Coding Agents** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Aider CLI (`aider`), Gemini CLI (`gemini`) | Protocol adapters via custom base URLs |
 | **Agentic IDEs & Extensions** | Cursor (Agent Mode), Roo Code, Cline, Continue.dev, Windsurf | `http://127.0.0.1:9610/v1` |
 | **Autonomous Agent Runtimes** | Grok Build, OpenHands, SWE-agent, Goose, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:9610/v1` |
 | **Routers & Local Proxies** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:9610/v1` |
@@ -225,14 +225,14 @@ Verify every endpoint, streaming chunk, reasoning model, and API format with the
 [5/13]  [✔ PASS] Gemini 3.7 Flash Deep Reasoning (8.3s)
 [6/13]  [✔ PASS] Real-time SSE Delta Stream & Usage (1.5s)
 [7/13]  [✔ PASS] Developer Role & JSON Output Enforcement (3.9s)
-[8/13]  [✔ PASS] Google Native Gemini API Format (3.5s)
+[8/13]  [✔ PASS] Google-shaped Gemini Adapter Format (3.5s)
 [9/13]  [✔ PASS] OpenAI Codex CLI Responses API Format (3.5s)
 [10/13] [✔ PASS] Anthropic Messages API Protocol (POST /v1/messages) (3.2s)
 [11/13] [✔ PASS] OpenAI Function Calling & Tool Invocation (4.1s)
 [12/13] [✔ PASS] Image Generation & Gemini Nano Banana Pipeline (3.8s)
 [13/13] [✔ PASS] Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count) (1ms)
 ==================================================================
-    ALL 13 DIAGNOSTIC CHECKS PASSED (100% SUCCESS)
+    ALL 13 LOCAL DIAGNOSTIC CHECKS PASSED (example run)
 ==================================================================
 ```
 
@@ -289,7 +289,7 @@ Access the built-in visual studio directly in your web browser:
 #### 🌟 Client Capabilities (subject to browser, gateway, and upstream limits):
 * 🔒 **Local-First Privacy**: The static studio can connect to a local gateway, but a hosted origin must be explicitly listed in `allowed_origins`/`BOB_GEMINI_FREE_ALLOWED_ORIGINS`; PNA is not authentication. No prompts or thinking tokens are sent to an intermediate BOB server by the Go gateway.
 * 🐍 **Institutional-Grade In-Browser Pyodide WASM Python Sandbox**: Live client-side CPython 3.11 execution in an isolated WebAssembly sandbox with zero server-side execution risk, zero Python setup, interactive `input()` support, and automatic scientific package wheel streaming (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`).
-* 🗄️ **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)**: In-memory relational database powered by official SQLite WebAssembly (`sql.js`). Run queries in <1ms with `[ Run SQL ⚡ ]` chips, inspect schemas, and view interactive styled data tables with zero cloud costs.
+* 🧭 **No server database or memory service**: The gateway is stateless between requests apart from its explicit session pool and safe aggregate counters; the studio does not provision SQLite or a server-side database.
 * ⚡ **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
 * 🪄 **Live AI Prompt Metaprompting Wand Engine (`🪄`)**: Background prompt optimization powered by `gemini-3.7-flash` that transforms rough thoughts into structured master specifications in ~200ms with seamless offline fallback (`⌘ + Shift + P`).
 * 🔍 **Non-Breaking Reading Text Zoom Controller (`🔍 100%`)**: Targeted typography scaling (`calc(0.92rem * var(--reading-zoom))`) via sub-bar pill, `⌘+`/`⌘-`/`⌘0`, and Command Palette without breaking outer geometry, headers, or navigation.
@@ -403,9 +403,12 @@ response = client.chat.completions.create(
         }
     ]
 )
-### Claude Code CLI & Anthropic SDK (Native Direct Support)
+### Claude Code CLI & Anthropic SDK (Anthropic-shaped adapter)
 
-BOB Gemini Free includes native support for Anthropic's Messages API protocol (`POST /v1/messages`).
+BOB Gemini Free implements a tested subset of Anthropic's Messages API shape
+(`POST /v1/messages`). It is an adapter/emulation layer backed by Google's
+web protocol, not native Claude inference; client and tool compatibility remain
+endpoint-specific.
 
 #### Claude Code CLI Setup
 
@@ -476,7 +479,7 @@ print("Generated Image URL:", response.data[0].url)
 > [!NOTE]
 > **Imagen Tool Authentication**: Google requires an active signed-in Google account for Imagen image generation. When running without cookies in anonymous mode, Gemini returns an informative policy response. To unlock Imagen generation, attach your session cookie via `--cookie-file cookie.txt` or `--setup-cookie`.
 
-### Gemini CLI (Native Google API)
+### Gemini CLI (Google-shaped adapter)
 
 ```bash
 export GEMINI_API_KEY=none
@@ -523,7 +526,7 @@ func main() {
 | **OpenAI Protocol Support** | ❌ None (Requires custom SDK / glue code) | **✅ Implemented adapter routes; compatibility is fixture-tested, not universal/full** |
 | **Developer Role Support** | ❌ None | **✅ Adapter parsing with prompt transformation; not native role semantics** |
 | **Reasoning Tokens Export** | ❌ Proprietary format | **✅ Standard `reasoning_content` (renders cards in Cursor/OpenWebUI)** |
-| **Data Training & Logging** | ⚠️ **Logged and reviewed by Google reviewers for training** | **🛡️ 100% Local Gateway (Bound to `127.0.0.1`, zero telemetry)** |
+| **Data Training & Logging** | ⚠️ Provider policy applies | **🛡️ Local gateway bound to `127.0.0.1`; no automatic telemetry from the Go process** |
 | **Setup Friction** | Cloud console, project creation, API key rotation | **Single binary; Google session/configuration may still be required** |
 | **Total Financial Cost** | $0 (until throttled) or paid per-token bill | **No gateway billing; Google account/session entitlements still apply** |
 
@@ -606,13 +609,13 @@ scripts\start-service.bat
 
 | Local Model Alias | Backend Mode | Default Think Depth | Output Profile | Auth Requirement |
 | :--- | :---: | :---: | :--- | :--- |
-| `gemini-3.7-flash` | Mode 1 | `@think=4` | **Latest flagship fast model** (~12k chars) | Free / Anonymous |
-| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | **Latest flagship deep thinking mode** (~20k+ chars) | Free / Anonymous |
-| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | High-speed all-around model | Free / Anonymous |
-| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | **Deep thinking mode** (~20k+ chars reasoning) | Free / Anonymous |
-| `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | Adaptive thinking depth (~15k chars) | Free / Anonymous |
-| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | Ultra-low latency responses | Free / Anonymous |
-| `gemini-auto` | Mode 4 | `@think=4` | Google server-side auto routing | Free / Anonymous |
+| `gemini-3.7-flash` | Mode 1 | `@think=4` | Fast-mode alias; behavior is upstream-dependent | Session/provider-dependent |
+| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | Thinking-mode alias; depth is upstream-dependent | Session/provider-dependent |
+| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | Flash-mode alias | Session/provider-dependent |
+| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | Thinking-mode alias | Session/provider-dependent |
+| `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | Lite thinking-mode alias | Session/provider-dependent |
+| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | Lite-mode alias | Session/provider-dependent |
+| `gemini-auto` | Mode 4 | `@think=4` | Auto-routing alias | Session/provider-dependent |
 | `gemini-3.1-pro` / `gemini-pro` | Mode 3 | `@think=4` | Flagship Pro reasoning & code | **Gemini Advanced Cookie** |
 | `gemini-3.1-pro-enhanced` | Mode 3 | `@think=4` | Pro with enhanced output (experimental) | **Gemini Advanced Cookie** |
 
@@ -643,7 +646,9 @@ BOB Gemini Free bridges modern developer clients directly to Google Gemini's web
 
 ## Unlocking Pro: Gemini Advanced ($20/mo) Cookies & Session Setup
 
-Anonymous and standard free accounts have immediate access to Flash 3.7, Flash 3.6, Flash Thinking, and Flash Lite out of the box with zero cookies or setup.
+Flash, thinking, and lite aliases are available only as local routing
+contracts. Actual access, quotas, model identity, and required session state
+must be checked with the live conformance runbook for the target account.
 
 If you have an active **Google AI / Gemini Advanced ($20/mo)** subscription (or 18 months free via Reliance Jio / university partnership offers) or want to unlock **Imagen 3 Image Generation**, configure your session cookie to activate authentic **Pro** model routing (`gemini-3.1-pro` / `gemini-pro`).
 
@@ -901,15 +906,19 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 ## Frequently Asked Questions (FAQ)
 
 <details>
-<summary><strong>1. How does BOB Gemini Free provide free access without an API key?</strong></summary>
+<summary><strong>1. How does BOB Gemini Free avoid a gateway API key and billing account?</strong></summary>
 
-Google provides access to Gemini (Flash 3.7, Flash 3.6, Flash Lite, and Flash Thinking) to every user with a standard Google/Gmail account via the web interface. **BOB Gemini Free** acts as a high-performance local proxy that translates standard OpenAI (`/v1/chat/completions`) and Gemini (`/v1beta/models`) API calls directly into Google's internal web RPC format.
+**BOB Gemini Free** does not require its own paid gateway account or provider
+API key for local development. It translates selected OpenAI-shaped and
+Google-shaped requests into Google's internal web RPC; actual model access,
+quota, authentication and cost are controlled by the current Google web
+session and provider policy.
 </details>
 
 <details>
 <summary><strong>2. Is my Google Account safe? What about rate limits or bans?</strong></summary>
 
-* **In Anonymous / Free Mode**: BOB Gemini Free attaches **zero session cookies and zero account identifiers**. All requests are completely unlinked from your Google identity.
+* **Without a configured cookie**: BOB does not load a user-provided Google session file; upstream access and identity behavior are still provider-controlled and must not be described as anonymous or guaranteed.
 * **In Gemini Advanced ($20/mo) Mode**: BOB Gemini Free uses authentic browser TLS fingerprints (`tls-client` impersonating Chrome 133) and standard web RPC payloads. It behaves identically to a user typing in a web browser tab.
 * **Operational Best Practices**: Keep concurrency between 3 to 5 simultaneous requests. Do not blast 100 queries/second from a single IP to avoid temporary upstream rate limiting.
 </details>

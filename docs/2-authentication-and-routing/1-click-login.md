@@ -1,6 +1,9 @@
 # 1-Click Interactive Login Window (`--login`)
 
-The **1-Click Interactive Sign-In Window** (`./bob-gemini-free --login`) provides a completely automated, zero-friction session setup for non-technical users and developers.
+The **1-Click Interactive Sign-In Window** (`./bob-gemini-free --login`) is a
+best-effort local browser flow for capturing the session values needed by some
+Google web capabilities. Login success and downstream entitlements must still
+be verified on the target device/account.
 
 ---
 
@@ -32,9 +35,9 @@ The **1-Click Interactive Sign-In Window** (`./bob-gemini-free --login`) provide
                               │
                               ▼ (User logs in once)
 ┌─────────────────────────────────────────────────────────────┐
-│  [✔] Verified 19 session tokens!                            │
+│  [✔] Required session values detected                       │
 │  [✔] Saved to ./cookie.txt and ~/.config/bob-gemini-free/   │
-│  [✔] Gemini Pro model (gemini-3.1-pro) & Imagen 3 unlocked! │
+│  [i] Provider capabilities remain session-dependent         │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -45,8 +48,8 @@ The **1-Click Interactive Sign-In Window** (`./bob-gemini-free --login`) provide
 2. A standalone Google Gemini window opens automatically.
 3. Sign into your Google account (supports standard passwords, 2FA prompts, SMS, and Passkeys).
 4. The moment login completes and reaches `gemini.google.com/app`:
-   - BOB Gemini Free intercepts all 19+ session tokens via the Chrome DevTools Protocol (CDP).
-   - Validates `SAPISID`, `__Secure-1PSIDTS`, `__Secure-1PSID`, `__Secure-3PSID`, and `SID`.
+   - BOB captures the configured session values through the Chrome DevTools Protocol (CDP).
+   - Validates the required auth fields when they are present.
    - Saves the cookie string to `./cookie.txt` and `~/.config/bob-gemini-free/cookie.txt` with locked `0600` permissions.
-   - Gracefully closes the browser window.
-5. Pro routing (`gemini-3.1-pro`), Multimodal Image Vision Analysis (Scotty storage uploads), Imagen 3, and Gemini Nano Banana are instantly active!
+   - Closes the browser window after the capture attempt.
+5. Pro routing, vision uploads, Imagen, and Nano Banana remain provider/session-dependent; run the live conformance checks before relying on them.

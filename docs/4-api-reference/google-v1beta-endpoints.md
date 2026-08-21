@@ -1,6 +1,8 @@
-# Google Native Gemini v1beta Endpoints Reference
+# Google-shaped Gemini v1beta Endpoints Reference
 
-BOB Gemini Free implements Google's official Gemini REST endpoints on `/v1beta/*`.
+BOB Gemini Free exposes Google-shaped adapter routes on `/v1beta/*`. They are
+translated into Google's undocumented web RPC and are not Google's official
+API implementation; live behavior remains session/provider-dependent.
 
 ---
 
@@ -62,7 +64,9 @@ Streams real-time Server-Sent Events with candidates array chunks directly to Go
 
 ## 4. Token Counting (`POST /v1beta/models/{model}:countTokens`)
 
-Calculate the exact token count for prompt text and multimodal images before sending inference requests (100% free with zero overhead):
+Estimate token usage for prompt text and multimodal inputs before sending
+inference requests. Counts are local estimates, not Google's authoritative
+tokenizer, and have no provider quota authority:
 
 ### Request
 ```bash
@@ -86,4 +90,3 @@ curl -X POST http://127.0.0.1:9610/v1beta/models/gemini-3.7-flash:countTokens \
   "totalTokens": 10
 }
 ```
-

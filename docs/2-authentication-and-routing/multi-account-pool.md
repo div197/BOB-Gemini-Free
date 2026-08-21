@@ -1,14 +1,17 @@
 # Multi-Account Cookie Pool & Auto-Rotation
 
-BOB Gemini Free includes an enterprise-grade **Multi-Account Cookie Pool Engine** (`CookiePool`) that provides high-throughput load balancing, dynamic failover, and automatic cooldown recovery across multiple Google accounts.
+BOB Gemini Free includes a local **Multi-Account Cookie Pool Engine**
+(`CookiePool`) that rotates configured sessions and applies cooldown/failover
+logic. It does not establish higher upstream quotas, provider approval, or a
+guarantee of uninterrupted streams.
 
 ---
 
 ## 🌟 Why Use a Cookie Pool?
 
-1. **High Concurrency**: Distribute hundreds of agent queries across multiple Google accounts without hitting individual account burst rate limits.
-2. **Transparent Failover (Zero Stream Drops)**: If an account encounters a burst rate-limit (HTTP 429) or session anomaly, BOB automatically backs off that account for 60 seconds and transparently retries on the next healthy account without interrupting the client connection.
-3. **Lock-Free Atomic Dispatch**: Uses atomic CPU instructions (`atomic.Uint64`) for ultra-low latency round-robin dispatching (<0.01ms overhead).
+1. **Session Distribution**: Distribute requests across explicitly configured sessions; actual safe concurrency remains provider-dependent.
+2. **Cooldown/Failover Logic**: A selected account can be backed off for 60 seconds after a classified failure and the retry path can select another healthy session; stream continuity is not guaranteed.
+3. **Atomic Selection**: Uses atomic round-robin selection in the local pool; no standalone latency claim is made.
 
 ---
 

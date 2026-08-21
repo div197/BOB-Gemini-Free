@@ -14,7 +14,7 @@ curl http://127.0.0.1:9610/
 ```json
 {
   "status": "ok",
-  "version": "v0.1.5",
+  "version": "v0.1.7",
   "models": [
     "gemini-3.7-flash",
     "gemini-3.7-flash-thinking",
@@ -57,7 +57,7 @@ Query live metrics directly from your terminal:
     BOB Gemini Free - Live Gateway Telemetry & Status             
     Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   
 ==================================================================
-  • Gateway Status:        ok (Version v0.1.5)
+  • Gateway Status:        ok (Version v0.1.7)
   • Target Gateway URL:    http://127.0.0.1:9610
   • Server Uptime:         3600 seconds (60.0 minutes)
   • Requests Served:       142 requests
@@ -86,7 +86,7 @@ Run the 13-point diagnostic test against any local or remote BOB gateway:
 5. `Gemini 3.7 Flash Deep Reasoning`
 6. `Real-time SSE Delta Stream & Usage`
 7. `Developer Role & JSON Output Enforcement`
-8. `Google Native Gemini API Format`
+8. `Google-shaped Gemini Adapter Format`
 9. `OpenAI Codex CLI Responses API Format`
 10. `Anthropic Messages API Protocol (POST /v1/messages)`
 11. `OpenAI Function Calling & Tool Invocation`
@@ -126,8 +126,8 @@ curl http://127.0.0.1:9610/v1/update/check
 ### Response
 ```json
 {
-  "current_version": "v0.1.5",
-  "latest_version": "v0.1.5",
+  "current_version": "v0.1.7",
+  "latest_version": "v0.1.7",
   "has_update": false
 }
 ```

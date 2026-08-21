@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.5-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.1.7-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -39,21 +39,21 @@
 3. ⚙️ **जटिलता की सीमा (इंस्टॉलेशन का झंझट)**: प्रॉक्सी सेटअप करने के लिए पायथन, गो, नोड या जटिल टूल्स इंस्टॉल करने पड़ते हैं।
 
 **BOB इन तीनों सीमाओं को एक साथ तोड़ता है**:
-- ✨ **शून्य लागत (Zero Cost)**: हर गूगल खाते को **Gemini 3.7 Flash**, **Flash Thinking**, **3.1 Pro**, **Imagen 3**, और **Gemini Nano Banana** का मुफ़्त उपयोग देता है।
-- 🔓 **"API-Less AI" आर्किटेक्चर**: न कोई क्रेडिट कार्ड, न क्लाउड बिलिंग खाता, और न API Key चोरी होने का कोई डर। आपका लोकल सेशन ही पूरी सुरक्षा से सब कुछ संभालता है।
+- ✨ **Session-Dependent Access**: मॉडल, quota, reasoning, vision और image access वर्तमान Google web session तथा provider rules पर निर्भर हैं; कोई fixed free/unlimited guarantee नहीं है।
+- 🔓 **"API-Less AI" आर्किटेक्चर**: gateway billing account की ज़रूरत नहीं, लेकिन Google session/provider access फिर भी लागू है। आपका local gateway configured credentials को boundary के भीतर रखता है।
 - 🌉 **यूनिवर्सल 4-इन-1 प्रोटोकॉल**: एक ही सिंगल गेटवे से **OpenAI** (`/v1/chat/completions`, `/v1/responses`, `/v1/tokens/count`), **Anthropic Messages (Claude Code CLI)**, **Google Gemini v1beta** (`:countTokens`), और **Embedded Go लाइब्रेरी** (`pkg/gateway`) का सीधा अनुवाद।
-- ⚡ **शून्य निर्भरता (Zero Dependencies)**: न Go, न Python, न कोई रनटाइम — बस एक सिंगल बाइनरी और **1-क्लिक लॉगिन (`--login`)**।
+- ⚡ **Zero-Friction Simplicity**: packaged binary में अलग Go, Python, Node, SQLite या memory service की runtime ज़रूरत नहीं; source build के लिए documented toolchain चाहिए। **1-क्लिक लॉगिन (`--login`)** browser और Google पर निर्भर है।
 
 ---
 
 ## 🚀 "API-Less AI" क्रांति: डेवलपर्स के लिए सच्ची आज़ादी
 
-पारंपरिक क्लाउड कंपनियाँ डेवलपर्स को क्रेडिट कार्ड और प्रति-टोकन बिलिंग के चक्रव्यूह में उलझा देती हैं। **BOB Gemini Free पेश करता है बिना-API का मुफ़्त एआई मॉडल**:
+पारंपरिक क्लाउड कंपनियाँ डेवलपर्स को क्रेडिट कार्ड और प्रति-टोकन बिलिंग के चक्रव्यूह में उलझा देती हैं। **BOB Gemini Free अपने gateway के लिए paid billing account अनिवार्य नहीं करता**; Google session और provider policy फिर भी लागू हैं:
 
 | पारंपरिक क्लाउड API मॉडल | BOB का API-Less आर्किटेक्चर |
 | :--- | :--- |
 | 💳 क्रेडिट कार्ड और क्लाउड बिलिंग खाता अनिवार्य | **₹0.00 / शून्य क्रेडिट कार्ड की ज़रूरत** |
-| 💸 हर मिलियन टोकन और रीज़निंग स्टेप का महँगा बिल | **Flash और Deep Thinking पर असीमित कोडिंग** |
+| 💸 हर मिलियन टोकन और रीज़निंग स्टेप का महँगा बिल | **Gateway billing नहीं; upstream quotas और session rules लागू** |
 | 🔑 API Key लीक होने पर लाखों का नुकसान | **सुरक्षित लोकल सेशन (`0600` फ़ाइल परमिशन)** |
 | 🔒 किसी एक कंपनी के CLI या टूल में क़ैद | **यूनिवर्सल 4-इन-1 ट्रांसलेशन (OpenAI, Claude, Google, Go)** |
 | 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **स्क्रीन पर लाइव टोकन व डॉलर बचत ट्रैकिंग (`GET /`)** |
@@ -113,11 +113,11 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **लोकल privacy boundary**: Go gateway automatic telemetry नहीं भेजता; binary memory और upstream performance target build पर मापनी होगी।
 ## समर्थित टूल्स और इकोसिस्टम (Supported Tools & Ecosystem)
 
-BOB Gemini Free बिना किसी अतिरिक्त कॉन्फ़िगरेशन के सभी प्रमुख AI कोडिंग टूल्स और एजेंटिक फ़्रेमवर्क्स के साथ काम करता है:
+BOB Gemini Free कई AI coding tools के लिए adapter endpoints देता है; हर client और feature को target endpoint पर verify करें:
 
 | श्रेणी (Category) | समर्थित टूल्स व क्लाइंट्स | कनेक्शन एंडपॉइंट |
 | :--- | :--- | :--- |
-| **टर्मिनल कोडिंग एजेंट्स** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Gemini CLI (`gemini`) | नेटिव बेस यूआरएल (Base URLs) |
+| **टर्मिनल कोडिंग एजेंट्स** | OpenAI Codex CLI (`codex`), Claude Code CLI (`claude`), Gemini CLI (`gemini`) | custom base URL के साथ adapter routes |
 | **एजेंटिक IDEs व एक्सटेंशन्स** | Cursor (Agent Mode), Windsurf, VS Code (Continue, Roo Code, Cline) | `http://127.0.0.1:9610/v1` |
 | **स्वायत्त एजेंट फ़्रेमवर्क्स** | Grok Build, LangChain, CrewAI, AutoGen, OpenAI Agents SDK | `http://127.0.0.1:9610/v1` |
 | **रूटर्स व लोकल प्रॉक्सीज़** | LiteLLM, OneAPI, NewAPI, Portkey, OpenRouter | `http://127.0.0.1:9610/v1` |
@@ -214,13 +214,13 @@ GitHub से 1 कमांड में BOB Gemini Free को नवीनत
 ### विकल्प E: इंटरैक्टिव लोकल-फ़र्स्ट वेब स्टूडियो (`/playground` व `bob-gemini-free.abcsteps.com`)
 
 अपने किसी भी वेब ब्राउज़र में इनबिल्ट विज़ुअल इंटरफ़ेस का उपयोग करें:
-* 🌐 **ऑनलाइन Cloudflare Pages वेब स्टूडियो**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(100% असीमित स्केलेबल लोकल-फ़र्स्ट PWA)*
+* 🌐 **ऑनलाइन Cloudflare Pages वेब स्टूडियो**: **[bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/)** *(स्थिर UI; गेटवे, सेशन और upstream सीमाएँ लागू)*
 * 🏠 **लोकल सर्वर एड्रेस**: `http://127.0.0.1:9610/playground` (या `/ui`)
 
-#### 🌟 100% असीमित स्केलेबिलिटी व अत्याधुनिक क्लाइंट क्षमताएँ:
-* 🔒 **100% ऑन-डिवाइस प्राइवेसी**: जब आप [bob-gemini-free.abcsteps.com](https://bob-gemini-free.abcsteps.com/) खोलते हैं, तो यह सीधे आपके लोकल गेटवे `http://127.0.0.1:9610` से जुड़ता है। आपकी कोई भी चैट या प्रॉम्प्ट किसी क्लाउड सर्वर पर नहीं जाती।
+#### 🌟 क्लाइंट क्षमताएँ (ब्राउज़र, गेटवे और upstream सीमाओं के अधीन):
+* 🔒 **लोकल-फ़र्स्ट प्राइवेसी**: hosted origin को `allowed_origins` में स्पष्ट रूप से अनुमति देनी होती है; PNA authentication नहीं है। Go gateway prompts को किसी BOB मध्यवर्ती सर्वर पर नहीं भेजता, लेकिन browser/CDN dependencies अलग network calls कर सकती हैं।
 * 🐍 **संस्थागत स्तर पर इन-ब्राउज़र Pyodide WASM Python सैंडबॉक्स**: CPython 3.11 को बिना किसी सर्वर-साइड जोखिम, बिना Python इंस्टालेशन और शून्य बिलिंग के सीधे ब्राउज़र में चलाएँ। इंटरैक्टिव `input()` और साइंटिफिक पैकेजेस (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`) का ऑटो-लोडर।
-* 🗄️ **इन-ब्राउज़र SQLite WASM डेटाबेस स्टूडियो (`🗄️ SQL WASM`)**: आधिकारिक SQLite WebAssembly (`sql.js`) द्वारा संचालित इन-मेमोरी रिलेशनल डेटाबेस। `[ Run SQL ⚡ ]` चिप से <1ms में क्वेरी चलाएँ, स्कीमा देखें और परिणाम तालिकाएं देखें।
+* 🧭 **कोई server database या memory service नहीं**: gateway stateless request handling, explicit session pool और safe aggregate counters तक सीमित है; studio SQLite या server-side database provision नहीं करता।
 * ⚡ **नेटिव क्लाइंट-साइड इंटरैक्टिव आर्टिफ़ैक्ट्स इंजन (Claude-Style Live Canvas)**: HTML5 वेब ऍप्लिकेशन्स, CSS3 एनिमेशन्स, Canvas 2D/WebGL गेम्स, SVG वेक्टर ग्राफिक्स और Mermaid डायग्राम्स को 1-क्लिक **`Launch ⚡`** चिप से सीधे सैंडबॉक्स्ड स्टूडियो मोडल (`[ ▶ Preview | ⟨/⟩ Code ]`) में चलाएँ।
 * 🪄 **लाइव AI प्रॉम्प्ट मेटाप्रॉम्प्टर वैंड इंजन (`🪄`)**: बैकग्राउंड में `gemini-3.7-flash` द्वारा आपके सामान्य विचारों को ~200ms में संरचित मास्टर प्रॉम्प्ट्स में बदलने की सुविधा (`⌘ + Shift + P`)।
 * 🔍 **नॉन-ब्रेकिंग रीडिंग टेक्स्ट ज़ूम कंट्रोलर (`🔍 100%`)**: सब-बार चिप, `⌘+`/`⌘-`/`⌘0` और कमांड पैलेट द्वारा पूरे लेआउट को बिना तोड़े पढ़ने के फॉन्ट साइज़ को बढ़ाएँ/घटाएँ।
@@ -325,9 +325,11 @@ response = client.chat.completions.create(
 print(response.choices[0].message.content)
 ```
 
-### Claude Code CLI और Anthropic SDK (सीधा सपोर्ट)
+### Claude Code CLI और Anthropic SDK (Anthropic-shaped adapter)
 
-BOB Gemini Free में Anthropic Messages API प्रोटोकॉल (`POST /v1/messages`) का इनबिल्ट नेटिव सपोर्ट है।
+BOB Gemini Free Anthropic Messages API (`POST /v1/messages`) का tested subset
+implement करता है। यह Google web protocol पर आधारित adapter/emulation layer है,
+native Claude inference नहीं; client और tool compatibility endpoint-specific है।
 
 #### Claude Code CLI सेटअप
 
@@ -426,7 +428,7 @@ func main() {
 | **OpenAI प्रोटोकॉल सपोर्ट** | ❌ शून्य (कस्टम SDK कोड चाहिए) | **✅ Adapter routes; fixture-tested, universal/full नहीं** |
 | **Developer रोल सपोर्ट** | ❌ नहीं | **✅ Prompt transformation; native role semantics नहीं** |
 | **रीज़निंग टोकन एक्सपोर्ट** | ❌ प्रोप्राइटरी फ़ॉर्मेट | **✅ स्टैंडर्ड `reasoning_content` (Cursor/OpenWebUI में कार्ड)** |
-| **डेटा प्राइवेसी व ट्रेनिंग** | ⚠️ **गूगल समीक्षकों द्वारा डेटा ट्रेनिंग के लिए लॉग किया जाता है** | **🛡️ 100% लोकल गेटवे (`127.0.0.1` पर बंधा, शून्य ट्रैकिंग)** |
+| **डेटा प्राइवेसी व ट्रेनिंग** | ⚠️ Provider policy लागू | **🛡️ लोकल gateway `127.0.0.1` पर; Go process automatic telemetry नहीं भेजता** |
 | **सेटअप जटिलता** | क्लाउड कंसोल, प्रोजेक्ट निर्माण, API Key प्रबंधन | **जीरो कॉन्फ़िग: `./bob-gemini-free` चलाएँ और कोडिंग शुरू करें** |
 | **कुल वित्तीय लागत** | $0 (थ्रॉटल होने तक) या महँगे पेड टोकन | **Gateway billing नहीं; Google account/session rules लागू** |
 
@@ -493,7 +495,9 @@ scripts\start-service.bat
 
 ## यूनिवर्सल टूल व ऍप्लिकेशन्स इंटीग्रेशन
 
-चूँकि **BOB Gemini Free** आधिकारिक OpenAI API मानक का 100% पालन करता है, **कोई भी AI एप्लिकेशन, एजेंट फ़्रेमवर्क, या डेवलपर टूल** जो कस्टम OpenAI Base URL का समर्थन करता है, तुरंत काम करता है।
+**BOB Gemini Free** OpenAI-shaped adapter routes का tested subset देता है।
+हर client, tool mode और endpoint के लिए compatibility अलग से verify करनी
+होगी; इसे official 100% OpenAI compatibility न समझें।
 
 ### यूनिवर्सल इंटीग्रेशन पैटर्न
 
@@ -522,13 +526,13 @@ export OPENAI_API_KEY=none
 
 | मॉडल नाम | बैकएंड मोड | डिफ़ॉल्ट रीज़निंग | विवरण | आवश्यक खाता |
 | :--- | :---: | :---: | :--- | :--- |
-| `gemini-3.7-flash` | Mode 1 | `@think=4` | **नवीनतम फ्लैगशिप फास्ट मॉडल** (~12k अक्षर) | मुफ़्त जीमेल |
-| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | **नवीनतम फ्लैगशिप डीप थिंकिंग मॉडल** (~20k+ अक्षर) | मुफ़्त जीमेल |
-| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | तेज़ ऑल-राउंडर मॉडल | मुफ़्त जीमेल |
-| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | **विस्तृत सोच (Deep Thinking)** (~20k+ अक्षर) | मुफ़्त जीमेल |
-| `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | अनुकूलनीय रीज़निंग (~15k अक्षर) | मुफ़्त जीमेल |
-| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | अल्ट्रा-फास्ट कम लेटेंसी मॉडल | मुफ़्त जीमेल |
-| `gemini-auto` | Mode 4 | `@think=4` | ऑटोमैटिक मॉडल चयन | मुफ़्त जीमेल |
+| `gemini-3.7-flash` | Mode 1 | `@think=4` | fast-mode alias; व्यवहार upstream-dependent | session/provider-dependent |
+| `gemini-3.7-flash-thinking` | Mode 2 | `@think=0` | thinking-mode alias; depth upstream-dependent | session/provider-dependent |
+| `gemini-3.6-flash` / `gemini-flash` | Mode 1 | `@think=4` | Flash-mode alias | session/provider-dependent |
+| `gemini-3.5-flash-thinking` / `gemini-thinking` | Mode 2 | `@think=0` | thinking-mode alias | session/provider-dependent |
+| `gemini-3.5-flash-thinking-lite` | Mode 5 | `@think=0` | lite thinking-mode alias | session/provider-dependent |
+| `gemini-flash-lite` / `gemini-lite` | Mode 6 | `@think=4` | lite-mode alias | session/provider-dependent |
+| `gemini-auto` | Mode 4 | `@think=4` | auto-routing alias | session/provider-dependent |
 | `gemini-3.1-pro` / `gemini-pro` | Mode 3 | `@think=4` | फ्लैगशिप प्रो कोडिंग व गणित मॉडल | **Gemini Advanced कुकी** |
 | `gemini-3.1-pro-enhanced` | Mode 3 | `@think=4` | प्रो एन्हांस्ड आउटपुट (प्रायोगिक) | **Gemini Advanced कुकी** |
 
@@ -548,7 +552,9 @@ export OPENAI_API_KEY=none
 
 ## Pro मॉडल व Imagen इमेज जेनरेशन के लिए कुकी सेटअप (Gemini Advanced)
 
-मुफ़्त जीमेल अकाउंट्स में Flash 3.7, Flash 3.6, Flash Thinking, और Flash Lite बिना किसी कुकी या कॉन्फ़िगरेशन के तुरंत काम करते हैं।
+Flash, thinking और lite aliases को local routing contracts समझें। वास्तविक
+access, quota, model identity और session requirements target account पर live
+conformance runbook से जाँचें।
 
 यदि आपके पास **Google AI / Gemini Advanced ($20/माह)** की सदस्यता है (या Jio 18 महीने / कॉलेज ऑफ़र है) या आप **Imagen 3 इमेज जेनरेशन** को सक्रिय करना चाहते हैं, तो प्रामाणिक **Pro** मॉडल (`gemini-3.1-pro` / `gemini-pro`) के लिए अपना सेशन कुकी जोड़ें:
 
@@ -639,9 +645,9 @@ export OPENAI_API_KEY=none
 
 | फ़ीचर | गेस्ट / बिना लॉगिन सेशन | प्रामाणिक गूगल सेशन (`--login` द्वारा `./cookie.txt`) |
 | :--- | :--- | :--- |
-| **टेक्स्ट चैट व कोडिंग** (`gemini-3.7-flash`, `gemini-3.6-flash`) | ✅ पूरी तरह सक्रिय | ✅ 1M+ टोकन संदर्भ व तीव्र गति |
-| **डीप रीज़निंग** (`gemini-3.7-flash-thinking`) | ✅ पूरी तरह सक्रिय | ✅ पूर्ण थिंकिंग ब्लॉक्स |
-| **इमेज/स्क्रीनशॉट विश्लेषण (Vision)** | ❌ **गूगल द्वारा अवरुद्ध** (`BardErrorInfo [1003]`) | ✅ **पूरी तरह सक्रिय** (मुफ़्त) |
+| **टेक्स्ट चैट व कोडिंग** (`gemini-3.7-flash`, `gemini-3.6-flash`) | session/provider-dependent | session/provider-dependent |
+| **डीप रीज़निंग** (`gemini-3.7-flash-thinking`) | session/provider-dependent | session/provider-dependent |
+| **इमेज/स्क्रीनशॉट विश्लेषण (Vision)** | session/provider-dependent | authenticated session may permit it; live proof required |
 | **Imagen 3 इमेज जेनरेशन** (`imagen-3`) | ❌ **गूगल द्वारा अवरुद्ध** | ✅ **पूरी तरह सक्रिय** |
 | **Pro मॉडल रूटिंग** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Flash पर डायवर्ट | ✅ **पूरी तरह सक्रिय** |
 
@@ -764,15 +770,15 @@ docker logs bob-gemini-free
 ## अक्सर पूछे जाने वाले प्रश्न (FAQ)
 
 <details>
-<summary><strong>1. BOB Gemini Free बिना किसी API Key के मुफ़्त कैसे काम करता है?</strong></summary>
+<summary><strong>1. BOB Gemini Free अपने gateway API key और billing account के बिना कैसे काम करता है?</strong></summary>
 
-गूगल हर जीमेल अकाउंट धारक को अपने वेब इंटरफ़ेस के ज़रिए जेमिनी (Flash 3.7, Flash 3.6, Flash Lite, Flash Thinking) का मुफ़्त एक्सेस देता है। **BOB Gemini Free** एक हाई-परफ़ॉर्मेंस लोकल प्रॉक्सी है जो स्टैंडर्ड OpenAI और Gemini API कॉल्स को गूगल के आंतरिक वेब RPC फ़ॉर्मेट में ट्रांसलेट करता है।
+**BOB Gemini Free** selected OpenAI-shaped और Google-shaped requests को Google के internal web RPC में translate करता है। वास्तविक model access, quota, authentication और cost current Google web session और provider policy पर निर्भर हैं।
 </details>
 
 <details>
 <summary><strong>2. क्या मेरा गूगल अकाउंट सुरक्षित है? रेट लिमिट्स या बैन का कोई ख़तरा?</strong></summary>
 
-* **मुफ़्त / बेनामी (Anonymous) मोड**: BOB Gemini Free **शून्य सेशन कुकीज़ और शून्य अकाउंट टोकन** भेजता है। सभी अनुरोध आपकी गूगल पहचान से पूरी तरह से अलग रहते हैं।
+* **बिना configured cookie**: BOB user-provided Google session file load नहीं करता; upstream access और identity behavior provider-controlled हैं, इसलिए इसे anonymous guarantee न समझें।
 * **Gemini Advanced ($20/माह) मोड**: BOB Gemini Free वास्तविक ब्राउज़र TLS फ़िंगरप्रिंट (`tls-client` Chrome 133) और सामान्य वेब ट्रैफ़िक पैटर्न का उपयोग करता है।
 * **ऑपरेशनल दिशानिर्देश**: एक समय में 3 से 5 समवर्ती अनुरोध चलाएँ। एक ही IP से प्रति सेकंड सैकड़ों अनुरोध भेजने से बचें।
 </details>
@@ -787,7 +793,7 @@ docker logs bob-gemini-free
 <details>
 <summary><strong>4. मैं Google Pro मॉडल (`gemini-3.1-pro` / `gemini-pro`) और Imagen 3 को कैसे अनलॉक करूँ?</strong></summary>
 
-मुफ़्त जीमेल पर Flash और Thinking पहले से उपलब्ध हैं। यदि आपके पास Gemini Advanced ($20/माह) या Reliance Jio 18 महीने / कॉलेज ऑफ़र है:
+Flash और Thinking aliases की वास्तविक उपलब्धता target Google session पर जाँचें। यदि आपके पास Gemini Advanced ($20/माह) या कोई अन्य provider entitlement है:
 1. `./bob-gemini-free --login` चलाएँ (सुझाया गया 1-क्लिक स्टैंडअलोन लॉगिन)।
 2. या `./bob-gemini-free --setup-cookie` चलाकर अपनी सेशन कुकी पेस्ट करें।
 3. टूल ऑटोमैटिक रूप से `SAPISIDHASH` जनरेट कर Pro मॉडल और Imagen 3 को सक्रिय कर देगा।
@@ -858,7 +864,7 @@ claude
 <details>
 <summary><strong>13. क्या यह OpenAI Codex CLI (`openai/codex`) और AI Routers (LiteLLM / OpenRouter / Portkey) के साथ काम करता है?</strong></summary>
 
-* **OpenAI Codex CLI**: नेटिव `/v1/responses` और `/v1/chat/completions` एंडपॉइंट्स द्वारा पूर्ण समर्थित। बस `OPENAI_BASE_URL=http://127.0.0.1:9610/v1` सेट करें।
+* **OpenAI Codex CLI**: selected `/v1/responses` और `/v1/chat/completions` adapter routes के लिए custom base URL सेट करें; broad native/full compatibility certified नहीं है।
 * **LiteLLM / OpenRouter / Portkey / OneAPI**: `http://127.0.0.1:9610/v1` को कस्टम OpenAI अपस्ट्रीम के रूप में जोड़ें। गेटवे बिना किसी समस्या के सभी SSE डेल्टा चंक्स, रीज़निंग टोकन्स और यूसेज मीट्रिक्स रिटर्न करता है।
 </details>
 

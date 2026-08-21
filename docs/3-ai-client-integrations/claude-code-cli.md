@@ -1,6 +1,9 @@
 # Claude Code CLI (Anthropic Protocol)
 
-BOB Gemini Free implements Anthropic's **Messages API** (`POST /v1/messages`) natively with complete Server-Sent Events (SSE) streaming and reasoning blocks, making it 100% compatible with **Claude Code CLI**.
+BOB Gemini Free implements a tested subset of Anthropic's **Messages API**
+(`POST /v1/messages`) as an adapter backed by Google's web protocol. It emits
+the adapter's documented SSE lifecycle and reasoning blocks, but it is not
+native Claude inference and broad Claude Code compatibility is not certified.
 
 ---
 
@@ -53,7 +56,10 @@ When Claude Code CLI asks for thinking tokens (e.g. `thinking: { type: "enabled"
 
 ## 🛠️ Tool Calling & Terminal Execution Lifecycle
 
-Claude Code CLI uses tool calls to inspect files, edit code, and run bash commands. BOB Gemini Free translates this seamlessly:
+Claude Code CLI uses tool calls to inspect files, edit code, and run bash
+commands. BOB can emulate selected tool-call shapes by injecting schemas and
+extracting model output; execution and compatibility remain client- and
+endpoint-dependent:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐

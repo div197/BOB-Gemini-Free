@@ -1,6 +1,9 @@
 # Anthropic Messages Endpoints Reference
 
-BOB Gemini Free implements Anthropic's **Messages API** (`POST /v1/messages`) with full Server-Sent Events (SSE) streaming and thinking blocks.
+BOB Gemini Free implements a selected Anthropic-shaped **Messages API** route
+(`POST /v1/messages`) with an adapter SSE lifecycle and thinking blocks. It is
+not native Claude inference, and complete Anthropic/Claude Code compatibility
+is not certified.
 
 ---
 
@@ -34,7 +37,9 @@ anthropic-version: 2023-06-01
 
 ## 🌊 SSE Event Lifecycle Stream
 
-When `stream: true` is requested, BOB Gemini Free emits standard Anthropic SSE events:
+When `stream: true` is requested, BOB Gemini Free emits the tested Anthropic
+SSE event sequence shown below. Exact client compatibility remains
+endpoint-specific:
 
 ```text
 event: message_start
@@ -102,7 +107,9 @@ session permits it. This is adapter behavior, not native Claude inference:
 
 ## ⚡ Prompt Caching Counters
 
-For compatibility with **Claude Code CLI** token consumption tracking, BOB Gemini Free returns explicit prompt caching fields:
+The adapter returns prompt-caching fields with zero values for shape
+compatibility. They are not evidence that a prompt cache exists or that cache
+tokens were measured:
 
 ```json
 {

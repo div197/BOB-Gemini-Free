@@ -1,8 +1,11 @@
 # Grok Build, Autonomous Agents & Custom Developer Frameworks
 
-BOB Gemini Free transforms Google Gemini's web stream into a free, high-throughput backend for **Grok Build, OpenAI Agents SDK, and autonomous multi-agent pipelines**.
+BOB Gemini Free exposes adapter routes that can be used by **Grok Build,
+OpenAI Agents SDK, and autonomous multi-agent pipelines**. Model access,
+throughput, tool fidelity, and quotas remain upstream/session-dependent.
 
-Instead of burning hundreds of dollars in API credits on token-heavy reasoning and planning loops, BOB powers your agentic workflows for **$0.00**.
+The gateway does not add its own usage billing; Google account/session
+entitlements and provider limits still apply.
 
 ---
 
