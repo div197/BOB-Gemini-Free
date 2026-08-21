@@ -1,6 +1,11 @@
 # Image Generation: Imagen 3 & Gemini Nano Banana
 
-BOB Gemini Free exposes standard OpenAI image generation endpoints (`POST /v1/images/generations`) backed by Google's state-of-the-art **Imagen 3** and **Gemini Nano Banana 2 / Pro** visual engines.
+BOB Gemini Free exposes an OpenAI-shaped image-generation route
+(`POST /v1/images/generations`) and model aliases for Imagen/Nano Banana
+families. The current Go implementation routes a text request through the
+Gemini web path and extracts generated image references; native image-RPC
+fidelity and model availability are upstream-dependent and not established by
+the local fixture suite.
 
 ---
 
@@ -10,9 +15,9 @@ BOB Gemini Free exposes standard OpenAI image generation endpoints (`POST /v1/im
 | :--- | :--- | :--- |
 | `imagen-3` | Google Imagen 3 | Ultra-high-fidelity photorealistic generation |
 | `imagen-3-fast` | Google Imagen 3 Fast | Low-latency rapid image generation |
-| `gemini-nano-banana` | Gemini Nano Banana | Google's native multimodal image generation model |
-| `gemini-nano-banana-2` | Gemini Nano Banana 2 | Latest native multimodal Banana 2 image model |
-| `gemini-nano-banana-pro` | Gemini Nano Banana Pro | High-resolution Mode 3 visual synthesis |
+| `gemini-nano-banana` | Gemini Nano Banana alias | Upstream-dependent image route |
+| `gemini-nano-banana-2` | Gemini Nano Banana 2 alias | Upstream-dependent image route |
+| `gemini-nano-banana-pro` | Gemini Nano Banana Pro alias | Upstream-dependent image route |
 | `dall-e-3` | DALL-E 3 Alias | OpenAI drop-in alias routed to Imagen 3 |
 | `dall-e-2` | DALL-E 2 Alias | OpenAI drop-in alias routed to Imagen 3 Fast |
 

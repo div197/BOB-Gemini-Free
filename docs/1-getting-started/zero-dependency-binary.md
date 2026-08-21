@@ -1,6 +1,8 @@
-# Zero-Dependency Standalone Binaries
+# Standalone Binaries (No Separately Managed Runtime)
 
-BOB Gemini Free compiles into **100% self-contained native executables** (`CGO_ENABLED=0`).
+BOB Gemini Free can be distributed as a single native executable (`CGO_ENABLED=0`)
+that does not require users to separately install Go, Python, or Node.js. The
+binary still contains the Go module dependencies declared in `go.mod`.
 
 It requires:
 - ❌ **No Go runtime**

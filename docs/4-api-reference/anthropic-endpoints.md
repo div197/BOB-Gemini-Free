@@ -69,7 +69,9 @@ data: {"type":"message_stop"}
 
 ## 🖼️ Multimodal Vision Support
 
-BOB Gemini Free natively accepts Anthropic image content blocks and streams them directly to Google Gemini's Scotty upload pipeline:
+The Anthropic-shaped adapter accepts Anthropic image content blocks and can
+translate them to the Google Scotty upload pipeline when an authenticated
+session permits it. This is adapter behavior, not native Claude inference:
 
 ```json
 {

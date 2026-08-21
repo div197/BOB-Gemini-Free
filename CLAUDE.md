@@ -33,8 +33,8 @@ gofmt -s -w .
 
 ## 2. Architecture & Design Principles
 
-- **Pure Go Gateway**: Zero external runtime dependencies. Runs as a lightweight single binary consuming <15MB RAM.
-- **Universal 3-in-1 Gateway**:
+- **Pure Go Gateway**: A Go single-binary gateway with bundled external Go dependencies; runtime size and RSS are environment/build dependent and must be measured.
+- **Multi-protocol Gateway** (implemented adapters; compatibility remains endpoint- and upstream-dependent):
   - `POST /v1/chat/completions`, `POST /v1/responses`, `POST /v1/images/generations`, `GET /v1/models` (OpenAI format)
   - `POST /v1/messages` (Anthropic format with full SSE lifecycle: `message_start`, `content_block_delta`, `message_delta`, `message_stop`)
   - `GET /v1beta/models`, `POST /v1beta/models/{target}` (Google Gemini format)
@@ -96,7 +96,16 @@ The software domain is protocol translation, local AI tooling integration, brows
 
 ## 3. Technology Stack
 
-The main application stack is Go. The module declares `go 1.26.5` in `go.mod`, while some documentation says Go 1.22+ or Go 1.26+. The code uses the standard library heavily: `net/http`, `http.ServeMux`, `encoding/json`, `context`, `sync`, `sync/atomic`, `os`, `path/filepath`, `time`, `regexp`, `crypto`, `image`, and platform process utilities. External Go dependencies are intentionally narrow: `github.com/bogdanfinn/fhttp`, `github.com/bogdanfinn/tls-client`, `github.com/bogdanfinn/websocket`, and `golang.org/x/image`. Transitive dependencies include compression, QUIC/uTLS support, websocket support, crypto, net, sys, and text packages.
+The main application stack is Go. The current module declares `go 1.26.5` in
+`go.mod`; older Go compatibility has not been verified. The code uses the
+standard library heavily: `net/http`, `http.ServeMux`, `encoding/json`,
+`context`, `sync`, `sync/atomic`, `os`, `path/filepath`, `time`, `regexp`,
+`crypto`, `image`, and platform process utilities. External Go dependencies
+are intentionally narrow but non-zero: `github.com/bogdanfinn/fhttp`,
+`github.com/bogdanfinn/tls-client`, `github.com/bogdanfinn/websocket`, and
+`golang.org/x/image`, plus desktop dependencies. Transitive dependencies
+include compression, QUIC/uTLS support, websocket support, crypto, net, sys,
+and text packages.
 
 There is also a static web studio in `internal/server/playground.html` and a synchronized copy in `web/index.html`. The web studio is plain HTML, CSS, and JavaScript. It loads browser-side libraries from CDNs: Marked for Markdown, DOMPurify for sanitization, KaTeX for math rendering, Prism for code highlighting, and Mermaid for diagrams. The `web/sw.js` service worker implements a cache-first PWA strategy for static assets and pass-through behavior for API/local gateway requests.
 
@@ -133,7 +142,7 @@ The root `README.md` is the primary English user-facing document. It describes B
 
 `CHANGELOG.md` is the version-history and feature-evolution document. It records the move toward universal protocol support, diagnostic and benchmark tooling, background service operations, embedded Go library support, Responses API support, image generation, multimodal vision, 1-click login, cookie pooling, dynamic token extraction, documentation suite additions, and web studio distribution.
 
-`docs/README.md` indexes the documentation suite into five chapters: getting started, authentication and routing, AI client integrations, API reference, and embedded Go SDK. The getting-started docs cover quickstart, zero-dependency standalone binaries, and Docker/OrbStack. The authentication docs cover 1-click login, manual DevTools cookie extraction, cookie pools, and `auth_user` routing. The client integration docs cover Cursor/Windsurf/Continue, Claude Code CLI, OpenAI Codex CLI, and broader agent frameworks. The API reference docs define OpenAI, Anthropic, Google v1beta, image generation, health, diagnostics, and benchmarks. The embedded SDK guide shows `gateway.NewHandler` and `gateway.NewEngine`.
+`docs/README.md` indexes the documentation suite into five chapters: getting started, authentication and routing, AI client integrations, API reference, and embedded Go SDK. The getting-started docs cover quickstart, standalone binaries without a separately managed runtime, and Docker/OrbStack. The authentication docs cover 1-click login, manual DevTools cookie extraction, cookie pools, and `auth_user` routing. The client integration docs cover Cursor/Windsurf/Continue, Claude Code CLI, OpenAI Codex CLI, and broader agent frameworks. The API reference docs define OpenAI-shaped, Anthropic-shaped, Google v1beta-shaped, image-generation, health, diagnostics, and benchmark routes. The embedded SDK guide shows `gateway.NewHandler` and `gateway.NewEngine`.
 
 `examples/README.md` describes the examples directory: Python OpenAI, Python Anthropic, Node OpenAI, Node Anthropic, embedded Go, and shell/cURL requests.
 
@@ -221,17 +230,17 @@ After CLI-mode checks, normal server startup resolves config from CLI flag, envi
 - `GET /v1beta/models`.
 - `POST /v1beta/models/{target}`.
 
-`middleware.go` provides API-key authorization, CORS, body-size limiting, logging, observability headers, and OpenAI-like rate-limit headers. Authorization accepts configured keys through `Authorization: Bearer`, `x-api-key`, `x-goog-api-key`, or `?key=`. If no API keys are configured, requests are allowed. The body limit is 32 MB.
+`middleware.go` provides API-key authorization, origin-aware CORS, body-size limiting, logging, observability headers, and OpenAI-like rate-limit headers. Authorization accepts configured keys through `Authorization: Bearer`, `x-api-key`, `x-goog-api-key`, or `?key=`. If no API keys are configured, non-browser/native requests remain allowed; browser origins are restricted to loopback defaults or explicit `allowed_origins`. The body limit is 32 MB.
 
 `helpers.go` maps `gemini.UpstreamError` statuses to HTTP status codes, writes JSON, starts SSE, writes SSE data/events, writes `[DONE]`, and uploads images. `uploadImages` fetches or uses image bytes, hashes them for the `ImageCache`, compresses where needed, uploads through `multimodal.UploadImage`, and returns Gemini file refs.
 
-`handlers.go` serves health telemetry, model catalogs, single model lookup, token-count endpoints, Google model catalogs, and update-check results. Health reports status, version, model names, requests served, tokens processed, estimated dollar savings, uptime, and cookie-pool counts.
+`handlers.go` serves the unauthenticated local `/healthz` probe, aggregate `/v1/metrics`, the richer `/` health view, model catalogs, single model lookup, token-count endpoints, Google model catalogs, and update-check results. Aggregate metrics never include cookies, auth headers, prompts, or image contents.
 
 `chat.go` handles OpenAI Chat Completions. It validates JSON, resolves model and reasoning effort, defaults tool choice, converts messages to prompt/images, uploads images, increments request counters, and chooses streaming or non-streaming behavior. Streaming without tools directly passes Gemini stream deltas through a thinking splitter and emits OpenAI chat completion chunks. Non-streaming and tool paths buffer full output, parse tool calls, extract thinking, calculate usage, and return OpenAI-compatible responses.
 
 `anthropic.go` handles Anthropic Messages. It validates JSON, resolves model and thinking budget, converts to OpenAI chat request, converts to prompt/images, uploads images, and emits Anthropic SSE lifecycle events or a non-streaming `message` response. Streaming logic starts and stops content blocks for thinking and text and sends final usage.
 
-`google.go` handles native Gemini-compatible routes. It parses the `{target}` path value into model and action. `countTokens` returns local token estimates. `generateContent` and `streamGenerateContent` convert Google request content to prompt/images, upload images, resolve tools, and emit Google-style candidates. Streaming without tools sends SSE candidate chunks and a final usage chunk. Tool-enabled streaming is buffered and replayed.
+`google.go` handles Google-shaped Gemini routes. It parses the `{target}` path value into model and action. `countTokens` returns local token estimates. `generateContent` and `streamGenerateContent` convert Google request content to prompt/images, upload images, resolve tools, and emit Google-style candidates. Streaming without tools sends SSE candidate chunks and a final usage chunk. Tool-enabled streaming is buffered and replayed.
 
 `responses.go` handles the OpenAI Responses API. It supports `instructions`, `input`, `stream`, tools, and model resolution. Streaming without tools emits a Responses API event lifecycle: `response.created`, `response.output_item.added`, `response.content_part.added`, text deltas, content done, output text done, output item done, and `response.completed`. Tool-call streaming buffers first and then emits function-call or output-text done events. Non-streaming returns `output`, `output_text`, and usage.
 
@@ -259,7 +268,7 @@ Tests cover browser detection enough to tolerate missing browsers, free-port all
 
 `internal/service/service.go` implements OS service installation and control. It has templates for macOS LaunchAgent plist, Linux systemd user service, and Windows Startup batch file. `Install` resolves the current executable path, creates platform-appropriate service definitions, loads or enables them where possible, and starts the gateway on the selected port. `Uninstall`, `Status`, `Start`, and `Stop` perform platform-specific service operations. Tests validate template rendering for macOS, Linux, and Windows.
 
-`internal/updater/updater.go` checks GitHub releases, compares semantic versions, finds the matching binary asset for the current OS and architecture, downloads it, enforces a minimum payload size, computes SHA-256, verifies binary magic bytes for Linux ELF, macOS Mach-O, or Windows PE, and replaces the running executable with rename/copy fallback behavior. Tests cover version comparison and asset matching.
+`internal/updater/updater.go` checks GitHub releases, compares semantic versions, finds the matching binary asset for the current OS and architecture, verifies a signed `SHA256SUMS` manifest using the configured Ed25519 public key, checks binary magic bytes for Linux ELF, macOS Mach-O, or Windows PE, and atomically replaces the running executable on Unix. Tests cover manifest signatures, tampering, checksum mismatch, version comparison, and asset matching. Updates fail closed when the signed verification material is absent or invalid.
 
 ## 15. Diagnostics And Benchmarking
 
@@ -295,11 +304,11 @@ These files are not equivalent to the full Go gateway. They omit most Go feature
 
 `Makefile` defines `build`, `web`, `run`, `test`, `test-cover`, `dist`, and `clean`. `build` depends on `web`, compiles the local binary with `CGO_ENABLED=0`, and injects version `v0.1.5` through ldflags. `dist` cross-compiles Darwin arm64/amd64, Linux amd64/arm64, and Windows amd64 outputs under `dist/`.
 
-`Dockerfile` is a multi-stage build. It uses `golang:alpine` as builder, downloads modules, builds a static Linux binary, and copies it into `alpine:3.21` with CA certificates and timezone data. It creates a non-root app user, exposes port 9610, defaults host to `0.0.0.0` inside the container, and defines a wget-based healthcheck.
+`Dockerfile` is a multi-stage build. It uses `golang:alpine` as builder, downloads modules, builds a static Linux binary, and copies it into `alpine:3.21` with CA certificates and timezone data. It creates a non-root app user, exposes port 9610, defaults host to `0.0.0.0` inside the container, and probes the local unauthenticated `/healthz` endpoint for its healthcheck.
 
-`docker-compose.yml` builds the local Dockerfile, maps port 9610, mounts `config.json` and `cookie.txt` read-only, sets host/port environment variables, configures the same healthcheck, and restarts unless stopped.
+`docker-compose.yml` builds the local Dockerfile, maps port 9610, mounts `config.json` and `cookie.txt` read-only, sets host/port environment variables, probes `/healthz`, and restarts unless stopped.
 
-`install.sh` and `install.ps1` implement cross-platform setup. They create user config directories, copy `config.example.json` where available, prefer existing local binaries, build from source when Go exists, build Docker when Docker exists, or download release binaries as a zero-dependency fallback.
+`install.sh` and `install.ps1` implement cross-platform setup. They create user config directories, copy `config.example.json` where available, prefer existing local binaries, build from source when Go exists, build Docker when Docker exists, or download release binaries as a no-build fallback; the Go binary itself still includes its declared module dependencies.
 
 `test-kit.sh` and `test-kit.ps1` are wrappers around the binary's `--test` mode. If no binary exists they compile first. `scripts/bench.sh` wraps `--bench`. The service templates under `scripts/` provide sample Linux systemd, macOS launchd, and Windows background runner definitions.
 
