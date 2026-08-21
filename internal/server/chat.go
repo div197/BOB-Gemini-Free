@@ -141,7 +141,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			if cTokens == 0 {
 				cTokens = 1
 			}
-			a.TokensProcessed.Add(uint64(pTokens + cTokens))
+			a.addEstimatedTokens(uint64(pTokens + cTokens))
 
 			stopReason := "stop"
 			endChunk := models.OpenAIChatResponse{
@@ -261,7 +261,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	a.TokensProcessed.Add(uint64(usage.TotalTokens))
+	a.addEstimatedTokens(uint64(usage.TotalTokens))
 
 	if req.Stream {
 		if !startSSE(w) {

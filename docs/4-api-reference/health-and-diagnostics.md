@@ -33,6 +33,17 @@ curl http://127.0.0.1:9610/
 
 ---
 
+## Container Health Probe (`GET /healthz`)
+
+Use the dedicated unauthenticated probe for Docker/Kubernetes health checks:
+
+```bash
+curl http://127.0.0.1:9610/healthz
+```
+
+It performs local computation only and returns stable `{"status":"ok"}` JSON.
+The telemetry route `/` may require an API key when authentication is configured.
+
 ## 2. Live CLI Telemetry Dashboard (`--status`)
 
 Query live metrics directly from your terminal:

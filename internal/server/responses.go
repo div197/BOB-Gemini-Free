@@ -186,7 +186,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		if outputTokens == 0 {
 			outputTokens = 1
 		}
-		a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+		a.addEstimatedTokens(uint64(promptTokens + outputTokens))
 
 		// 5. content_part.done
 		_ = writeSSEEvent(w, "response.content_part.done", map[string]any{
@@ -268,7 +268,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	if outputTokens == 0 {
 		outputTokens = 1
 	}
-	a.TokensProcessed.Add(uint64(promptTokens + outputTokens))
+	a.addEstimatedTokens(uint64(promptTokens + outputTokens))
 
 	if stream {
 		// Tool-call streaming: replay synchronously after buffering

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/div197/bob-gemini-free/internal/gemini"
@@ -127,17 +129,34 @@ func UploadImage(client gemini.Requester, tokens PageTokens, imgBytes []byte, mi
 }
 
 func FetchImageBytes(client gemini.Requester, imageURL string) ([]byte, error) {
-	if !strings.HasPrefix(imageURL, "http://") && !strings.HasPrefix(imageURL, "https://") {
+	return fetchImageBytes(client, imageURL, net.LookupIP)
+}
+
+func fetchImageBytes(client gemini.Requester, imageURL string, lookupIP func(string) ([]net.IP, error)) ([]byte, error) {
+	parsed, err := url.Parse(imageURL)
+	if err != nil {
+		return nil, fmt.Errorf("unsupported image URL")
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
 		return nil, fmt.Errorf("unsupported image URL scheme")
 	}
+	if parsed.Hostname() == "" || parsed.User != nil {
+		return nil, fmt.Errorf("unsupported image URL")
+	}
+	if parsed.Port() != "" && parsed.Port() != "80" && parsed.Port() != "443" {
+		return nil, fmt.Errorf("image URL port is not allowed")
+	}
+	if err := validatePublicImageHost(parsed.Hostname(), lookupIP); err != nil {
+		return nil, err
+	}
 
-	req, err := http.NewRequest("GET", imageURL, nil)
+	req, err := http.NewRequest("GET", parsed.String(), nil)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
 
-	resp, err := client.Do(req)
+	resp, err := doImageRequest(client, req, parsed.Host)
 	if err != nil {
 		log.Printf("Image fetch failed: %v", err)
 		return nil, err
@@ -162,4 +181,47 @@ func FetchImageBytes(client gemini.Requester, imageURL string) ([]byte, error) {
 	}
 
 	return body, nil
+}
+
+func validatePublicImageHost(host string, lookupIP func(string) ([]net.IP, error)) error {
+	if ip := net.ParseIP(host); ip != nil {
+		if !isPublicImageIP(ip) {
+			return fmt.Errorf("image URL resolves to a private or local address")
+		}
+		return nil
+	}
+	if strings.EqualFold(host, "localhost") || strings.HasSuffix(strings.ToLower(host), ".localhost") {
+		return fmt.Errorf("image URL resolves to a local hostname")
+	}
+	ips, err := lookupIP(host)
+	if err != nil {
+		return fmt.Errorf("image URL host lookup failed: %w", err)
+	}
+	if len(ips) == 0 {
+		return fmt.Errorf("image URL host has no address")
+	}
+	for _, ip := range ips {
+		if !isPublicImageIP(ip) {
+			return fmt.Errorf("image URL resolves to a private or local address")
+		}
+	}
+	return nil
+}
+
+func isPublicImageIP(ip net.IP) bool {
+	return ip != nil && ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified()
+}
+
+func doImageRequest(client gemini.Requester, req *http.Request, originalHost string) (*http.Response, error) {
+	if httpClient, ok := client.(*http.Client); ok {
+		clone := *httpClient
+		clone.CheckRedirect = func(next *http.Request, _ []*http.Request) error {
+			if !strings.EqualFold(next.URL.Host, originalHost) {
+				return fmt.Errorf("image redirect changed host")
+			}
+			return http.ErrUseLastResponse
+		}
+		return clone.Do(req)
+	}
+	return client.Do(req)
 }

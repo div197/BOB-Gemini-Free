@@ -50,7 +50,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	if isCountTokens {
 		totalTokens := format.CountGoogleTokens(req)
 		a.RequestsServed.Add(1)
-		a.TokensProcessed.Add(uint64(totalTokens))
+		a.addEstimatedTokens(uint64(totalTokens))
 		writeJSON(w, http.StatusOK, map[string]any{
 			"totalTokens": totalTokens,
 		})
@@ -122,7 +122,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		if emitErr == nil {
 			promptTokens := format.EstimateTokens(prompt)
 			candidatesTokens := format.EstimateTokens(fullText)
-			a.TokensProcessed.Add(uint64(promptTokens + candidatesTokens))
+			a.addEstimatedTokens(uint64(promptTokens + candidatesTokens))
 			// Final chunk: must include Content with empty parts so Google client SDKs don't nil-pointer
 			finalChunk := models.GoogleGenerateResponse{
 				Candidates: []models.GoogleCandidate{
@@ -199,7 +199,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	promptTokens := format.EstimateTokens(prompt)
 	candidatesTokens := format.EstimateTokens(text)
-	a.TokensProcessed.Add(uint64(promptTokens + candidatesTokens))
+	a.addEstimatedTokens(uint64(promptTokens + candidatesTokens))
 
 	responseObj := models.GoogleGenerateResponse{
 		Candidates: []models.GoogleCandidate{

@@ -10,6 +10,7 @@ import (
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/gemini"
+	"github.com/div197/bob-gemini-free/internal/metrics"
 	"github.com/div197/bob-gemini-free/internal/multimodal"
 )
 
@@ -24,6 +25,7 @@ type App struct {
 	TokensProcessed atomic.Uint64
 	StartTime       time.Time
 	ImageCache      sync.Map // Caches SHA256 -> Scotty FileRef to prevent redundant uploads in long multi-turn vision chats
+	Metrics         *metrics.Registry
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {
@@ -49,6 +51,8 @@ func createHTTPClient(cfg config.Config) *http.Client {
 func New(cfg config.Config, version string) *App {
 	config.Normalize(&cfg)
 	gemClient := gemini.NewClient(cfg)
+	registry := metrics.New()
+	gemClient.Metrics = registry
 
 	logFn := func(format string, args ...any) {
 		if cfg.LogRequests {
@@ -66,6 +70,7 @@ func New(cfg config.Config, version string) *App {
 		Logf:       logFn,
 		Version:    version,
 		StartTime:  time.Now(),
+		Metrics:    registry,
 	}
 
 	if gemClient.Pool != nil {
@@ -79,6 +84,8 @@ func (a *App) Handler() http.Handler {
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", a.handleHealth)
+	mux.HandleFunc("GET /healthz", a.handleHealthz)
+	mux.HandleFunc("GET /v1/metrics", a.handleMetrics)
 	mux.HandleFunc("GET /playground", a.handlePlayground)
 	mux.HandleFunc("GET /ui", a.handlePlayground)
 	mux.HandleFunc("GET /v1/models", a.handleModels)

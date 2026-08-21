@@ -33,6 +33,7 @@ func TestLoadConfigFile(t *testing.T) {
 		"host": "0.0.0.0",
 		"default_model": "gemini-3.5-flash-thinking",
 		"api_keys": ["sk-test-key-1", "sk-test-key-2"],
+		"allowed_origins": ["https://studio.example.test"],
 		"impersonate": "chrome_133",
 		"cookie_file": "/path/to/cookie.txt"
 	}`
@@ -55,6 +56,9 @@ func TestLoadConfigFile(t *testing.T) {
 	}
 	if len(cfg.APIKeys) != 2 || cfg.APIKeys[0] != "sk-test-key-1" {
 		t.Errorf("unexpected api keys: %v", cfg.APIKeys)
+	}
+	if len(cfg.AllowedOrigins) != 1 || cfg.AllowedOrigins[0] != "https://studio.example.test" {
+		t.Errorf("unexpected allowed origins: %v", cfg.AllowedOrigins)
 	}
 	if cfg.CookieFile != "/path/to/cookie.txt" {
 		t.Errorf("expected cookie file /path/to/cookie.txt, got %s", cfg.CookieFile)
@@ -96,6 +100,17 @@ func TestEnvVarAuthUser(t *testing.T) {
 	}
 	if cfg.AuthUser != "1" {
 		t.Errorf("expected auth_user 1 from env, got %s", cfg.AuthUser)
+	}
+}
+
+func TestEnvVarAllowedOrigins(t *testing.T) {
+	t.Setenv("BOB_GEMINI_FREE_ALLOWED_ORIGINS", "https://one.example, https://two.example")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if len(cfg.AllowedOrigins) != 2 || cfg.AllowedOrigins[1] != "https://two.example" {
+		t.Fatalf("unexpected allowed origins from env: %v", cfg.AllowedOrigins)
 	}
 }
 

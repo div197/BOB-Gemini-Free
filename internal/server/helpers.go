@@ -114,6 +114,13 @@ func writeSSEDone(w http.ResponseWriter) error {
 	return nil
 }
 
+func (a *App) addEstimatedTokens(count uint64) {
+	a.TokensProcessed.Add(count)
+	if a.Metrics != nil {
+		a.Metrics.TokensEstimated.Add(count)
+	}
+}
+
 func (a *App) uploadImages(images []format.Image) ([]string, error) {
 	if len(images) == 0 {
 		return nil, nil
@@ -151,8 +158,14 @@ func (a *App) uploadImages(images []format.Image) ([]string, error) {
 		hashBytes := sha256.Sum256(data)
 		hashStr := hex.EncodeToString(hashBytes[:])
 		if cachedRef, ok := a.ImageCache.Load(hashStr); ok {
+			if a.Metrics != nil {
+				a.Metrics.ImageCacheHits.Add(1)
+			}
 			fileRefs = append(fileRefs, cachedRef.(string))
 			continue
+		}
+		if a.Metrics != nil {
+			a.Metrics.ImageCacheMisses.Add(1)
 		}
 
 		if !haveTokens {
@@ -165,6 +178,9 @@ func (a *App) uploadImages(images []format.Image) ([]string, error) {
 			return nil, fmt.Errorf("image upload failed: %w", err)
 		}
 		if ref != "" {
+			if a.Metrics != nil {
+				a.Metrics.ImageUploads.Add(1)
+			}
 			a.ImageCache.Store(hashStr, ref)
 			fileRefs = append(fileRefs, ref)
 		}

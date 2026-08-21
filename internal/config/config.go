@@ -23,6 +23,7 @@ type Config struct {
 	CookiePool        []string `json:"cookie_pool,omitempty"`
 	Proxy             string   `json:"proxy"`
 	APIKeys           []string `json:"api_keys"`
+	AllowedOrigins    []string `json:"allowed_origins,omitempty"`
 	Impersonate       string   `json:"impersonate"`
 	Version           string   `json:"version,omitempty"`
 }
@@ -43,6 +44,7 @@ func Default() Config {
 		CookiePool:        []string{},
 		Proxy:             "",
 		APIKeys:           []string{},
+		AllowedOrigins:    []string{},
 		Impersonate:       "",
 	}
 }
@@ -76,6 +78,7 @@ func Load(path string) (Config, error) {
 			CookiePool        *[]string `json:"cookie_pool"`
 			Proxy             *string   `json:"proxy"`
 			APIKeys           *[]string `json:"api_keys"`
+			AllowedOrigins    *[]string `json:"allowed_origins"`
 			Impersonate       *string   `json:"impersonate"`
 		}
 
@@ -124,6 +127,9 @@ func Load(path string) (Config, error) {
 		}
 		if aux.APIKeys != nil {
 			cfg.APIKeys = *aux.APIKeys
+		}
+		if aux.AllowedOrigins != nil {
+			cfg.AllowedOrigins = *aux.AllowedOrigins
 		}
 		if aux.Impersonate != nil {
 			cfg.Impersonate = *aux.Impersonate
@@ -179,6 +185,17 @@ func Load(path string) (Config, error) {
 		}
 		if len(keys) > 0 {
 			cfg.APIKeys = keys
+		}
+	}
+	if envOrigins := os.Getenv("BOB_GEMINI_FREE_ALLOWED_ORIGINS"); envOrigins != "" {
+		var origins []string
+		for _, origin := range strings.Split(envOrigins, ",") {
+			if trimmed := strings.TrimSpace(origin); trimmed != "" {
+				origins = append(origins, trimmed)
+			}
+		}
+		if len(origins) > 0 {
+			cfg.AllowedOrigins = origins
 		}
 	}
 	if envModel := os.Getenv("BOB_GEMINI_FREE_DEFAULT_MODEL"); envModel != "" {
