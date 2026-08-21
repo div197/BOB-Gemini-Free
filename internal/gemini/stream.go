@@ -77,3 +77,14 @@ func (p *StreamParser) Feed(chunk string) ([]string, error) {
 
 	return deltas, nil
 }
+
+// Flush processes a final unterminated upstream line. Gemini normally emits
+// newline-delimited records, but a connection can close after delivering a
+// complete record without its trailing newline. Treating the buffered bytes
+// as one final line prevents a valid terminal frame from being discarded.
+func (p *StreamParser) Flush() ([]string, error) {
+	if len(p.buf) == 0 {
+		return nil, nil
+	}
+	return p.Feed("\n")
+}
