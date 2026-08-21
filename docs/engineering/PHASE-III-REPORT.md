@@ -1,8 +1,8 @@
 # BOB Gemini Free — Phase III Report
 
-**Date:** 2026-08-21 (Asia/Kolkata)  
-**Workspace:** /Users/apple31/Documents/BOB-Gemini-Free  
-**Host:** macOS darwin/arm64, Go go1.26.5  
+**Date:** 2026-08-21 (Asia/Kolkata)
+**Workspace:** /Users/apple31/Documents/BOB-Gemini-Free
+**Host:** macOS darwin/arm64, Go go1.26.5
 **Branch:** phase-iii/release-desktop-docs-hardening
 
 ## Executive conclusion
