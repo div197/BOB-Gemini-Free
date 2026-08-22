@@ -1,4 +1,4 @@
-BOB Gemini Free v0.1.7-preview.1
+BOB Gemini Free v0.1.7-preview.2
 Native Desktop Preview / Beta
 
 This is an open-source preview release for controlled evaluation.
@@ -19,6 +19,8 @@ Important limitations:
   provide a cryptographically signed desktop release manifest.
 - The app does not silently update itself. Download updates manually from the official
   GitHub prerelease page.
+- Preview 2 fixes the Web Studio generation lifecycle so STOP returns to SEND after
+  completion, cancellation, timeout, upstream failure, or truncated stream.
 
 Use this release only for informed testing or a controlled pilot. It is not a
 production-ready, trusted-platform, or universal zero-setup release.

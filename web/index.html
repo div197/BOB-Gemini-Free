@@ -6786,7 +6786,6 @@ loadHistory();
 function handleSendOrStop() {
   if (isGenerating && activeAbortController) {
     activeAbortController.abort();
-    activeAbortController = null;
     showToast("Generation stopped", "⏹️");
     return;
   }
@@ -6813,14 +6812,14 @@ async function sendMessage() {
     return;
   }
 
-  isGenerating = true;
-  try {
-  activeAbortController = new AbortController();
-
   const sendBtn = document.getElementById("send-btn");
   const sendLabel = document.getElementById("send-btn-label");
   const sendIcon = document.getElementById("send-btn-icon");
   const dict = I18N[currentLang] || I18N.en;
+
+  isGenerating = true;
+  try {
+  activeAbortController = new AbortController();
 
   sendBtn.classList.add("stop-mode");
   sendLabel.innerText = dict.btnStop;
@@ -6968,6 +6967,8 @@ async function sendMessage() {
     const decoder = new TextDecoder("utf-8");
     let partial = "";
     let streamDone = false;
+    let streamEnded = false;
+    let streamReadError = null;
     let pendingRender = false;
     let lastRenderTime = 0;
     let fallbackTimer = 0;
@@ -7037,21 +7038,28 @@ async function sendMessage() {
     }
 
     while (true) {
+      let timer = 0;
       try {
-        let timer;
         const readPromise = reader.read();
         const timeoutPromise = new Promise((_, reject) => {
           timer = setTimeout(() => reject(new Error('Stream timeout')), 15000);
         });
         const {done, value} = await Promise.race([readPromise, timeoutPromise]);
         clearTimeout(timer);
-        if (done) break;
+        timer = 0;
+        if (done) {
+          partial += decoder.decode();
+          streamEnded = true;
+          break;
+        }
         partial += decoder.decode(value, {stream: true});
         partial = processSSELines(partial);
         if (streamDone) break;
       } catch (err) {
+        if (timer) clearTimeout(timer);
         console.warn("Stream interrupted:", err);
-        break; // Break gracefully on timeout or disconnect
+        streamReadError = err;
+        break;
       }
     }
     try { await reader.cancel(); } catch (e) {}
@@ -7059,6 +7067,16 @@ async function sendMessage() {
     // Flush any remaining partial buffer (safety net for truncated streams)
     if (partial.trim()) {
       processSSELines(partial + "\n");
+    }
+
+    if (streamReadError) {
+      if (streamReadError.name === 'AbortError') {
+        throw streamReadError;
+      }
+      throw new Error(`Stream interrupted: ${streamReadError.message}`);
+    }
+    if (!streamDone && streamEnded) {
+      throw new Error("Stream ended before completion");
     }
 
     // Clear throttles and do a synchronous final render
@@ -7154,10 +7172,9 @@ async function sendMessage() {
   } finally {
     isGenerating = false;
     activeAbortController = null;
-    sendBtn.classList.remove("stop-mode");
-    const dict = I18N[currentLang] || I18N.en;
-    sendLabel.innerText = dict.btnSend;
-    sendIcon.innerText = "➤";
+    if (sendBtn) sendBtn.classList.remove("stop-mode");
+    if (sendLabel) sendLabel.innerText = dict.btnSend;
+    if (sendIcon) sendIcon.innerText = "➤";
     inputEl.disabled = false;
     inputEl.focus();
     refreshTelemetry();

@@ -1,6 +1,6 @@
 # Free Native Desktop Preview
 
-**Status:** public experimental preview published as `v0.1.7-preview.1`.
+**Status:** corrected public experimental preview published as `v0.1.7-preview.2`.
 
 This is the no-Apple-membership path for evaluating the Wails desktop product.
 It creates a real native Wails application and packages it for controlled
@@ -27,7 +27,7 @@ promote or install prereleases.
 
 ## Public preview release
 
-The manually published [v0.1.7-preview.1 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1)
+The manually published [v0.1.7-preview.2 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2)
 contains:
 
 - `bob-gemini-free-wails-macos-universal.dmg`;
@@ -38,6 +38,10 @@ contains:
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
+
+Preview 2 also corrects the Web Studio generation lifecycle: `STOP` returns to
+`SEND` on completion, cancellation, timeout, upstream failure, and truncated
+stream, while incomplete streams are no longer silently treated as complete.
 
 ## Build the free macOS preview
 

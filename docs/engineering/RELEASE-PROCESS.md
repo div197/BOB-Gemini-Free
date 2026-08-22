@@ -25,6 +25,34 @@ checks the official GitHub release metadata and opens the official release page
 when a matching package exists; it does not silently replace a running native
 bundle.
 
+## Native automatic-update status
+
+The current Wails preview does **not** auto-update. It performs an explicit
+stable-release metadata check and lets the user open the official release page.
+Preview tags are deliberately excluded from that check.
+
+A safe automatic native updater is a separate release-system project. It needs
+platform-signed artifacts, trusted signed update metadata, a user-consent
+boundary, version/channel policy, atomic replacement, rollback, and clean
+device verification. macOS Developer ID/notarization and Windows publisher
+signing are prerequisites for treating that path as a professional student
+distribution mechanism. Until those gates are complete, silently replacing a
+running preview would weaken the trust model rather than improve it.
+
+The implementation sequence is:
+
+1. publish a stable and preview channel contract for native packages;
+2. extend the signed-manifest verifier to the exact `.app` archive and
+   Windows installer/executable asset for each platform;
+3. add a platform-specific post-exit helper with atomic replacement, rollback,
+   permission failure reporting, and restart behavior;
+4. add mocked download/tamper/rollback tests and clean-device acceptance;
+5. enable background checks only after explicit consent, while keeping a
+   visible “Check for Updates” action and a manual release fallback.
+
+This removes repeated delete/download/install work only after the release and
+device gates above are complete. It is not enabled by the current preview.
+
 ## Preconditions
 
 Set these values only in the local release environment:

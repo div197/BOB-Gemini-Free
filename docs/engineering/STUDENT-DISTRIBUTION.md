@@ -15,7 +15,7 @@ screenshots from a product release that students can download and trust.
 - The app can discover a user's existing local config/cookie files, but it
   forcibly remains loopback-only and does not accept server API keys or remote
   origins in desktop mode.
-- The public [`v0.1.7-preview.1` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1)
+- The public [`v0.1.7-preview.2` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2)
   contains a macOS universal preview and a Windows x64 preview. It is a
   controlled beta, not a student-ready trusted installer set.
 
@@ -92,6 +92,34 @@ perform a silent replacement. Until signed production packages and manifests
 are published, students must use the preview release page or the documented
 pilot path.
 
+## Automatic update plan and 30-device rollout gate
+
+The current native preview does **not** update itself. A new preview therefore
+requires quitting BOB, downloading the replacement from the official release,
+and installing/replacing the old app. Deleting the app is not normally
+required, but the exact replacement step is still manual and every machine
+must be handled separately.
+
+The safe production path is a user-consented updater that downloads a
+platform-matching package in the background, verifies a release manifest with
+the embedded Ed25519 public key, asks the user to restart, replaces the app via
+a platform-specific helper, and retains rollback evidence. It must use a
+stable/beta channel policy and never treat an unsigned preview archive as
+trusted. Apple Developer ID/notarization and Windows publisher signing remain
+separate trust requirements; an Ed25519 manifest authenticates release bytes,
+not the platform publisher identity.
+
+Do not install the current preview on all 30 student Macs yet. Use this gate:
+
+1. one clean Mac outside the developer's environment;
+2. two or three pilot Macs with the exact student account/session path;
+3. a full 30-device rollout only after the signed/notarized package, updater,
+   rollback path, per-user authentication instructions, and a manual fallback
+   have each passed acceptance testing.
+
+Until that gate is closed, a future bug still requires a manual replacement on
+each device; the current app cannot silently repair itself.
+
 ## Acceptance gate per platform
 
 - install/open on a clean device or VM;
@@ -130,5 +158,5 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native Wails download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.1.7-preview.1` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1):
+[`v0.1.7-preview.2` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2):
 macOS universal `.dmg`/`.zip` or Windows x64 `.exe`. Linux is not included.

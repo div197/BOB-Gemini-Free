@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.7-preview.2] - 2026-08-22
+
+### Native Preview Streaming Lifecycle Correction
+
+This manually published, no-GitHub-Actions prerelease corrects a frontend
+state bug found during real-device evaluation of Preview 1.
+
+#### Fixed
+- The red `STOP` control now returns to `SEND` after successful completion,
+  user cancellation, upstream failure, timeout, or truncated stream.
+- Stream cleanup references now remain visible to the `finally` lifecycle
+  block instead of throwing a JavaScript scope error.
+- Decoder tail bytes are flushed at EOF, and an incomplete stream is reported
+  instead of being presented as a successful response.
+- User cancellation and read/timeout failures retain their correct state so
+  a subsequent prompt can be submitted normally.
+
+The embedded Go gateway, anonymous/default routing, cookie handling, and
+Gemini protocol core are unchanged by this frontend correction.
+
 ## [0.1.7-preview.1] - 2026-08-22
 
 ### Public Native Desktop Preview (Beta)
