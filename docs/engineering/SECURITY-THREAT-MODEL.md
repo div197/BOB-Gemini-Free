@@ -109,6 +109,12 @@ Implement strict origin filtering now:
 7. keep `/playground` publicly navigable, but do not grant its API calls to
    an unapproved remote origin.
 
+The hosted static Studio also must not probe `127.0.0.1` during page startup.
+It remains browser-only until the user explicitly opens the gateway controls,
+saves an endpoint, or runs the Test Ping action. This avoids an unsolicited
+browser Private Network Access prompt while preserving an intentional local
+connection path.
+
 This preserves local-first behavior and creates an explicit remote-Studio
 trust gate. Remote image fetching is also restricted to publicly routable
 hosts, rejects private/local DNS results, and does not follow cross-host
