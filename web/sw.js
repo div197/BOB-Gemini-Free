@@ -3,7 +3,7 @@
   Engineered by ABCsteps (abcsteps.com) & Divyanshu Singh Chouhan (@div197)
 */
 
-const CACHE_NAME = 'bob-gemini-studio-v0.1.7';
+const CACHE_NAME = 'bob-gemini-studio-v0.1.7-hosted-probe-fix';
 const PRECACHE_ASSETS = [
   './',
   './index.html',
@@ -81,4 +81,3 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
-
