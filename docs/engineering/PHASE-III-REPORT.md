@@ -367,10 +367,34 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
   path. It refuses an existing manifest, signs the exact inspected directory,
   and verifies the resulting checksums.
 - Reconciled README, Hindi README, quickstart, changelog, desktop guide,
-  release process, and student-distribution wording: Preview 2 is still
+  release process, and student-distribution wording: the current Preview 3 is
   manual-update-only; no BOB signup, cloud chat service, shared student
   cookie, or external Go-gateway telemetry is introduced.
 - The source implementation is not a claim that a public release is ready
   for 30 Macs. The remaining gates are release-key custody, Developer ID/
   notarization, Windows publisher signing, native-host acceptance, clean-device
   update/rollback, and per-user Google-session onboarding.
+
+## Preview 3 branded publication — 2026-08-22
+
+- PR [#12](https://github.com/div197/BOB-Gemini-Free/pull/12) merged the
+  verified native updater and branded package implementation into `main`;
+  PR [#13](https://github.com/div197/BOB-Gemini-Free/pull/13) reconciled the
+  current student-facing release documentation.
+- The manually published [v0.1.7-preview.3 release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.3)
+  contains `bob-gemini-free-macos-universal.dmg`,
+  `bob-gemini-free-macos-universal.zip`,
+  `bob-gemini-free-windows-amd64.exe`, `RELEASE-NOTICE.txt`, and
+  `SHA256SUMS`.
+- The exact GitHub assets were downloaded again after publication; all
+  checksum entries passed, the ZIP passed archive testing, and the Windows
+  asset reported as a PE32+ GUI executable.
+- Preview 3's Mac bundle passed strict ad-hoc code-signature verification and
+  Computer Use smoke testing. The visible app title, header, About panel,
+  bundle name, executable name, and `com.abcsteps.bob-gemini-free` identifier
+  are branded BOB Gemini Free; it reached its actual loopback endpoint and
+  released its gateway on quit.
+- Preview 3 is still a genuine beta manual release, not a signed automatic
+  update channel: no Ed25519 desktop manifest, Apple Developer ID/notarization,
+  Windows publisher signature, Linux artifact, or 30-device acceptance is
+  claimed.
