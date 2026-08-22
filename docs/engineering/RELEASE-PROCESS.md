@@ -27,8 +27,8 @@ bundle.
 
 ## Native automatic-update status
 
-The current Preview 2 does **not** auto-update. It performs an explicit
-stable-release metadata check. Preview 2 has no embedded desktop trust key and
+The current Preview 3 does **not** auto-update. It performs an explicit
+stable-release metadata check. Preview 3 has no embedded desktop trust key and
 the public preview has no signed manifest, so it offers the official release
 page for manual installation. Preview tags are deliberately excluded from
 the stable check.

@@ -38,7 +38,7 @@ the binary can replace the installed executable.
 The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
-declared size, signed manifest, and official GitHub URLs. Preview 2 has no
+declared size, signed manifest, and official GitHub URLs. Preview 3 has no
 embedded desktop key and therefore cannot install a native update.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and

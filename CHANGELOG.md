@@ -27,7 +27,7 @@ preview/release boundaries below.
 - Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
   documented release-key custody, platform signing, clean-device acceptance,
   and the 30-device rollout gate.
-- The public `v0.1.7-preview.2` remains manual-update-only. No unsigned or
+- The public `v0.1.7-preview.3` remains manual-update-only. No unsigned or
   ad-hoc preview is presented as a production auto-updating release.
 
 ### Documentation truth corrections
@@ -40,6 +40,18 @@ preview/release boundaries below.
   prerequisites.
 
 ---
+
+## [0.1.7-preview.3] - 2026-08-22
+
+### Branded native beta refresh
+
+- Published the branded macOS universal and Windows x64 beta package names.
+- Removed framework-branded bundle identifiers and executable names from the
+  student-facing app metadata and release notices.
+- Preserved the explicit manual-update boundary: this prerelease has no
+  embedded desktop trust key or signed update manifest.
+- Retained the Preview 2 asset names only as updater migration inputs; new
+  releases use the BOB Gemini Free package contract.
 
 ## [0.1.7-preview.2] - 2026-08-22
 

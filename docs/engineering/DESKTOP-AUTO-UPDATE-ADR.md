@@ -7,7 +7,7 @@
 ## Context
 
 The native application is distributed as a macOS app bundle and a Windows
-executable. The current public Preview 2 is intentionally ad-hoc/unsigned,
+executable. The current public Preview 3 is intentionally ad-hoc/unsigned,
 and its Help menu only performs an explicit metadata check before opening the
 official GitHub Releases page. It must not silently replace itself.
 
@@ -82,5 +82,5 @@ The updater code may be developed and tested with mocked signed fixtures now.
 It becomes eligible for a student-facing production channel only after the
 owner has configured the authoritative signing key, published signed desktop
 manifests, completed Apple/Windows publisher signing, and passed clean-device
-rollback tests. Preview 2 remains manual-update-only. See
+rollback tests. Public prereleases remain manual-update-only. See
 `DESKTOP-UPDATE-OPERATIONS.md` for the operator and classroom rollout gate.

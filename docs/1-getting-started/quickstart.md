@@ -173,7 +173,7 @@ check:
 ./bob-gemini-free --update
 ```
 
-The CLI refuses an unsigned update. The public Preview 2 native beta is a separate
+The CLI refuses an unsigned update. The public Preview 3 native beta is a separate
 manual beta path; its native auto-update is not enabled until a desktop build
 embeds the release public key and the release publishes a signed manifest.
 
