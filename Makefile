@@ -7,6 +7,7 @@
 BINARY_NAME=bob-gemini-free
 VERSION=v0.1.7
 LDFLAGS=-s -w -X main.Version=$(VERSION)
+WAILS_LDFLAGS=-X main.desktopVersion=$(VERSION)
 WAILS=go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
 
 .PHONY: all build web run test test-cover dist clean desktop desktop-preview-mac desktop-preview-windows desktop-preview-linux desktop-mac desktop-windows desktop-linux
@@ -52,32 +53,32 @@ clean:
 	rm -rf cmd/desktop/build/bin/
 
 desktop: web
-	@echo "Building Wails Native Desktop App (Requires Go, CGO & host toolchain)..."
-	cd cmd/desktop && $(WAILS) build -clean
+	@echo "Building BOB Gemini Free Native Desktop App (Requires Go, CGO & host toolchain)..."
+	cd cmd/desktop && $(WAILS) build -clean -ldflags="$(WAILS_LDFLAGS)"
 	@echo "Desktop build complete! Check cmd/desktop/build/bin/"
 
 desktop-preview-mac: web
-	@echo "Building the free, ad-hoc-signed macOS Wails preview package..."
+	@echo "Building the free, ad-hoc-signed BOB Gemini Free macOS beta package..."
 	scripts/package-wails-preview.sh
 
 desktop-preview-windows: web
-	@echo "Building the free, unsigned Windows Wails preview executable..."
+	@echo "Building the free, unsigned BOB Gemini Free Windows beta executable..."
 	scripts/package-wails-windows-preview.sh
 
 desktop-preview-linux: web
-	@echo "Building the free Linux Wails preview package on a native Linux host..."
+	@echo "Building the free BOB Gemini Free Linux beta package on a native Linux host..."
 	scripts/package-wails-linux-preview.sh
 
 desktop-mac: web
-	@echo "Building the macOS Wails app (run on macOS; universal target)..."
-	cd cmd/desktop && $(WAILS) build -clean -platform darwin/universal
+	@echo "Building the BOB Gemini Free macOS app (run on macOS; universal target)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform darwin/universal -ldflags="$(WAILS_LDFLAGS)"
 
 desktop-windows: web
-	@echo "Building the Windows Wails NSIS installer (run on Windows)..."
-	cd cmd/desktop && $(WAILS) build -clean -platform windows/amd64 -nsis -webview2 download
-	@test -f cmd/desktop/build/bin/bob-gemini-free-wails-amd64-installer.exe || (echo "NSIS installer was not created; install makensis and run this target on the intended host." && exit 1)
+	@echo "Building the BOB Gemini Free Windows NSIS installer (run on Windows)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform windows/amd64 -nsis -webview2 download -ldflags="$(WAILS_LDFLAGS)"
+	@test -f cmd/desktop/build/bin/bob-gemini-free-amd64-installer.exe || (echo "NSIS installer was not created; install makensis and run this target on the intended host." && exit 1)
 
 desktop-linux: web
-	@echo "Building the Linux Wails app (run on Linux with WebKitGTK installed)..."
-	cd cmd/desktop && $(WAILS) build -clean -platform linux/amd64 -tags webkit2_41
-	@test -f cmd/desktop/build/bin/bob-gemini-free-wails-linux-amd64 || (echo "Linux Wails binary was not created; run this target on a native Linux host with GTK/WebKitGTK." && exit 1)
+	@echo "Building the BOB Gemini Free Linux app (run on Linux with WebKitGTK installed)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform linux/amd64 -tags webkit2_41 -ldflags="$(WAILS_LDFLAGS)"
+	@test -f cmd/desktop/build/bin/bob-gemini-free-linux-amd64 || (echo "Linux native binary was not created; run this target on a native Linux host with GTK/WebKitGTK." && exit 1)

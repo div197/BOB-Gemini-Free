@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build a free Linux preview package on a native Linux host. Wails v2 does not
-# support producing a tested Linux GUI binary from macOS, so this script keeps
-# the host/toolchain boundary explicit.
+# Build a free BOB Gemini Free Linux beta package on a native Linux host. The
+# native toolkit does not support producing a tested Linux GUI binary from
+# macOS, so this script keeps the host/toolchain boundary explicit.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUTPUT_DIR="${1:-/tmp/bob-gemini-free-wails-linux-preview}"
+OUTPUT_DIR="${1:-/tmp/bob-gemini-free-linux-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-linux/amd64}"
-APP_NAME="bob-gemini-free-wails"
-STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bob-gemini-free-wails-linux-stage.XXXXXX")"
+INTERNAL_APP_NAME="bob-gemini-free"
+PUBLIC_APP_NAME="bob-gemini-free"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
+STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bob-gemini-free-linux-stage.XXXXXX")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
 if [[ "$(uname -s)" != "Linux" ]]; then
-	echo "Linux Wails preview packaging must run on a native Linux host" >&2
+	echo "Linux desktop preview packaging must run on a native Linux host" >&2
 	exit 1
 fi
 if [[ "$PLATFORM" != linux/amd64 && "$PLATFORM" != linux/arm64 ]]; then
-	echo "unsupported Linux Wails platform: $PLATFORM" >&2
+	echo "unsupported Linux desktop platform: $PLATFORM" >&2
 	exit 1
 fi
 if [[ -e "$OUTPUT_DIR" ]]; then
@@ -42,36 +44,42 @@ else
 	WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-cd "$ROOT_DIR/cmd/desktop"
-"${WAILS[@]}" build -clean -platform "$PLATFORM" -tags webkit2_41
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+fi
 
-SOURCE_BINARY="$ROOT_DIR/cmd/desktop/build/bin/${APP_NAME}-${PLATFORM//\//-}"
+cd "$ROOT_DIR/cmd/desktop"
+"${WAILS[@]}" build -clean -platform "$PLATFORM" -tags webkit2_41 "${WAILS_LDFLAGS[@]}"
+
+SOURCE_BINARY="$ROOT_DIR/cmd/desktop/build/bin/${INTERNAL_APP_NAME}-${PLATFORM//\//-}"
 if [[ ! -f "$SOURCE_BINARY" ]]; then
-	echo "Wails did not produce the expected Linux binary: $SOURCE_BINARY" >&2
+	echo "desktop build did not produce the expected Linux binary: $SOURCE_BINARY" >&2
 	exit 1
 fi
 
-PACKAGE_DIR="$STAGE_DIR/$APP_NAME"
+PACKAGE_DIR="$STAGE_DIR/$PUBLIC_APP_NAME"
 mkdir -p "$PACKAGE_DIR"
-cp "$SOURCE_BINARY" "$PACKAGE_DIR/$APP_NAME"
-chmod 0755 "$PACKAGE_DIR/$APP_NAME"
+cp "$SOURCE_BINARY" "$PACKAGE_DIR/$PUBLIC_APP_NAME"
+chmod 0755 "$PACKAGE_DIR/$PUBLIC_APP_NAME"
 cat > "$PACKAGE_DIR/RELEASE-NOTICE.txt" <<'NOTICE'
-BOB Gemini Free Linux preview package
+BOB Gemini Free Linux open-source beta package
 
-This build is open-source software for controlled evaluation.
+This is the complete BOB Gemini Free desktop application for open-source
+evaluation. The package is a beta and should be tested before a broad student
+rollout.
 It is a tar.gz package, not an AppImage, and it requires GTK3 and WebKit2GTK
 4.1 runtime libraries from the host distribution.
-Do not use this artifact as proof of production Linux distribution readiness.
 No Google session, cookie, API key, or private release key is included.
 NOTICE
 
-ARCHIVE="$OUTPUT_DIR/${APP_NAME}-linux-${PLATFORM##*/}.tar.gz"
-tar -czf "$ARCHIVE" -C "$STAGE_DIR" "$APP_NAME"
+ARCHIVE="$OUTPUT_DIR/bob-gemini-free-linux-${PLATFORM##*/}.tar.gz"
+tar -czf "$ARCHIVE" -C "$STAGE_DIR" "$PUBLIC_APP_NAME"
 cp "$PACKAGE_DIR/RELEASE-NOTICE.txt" "$OUTPUT_DIR/RELEASE-NOTICE.txt"
 (
 	cd "$OUTPUT_DIR"
 	shasum -a 256 "$(basename "$ARCHIVE")" RELEASE-NOTICE.txt > SHA256SUMS
 )
 
-echo "Linux preview package ready in: $OUTPUT_DIR"
+echo "BOB Gemini Free Linux preview package ready in: $OUTPUT_DIR"
 ls -lh "$OUTPUT_DIR"

@@ -1,7 +1,7 @@
 {
   "$schema": "https://wails.io/schemas/config.v2.json",
-  "name": "bob-gemini-free-wails",
-  "outputfilename": "bob-gemini-free-wails",
+  "name": "bob-gemini-free",
+  "outputfilename": "bob-gemini-free",
   "frontend:install": "",
   "frontend:build": "",
   "frontend:dev:watcher": "",

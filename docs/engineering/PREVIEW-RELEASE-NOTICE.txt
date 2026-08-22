@@ -1,26 +1,29 @@
 BOB Gemini Free v0.1.7-preview.2
-Native Desktop Preview / Beta
+Native Desktop Beta
 
-This is an open-source preview release for controlled evaluation.
+This is a genuine open-source BOB Gemini Free beta built from the public
+repository for evaluation and pilot use.
 
 Included artifacts:
-- macOS universal Wails package for Apple Silicon and Intel;
-- Windows x64 Wails preview executable.
+- macOS universal package for Apple Silicon and Intel;
+- Windows x64 desktop executable.
 
 Important limitations:
-- macOS is ad-hoc signed only. It is NOT Apple Developer ID signed or notarized.
+- macOS is ad-hoc signed only. It is not Apple Developer ID signed or notarized;
+  macOS may require first-launch approval.
 - Windows is not Authenticode signed and requires Microsoft WebView2 on the device.
 - Linux is not included in this preview.
 - This release does not include a Google session, cookie, API key, teacher credential,
   release private key, or automatic telemetry.
 - Authenticated Google capabilities remain dependent on each user's own authorized
   session and Google's current web access, quota, and protocol behavior.
-- Checksums prove downloaded bytes match the published files; this preview does not
+- Checksums prove downloaded bytes match the published files; this beta does not
   provide a cryptographically signed desktop release manifest.
 - The app does not silently update itself. Download updates manually from the official
   GitHub prerelease page.
 - Preview 2 fixes the Web Studio generation lifecycle so STOP returns to SEND after
   completion, cancellation, timeout, upstream failure, or truncated stream.
 
-Use this release only for informed testing or a controlled pilot. It is not a
-production-ready, trusted-platform, or universal zero-setup release.
+Use this release for informed testing or a controlled pilot. It is a genuine
+open-source beta, but platform trust, native-host coverage, and broad rollout
+acceptance are still pending.

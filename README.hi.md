@@ -42,7 +42,10 @@
 - ✨ **Session-Dependent Access**: मॉडल, quota, reasoning, vision और image access वर्तमान Google web session तथा provider rules पर निर्भर हैं; कोई fixed free/unlimited guarantee नहीं है।
 - 🔓 **"API-Less AI" आर्किटेक्चर**: gateway billing account की ज़रूरत नहीं, लेकिन Google session/provider access फिर भी लागू है। आपका local gateway configured credentials को boundary के भीतर रखता है।
 - 🌉 **यूनिवर्सल 4-इन-1 प्रोटोकॉल**: एक ही सिंगल गेटवे से **OpenAI** (`/v1/chat/completions`, `/v1/responses`, `/v1/tokens/count`), **Anthropic Messages (Claude Code CLI)**, **Google Gemini v1beta** (`:countTokens`), और **Embedded Go लाइब्रेरी** (`pkg/gateway`) का सीधा अनुवाद।
-- ⚡ **Zero-Friction Simplicity**: packaged binary में अलग Go, Python, Node, SQLite या memory service की runtime ज़रूरत नहीं; source build के लिए documented toolchain चाहिए। **1-क्लिक लॉगिन (`--login`)** browser और Google पर निर्भर है।
+- ⚡ **Packaged runtime simplicity**: packaged binary में अलग Go, Python, Node,
+  SQLite या memory service की runtime ज़रूरत नहीं; source build के लिए
+  documented toolchain चाहिए। **1-क्लिक लॉगिन (`--login`)** browser और Google
+  पर निर्भर है।
 
 ---
 
@@ -56,7 +59,7 @@
 | 💸 हर मिलियन टोकन और रीज़निंग स्टेप का महँगा बिल | **Gateway billing नहीं; upstream quotas और session rules लागू** |
 | 🔑 API Key लीक होने पर लाखों का नुकसान | **सुरक्षित लोकल सेशन (`0600` फ़ाइल परमिशन)** |
 | 🔒 किसी एक कंपनी के CLI या टूल में क़ैद | **यूनिवर्सल 4-इन-1 ट्रांसलेशन (OpenAI, Claude, Google, Go)** |
-| 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **स्क्रीन पर लाइव टोकन व डॉलर बचत ट्रैकिंग (`GET /`)** |
+| 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **लोकल अनुमानित टोकन व बचत काउंटर (`GET /`); billing record नहीं** |
 
 ---
 
@@ -88,7 +91,7 @@
 └─────────────────────────────┘
 ```
 
-जब **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, या **Grok Build** किसी जवाब की माँग करता है, तो BOB उसे जेमिनी के वेब फ़ॉर्मेट में बदलता है, पूरा रीज़निंग और विज़न उत्तर लाता है, और मिलीसेकंड्स में वापस सौंप देता है।
+जब **OpenAI Codex CLI**, **Claude Code CLI**, **Cursor**, या कोई अन्य समर्थित क्लाइंट जवाब माँगता है, तो BOB चुने हुए adapter route के अनुसार अनुरोध को जेमिनी वेब फ़ॉर्मेट में बदलने का प्रयास करता है। उत्तर, reasoning, vision और latency Google session तथा upstream protocol पर निर्भर हैं; कोई universal/full compatibility या मिलीसेकंड guarantee नहीं है।
 
 ---
 
@@ -111,6 +114,10 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **Anthropic-shaped thinking**: Claude Code-shaped requests के लिए reasoning blocks मिलते हैं; यह native Claude inference नहीं है।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — ऑटोमैटिक कम्प्रेशन के साथ।
 * **लोकल privacy boundary**: Go gateway automatic telemetry नहीं भेजता; binary memory और upstream performance target build पर मापनी होगी।
+
+BOB कोई अलग account/signup नहीं बनाता और chat prompts को BOB cloud service पर
+नहीं भेजता। जरूरत होने पर Google session उसी उपयोगकर्ता का होना चाहिए और
+उसकी expiry, policy तथा entitlements लागू रहेंगी।
 ## समर्थित टूल्स और इकोसिस्टम (Supported Tools & Ecosystem)
 
 BOB Gemini Free कई AI coding tools के लिए adapter endpoints देता है; हर client और feature को target endpoint पर verify करें:
@@ -201,13 +208,17 @@ macOS (`launchd`), Linux (`systemd`), और Windows (Startup folder) पर स
 
 ---
 
-### विकल्प D: इन-प्लेस एटॉमिक ऑटो-अपडेटर (`--update`)
+### विकल्प D: signed CLI updater (`--update`)
 
-GitHub से 1 कमांड में BOB Gemini Free को नवीनतम रिलीज़ पर सीधे अपडेट करें:
+GitHub की signed release से CLI को एक explicit command में अपडेट करें:
 
 ```bash
 ./bob-gemini-free --update
 ```
+
+Public Preview 2 का native updater enabled नहीं है; desktop build में
+embedded public key और release में signed manifest होने के बाद ही वह path
+उपलब्ध होगा।
 
 ---
 
@@ -222,17 +233,23 @@ GitHub से 1 कमांड में BOB Gemini Free को नवीनत
 * 🐍 **संस्थागत स्तर पर इन-ब्राउज़र Pyodide WASM Python सैंडबॉक्स**: CPython 3.11 को बिना किसी सर्वर-साइड जोखिम, बिना Python इंस्टालेशन और शून्य बिलिंग के सीधे ब्राउज़र में चलाएँ। इंटरैक्टिव `input()` और साइंटिफिक पैकेजेस (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`) का ऑटो-लोडर।
 * 🧭 **कोई server database या memory service नहीं**: gateway stateless request handling, explicit session pool और safe aggregate counters तक सीमित है; studio SQLite या server-side database provision नहीं करता।
 * ⚡ **नेटिव क्लाइंट-साइड इंटरैक्टिव आर्टिफ़ैक्ट्स इंजन (Claude-Style Live Canvas)**: HTML5 वेब ऍप्लिकेशन्स, CSS3 एनिमेशन्स, Canvas 2D/WebGL गेम्स, SVG वेक्टर ग्राफिक्स और Mermaid डायग्राम्स को 1-क्लिक **`Launch ⚡`** चिप से सीधे सैंडबॉक्स्ड स्टूडियो मोडल (`[ ▶ Preview | ⟨/⟩ Code ]`) में चलाएँ।
-* 🪄 **लाइव AI प्रॉम्प्ट मेटाप्रॉम्प्टर वैंड इंजन (`🪄`)**: बैकग्राउंड में `gemini-3.7-flash` द्वारा आपके सामान्य विचारों को ~200ms में संरचित मास्टर प्रॉम्प्ट्स में बदलने की सुविधा (`⌘ + Shift + P`)।
+* 🪄 **Prompt assistant (`🪄`)**: local gateway उपलब्ध होने पर prompt सुधारने का
+  प्रयास करता है; unavailable होने पर स्पष्ट रूप से heuristic local template
+  देता है। यह provider response या latency guarantee नहीं है।
 * 🔍 **नॉन-ब्रेकिंग रीडिंग टेक्स्ट ज़ूम कंट्रोलर (`🔍 100%`)**: सब-बार चिप, `⌘+`/`⌘-`/`⌘0` और कमांड पैलेट द्वारा पूरे लेआउट को बिना तोड़े पढ़ने के फॉन्ट साइज़ को बढ़ाएँ/घटाएँ।
 * 🏛️ **यूनिफ़ाइड सेक्रेड ज्योमेट्री स्टूडियो इनपुट कैप्सूल**: मोबाइल व डेस्कटॉप दोनों पर टेक्स्टएरिया, विज़न अटैचमेंट्स, टूल्स (`📎`, `अ`, `🎙️`, `🪄`) और स्वर्णिम `SEND ➤` बटन को समाहित करने वाला एकल कैप्सूल।
 * 🎙️ **नेचुरल HD स्पीच स्टूडियो व फ्लोटिंग ऑडियो बार**: NotebookLM-श्रेणी का न्यूरल वॉइस सिंथेसाइज़र (Play/Pause, `0.8x`–`1.5x` स्पीड, और 4-बार लाइव इक्वलाइज़र)।
 * ✏️ **इन-प्लेस मैसेज एडिटिंग व रीवाइंड**: पुराने संदेशों को सीधे इनलाइन एडिट (`✏️`) करने और चैट को वहीं से फिर से शुरू करने की सुविधा।
 * 🌐 **द्विभाषी व 8 क्षेत्रीय लिपियों में इंटरफ़ेस**: 1-क्लिक हेडर स्विचर व ⌘K शॉर्टकट (`L1` English, `L2` हिन्दी), साथ में 8 भारतीय लिपियों का समर्थन (हिन्दी, संस्कृतम्, मराठी, বাংলা, ગુજરાતી, தமிழ், తెలుగు, ਪੰਜਾਬੀ)।
 * ✍️ **रीयल-टाइम फोनेटिक लिप्यंतरण (Backspace Undo के साथ)**: अंग्रेज़ी अक्षरों में टाइप करने पर (`"namaste"`) स्पेस दबाते ही शुद्ध देवनागरी (`"नमस्ते"`) में परिवर्तन। `Backspace` दबाते ही शब्द वापस अंग्रेज़ी अक्षरों में बदल जाता है।
-* 🏛️ **भारतीय स्कूल कंप्यूटर लैब मास्टर आर्किटेक्चर**: 1-प्रोसेस LAN होस्ट मोड (`--host 0.0.0.0 --port 9610`) द्वारा 30-कंप्यूटर वाली लैब में 240+ छात्रों को ₹0 में स्थानीय एआई का लाभ।
+* 🏛️ **स्थानीय classroom deployment option**: LAN hosting जानबूझकर सक्षम करने
+  पर ही `--host 0.0.0.0` उपयोग करें; default gateway loopback-only है और
+  classroom scale/provider quota को अलग से test करना होगा।
 * 🧠 **लाइव रीज़निंग विज़ुअलाइज़र**: Gemini 3.7 Flash Thinking के रीज़निंग टोकन्स को रीयल-टाइम में प्रवाहित होते हुए देखें।
 * ⚡ **मॉडल व थिंकिंग स्विचर**: तेज़ मॉडल्स, डीप रीज़निंग, या Imagen 3 इमेज सिंथेसिस को एक क्लिक में टेस्ट करें।
-* 📊 **लाइव टेलीमेट्री व डॉलर बचत ट्रैकर**: अपटाइम, प्रोसेस्ड टोकन्स और कुल डॉलर बचत का लाइव मीटर।
+* 📊 **लोकल aggregate status**: uptime, requests, token estimates, latency और
+  अनुमानित savings दिख सकते हैं; यह external analytics या provider billing
+  record नहीं है।
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
 
 <p align="center">
@@ -648,13 +665,13 @@ conformance runbook से जाँचें।
 | **टेक्स्ट चैट व कोडिंग** (`gemini-3.7-flash`, `gemini-3.6-flash`) | session/provider-dependent | session/provider-dependent |
 | **डीप रीज़निंग** (`gemini-3.7-flash-thinking`) | session/provider-dependent | session/provider-dependent |
 | **इमेज/स्क्रीनशॉट विश्लेषण (Vision)** | session/provider-dependent | authenticated session may permit it; live proof required |
-| **Imagen 3 इमेज जेनरेशन** (`imagen-3`) | ❌ **गूगल द्वारा अवरुद्ध** | ✅ **पूरी तरह सक्रिय** |
-| **Pro मॉडल रूटिंग** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Flash पर डायवर्ट | ✅ **पूरी तरह सक्रिय** |
+| **Imagen 3 इमेज जेनरेशन** (`imagen-3`) | session/provider-dependent | session/provider-dependent |
+| **Pro मॉडल रूटिंग** (`gemini-3.1-pro` / `gemini-pro`) | session/provider-dependent | session/provider-dependent |
 
 **गूगल इमेजेस के लिए सेशन क्यों अनिवार्य करता है?**
 जब आप इमेज या स्क्रीनशॉट अटैच करते हैं, तो BOB Gemini Free उसे गूगल के Scotty स्टोरेज (`content-push.googleapis.com`) पर अपलोड करता है। गूगल का सर्वर यह प्रमाणित करता है कि स्टोरेज खाता किसी वैध गूगल सेशन (`SAPISIDHASH` व `__Secure-1PSIDTS`) से क्रिप्टोग्राफ़िक रूप से जुड़ा है। यदि कुकी अनुपस्थित या पुरानी हो, तो गूगल `BardErrorInfo [1003]` रिटर्न करता है।
 
-केवल एक बार `./bob-gemini-free --login` चलाने से यह क्षमता हमेशा के लिए अनलॉक हो जाती है।
+`./bob-gemini-free --login` वर्तमान उपयोगकर्ता के लिए session capture का प्रयास करता है। Cookies expire/revoke हो सकती हैं और provider capability की कोई permanent guarantee नहीं है।
 
 ---
 

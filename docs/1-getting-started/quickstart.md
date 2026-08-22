@@ -164,13 +164,18 @@ Run BOB Gemini Free quietly in the background without needing open terminal wind
 
 ---
 
-## 🔄 In-Place Auto-Updater
+## 🔄 Signed CLI updater
 
-Keep BOB Gemini Free up to date with the latest GitHub releases:
+Keep the standalone CLI up to date with an explicit, signed GitHub release
+check:
 
 ```bash
 ./bob-gemini-free --update
 ```
+
+The CLI refuses an unsigned update. The public Preview 2 native beta is a separate
+manual beta path; its native auto-update is not enabled until a desktop build
+embeds the release public key and the release publishes a signed manifest.
 
 ---
 

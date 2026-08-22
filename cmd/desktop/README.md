@@ -1,14 +1,14 @@
-# BOB Gemini Free — Wails Desktop
+# BOB Gemini Free — Native Desktop
 
-This is the supported native desktop entrypoint. The packaged Wails
-application contains the Go gateway and opens the shared BOB Builder studio;
+This is the supported native desktop entrypoint. The packaged application
+contains the Go gateway and opens the shared BOB Builder studio;
 end users do not need a separate Go installation, local server, SQLite
 database, or memory service.
 
 The bootstrap page in `frontend/index.html` validates the gateway endpoint
-before handing off to `/playground`. It also has a durable `GatewayURL` fallback
-for the one-shot startup event, so a fast local gateway cannot strand the
-window on its loading screen.
+before handing off to `/playground`. It also has an event-independent
+`GatewayURL` handoff for the one-shot startup event, so a fast local gateway
+cannot strand the window on its loading screen.
 
 The packaged app discovers the current user's config and cookie files when
 they exist, while forcibly keeping the desktop gateway on loopback with API
@@ -68,9 +68,11 @@ are recorded in
 [`docs/engineering/STUDENT-DISTRIBUTION.md`](../../docs/engineering/STUDENT-DISTRIBUTION.md).
 
 The native Help menu provides an explicit update check against the official
-GitHub release metadata. It does not silently replace the running app; a
-matching package is opened in the official release page for user-controlled
-installation.
+GitHub release metadata. Preview 2 opens the release page for user-controlled
+installation. The source also contains a signed-manifest staging/helper path,
+but it is enabled only in a build with the embedded release key and a
+platform-appropriate signed manifest; it never silently replaces the running
+app.
 
 The app starts an embedded loopback gateway, reuses only an identified
 compatible existing BOB gateway, or selects a safe free port. The actual

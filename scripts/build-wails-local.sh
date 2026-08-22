@@ -1,20 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build a locally signed macOS Wails bundle from a clean /tmp staging tree.
-# macOS File Provider checkouts can add resource-fork metadata that makes
-# Wails' in-place codesign fail; staging removes that environmental variable
-# without changing repository files.
+# Build a locally signed BOB Gemini Free macOS bundle from a clean /tmp staging
+# tree. macOS File Provider checkouts can add resource-fork metadata that makes
+# in-place codesign fail; staging removes that environmental variable without
+# changing repository files.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUTPUT_DIR="${1:-/tmp/bob-gemini-free-wails-release}"
-STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-wails-source.XXXXXX)"
+OUTPUT_DIR="${1:-/tmp/bob-gemini-free-release}"
+STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 PLATFORM="${BOB_WAILS_PLATFORM:-darwin/$(go env GOARCH)}"
+VERSION="${BOB_RELEASE_VERSION:-dev}"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
-	echo "this script builds the macOS Wails bundle and requires macOS" >&2
+	echo "this script builds the macOS native bundle and requires macOS" >&2
 	exit 1
 fi
 if [[ "$PLATFORM" != darwin/* ]]; then
@@ -44,13 +45,18 @@ else
   WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-cd "$STAGE_ROOT/cmd/desktop"
-"${WAILS[@]}" build -clean -platform "$PLATFORM"
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+  WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+fi
 
-SOURCE_APP="$STAGE_ROOT/cmd/desktop/build/bin/bob-gemini-free-wails.app"
-DEST_APP="$OUTPUT_DIR/bob-gemini-free-wails.app"
+cd "$STAGE_ROOT/cmd/desktop"
+"${WAILS[@]}" build -clean -platform "$PLATFORM" "${WAILS_LDFLAGS[@]}"
+
+SOURCE_APP="$STAGE_ROOT/cmd/desktop/build/bin/bob-gemini-free.app"
+DEST_APP="$OUTPUT_DIR/BOB Gemini Free.app"
 if [[ ! -d "$SOURCE_APP" ]]; then
-  echo "Wails did not produce the expected app bundle: $SOURCE_APP" >&2
+  echo "desktop build did not produce the expected app bundle: $SOURCE_APP" >&2
   exit 1
 fi
 
@@ -59,4 +65,4 @@ xattr -cr "$DEST_APP" 2>/dev/null || true
 codesign --force --deep --sign - "$DEST_APP"
 codesign --verify --deep --strict --verbose=2 "$DEST_APP"
 
-echo "Wails macOS $PLATFORM app ready: $DEST_APP"
+echo "BOB Gemini Free macOS $PLATFORM app ready: $DEST_APP"
