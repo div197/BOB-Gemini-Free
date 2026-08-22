@@ -11,6 +11,8 @@ import (
 )
 
 const (
+	DesktopChannelStable = "stable"
+
 	// DesktopReleaseAPIURL is intentionally fixed to the project's official
 	// repository. A desktop build must not accept an update source from mutable
 	// runtime configuration.
@@ -20,16 +22,21 @@ const (
 
 // DesktopCheckResult describes a native-package update without downloading or
 // replacing anything. Installation is deliberately a separate operation: a
-// Wails bundle, Windows installer, and Linux package each have different safe
+// macOS bundle, Windows installer, and Linux package each have different safe
 // replacement semantics.
 type DesktopCheckResult struct {
-	CurrentVersion string `json:"current_version"`
-	LatestVersion  string `json:"latest_version"`
-	HasUpdate      bool   `json:"has_update"`
-	AssetAvailable bool   `json:"asset_available"`
-	AssetName      string `json:"asset_name,omitempty"`
-	DownloadURL    string `json:"download_url,omitempty"`
-	ReleaseURL     string `json:"release_url"`
+	CurrentVersion    string `json:"current_version"`
+	LatestVersion     string `json:"latest_version"`
+	HasUpdate         bool   `json:"has_update"`
+	AssetAvailable    bool   `json:"asset_available"`
+	AssetName         string `json:"asset_name,omitempty"`
+	AssetSize         int64  `json:"asset_size,omitempty"`
+	DownloadURL       string `json:"download_url,omitempty"`
+	ReleaseURL        string `json:"release_url"`
+	ChecksumURL       string `json:"checksum_url,omitempty"`
+	SignatureURL      string `json:"signature_url,omitempty"`
+	ManifestAvailable bool   `json:"manifest_available"`
+	Channel           string `json:"channel"`
 }
 
 // CheckLatestDesktop checks whether the official release contains a native
@@ -78,6 +85,7 @@ func checkLatestDesktop(client *http.Client, apiURL, currentVersion, targetOS, t
 		LatestVersion:  latestVersion,
 		HasUpdate:      isNewerVersion(strings.TrimPrefix(currentVersion, "v"), strings.TrimPrefix(latestVersion, "v")),
 		ReleaseURL:     releaseURL,
+		Channel:        DesktopChannelStable,
 	}
 	if asset != nil {
 		if asset.BrowserDownloadURL == "" || !isOfficialGitHubURL(asset.BrowserDownloadURL) {
@@ -85,7 +93,18 @@ func checkLatestDesktop(client *http.Client, apiURL, currentVersion, targetOS, t
 		}
 		result.AssetAvailable = true
 		result.AssetName = asset.Name
+		result.AssetSize = asset.Size
 		result.DownloadURL = asset.BrowserDownloadURL
+	}
+	checksumAsset := findAssetByName(release.Assets, "SHA256SUMS")
+	signatureAsset := findAssetByName(release.Assets, "SHA256SUMS.sig")
+	if checksumAsset != nil && signatureAsset != nil {
+		if !isOfficialGitHubURL(checksumAsset.BrowserDownloadURL) || !isOfficialGitHubURL(signatureAsset.BrowserDownloadURL) {
+			return nil, fmt.Errorf("desktop release manifest URLs are not official GitHub downloads; refusing to offer automatic installation")
+		}
+		result.ChecksumURL = checksumAsset.BrowserDownloadURL
+		result.SignatureURL = signatureAsset.BrowserDownloadURL
+		result.ManifestAvailable = true
 	}
 	return result, nil
 }
@@ -112,17 +131,26 @@ func findMatchingDesktopAsset(assets []ReleaseAsset, targetOS, targetArch string
 func desktopAssetNames(targetOS, targetArch string) []string {
 	switch targetOS {
 	case "darwin":
-		// The universal archive is preferred so one Mac release serves both
+		// The branded universal archive is preferred so one Mac release serves both
 		// Apple Silicon and Intel users. Architecture-specific archives remain
 		// valid fallbacks for future size-optimized releases.
 		return []string{
+			"bob-gemini-free-macos-universal.zip",
+			fmt.Sprintf("bob-gemini-free-macos-%s.zip", targetArch),
+			// Legacy Preview 2 names are accepted only for migration/recovery.
 			"bob-gemini-free-wails-macos-universal.zip",
 			fmt.Sprintf("bob-gemini-free-wails-macos-%s.zip", targetArch),
 		}
 	case "windows":
-		return []string{fmt.Sprintf("bob-gemini-free-wails-windows-%s.exe", targetArch)}
+		return []string{
+			fmt.Sprintf("bob-gemini-free-windows-%s.exe", targetArch),
+			fmt.Sprintf("bob-gemini-free-wails-windows-%s.exe", targetArch),
+		}
 	case "linux":
-		return []string{fmt.Sprintf("bob-gemini-free-wails-linux-%s.tar.gz", targetArch)}
+		return []string{
+			fmt.Sprintf("bob-gemini-free-linux-%s.tar.gz", targetArch),
+			fmt.Sprintf("bob-gemini-free-wails-linux-%s.tar.gz", targetArch),
+		}
 	default:
 		return nil
 	}

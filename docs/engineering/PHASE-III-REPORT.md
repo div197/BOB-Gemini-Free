@@ -351,3 +351,26 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
   notarized, Windows publisher-signed, Linux-supported, or automatically
   updating. Automatic native updates remain a separate signed-manifest,
   platform-helper, rollback, and clean-device acceptance project.
+
+## Native updater engineering follow-up — 2026-08-22
+
+- Added the native source path for fixed stable-channel discovery, exact native
+  asset selection, embedded Ed25519 manifest verification, positive size
+  checks, safe macOS archive extraction, platform binary checks, same-volume
+  staging, post-exit helper replacement, health confirmation, rollback, and
+  local failure/warning records.
+- Added regression coverage for signed staging, mutable environment-key
+  rejection, declared-size mismatch, archive traversal, symlink/indirect
+  release assets, transactional commit, and failed-candidate rollback. The
+  tests use temporary targets and never replace the developer executable.
+- Added `scripts/sign-release-assets.sh` for the manual no-Actions operator
+  path. It refuses an existing manifest, signs the exact inspected directory,
+  and verifies the resulting checksums.
+- Reconciled README, Hindi README, quickstart, changelog, desktop guide,
+  release process, and student-distribution wording: Preview 2 is still
+  manual-update-only; no BOB signup, cloud chat service, shared student
+  cookie, or external Go-gateway telemetry is introduced.
+- The source implementation is not a claim that a public release is ready
+  for 30 Macs. The remaining gates are release-key custody, Developer ID/
+  notarization, Windows publisher signing, native-host acceptance, clean-device
+  update/rollback, and per-user Google-session onboarding.
