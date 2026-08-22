@@ -1,6 +1,6 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** implementation substrate is source-tested; the public Preview 2
+**Status:** implementation substrate is source-tested; the public Preview 3
 remains manual-update-only.
 
 This document is the operator and product boundary for the native updater. An
@@ -16,7 +16,7 @@ the user confirms, verify a signed `SHA256SUMS` manifest, stage the package
 beside the installed app, restart through a short-lived helper, and roll back
 if the new app does not confirm healthy startup.
 
-The current public `v0.1.7-preview.2` build does not contain an embedded
+The current public `v0.1.7-preview.3` build does not contain an embedded
 desktop update key and the public preview has no signed manifest. Its update
 path therefore remains a manual release-page download. This is deliberate,
 not a hidden or simulated auto-update.
@@ -115,6 +115,6 @@ or a manual recovery artifact.
 ## Current decision
 
 The code path is appropriate for the next signed release increment, but the
-repository must not label Preview 2 or an ad-hoc/unsigned package as a
+repository must not label Preview 3 or an ad-hoc/unsigned package as a
 production auto-updating student release. The remaining gates are external
 release custody and platform acceptance, not a missing fake fallback.

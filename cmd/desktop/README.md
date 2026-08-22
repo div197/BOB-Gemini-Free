@@ -68,7 +68,7 @@ are recorded in
 [`docs/engineering/STUDENT-DISTRIBUTION.md`](../../docs/engineering/STUDENT-DISTRIBUTION.md).
 
 The native Help menu provides an explicit update check against the official
-GitHub release metadata. Preview 2 opens the release page for user-controlled
+GitHub release metadata. The current Preview 3 opens the release page for user-controlled
 installation. The source also contains a signed-manifest staging/helper path,
 but it is enabled only in a build with the embedded release key and a
 platform-appropriate signed manifest; it never silently replaces the running

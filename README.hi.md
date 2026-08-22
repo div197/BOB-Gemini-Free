@@ -216,7 +216,7 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public Preview 2 का native updater enabled नहीं है; desktop build में
+Public Preview 3 का native updater enabled नहीं है; desktop build में
 embedded public key और release में signed manifest होने के बाद ही वह path
 उपलब्ध होगा।
 
