@@ -88,3 +88,28 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 		}
 	}
 }
+
+func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const CHAT_BOTTOM_THRESHOLD = 120;`,
+		`function isMessagesNearBottom()`,
+		`function keepMessagesAtBottom()`,
+		`msgListEl.scrollTo({ top: bottom, behavior: "auto" });`,
+		`min-height: 0;`,
+		`overflow-anchor: none;`,
+		`var(--composer-offset, 140px)`,
+		`var(--composer-offset, calc(135px + env(safe-area-inset-bottom)))`,
+		`function syncComposerOffset()`,
+		`new ResizeObserver(() => {`,
+		`if (userIsAtBottom) keepMessagesAtBottom();`,
+		`aria-label="Jump to bottom"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing stable chat scroll marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `storyDiv.scrollIntoView({ behavior: "smooth", block: "start" })`) {
+		t.Fatal("new responses must not scroll the nested chat viewport to the story-card top")
+	}
+}
