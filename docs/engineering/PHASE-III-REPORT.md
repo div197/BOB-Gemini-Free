@@ -15,8 +15,9 @@ from the active tree after no unique capability was found. Its source remains
 recoverable through Git history.
 
 The remaining boundary is intentional: no live Google session or provider
-compatibility claim was manufactured, no GitHub Actions workflow is required,
-and no release was pushed or published from this worktree.
+compatibility claim was manufactured, and no GitHub Actions workflow is
+required. The original 2026-08-21 report snapshot predates the controlled
+native preview publication documented at the end of this report.
 
 ## 1. Baseline before Phase III
 
@@ -293,11 +294,31 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
   macOS, Windows NSIS/WebView2, and Linux WebKitGTK.
 - Built and locally verified a macOS universal (`arm64` + `x86_64`) ad-hoc
   Wails bundle. Local ZIP/DMG preview packaging passed archive checks; these
-  artifacts were not published because they are not Developer ID signed or
-  notarized.
+  artifacts were later published only as an explicitly labelled beta, not as
+  Developer ID signed or notarized production software.
 - Added `docs/engineering/STUDENT-DISTRIBUTION.md` and corrected the README
-  boundary: the current public release contains CLI binaries, not a finished
-  cross-platform student installer set.
+  boundary: the latest stable release contains CLI binaries, while the
+  separate native prerelease is a limited macOS/Windows beta.
 - Windows and Linux GUI artifacts remain unbuilt and unverified on their
   native hosts. The Wails app still does not expose an in-app first-run Google
   sign-in wizard; authenticated features require each student's own session.
+
+## Public preview publication follow-up — 2026-08-22
+
+- PR [#8](https://github.com/div197/BOB-Gemini-Free/pull/8) merged the manual
+  preview packaging and documentation contract into `main` as `312e7be`.
+- Annotated tag `v0.1.7-preview.1` was pushed to that merged commit.
+- The public [v0.1.7-preview.1 GitHub prerelease](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1)
+  was published manually with no GitHub Actions workflow.
+- The release contains the macOS universal `.dmg` and `.zip`, Windows x64
+  raw `.exe`, `RELEASE-NOTICE.txt`, and `SHA256SUMS` assets. A fresh download
+  of every asset from GitHub passed the combined checksum manifest and ZIP
+  integrity check.
+- The prerelease is deliberately not marked Latest; stable `v0.1.5` remains
+  the latest stable CLI release. The native desktop updater continues to use
+  the stable `/releases/latest` endpoint and does not silently install beta
+  packages.
+- This publication does not close the external trust gates: macOS Developer
+  ID/notarization, Windows publisher signing, Linux build and acceptance,
+  signed desktop manifests, clean-device testing, and complete per-user
+  first-run Google sign-in remain future work.
