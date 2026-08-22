@@ -322,3 +322,32 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
   ID/notarization, Windows publisher signing, Linux build and acceptance,
   signed desktop manifests, clean-device testing, and complete per-user
   first-run Google sign-in remain future work.
+
+## Preview 2 correction follow-up — 2026-08-22
+
+- Real-device evaluation of Preview 1 reproduced a frontend-only lifecycle
+  defect: generation content arrived, but the red `STOP` control remained
+  active after the stream because cleanup references declared inside `try`
+  were unavailable to `finally`, which raised a JavaScript `ReferenceError`.
+- PR [#10](https://github.com/div197/BOB-Gemini-Free/pull/10) merged the
+  surgical correction into `main` as `1a75ba4`. The patch also flushes decoder
+  tail bytes, reports incomplete streams, preserves cancellation/read errors,
+  and clears read timers on every failure path. It does not modify Gemini
+  payload construction, authentication, cookie routing, or upstream parsing.
+- `internal/server/playground_test.go` now locks the cleanup scope and stream
+  lifecycle markers. The targeted server/updater suite, full normal tests,
+  race tests, `go vet`, host build, `git diff --check`, and `govulncheck` passed
+  on the release host.
+- Annotated tag `v0.1.7-preview.2` was pushed to `1a75ba4` and published
+  manually as a no-GitHub-Actions prerelease at the
+  [Preview 2 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2).
+- The public macOS universal DMG/ZIP and Windows x64 executable were
+  re-downloaded from GitHub; all four published assets passed the combined
+  `SHA256SUMS` check, and the public ZIP passed archive integrity testing.
+  The exact release Mac bundle passed strict ad-hoc code-signature and DMG
+  verification, reached `/healthz` on its configured loopback port, and
+  released its gateway cleanly after quit.
+- Preview 2 remains a controlled beta. It is not Apple Developer ID signed,
+  notarized, Windows publisher-signed, Linux-supported, or automatically
+  updating. Automatic native updates remain a separate signed-manifest,
+  platform-helper, rollback, and clean-device acceptance project.
