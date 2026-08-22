@@ -4,6 +4,7 @@ import (
 	"context"
 	"embed"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/wailsapp/wails/v2"
@@ -16,17 +17,29 @@ import (
 	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
-const desktopVersion = "v0.1.7"
+// desktopVersion is injected by a release build. Ordinary developer builds
+// remain explicitly non-updatable instead of pretending to be a published
+// release.
+var desktopVersion = "dev"
 
 //go:embed all:frontend
 var assets embed.FS
 
 func main() {
+	if handled, err := updater.HandleDesktopUpdateCommand(os.Args[1:]); handled {
+		if err != nil {
+			fmt.Printf("Desktop update helper failed: %v\n", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	// 1. Run the local Gateway engine in the background
 	cfg := loadDesktopConfig()
 
 	srv := server.New(cfg, desktopVersion)
 	app := NewApp()
+	app.updateConfirmationPath = updater.DesktopUpdateConfirmationPath(os.Args[1:])
 	gateway, err := startDesktopGateway(cfg.Port, srv.Handler())
 	if err != nil {
 		fmt.Printf("Gateway startup failed: %v\n", err)
@@ -35,10 +48,10 @@ func main() {
 		}
 		return
 	}
-	fmt.Printf("🚀 Wails Internal Gateway listening on %s\n", gateway.Endpoint())
+	fmt.Printf("🚀 BOB Gemini Free local engine listening on %s\n", gateway.Endpoint())
 	app.gatewayURL = gateway.Endpoint()
 
-	// 2. Launch the Wails Native Window, pointing it to our Gateway UI
+	// 2. Launch the branded native window, pointing it to our Gateway UI
 	err = wails.Run(desktopOptions(app, gateway, nil))
 
 	if err != nil {
@@ -60,6 +73,11 @@ func desktopOptions(app *App, gateway *desktopGateway, startupErr error) *option
 			if startupErr != nil {
 				runtime.EventsEmit(ctx, "gateway-error", startupErr.Error())
 				return
+			}
+			if app.updateConfirmationPath != "" {
+				if confirmErr := updater.ConfirmDesktopUpdate(app.updateConfirmationPath); confirmErr != nil {
+					fmt.Printf("Desktop update confirmation failed: %v\n", confirmErr)
+				}
 			}
 			runtime.EventsEmit(ctx, "gateway-ready", gateway.Endpoint())
 		},
@@ -96,15 +114,53 @@ func desktopMenu(app *App) *menu.Menu {
 		}
 		message := fmt.Sprintf("This build is %s. The latest public release is %s. No newer release is available.", update.CurrentVersion, update.LatestVersion)
 		if update.HasUpdate && update.AssetAvailable {
-			message = fmt.Sprintf("A newer desktop release is available: %s\\n\\nOpen the official release page to download it?", update.LatestVersion)
+			if !update.ManifestAvailable {
+				message = fmt.Sprintf("A newer desktop release is available: %s, but it has no signed update manifest. Open the official release page for the manual download?", update.LatestVersion)
+				button, dialogErr := runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
+					Type:          runtime.QuestionDialog,
+					Title:         "Manual update required",
+					Message:       message,
+					Buttons:       []string{"Open Releases", "Cancel"},
+					DefaultButton: "Open Releases",
+					CancelButton:  "Cancel",
+				})
+				if dialogErr == nil && button == "Open Releases" {
+					runtime.BrowserOpenURL(app.ctx, update.ReleaseURL)
+				}
+				return
+			}
+			message = fmt.Sprintf("A newer signed desktop release is available: %s\\n\\nDownload, verify, and install it after restarting BOB?", update.LatestVersion)
 			button, dialogErr := runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
 				Type:          runtime.QuestionDialog,
 				Title:         "Update available",
 				Message:       message,
-				Buttons:       []string{"Open Releases", "Cancel"},
-				DefaultButton: "Open Releases",
+				Buttons:       []string{"Install Update", "Open Releases", "Cancel"},
+				DefaultButton: "Install Update",
 				CancelButton:  "Cancel",
 			})
+			if dialogErr == nil && button == "Install Update" {
+				plan, stageErr := updater.StageDesktopUpdate(update)
+				if stageErr != nil {
+					_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
+						Type:    runtime.ErrorDialog,
+						Title:   "Update could not be staged",
+						Message: stageErr.Error(),
+						Buttons: []string{"OK"},
+					})
+					return
+				}
+				if startErr := updater.StartDesktopUpdate(plan); startErr != nil {
+					_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
+						Type:    runtime.ErrorDialog,
+						Title:   "Update could not start",
+						Message: startErr.Error(),
+						Buttons: []string{"OK"},
+					})
+					return
+				}
+				runtime.Quit(app.ctx)
+				return
+			}
 			if dialogErr == nil && button == "Open Releases" {
 				runtime.BrowserOpenURL(app.ctx, update.ReleaseURL)
 			}

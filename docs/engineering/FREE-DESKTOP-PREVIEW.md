@@ -1,15 +1,17 @@
-# Free Native Desktop Preview
+# Free Native Desktop Beta
 
 **Status:** corrected public experimental preview published as `v0.1.7-preview.2`.
 
-This is the no-Apple-membership path for evaluating the Wails desktop product.
-It creates a real native Wails application and packages it for controlled
-testing, but it intentionally does not claim Apple Developer ID trust,
-notarization, Windows publisher trust, or a production student release.
+This is the no-Apple-membership path for evaluating the BOB Gemini Free
+desktop product. It creates a real branded native application and packages it
+for controlled testing, but it intentionally does not claim Apple Developer ID
+trust, notarization, Windows publisher trust, or a production student release.
+The desktop toolkit is an internal build detail; the application, bundle, and
+student-facing release names are BOB Gemini Free.
 
 ## What the preview contains
 
-- Wails native window;
+- branded native window;
 - embedded Go gateway;
 - BOB Builder studio;
 - loopback-only gateway boundary;
@@ -30,9 +32,9 @@ promote or install prereleases.
 The manually published [v0.1.7-preview.2 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2)
 contains:
 
-- `bob-gemini-free-wails-macos-universal.dmg`;
-- `bob-gemini-free-wails-macos-universal.zip`;
-- `bob-gemini-free-wails-windows-amd64.exe`;
+- `bob-gemini-free-wails-macos-universal.dmg` (legacy Preview 2 name);
+- `bob-gemini-free-wails-macos-universal.zip` (legacy Preview 2 name);
+- `bob-gemini-free-wails-windows-amd64.exe` (legacy Preview 2 name);
 - `RELEASE-NOTICE.txt` and `SHA256SUMS`.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
@@ -54,15 +56,15 @@ make desktop-preview-mac
 The default output is a new directory at:
 
 ```text
-/tmp/bob-gemini-free-wails-preview/
+/tmp/bob-gemini-free-preview/
 ```
 
 It contains:
 
 ```text
-bob-gemini-free-wails.app
-bob-gemini-free-wails-macos-universal.zip
-bob-gemini-free-wails-macos-universal.dmg
+BOB Gemini Free.app
+bob-gemini-free-macos-universal.zip
+bob-gemini-free-macos-universal.dmg
 RELEASE-NOTICE.txt
 SHA256SUMS
 ```
@@ -71,7 +73,7 @@ To choose another output directory or build one architecture:
 
 ```bash
 BOB_WAILS_PLATFORM=darwin/arm64 \
-  scripts/package-wails-preview.sh /tmp/bob-gemini-free-wails-arm64-preview
+  scripts/package-wails-preview.sh /tmp/bob-gemini-free-arm64-preview
 ```
 
 The bundle is ad-hoc signed so local macOS validation can inspect a coherent
@@ -89,7 +91,7 @@ Linux:   make desktop-linux
 ```
 
 For a free controlled Windows preview from a host that can cross-compile the
-Wails executable:
+native executable:
 
 ```bash
 make desktop-preview-windows
@@ -109,10 +111,10 @@ make desktop-preview-linux
 It creates a documented `.tar.gz` package after checking GTK3 and WebKit2GTK
 4.1 development libraries. It is not an AppImage.
 
-The native Windows target can produce a Wails NSIS installer when `makensis` is
+The native Windows target can produce an NSIS installer when `makensis` is
 installed, and may need the Microsoft WebView2 runtime. The free
 cross-compiled preview produces only a raw `.exe`. Linux requires the
-GTK3/WebKit2GTK libraries documented by Wails; the current free path is
+GTK3/WebKit2GTK libraries documented by the platform; the current free path is
 therefore a technical preview with explicit runtime requirements, not a
 universal zero-setup promise.
 
@@ -127,7 +129,7 @@ described as a production-ready download because:
 1. macOS may show a first-launch developer-verification warning;
 2. each student still needs an explicit, authorized Google session for
    authenticated features;
-3. the Wails app does not yet provide a complete first-run Google sign-in
+3. the native app does not yet provide a complete first-run Google sign-in
    wizard;
 4. Windows and Linux artifacts still require native-host acceptance;
 5. project checksums prove file integrity only when the release manifest is
@@ -140,13 +142,13 @@ platform”.
 To verify the local package after building:
 
 ```bash
-(cd /tmp/bob-gemini-free-wails-preview && shasum -a 256 -c SHA256SUMS)
-unzip -t /tmp/bob-gemini-free-wails-preview/bob-gemini-free-wails-macos-universal.zip
+(cd /tmp/bob-gemini-free-preview && shasum -a 256 -c SHA256SUMS)
+unzip -t /tmp/bob-gemini-free-preview/bob-gemini-free-macos-universal.zip
 ```
 
 ## Next trust upgrade
 
 When the project is ready for a professional Mac release, add Apple Developer
 ID signing, hardened runtime, notarization, stapling, and clean-device testing.
-That is an external distribution gate; it is not required for the native Wails
+That is an external distribution gate; it is not required for the native
 architecture itself.

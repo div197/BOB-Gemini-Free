@@ -5,6 +5,40 @@ All notable changes to **BOB Gemini Free** (*Break Ordinary Boundaries*) will be
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+The current capability contract is defined by the README and verification
+matrix. Older entries describe historical implementation snapshots; they do
+not override current evidence, upstream-dependent limits, or the explicit
+preview/release boundaries below.
+
+---
+
+## [Unreleased]
+
+### Native updater engineering substrate
+
+- Added a native desktop updater path that discovers only the fixed stable
+  GitHub release channel, verifies an embedded Ed25519 trust anchor plus the
+  signed `SHA256SUMS` manifest, checks exact platform assets and sizes, stages
+  safely, and performs post-exit replacement with health confirmation and
+  rollback.
+- Added mocked tests for signed archive staging, environment-key rejection,
+  declared-size mismatch, archive traversal, transactional replacement, and
+  rollback. Tests never replace the developer's running executable.
+- Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
+  documented release-key custody, platform signing, clean-device acceptance,
+  and the 30-device rollout gate.
+- The public `v0.1.7-preview.2` remains manual-update-only. No unsigned or
+  ad-hoc preview is presented as a production auto-updating release.
+
+### Documentation truth corrections
+
+- Replaced older unconditional session, context, Pro, Imagen, permanent-login,
+  and universal-client wording with session/provider-dependent boundaries.
+- Clarified that local aggregate counters are not external telemetry, that
+  there is no BOB signup or BOB cloud chat service, and that a packaged app's
+  no-Go/no-Node/no-SQLite runtime claim is different from source-build
+  prerequisites.
+
 ---
 
 ## [0.1.7-preview.2] - 2026-08-22
@@ -31,13 +65,13 @@ Gemini protocol core are unchanged by this frontend correction.
 
 ### Public Native Desktop Preview (Beta)
 
-This manually published, no-GitHub-Actions prerelease is a controlled preview
-of the Wails desktop application. It is not a production or trusted-platform
-release.
+This manually published, no-GitHub-Actions prerelease is an authentic
+open-source beta of the native desktop application. Platform publisher trust
+and broad rollout acceptance remain separate release gates.
 
 #### Included
 - macOS universal `.dmg` and `.zip` packages for Apple Silicon and Intel;
-- Windows x64 native Wails preview executable;
+- Windows x64 native desktop executable;
 - release notice and SHA-256 checksums;
 - an embedded Go gateway and BOB Builder studio with no Go, Node, Rust,
   SQLite, or separate server required at runtime.
@@ -99,7 +133,11 @@ general “download and trust” production rollout.
 
 ## [0.1.5] - 2026-08-20
 
-### 2022–2026 AI Innovations Suite: In-Place Auto-Updater, Native OS Daemons, In-Browser SQLite & Pyodide WASM, Live AI Metaprompter Wand, Non-Breaking Reading Zoom, 2D/3D Artifact Studios & Steve Jobs Mobile Ergonomics
+### Historical 2022–2026 feature snapshot (partially superseded)
+
+The following entry records an earlier implementation snapshot. The browser
+SQLite surface described below was removed from the active tree during Phase
+III and is not part of the current product contract.
 
 #### Added
 - **In-Place Atomic Self-Updater (`--update` / `update` & `GET /v1/update/check`)**:
@@ -111,8 +149,9 @@ general “download and trust” production rollout.
     - **Linux**: `~/.config/systemd/user/bob-gemini-free.service` via `systemctl --user`.
     - **Windows**: `%APPDATA%\Microsoft\Windows\Start Menu\Programs\Startup\bob-gemini-free.bat`.
   - Added live CLI subcommand suite: `./bob-gemini-free service [install|start|stop|status|uninstall]`.
-- **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)**:
-  - Integrated official SQLite WebAssembly (`sql.js`) engine running client-side with zero cloud costs.
+- **In-Browser SQLite WASM Database Studio (`🗄️ SQL WASM`)** (historical; removed from the active tree):
+  - This earlier client-side experiment is retained here for history only; it
+    is not a current gateway database or desktop runtime dependency.
   - Automatic `[ Run SQL ⚡ ]` action card chips on all ` ```sql ` code blocks.
   - Interactive table viewer rendering formatted data with column headers, formatted numbers, row counts, and microsecond execution timer (`⚡ 0.8ms`).
   - Interactive SQL query editor allowing users to run live `SELECT`, `INSERT`, `UPDATE`, and `CREATE TABLE` queries directly in the browser sandbox.
@@ -130,7 +169,8 @@ general “download and trust” production rollout.
   - Dual Tab switcher (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), quick copy (`📋`), standalone file export (`💾`), and instant fullscreen pop-out (`⛶`) in dedicated browser windows.
 - **Live AI Prompt Metaprompting Wand Engine (`🪄`)**:
   - Upgraded from static heuristic regex to a **real-time AI prompt optimization engine**: makes a background call to local BOB gateway (`/v1/chat/completions`) using `gemini-3.7-flash` to transform rough thoughts into structured, precision master prompts in ~200ms.
-  - Seamless, zero-latency offline fallback to structured templates (Game/App, Math/Physics, Code/Architecture, General) when offline or unreachable.
+  - Earlier prompt-assistant fallback templates were heuristic local output,
+    not provider inference; current README wording labels that boundary.
   - Keyboard shortcut (`⌘ + Shift + P` / `Ctrl + Shift + P`) and sparkling button glow animation.
 - **Subtle, Non-Breaking Reading Zoom Controller (`🔍 100%`)**:
   - Dynamically scales reading typography (`calc(0.92rem * var(--reading-zoom))`) on assistant responses, markdown text, thought blocks, and code blocks while keeping header, sidebars, starter cards, and input layout 100% fixed, stable, and unbroken.

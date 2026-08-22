@@ -108,3 +108,19 @@ func TestDownloadVerifiedArtifactLimitedRejectsOversizedResponse(t *testing.T) {
 		t.Fatal("oversized artifact was accepted")
 	}
 }
+
+func TestCreateSignedManifestRejectsSymlinkAsset(t *testing.T) {
+	directory := t.TempDir()
+	target := filepath.Join(t.TempDir(), "outside-asset")
+	if err := os.WriteFile(target, []byte("outside"), 0600); err != nil {
+		t.Fatalf("write outside asset: %v", err)
+	}
+	link := filepath.Join(directory, "release.bin")
+	if err := os.Symlink(target, link); err != nil {
+		t.Skipf("symlinks unavailable on this host: %v", err)
+	}
+	_, _, err := CreateSignedManifest(directory, make(ed25519.PrivateKey, ed25519.PrivateKeySize))
+	if err == nil || !strings.Contains(err.Error(), "symlink") {
+		t.Fatalf("symlink asset was accepted: %v", err)
+	}
+}

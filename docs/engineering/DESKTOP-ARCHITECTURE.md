@@ -1,17 +1,18 @@
-# Desktop Architecture Decision — Wails-only
+# Desktop Architecture Decision — Single Native Path
 
-**Decision status:** Wails is the sole supported native desktop architecture.
+**Decision status:** `cmd/desktop` is the sole supported native desktop
+architecture.
 The former alternate desktop wrapper was archived by deletion from the active
 tree after the capability comparison; Git history preserves its provenance.
 
 ## Decision
 
 `cmd/desktop` is the canonical and only active desktop product path. It embeds
-the Go gateway in the Wails process, so a packaged user does not need a
+the Go gateway in the desktop process, so a packaged user does not need a
 separate Go runtime, local server, SQLite database, memory service, Node
 installation, or Rust installation.
 
-The Wails gateway boundary is deliberately explicit:
+The desktop gateway boundary is deliberately explicit:
 
 - probe the requested loopback port;
 - reuse only a compatible identified BOB gateway;
@@ -21,7 +22,8 @@ The Wails gateway boundary is deliberately explicit:
 - surface startup errors in the native window; and
 - close only a gateway owned by the app during shutdown.
 
-The deleted alternate wrapper provided no capability required by Wails. It used
+The deleted alternate wrapper provided no capability required by the canonical
+desktop path. It used
 a fixed port, a sidecar process, and no compatible-gateway endpoint handoff.
 Keeping it active would create a second release surface without adding product
 value. Its deletion is therefore a product simplification and a security

@@ -7,8 +7,9 @@ import (
 
 // App struct
 type App struct {
-	ctx        context.Context
-	gatewayURL string
+	ctx                    context.Context
+	gatewayURL             string
+	updateConfirmationPath string
 }
 
 // NewApp creates a new App application struct

@@ -288,6 +288,24 @@ func configuredUpdatePublicKey() (ed25519.PublicKey, error) {
 	return ed25519.PublicKey(decoded), nil
 }
 
+// embeddedUpdatePublicKey is the native desktop trust boundary. Unlike the
+// CLI's local-development path, a packaged desktop app must never allow a
+// mutable runtime environment variable to choose its release signer.
+func embeddedUpdatePublicKey() (ed25519.PublicKey, error) {
+	raw := strings.TrimSpace(BuildUpdatePublicKey)
+	if raw == "" {
+		return nil, fmt.Errorf("no embedded desktop update public key is available; refusing automatic installation")
+	}
+	decoded, err := decodeEncodedBytes(raw)
+	if err != nil {
+		return nil, fmt.Errorf("invalid embedded desktop update public key encoding: %w", err)
+	}
+	if len(decoded) != ed25519.PublicKeySize {
+		return nil, fmt.Errorf("invalid embedded desktop update public key length: got %d bytes, want %d", len(decoded), ed25519.PublicKeySize)
+	}
+	return ed25519.PublicKey(decoded), nil
+}
+
 func decodeEncodedBytes(value string) ([]byte, error) {
 	value = strings.TrimSpace(value)
 	if len(value)%2 == 0 {
@@ -468,8 +486,10 @@ func copyFile(src, dst string) error {
 	}
 	defer out.Close()
 
-	_, err = io.Copy(out, in)
-	return err
+	if _, err = io.Copy(out, in); err != nil {
+		return err
+	}
+	return out.Sync()
 }
 
 func verifyBinaryMagic(filePath string, targetOS string) error {

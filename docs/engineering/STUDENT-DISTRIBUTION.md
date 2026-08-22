@@ -3,12 +3,12 @@
 **Status:** public macOS/Windows preview is published; production trust,
 Linux acceptance, and broad student rollout remain pending.
 
-This document separates the working Wails application shown in the local
+This document separates the working native application shown in the local
 screenshots from a product release that students can download and trust.
 
 ## What is already proven
 
-- The Wails app embeds the Go gateway and the BOB Builder studio.
+- The native app embeds the Go gateway and the BOB Builder studio.
 - A packaged macOS ARM64 app opened on this device, reached the actual
   loopback endpoint, rendered the studio and artifact canvas, and released its
   gateway cleanly on quit.
@@ -24,14 +24,14 @@ screenshots from a product release that students can download and trust.
 | Platform | Student artifact | Native build boundary | Runtime truth | Current status |
 |---|---|---|---|---|
 | macOS Apple Silicon / Intel | Free preview: ad-hoc `.app` inside `.dmg` or `.zip`; professional release: Developer ID package | Build on macOS; use `make desktop-preview-mac` for the free path or `make desktop-mac` for the raw bundle | No separate Go/Node/Rust/SQLite service | Public preview asset published; no Apple trust chain, clean-device acceptance, or production student release |
-| Windows 10/11 x64 | Free preview: raw unsigned `.exe` with WebView2 already installed; professional release: publisher-signed NSIS installer | Build and test on Windows; use `make desktop-windows` | Wails uses Edge WebView2; an NSIS installer can bootstrap the runtime | Public raw preview published; no Windows device or NSIS installer acceptance in this audit |
-| Linux x64 | Free preview: documented Wails package/tarball; professional release: verified AppImage or distro package | Build and test on Linux; use `make desktop-linux` | GTK3 and WebKit2GTK runtime libraries remain required | Native Linux host build and distro acceptance remain pending |
+| Windows 10/11 x64 | Free preview: raw unsigned `.exe` with WebView2 already installed; professional release: publisher-signed NSIS installer | Build and test on Windows; use `make desktop-windows` | The native shell uses Edge WebView2; an NSIS installer can bootstrap the runtime | Public raw preview published; no Windows device or NSIS installer acceptance in this audit |
+| Linux x64 | Free preview: documented native package/tarball; professional release: verified AppImage or distro package | Build and test on Linux; use `make desktop-linux` | GTK3 and WebKit2GTK runtime libraries remain required | Native Linux host build and distro acceptance remain pending |
 | Any platform | CLI binary | `make dist` / signed local release matrix | Terminal + browser; this is not the native desktop app | Existing CLI release path; separate from the student GUI product |
 
-Wails documents Windows NSIS packaging and WebView2 handling, while its Linux
-documentation explicitly requires GTK3/WebKit2GTK runtime libraries. Linux
+The native shell's Windows packaging supports NSIS and WebView2 handling, while
+its Linux build explicitly requires GTK3/WebKit2GTK runtime libraries. Linux
 therefore cannot honestly be marketed as “no setup on every distribution” for
-the current Wails v2 product.
+the current product.
 
 ## First-run and authentication contract
 
@@ -46,7 +46,7 @@ the current Wails v2 product.
    student's own authorized Google session. A teacher/developer cookie must
    never be embedded in the app, shared in a class archive, or committed to
    Git.
-5. The existing `--login` flow belongs to the CLI. The Wails app currently
+5. The existing `--login` flow belongs to the CLI. The native app currently
    honors a user's existing local cookie/config but does not yet provide a
    complete in-app first-run sign-in wizard. Broad student rollout should wait
    for that UX or provide an explicit, tested per-user setup path.
@@ -65,9 +65,9 @@ as a signed production release.
 Every release must include:
 
 ```text
-bob-gemini-free-wails-macos-*.zip or .dmg
-bob-gemini-free-wails-windows-amd64.exe
-bob-gemini-free-wails-linux-amd64.AppImage or a documented package
+bob-gemini-free-macos-*.zip or .dmg
+bob-gemini-free-windows-amd64.exe
+bob-gemini-free-linux-amd64.AppImage or a documented package
 SHA256SUMS
 SHA256SUMS.sig
 release notes with supported OS versions and known provider limits
@@ -87,27 +87,31 @@ Do not publish an unsigned desktop artifact and call it production-ready. An
 ad-hoc signature is useful for local testing and an explicitly labelled preview
 only.
 
-The Wails Help menu now offers a user-initiated metadata check. It does not
+The native Help menu now offers a user-initiated metadata check. It does not
 perform a silent replacement. Until signed production packages and manifests
 are published, students must use the preview release page or the documented
 pilot path.
 
 ## Automatic update plan and 30-device rollout gate
 
-The current native preview does **not** update itself. A new preview therefore
+The public Preview 2 does **not** update itself. A new preview therefore
 requires quitting BOB, downloading the replacement from the official release,
 and installing/replacing the old app. Deleting the app is not normally
 required, but the exact replacement step is still manual and every machine
 must be handled separately.
 
-The safe production path is a user-consented updater that downloads a
-platform-matching package in the background, verifies a release manifest with
-the embedded Ed25519 public key, asks the user to restart, replaces the app via
-a platform-specific helper, and retains rollback evidence. It must use a
-stable/beta channel policy and never treat an unsigned preview archive as
-trusted. Apple Developer ID/notarization and Windows publisher signing remain
-separate trust requirements; an Ed25519 manifest authenticates release bytes,
-not the platform publisher identity.
+The source now contains the tested substrate for a user-consented updater that
+downloads a platform-matching package, verifies a release manifest with the
+embedded Ed25519 public key, asks the user to restart, replaces the app via a
+platform-specific helper, and retains rollback evidence. It is not enabled by
+Preview 2 because that build has no embedded desktop key and the public
+preview has no signed manifest. It must use a stable/beta channel policy and
+never treat an unsigned preview archive as trusted. Apple Developer
+ID/notarization and Windows publisher signing remain separate trust
+requirements; an Ed25519 manifest authenticates release bytes, not the
+platform publisher identity. See
+[`DESKTOP-UPDATE-OPERATIONS.md`](DESKTOP-UPDATE-OPERATIONS.md) for the human
+rollout risks and 30-device gate.
 
 Do not install the current preview on all 30 student Macs yet. Use this gate:
 
@@ -155,7 +159,7 @@ student can start today without installing Go:
 3. Complete authentication with that student's own authorized Google session
    if the selected capability requires it.
 
-This path is a CLI plus browser experience. It is not a native Wails download,
+This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
 [`v0.1.7-preview.2` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2):

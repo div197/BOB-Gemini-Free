@@ -1,17 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build a free Windows preview executable. This is a raw Wails executable, not
-# an NSIS installer and not publisher-signed. It is useful for controlled
+# Build a free Windows preview executable. This is a raw desktop executable,
+# not an NSIS installer and not publisher-signed. It is useful for controlled
 # Windows testing only; WebView2 must already be available on the device.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-OUTPUT_DIR="${1:-/tmp/bob-gemini-free-wails-windows-preview}"
+OUTPUT_DIR="${1:-/tmp/bob-gemini-free-windows-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-windows/amd64}"
-APP_NAME="bob-gemini-free-wails"
+INTERNAL_APP_NAME="bob-gemini-free"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
 
 if [[ "$PLATFORM" != windows/amd64 && "$PLATFORM" != windows/arm64 ]]; then
-	echo "unsupported Windows Wails platform: $PLATFORM" >&2
+	echo "unsupported Windows desktop platform: $PLATFORM" >&2
 	exit 1
 fi
 if [[ -e "$OUTPUT_DIR" ]]; then
@@ -34,24 +35,32 @@ else
 	WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-cd "$ROOT_DIR/cmd/desktop"
-"${WAILS[@]}" build -clean -platform "$PLATFORM"
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+fi
 
-SOURCE_EXE="$ROOT_DIR/cmd/desktop/build/bin/${APP_NAME}.exe"
-DEST_EXE="$OUTPUT_DIR/${APP_NAME}-windows-${PLATFORM##*/}.exe"
+cd "$ROOT_DIR/cmd/desktop"
+"${WAILS[@]}" build -clean -platform "$PLATFORM" "${WAILS_LDFLAGS[@]}"
+
+SOURCE_EXE="$ROOT_DIR/cmd/desktop/build/bin/${INTERNAL_APP_NAME}.exe"
+DEST_EXE="$OUTPUT_DIR/bob-gemini-free-windows-${PLATFORM##*/}.exe"
 if [[ ! -f "$SOURCE_EXE" ]]; then
-	echo "Wails did not produce the expected Windows executable: $SOURCE_EXE" >&2
+	echo "desktop build did not produce the expected Windows executable: $SOURCE_EXE" >&2
 	exit 1
 fi
 cp "$SOURCE_EXE" "$DEST_EXE"
 
 cat > "$OUTPUT_DIR/RELEASE-NOTICE.txt" <<'NOTICE'
-BOB Gemini Free Windows preview executable
+BOB Gemini Free Windows open-source beta executable
 
-This build is open-source software for controlled evaluation.
-It is NOT Authenticode/publisher signed and is NOT an NSIS installer.
+This is the complete BOB Gemini Free desktop application for open-source
+evaluation. It is not Authenticode/publisher signed and is not an installer;
+Windows SmartScreen and WebView2 requirements may apply.
+That platform-trust limitation does not change the product identity or the
+fact that this is a genuine build from the public source repository.
+The package is a beta and should be tested before a broad student rollout.
 Microsoft WebView2 must already be available on the Windows device.
-Do not use this artifact as proof of production Windows distribution readiness.
 No Google session, cookie, API key, or private release key is included.
 NOTICE
 
@@ -60,5 +69,5 @@ NOTICE
 	shasum -a 256 "$(basename "$DEST_EXE")" RELEASE-NOTICE.txt > SHA256SUMS
 )
 
-echo "Windows preview executable ready in: $OUTPUT_DIR"
+echo "BOB Gemini Free Windows preview executable ready in: $OUTPUT_DIR"
 ls -lh "$OUTPUT_DIR"

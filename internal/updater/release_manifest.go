@@ -34,6 +34,16 @@ func CreateSignedManifest(directory string, privateKey ed25519.PrivateKey) ([]by
 		if entry.IsDir() || entry.Name() == "SHA256SUMS" || entry.Name() == "SHA256SUMS.sig" {
 			continue
 		}
+		if entry.Type()&os.ModeSymlink != 0 {
+			return nil, nil, fmt.Errorf("release asset %s is a symlink; refusing to sign an indirect file", entry.Name())
+		}
+		info, err := entry.Info()
+		if err != nil {
+			return nil, nil, fmt.Errorf("inspect release asset %s: %w", entry.Name(), err)
+		}
+		if !info.Mode().IsRegular() {
+			return nil, nil, fmt.Errorf("release asset %s is not a regular file", entry.Name())
+		}
 		path := filepath.Join(directory, entry.Name())
 		file, err := os.Open(path)
 		if err != nil {

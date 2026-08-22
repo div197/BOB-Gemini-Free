@@ -37,7 +37,8 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 
 | Status | Current meaning |
 |---|---|
-| **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, Wails port selection, and aggregate metrics |
+| **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
+| **Native updater status** | Signed-manifest staging, post-exit replacement, confirmation, and rollback are source-tested; the public Preview 2 remains manual-update-only until a release embeds the public key and publishes a signed manifest |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md); they are not Google latency or rate-limit measurements |
@@ -48,6 +49,11 @@ The Go gateway sends no automatic telemetry, but the browser studio loads
 third-party CDN assets and an input-tools endpoint. Hosted Studio access to a
 local gateway requires an exact configured origin (and should also use an API
 key); PNA is not authentication.
+
+BOB Gemini Free does not create a BOB account, require a BOB signup, or send
+chat prompts to a BOB cloud service. Google authentication, when needed, is
+the student's own provider session and remains subject to Google's policies,
+expiry, entitlements, and network behavior.
 
 ---
 
@@ -63,7 +69,11 @@ In the modern AI landscape, learners, independent creators, and developers const
 - 🧭 **Session-Dependent Access**: The available model, reasoning, image, quota, and context behavior follows the configured Google web session.
 - 🔓 **The "API-Less AI" Architecture**: No gateway billing account is required, but a Google session and Google's current entitlements still govern upstream access.
 - 🌉 **Multiple Adapter Surfaces**: One local gateway exposes OpenAI-shaped, Anthropic-shaped, Google Gemini-shaped, and embedded Go interfaces. Compatibility is endpoint-specific and tool calling is emulated in some paths.
-- ⚡ **Zero-Friction Simplicity**: A packaged CLI or desktop release carries its runtime and does not require users to install Go, Python, Node, SQLite, or a separate memory service. Building from source still requires the documented toolchain. The optional **1-Click Native Login Window (`--login`)** remains dependent on the local browser and Google.
+- ⚡ **Packaged runtime simplicity**: A packaged CLI or desktop release carries
+  its runtime and does not require users to install Go, Python, Node, SQLite,
+  or a separate memory service. Building from source still requires the
+  documented toolchain. The optional **1-Click Native Login Window (`--login`)
+  ** remains dependent on the local browser and Google.
 
 ---
 
@@ -139,7 +149,9 @@ The **BOB Series** by **ABCsteps** is a developer-first collection of open-sourc
 
 ## Supported Tools & Ecosystem
 
-BOB Gemini Free works out of the box with modern AI tools across deep coding, automation, and agentic workflows:
+BOB Gemini Free can be configured for the following tools. Compatibility is
+endpoint- and feature-specific; each client should be tested against the
+adapter route it uses before classroom or production adoption:
 
 | Category | Supported Clients & Frameworks | Connection Endpoint |
 | :--- | :--- | :--- |
@@ -151,9 +163,9 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 
 ---
 
-## Quick Start (Zero-Friction for All Users)
+## Quick Start (local and packaged paths)
 
-### Super Simple Start (No Config Required)
+### Local Start (no BOB account required)
 
 ```bash
 # 1. Start the gateway
@@ -161,18 +173,21 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 
 # 2. Point any AI tool or script to:
 # Base URL: http://127.0.0.1:9610/v1
-# API Key:  none
+# API Key:  none unless you configure local gateway API keys
 ```
 
 ---
 
 ### Option 0: The Native Desktop App (Recommended)
-BOB Gemini Free has a **Wails desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
+BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.2 native desktop preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2) contains the corrected macOS universal and Windows x64 Wails packages; it is explicitly beta, unsigned/unnotarized for platform trust, and Linux is not included.
+* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.2 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.2) contains the corrected macOS universal and Windows x64 packages; it is an authentic open-source beta, platform trust is not yet established, and Linux is not included.
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
+* Preview 2 does not auto-update. The source updater is fail-closed and will
+  install only a release with an embedded trust key, signed manifest, and the
+  required platform trust evidence.
 
 ---
 
@@ -180,7 +195,7 @@ BOB Gemini Free has a **Wails desktop application** powered by Go. It bundles th
 
 These scripts install the standalone CLI gateway and open the browser studio.
 They are the currently published, same-day path; they do **not** install the
-native Wails desktop application. Native desktop packages are only available
+native desktop application. Native desktop packages are only available
 when the corresponding artifact is listed in the GitHub Release assets.
 
 #### macOS & Linux
@@ -272,9 +287,10 @@ Run BOB Gemini Free 24/7 in the background across system reboots with native OS 
 
 ---
 
-### Option 5: In-Place Atomic Auto-Updater (`--update`)
+### Option 5: CLI Signed Self-Updater (`--update`)
 
-Keep BOB Gemini Free updated with the latest releases directly from GitHub with 1 command:
+Keep the standalone CLI updated from the official GitHub release with one
+explicit command:
 
 ```bash
 ./bob-gemini-free --update
@@ -284,6 +300,11 @@ Updates now fail closed unless the release publishes a signed `SHA256SUMS`
 manifest and the matching Ed25519 public key is configured as
 `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` (base64 or hexadecimal). See
 [`docs/engineering/UPDATE-VERIFICATION.md`](docs/engineering/UPDATE-VERIFICATION.md).
+
+This CLI environment-key path is not the native desktop trust boundary.
+Production native builds must embed their public key at build time. The public
+Preview 2 app has no embedded key and remains manual-update-only; see
+[`docs/engineering/DESKTOP-UPDATE-OPERATIONS.md`](docs/engineering/DESKTOP-UPDATE-OPERATIONS.md).
 
 ---
 
@@ -298,7 +319,10 @@ Access the built-in visual studio directly in your web browser:
 * 🐍 **Institutional-Grade In-Browser Pyodide WASM Python Sandbox**: Live client-side CPython 3.11 execution in an isolated WebAssembly sandbox with zero server-side execution risk, zero Python setup, interactive `input()` support, and automatic scientific package wheel streaming (`numpy`, `pandas`, `matplotlib`, `scipy`, `sympy`).
 * 🧭 **No server database or memory service**: The gateway is stateless between requests apart from its explicit session pool and safe aggregate counters; the studio does not provision SQLite or a server-side database.
 * ⚡ **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
-* 🪄 **Live AI Prompt Metaprompting Wand Engine (`🪄`)**: Background prompt optimization powered by `gemini-3.7-flash` that transforms rough thoughts into structured master specifications in ~200ms with seamless offline fallback (`⌘ + Shift + P`).
+* 🪄 **Prompt assistant (`🪄`)**: Attempts prompt improvement through the local
+  gateway; when that request is unavailable it returns a clearly local,
+  heuristic template. The template is not a provider response or a guarantee
+  of AI inference.
 * 🔍 **Non-Breaking Reading Text Zoom Controller (`🔍 100%`)**: Targeted typography scaling (`calc(0.92rem * var(--reading-zoom))`) via sub-bar pill, `⌘+`/`⌘-`/`⌘0`, and Command Palette without breaking outer geometry, headers, or navigation.
 * 🏛️ **Unified Sacred Geometry Studio Input Capsule**: Single cohesive dark-glass input capsule seamlessly housing auto-expanding textarea, vision attachments, power tools (`📎`, `अ Indic`, `🎙️ Voice`, `🪄 AI Wand`), and the golden `SEND ➤` CTA across mobile and desktop.
 * 🎙️ **Natural HD Speech Studio & Floating Audio Controller Bar**: NotebookLM-class neural voice synthesis with Play/Pause (`⏸️`/`▶️`), speed cycling (`0.8x`–`1.5x`), 4-bar sound equalizer (`ılılı`), and sentence progress tracking.
@@ -315,7 +339,9 @@ Access the built-in visual studio directly in your web browser:
   * `1`–`5`: Switch between flagship models (`gemini-3.7-flash`, `thinking`, `gemini-3.1-pro`, `imagen-3`).
   * `T1`–`T5`: Switch Sacred Themes (Apple Design, BOB Builder, Vodafone Editorial, Spotify Dark, Gemini Quantum).
   * `G`: Open Gateway Engine Status & Endpoint Config • `N`: New Chat • `[` / `]`: Toggle sidebars • `E`: Export Markdown.
-* 📊 **Live On-Device Telemetry & Savings**: Real-time ticker tracking uptime, requests served, token throughput, and estimated USD financial savings.
+* 📊 **Local aggregate status**: The UI can display process-local uptime,
+  request, token-estimate, latency, and estimated-savings counters. These are
+  not external analytics or provider billing records.
 
 <p align="center">
   <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free Web Playground & Telemetry Dashboard — BOB Builder Theme Default" width="100%">
@@ -347,7 +373,9 @@ The gateway will start listening at `http://127.0.0.1:9610/v1`.
 
 ## 📂 Multi-Language Examples & Client Integrations
 
-Production-ready, copy-pasteable integration examples are located in the [`examples/`](examples/) directory:
+Endpoint-specific integration examples are located in the [`examples/`](examples/)
+directory. They are starting points, not a universal compatibility or
+production certification:
 
 * 🐍 **Python**:
   * [`examples/python/openai_chat.py`](examples/python/openai_chat.py) — OpenAI SDK with streaming reasoning extraction (`reasoning_content`).
@@ -703,9 +731,9 @@ Open **Google Chrome**, **Arc**, **Edge**, or **Brave** and visit [**gemini.goog
 
 ---
 
-### Step 2: Configure BOB Gemini Free (Zero Copy-Paste or Manual Methods)
+### Step 2: Configure BOB Gemini Free (interactive or manual session setup)
 
-#### 🌟 Method 0: 1-Click Interactive Sign-In Window (Zero Copy-Paste — Easiest for Everyone!)
+#### 🌟 Method 0: 1-Click Interactive Sign-In Window (best-effort convenience)
 
 Run the login command in your terminal:
 
@@ -731,14 +759,15 @@ Run the login command in your terminal:
 ┌─────────────────────────────────────────────────────────────┐
 │  [✔] Verified 19 session tokens!                            │
 │  [✔] Saved to ./cookie.txt and ~/.config/bob-gemini-free/   │
-│  [✔] Gemini Pro model (gemini-3.1-pro) & Imagen 3 unlocked! │
+│  [i] Session captured; provider capabilities remain account-dependent. │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 1. A standalone Google Gemini sign-in window will open on your screen.
 2. Sign in to your Google Account (supports Passkeys, 2FA, SMS).
 3. As soon as login completes, BOB Gemini Free **attempts to capture the required session cookies via the Chrome DevTools Protocol**, saves `cookie.txt` (`mode 0600`) when successful, and closes the window.
-4. **Zero DevTools, zero copy-pasting, zero Keychain password prompts!**
+4. The workflow is an attempt to capture the session; browser policy, Google
+   changes, and local permissions can still require manual setup.
 
 ---
 
@@ -748,16 +777,18 @@ Google's internal web architecture strictly distinguishes between standard text 
 
 | Capability | Anonymous / Guest Session | Authenticated Google Session (`./cookie.txt` via `--login`) |
 | :--- | :--- | :--- |
-| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | ✅ Unlocked | ✅ Full 1M+ Context & Peak Speed |
-| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | ✅ Unlocked | ✅ Full Deep Thinking Blocks |
-| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | ❌ **Blocked by Google** (`BardErrorInfo [1003]`) | ✅ **Fully Unlocked** (Zero Paywall) |
-| **Imagen 3 Image Synthesis** (`imagen-3`) | ❌ **Blocked by Google** | ✅ **Fully Unlocked** (Photorealistic Synthesis) |
-| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | ❌ Reverts to Flash | ✅ **Fully Unlocked** |
+| **Text Chat & Coding** (`gemini-3.7-flash`, `gemini-3.6-flash`) | session/provider-dependent | session/provider-dependent |
+| **Deep Step-by-Step Reasoning** (`gemini-3.7-flash-thinking`) | session/provider-dependent | session/provider-dependent |
+| **Multimodal Image Analysis (Vision)** (Diagrams, Screenshots, OCR) | may fail without an authenticated session | an authenticated session may permit it; live proof is required |
+| **Imagen 3 Image Synthesis** (`imagen-3`) | may fail | may be available; upstream/account-dependent |
+| **Pro Model Routing** (`gemini-3.1-pro` / `gemini-pro`) | may fall back or fail | may be available; upstream/account-dependent |
 
 **Why does Google require a session for images?**
 When you attach an image or screenshot, BOB Gemini Free compresses the payload and initiates a resumable upload to Google's Scotty storage (`content-push.googleapis.com/upload/`). Google's backend verifies that the storage tenant is cryptographically signed by an authenticated Google account (`SAPISIDHASH` + `__Secure-1PSIDTS`). If unauthenticated or expired, Google returns `BardErrorInfo [1003]`. 
 
-Running `./bob-gemini-free --login` once authenticates your session and permanently unlocks vision analysis.
+Running `./bob-gemini-free --login` attempts to capture a session for the
+current user. Cookies can expire or be revoked, and provider capabilities must
+be checked again after login; there is no permanent unlock guarantee.
 
 ---
 
@@ -972,7 +1003,9 @@ Partially. BOB Gemini Free injects tool schemas into prompts and parses Markdown
 Send standard OpenAI image payloads containing base64 data URLs (`data:image/png;base64,...`) or image files. BOB Gemini Free attempts to optimize oversized images and uploads them via Google's Scotty Resumable Upload protocol (`content-push.googleapis.com`) when an authenticated session permits it.
 
 * **Session Requirement**: Google strictly binds Scotty file uploads to authenticated Google account sessions (`SAPISIDHASH` + `__Secure-1PSIDTS`). Unauthenticated requests will fail with `BardErrorInfo [1003]`.
-* **Resolution**: Run `./bob-gemini-free --login` once to authenticate your session and permanently unlock vision.
+* **Resolution**: Run `./bob-gemini-free --login` to attempt session capture;
+  vision availability remains dependent on current cookies, account
+  entitlements, and Google's web protocol.
 </details>
 
 <details>
