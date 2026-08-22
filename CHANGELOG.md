@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [0.1.7-preview.1] - 2026-08-22
+
+### Public Native Desktop Preview (Beta)
+
+This manually published, no-GitHub-Actions prerelease is a controlled preview
+of the Wails desktop application. It is not a production or trusted-platform
+release.
+
+#### Included
+- macOS universal `.dmg` and `.zip` packages for Apple Silicon and Intel;
+- Windows x64 native Wails preview executable;
+- release notice and SHA-256 checksums;
+- an embedded Go gateway and BOB Builder studio with no Go, Node, Rust,
+  SQLite, or separate server required at runtime.
+
+#### Known limits
+- macOS is ad-hoc signed only; it is not Developer ID signed or notarized;
+- Windows is not Authenticode signed and requires WebView2 on the device;
+- Linux is not included in this preview because a native Linux build and
+  package acceptance have not been completed;
+- authenticated Google features require each user's own authorized session;
+- the native app does not silently download or replace itself; update checks
+  are explicit and the preview is downloaded manually from the prerelease page.
+
+The preview is suitable for informed evaluation and a controlled pilot, not a
+general “download and trust” production rollout.
+
 ## [0.1.7] - 2026-08-20
 
 ### The Desktop Paradigm & True Static Unmetered UI

@@ -1,7 +1,7 @@
 # Student Desktop Distribution Contract
 
-**Status:** native macOS smoke-tested; Windows/Linux desktop release artifacts
-and public signed distribution remain pending.
+**Status:** public macOS/Windows preview is published; production trust,
+Linux acceptance, and broad student rollout remain pending.
 
 This document separates the working Wails application shown in the local
 screenshots from a product release that students can download and trust.
@@ -15,16 +15,17 @@ screenshots from a product release that students can download and trust.
 - The app can discover a user's existing local config/cookie files, but it
   forcibly remains loopback-only and does not accept server API keys or remote
   origins in desktop mode.
-- The current public GitHub release is a CLI release. It is not a student-ready
-  native desktop installer set.
+- The public [`v0.1.7-preview.1` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1)
+  contains a macOS universal preview and a Windows x64 preview. It is a
+  controlled beta, not a student-ready trusted installer set.
 
 ## Student artifact matrix
 
 | Platform | Student artifact | Native build boundary | Runtime truth | Current status |
 |---|---|---|---|---|
-| macOS Apple Silicon / Intel | Signed `.app` inside `.dmg` or `.zip` | Build on macOS; use `make desktop-mac` or `BOB_WAILS_PLATFORM=darwin/universal scripts/build-wails-local.sh ...` | No separate Go/Node/Rust/SQLite service | ARM64 ad-hoc app tested; Developer ID, notarization, universal clean-device test pending |
-| Windows 10/11 x64 | Signed NSIS `.exe` installer | Build and test on Windows; use `make desktop-windows` | Wails uses Edge WebView2; installer can bootstrap the runtime | Templates and command exist; no Windows artifact has been tested in this audit |
-| Linux x64 | AppImage or distro package | Build and test on Linux; use `make desktop-linux` for the Wails binary | GTK3 and WebKit2GTK runtime libraries remain required | No Linux GUI artifact has been built or distro-tested in this audit |
+| macOS Apple Silicon / Intel | Free preview: ad-hoc `.app` inside `.dmg` or `.zip`; professional release: Developer ID package | Build on macOS; use `make desktop-preview-mac` for the free path or `make desktop-mac` for the raw bundle | No separate Go/Node/Rust/SQLite service | Public preview asset published; no Apple trust chain, clean-device acceptance, or production student release |
+| Windows 10/11 x64 | Free preview: raw unsigned `.exe` with WebView2 already installed; professional release: publisher-signed NSIS installer | Build and test on Windows; use `make desktop-windows` | Wails uses Edge WebView2; an NSIS installer can bootstrap the runtime | Public raw preview published; no Windows device or NSIS installer acceptance in this audit |
+| Linux x64 | Free preview: documented Wails package/tarball; professional release: verified AppImage or distro package | Build and test on Linux; use `make desktop-linux` | GTK3 and WebKit2GTK runtime libraries remain required | Native Linux host build and distro acceptance remain pending |
 | Any platform | CLI binary | `make dist` / signed local release matrix | Terminal + browser; this is not the native desktop app | Existing CLI release path; separate from the student GUI product |
 
 Wails documents Windows NSIS packaging and WebView2 handling, while its Linux
@@ -56,6 +57,11 @@ The project can keep its no-Actions policy. The maintainer release operator
 builds on the native macOS, Windows, and Linux hosts, runs the acceptance
 matrix below, then uploads the exact artifacts manually to a GitHub Release.
 
+The `v0.1.7-preview.1` release is an explicit exception to the production
+artifact contract below: it contains only macOS and Windows preview packages,
+an unsigned checksum manifest, and a warning notice. It must not be presented
+as a signed production release.
+
 Every release must include:
 
 ```text
@@ -78,7 +84,13 @@ artifacts still need their platform trust chain:
   dependency declarations.
 
 Do not publish an unsigned desktop artifact and call it production-ready. An
-ad-hoc signature is useful for local testing only.
+ad-hoc signature is useful for local testing and an explicitly labelled preview
+only.
+
+The Wails Help menu now offers a user-initiated metadata check. It does not
+perform a silent replacement. Until signed production packages and manifests
+are published, students must use the preview release page or the documented
+pilot path.
 
 ## Acceptance gate per platform
 
@@ -98,7 +110,25 @@ ad-hoc signature is useful for local testing only.
 
 For a first student pilot, ship macOS and Windows native installers only after
 one clean-device test on each. Keep Linux as a documented technical preview
-until the WebKit2GTK ABI/package matrix is tested. If a class needs immediate
-access before those installers exist, use the already-tested local macOS app or
-the CLI/browser path, but label it as a pilot—not a finished cross-platform
-release.
+until the WebKit2GTK ABI/package matrix is tested. A controlled pilot can use
+the published macOS/Windows preview with the release notice; it must remain
+labelled beta and must not be presented as a finished cross-platform release.
+
+## Same-day public path
+
+The latest stable GitHub Release contains standalone CLI binaries, so a
+student can start today without installing Go:
+
+1. macOS/Linux: run the published `install.sh` command from the repository
+   README; Windows: run the published `install.ps1` command.
+2. Start the installed gateway with the exact path printed by the installer
+   (`bob-gemini-free --port 9610` on macOS/Linux; the printed `.exe` path on
+   Windows), then open its browser studio at the displayed loopback URL.
+3. Complete authentication with that student's own authorized Google session
+   if the selected capability requires it.
+
+This path is a CLI plus browser experience. It is not a native Wails download,
+and the hosted Cloudflare Studio alone does not silently access a student's
+local machine. For the native beta, use the exact files listed on the
+[`v0.1.7-preview.1` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1):
+macOS universal `.dmg`/`.zip` or Windows x64 `.exe`. Linux is not included.

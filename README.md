@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.7-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/github/v/release/div197/BOB-Gemini-Free?style=flat-square&label=Release" alt="Latest GitHub Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -169,13 +169,19 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **Wails desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The current public GitHub release contains CLI binaries; a signed, notarized, cross-platform Wails installer set is not yet published.
+* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.1 native desktop preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.1) contains macOS universal and Windows x64 Wails packages; it is explicitly beta, unsigned/unnotarized for platform trust, and Linux is not included.
+* For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
 
 ---
 
-### Option 1: Automatic Installer (No Go Required)
+### Option 1: CLI Installer (No Go Required)
+
+These scripts install the standalone CLI gateway and open the browser studio.
+They are the currently published, same-day path; they do **not** install the
+native Wails desktop application. Native desktop packages are only available
+when the corresponding artifact is listed in the GitHub Release assets.
 
 #### macOS & Linux
 ```bash

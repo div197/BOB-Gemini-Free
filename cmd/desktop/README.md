@@ -49,11 +49,28 @@ scripts/build-wails-local.sh /tmp/bob-gemini-free-wails-macos
 BOB_WAILS_PLATFORM=darwin/universal scripts/build-wails-local.sh /tmp/bob-gemini-free-wails-universal
 ```
 
+For the no-Apple-membership evaluation path, build a clearly labelled local
+preview package containing an ad-hoc-signed `.app`, `.zip`, `.dmg`, checksums,
+and an installation notice:
+
+```bash
+make desktop-preview-mac
+```
+
+This preview is not Developer ID signed or notarized and must not be called a
+production student release. The full boundary is recorded in
+[`docs/engineering/FREE-DESKTOP-PREVIEW.md`](../../docs/engineering/FREE-DESKTOP-PREVIEW.md).
+
 These are native-host build commands, not claims that a macOS checkout can
 produce a tested Windows or Linux desktop release. The student download
 matrix, signing requirements, authentication boundary, and acceptance gates
 are recorded in
 [`docs/engineering/STUDENT-DISTRIBUTION.md`](../../docs/engineering/STUDENT-DISTRIBUTION.md).
+
+The native Help menu provides an explicit update check against the official
+GitHub release metadata. It does not silently replace the running app; a
+matching package is opened in the official release page for user-controlled
+installation.
 
 The app starts an embedded loopback gateway, reuses only an identified
 compatible existing BOB gateway, or selects a safe free port. The actual

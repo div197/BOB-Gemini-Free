@@ -5,6 +5,26 @@ Wails is the only active native desktop implementation. The former alternate
 wrapper was removed from the working tree after the Phase III comparison; its
 source remains recoverable through Git history, but it is not part of releases.
 
+## Free open-source preview path
+
+The project can build a macOS Wails preview without an Apple Developer
+membership:
+
+```bash
+make desktop-preview-mac
+```
+
+This path creates an ad-hoc-signed `.app`, `.zip`, and `.dmg` plus a release
+notice and local checksums. It is explicitly not Developer ID signed,
+notarized, or production-ready. It is intended for controlled evaluation only.
+It does not replace the signed release process below and must not be uploaded
+as a trusted student release without the warning notice.
+
+The Wails Help menu's update action is also intentionally user-initiated. It
+checks the official GitHub release metadata and opens the official release page
+when a matching package exists; it does not silently replace a running native
+bundle.
+
 ## Preconditions
 
 Set these values only in the local release environment:
