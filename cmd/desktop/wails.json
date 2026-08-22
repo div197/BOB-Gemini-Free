@@ -6,6 +6,13 @@
   "frontend:build": "",
   "frontend:dev:watcher": "",
   "frontend:dev:serverUrl": "auto",
+  "info": {
+    "companyName": "ABCsteps",
+    "productName": "BOB Gemini Free",
+    "productVersion": "0.1.7",
+    "copyright": "Copyright 2026 ABCsteps",
+    "comments": "Local-first AI gateway studio"
+  },
   "author": {
     "name": "Divyanshu Singh Chouhan",
     "email": "div197@users.noreply.github.com"

@@ -11,7 +11,6 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
-	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/server"
 )
 
@@ -20,8 +19,7 @@ var assets embed.FS
 
 func main() {
 	// 1. Run the local Gateway engine in the background
-	cfg := config.Default()
-	cfg.APIKeys = nil // Disable global config API keys for local desktop app
+	cfg := loadDesktopConfig()
 
 	srv := server.New(cfg, "v0.1.7")
 	app := NewApp()

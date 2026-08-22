@@ -10,11 +10,16 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-wails-release}"
 STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-wails-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
+PLATFORM="${BOB_WAILS_PLATFORM:-darwin/$(go env GOARCH)}"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
-  echo "this script builds the macOS Wails bundle and requires macOS" >&2
-  exit 1
+	echo "this script builds the macOS Wails bundle and requires macOS" >&2
+	exit 1
+fi
+if [[ "$PLATFORM" != darwin/* ]]; then
+	echo "this script only builds darwin targets; got: $PLATFORM" >&2
+	exit 1
 fi
 if [[ -e "$OUTPUT_DIR" ]]; then
   echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
@@ -40,7 +45,7 @@ else
 fi
 
 cd "$STAGE_ROOT/cmd/desktop"
-"${WAILS[@]}" build -clean
+"${WAILS[@]}" build -clean -platform "$PLATFORM"
 
 SOURCE_APP="$STAGE_ROOT/cmd/desktop/build/bin/bob-gemini-free-wails.app"
 DEST_APP="$OUTPUT_DIR/bob-gemini-free-wails.app"
@@ -54,4 +59,4 @@ xattr -cr "$DEST_APP" 2>/dev/null || true
 codesign --force --deep --sign - "$DEST_APP"
 codesign --verify --deep --strict --verbose=2 "$DEST_APP"
 
-echo "Wails macOS app ready: $DEST_APP"
+echo "Wails macOS $PLATFORM app ready: $DEST_APP"
