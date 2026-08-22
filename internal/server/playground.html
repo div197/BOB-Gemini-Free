@@ -4463,18 +4463,36 @@ function closeAboutModal() {
 }
 
 const ENDPOINT_KEY = "bob_gemini_endpoint";
+const EXPLICIT_ENDPOINT_KEY = "bob_gemini_endpoint_explicit";
+const DEFAULT_GATEWAY_URL = "http://127.0.0.1:9610";
+const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
 let isGatewayOnline = true;
+
+function isLoopbackPage() {
+  return LOOPBACK_HOSTS.includes(window.location.hostname);
+}
+
+function isHostedStudio() {
+  return !isLoopbackPage();
+}
+
+function hasExplicitGatewayEndpoint() {
+  const saved = (localStorage.getItem(ENDPOINT_KEY) || '').trim();
+  if (!saved) return false;
+  // Older builds could persist the default loopback URL after an automatic
+  // probe. Treat that legacy value as non-explicit until the user connects.
+  return localStorage.getItem(EXPLICIT_ENDPOINT_KEY) === 'true' || saved !== DEFAULT_GATEWAY_URL;
+}
 
 function getGatewayBaseUrl() {
   const custom = localStorage.getItem(ENDPOINT_KEY);
   if (custom && custom.trim() !== "") {
     return custom.trim().replace(/\/+$/, '');
   }
-  const isLocal = ['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
-  if (isLocal && window.location.port) {
+  if (isLoopbackPage() && window.location.port) {
     return window.location.origin;
   }
-  return "http://127.0.0.1:9610";
+  return DEFAULT_GATEWAY_URL;
 }
 
 function openGatewayModal() {
@@ -4482,7 +4500,6 @@ function openGatewayModal() {
   const input = document.getElementById("gateway-url-input");
   if (input) input.value = getGatewayBaseUrl();
   if (modal) modal.classList.add("open");
-  pingGatewayManual();
 }
 
 function closeGatewayModal() {
@@ -4495,10 +4512,12 @@ function closeGatewayModal() {
 function saveGatewayEndpoint() {
   const input = document.getElementById("gateway-url-input");
   const val = input ? input.value.trim() : "";
-  if (!val || val === "http://127.0.0.1:9610" || val === window.location.origin) {
+  if (!val || val === window.location.origin) {
     localStorage.removeItem(ENDPOINT_KEY);
+    localStorage.removeItem(EXPLICIT_ENDPOINT_KEY);
   } else {
     localStorage.setItem(ENDPOINT_KEY, val.replace(/\/+$/, ''));
+    localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
   }
   showToast("Gateway endpoint updated: " + getGatewayBaseUrl(), "⚡");
   refreshTelemetry();
@@ -4508,6 +4527,7 @@ function saveGatewayEndpoint() {
 
 function resetGatewayEndpoint() {
   localStorage.removeItem(ENDPOINT_KEY);
+  localStorage.removeItem(EXPLICIT_ENDPOINT_KEY);
   const input = document.getElementById("gateway-url-input");
   if (input) input.value = getGatewayBaseUrl();
   showToast("Reset to default: " + getGatewayBaseUrl(), "🔄");
@@ -4533,6 +4553,9 @@ async function pingGatewayManual() {
     const res = await fetch(checkUrl, { method: "GET" });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
+      if (isHostedStudio()) {
+        localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
+      }
       const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.7" }));
       if (pill) {
         pill.innerText = "ONLINE • " + (data.version || "v0.1.7");
@@ -5024,6 +5047,10 @@ function updateActiveModelBadge() {
 }
 
 async function refreshTelemetry() {
+  if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
+    updateGatewayStatusIndicator(false, null);
+    return;
+  }
   const baseUrl = getGatewayBaseUrl();
   try {
     const start = performance.now();
@@ -5047,29 +5074,6 @@ async function refreshTelemetry() {
     updateGatewayStatusIndicator(false, null);
   }
 }
-// --- LOCAL ENGINE PROBE (POSTMAN MODE) ---
-async function probeLocalEngine() {
-  const isPublicDomain = !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname);
-  if (!isPublicDomain) return; // Already local
-
-  // If user explicitly set a custom gateway, respect it
-  if (localStorage.getItem('bob_gemini_endpoint')) return;
-
-  try {
-    const res = await fetch("http://127.0.0.1:9610/", { method: "GET" });
-    if (res.ok) {
-      // Local engine found! Auto-bind to it.
-      localStorage.setItem('bob_gemini_endpoint', 'http://127.0.0.1:9610');
-      showToast("🚀 Local BOB Engine Detected & Connected!", "✅");
-      refreshTelemetry();
-      return;
-    }
-  } catch (err) {
-    // Local engine offline. Show Postman-like onboarding modal.
-    showLocalOnboardingModal();
-  }
-}
-
 function showLocalOnboardingModal() {
   const existing = document.getElementById("local-onboard-modal");
   if (existing) {
@@ -5085,30 +5089,31 @@ function showLocalOnboardingModal() {
           Connect Local Engine
         </h2>
         <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
-          You are currently using the public web preview. 
-          For unrestricted access and pure local execution, download the Native Desktop App or run the CLI engine.
+          This public Cloudflare page is a static browser studio. It does not access your device automatically.
+          To use a local BOB gateway, start it first, then choose <b>Gateway Offline → Test Ping</b>.
+          Your browser may ask for permission at that moment; it is only for this explicit local connection.
         </p>
         
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">macOS / Linux Installer</span>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
           <code style="color: #10b981; user-select: all;">curl -sSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</code>
           <br><br>
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the Engine</span>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the local engine</span>
           <code style="color: #3b82f6; user-select: all;">./bob-gemini-free --port 9610</code>
         </div>
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
           <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue in Browser</button>
-          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free/releases', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">Download App</button>
+          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free/releases', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View Releases</button>
         </div>
       </div>
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', modalHTML);
 }
-// ----------------------------------------
-
-probeLocalEngine();
+// Hosted pages must not probe loopback during startup. This avoids an
+// unsolicited browser local-network permission prompt. Connection checks are
+// initiated by the Gateway status modal or an explicit endpoint save.
 setInterval(refreshTelemetry, 2500);
 refreshTelemetry();
 
@@ -6392,9 +6397,11 @@ async function enhanceCurrentPrompt() {
     btn.classList.add("wand-sparkle");
   }
 
-  showToast("🪄 Crafting precision master prompt with Gemini...", "✨");
+  const useLiveGateway = !isHostedStudio() || hasExplicitGatewayEndpoint();
+  showToast(useLiveGateway ? "🪄 Crafting precision master prompt with Gemini..." : "🪄 Using offline prompt polish in browser mode...", "✨");
 
   // 1. Live AI Prompt Metaprompting Engine (via local BOB Gateway)
+  if (useLiveGateway) {
   try {
     const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash";
     const controller = new AbortController();
@@ -6439,6 +6446,7 @@ async function enhanceCurrentPrompt() {
     }
   } catch (err) {
     console.warn("AI prompt enhancement offline fallback:", err);
+  }
   }
 
   // 2. Intelligent Offline Fallback Engine
@@ -6793,6 +6801,10 @@ async function sendMessage() {
     }
   }
   if ((!text && !currentAttachedImage && !currentAttachedDoc) || isGenerating) return;
+  if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
+    showLocalOnboardingModal();
+    return;
+  }
 
   isGenerating = true;
   try {
@@ -7088,7 +7100,7 @@ async function sendMessage() {
       if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
         mixedContentHint = `
           <div style="margin-top:8px; padding:8px 12px; background:rgba(245,158,11,0.12); border-left:3px solid #f59e0b; border-radius:4px; font-size:0.8rem; color:var(--text-main); line-height:1.4;">
-            💡 <b>Browser Security Notice:</b> You are accessing via <code>https://</code>. If your browser blocks local loopback HTTP calls, use the public demo at <a href="https://bob-gemini-free.abcsteps.com" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">bob-gemini-free.abcsteps.com</a> (serverless mode, no binary needed) or your local interface at <a href="http://127.0.0.1:9610/playground" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://127.0.0.1:9610/playground</a>.
+            💡 <b>Browser Security Notice:</b> The hosted Studio is a static UI and needs an explicitly connected local or remote gateway. Use <a href="http://127.0.0.1:9610/playground" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">http://127.0.0.1:9610/playground</a> for a fully local browser session, or start the engine and use <b>Gateway Offline → Test Ping</b> here.
           </div>
         `;
       }
