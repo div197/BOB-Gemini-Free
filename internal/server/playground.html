@@ -716,6 +716,8 @@ input[type="range"] {
   display: flex;
   flex-direction: column;
   height: 100%;
+  min-width: 0;
+  min-height: 0;
   position: relative;
   overflow: hidden;
   background: var(--bg-workspace);
@@ -809,14 +811,17 @@ input[type="range"] {
 /* Messages Scroll Container */
 .messages-scroll {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
   overflow-y: auto;
   overflow-x: hidden !important;
-  padding: 16px 20px 140px 20px;
+  padding: 16px 20px var(--composer-offset, 140px) 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
-  scroll-behavior: smooth;
+  scroll-behavior: auto;
+  overflow-anchor: none;
   position: relative;
   background: var(--bg-workspace);
 }
@@ -2324,7 +2329,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
   /* Messages Scroll Area */
   .messages-scroll {
-    padding: 10px 8px calc(135px + env(safe-area-inset-bottom)) 8px;
+    padding: 10px 8px var(--composer-offset, calc(135px + env(safe-area-inset-bottom))) 8px;
     -webkit-overflow-scrolling: touch;
     overscroll-behavior-y: contain;
   }
@@ -3826,7 +3831,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
 
     <!-- Subtle Unobtrusive Bottom-Right Floating Action Button -->
-    <button class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom">↓</button>
+    <button class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom" aria-label="Jump to bottom">↓</button>
 
     <!-- Floating Audio Speech Controller Bar (Play, Pause, Speed, Progress) -->
     <div class="floating-audio-bar" id="floating-audio-bar" style="display:none;">
@@ -4812,25 +4817,67 @@ function renderAllMermaid(targetEl) {
 }
 
 const msgListEl = document.getElementById("messages-list");
-msgListEl.addEventListener("scroll", () => {
-  const threshold = 120;
-  const pos = msgListEl.scrollTop + msgListEl.clientHeight;
-  const height = msgListEl.scrollHeight;
-  userIsAtBottom = (height - pos) <= threshold;
+const CHAT_BOTTOM_THRESHOLD = 120;
 
+function isMessagesNearBottom() {
+  if (!msgListEl) return true;
+  const remaining = msgListEl.scrollHeight - msgListEl.clientHeight - msgListEl.scrollTop;
+  return remaining <= CHAT_BOTTOM_THRESHOLD;
+}
+
+function updateScrollBottomButton() {
   const btn = document.getElementById("scroll-bottom-btn");
-  if (!userIsAtBottom && chatHistory.length > 0) {
-    btn.style.display = "flex";
-  } else {
-    btn.style.display = "none";
-  }
+  if (!btn) return;
+  btn.style.display = (!userIsAtBottom && chatHistory.length > 0) ? "flex" : "none";
+}
+
+function keepMessagesAtBottom() {
+  if (!msgListEl) return;
+  const bottom = Math.max(0, msgListEl.scrollHeight - msgListEl.clientHeight);
+  msgListEl.scrollTo({ top: bottom, behavior: "auto" });
+  userIsAtBottom = true;
+  updateScrollBottomButton();
+}
+
+msgListEl.addEventListener("scroll", () => {
+  userIsAtBottom = isMessagesNearBottom();
+  updateScrollBottomButton();
 });
 
 function scrollToBottom() {
-  msgListEl.scrollTo({ top: msgListEl.scrollHeight, behavior: 'smooth' });
-  userIsAtBottom = true;
-  document.getElementById("scroll-bottom-btn").style.display = "none";
+  keepMessagesAtBottom();
 }
+
+function syncComposerOffset() {
+  const workspaceEl = document.getElementById("workspace-drop-zone");
+  const composerEl = workspaceEl ? workspaceEl.querySelector(".studio-input-area") : null;
+  if (!workspaceEl || !composerEl) return;
+  const workspaceBottom = workspaceEl.getBoundingClientRect().bottom;
+  const composerTop = composerEl.getBoundingClientRect().top;
+  const offset = Math.max(0, Math.ceil(workspaceBottom - composerTop + 16));
+  workspaceEl.style.setProperty("--composer-offset", `${offset}px`);
+}
+
+const messagesContentEl = document.getElementById("messages-content");
+if (window.ResizeObserver && messagesContentEl) {
+  new ResizeObserver(() => {
+    if (userIsAtBottom) keepMessagesAtBottom();
+  }).observe(messagesContentEl);
+}
+
+const composerEl = document.querySelector(".studio-input-area");
+if (window.ResizeObserver && composerEl) {
+  new ResizeObserver(() => {
+    syncComposerOffset();
+    if (userIsAtBottom) requestAnimationFrame(keepMessagesAtBottom);
+  }).observe(composerEl);
+}
+syncComposerOffset();
+
+window.addEventListener("resize", () => {
+  syncComposerOffset();
+  if (userIsAtBottom) requestAnimationFrame(keepMessagesAtBottom);
+});
 
 function autoResize(el) {
   if (!el) return;
@@ -6696,6 +6743,8 @@ function renderMessages() {
       </div>
     `;
     content.appendChild(welcome);
+    updateScrollBottomButton();
+    if (userIsAtBottom) keepMessagesAtBottom();
     return;
   }
 
@@ -6770,9 +6819,7 @@ function renderMessages() {
   renderAllMath(content);
   highlightAllCode(content);
   renderAllMermaid(content);
-  if (userIsAtBottom) {
-    msgListEl.scrollTop = msgListEl.scrollHeight;
-  }
+  if (userIsAtBottom) keepMessagesAtBottom();
 }
 
 initPlatformShortcuts();
@@ -6910,8 +6957,7 @@ async function sendMessage() {
 
   contentEl.appendChild(storyDiv);
 
-  userIsAtBottom = true;
-  storyDiv.scrollIntoView({ behavior: "smooth", block: "start" });
+  keepMessagesAtBottom();
 
   let model = document.getElementById("model-select").value;
   if (model.includes(" ")) model = model.split(" ")[1];
@@ -6989,9 +7035,7 @@ async function sendMessage() {
       if (asstFullText) {
         contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
       }
-      if (userIsAtBottom) {
-        msgListEl.scrollTop = msgListEl.scrollHeight;
-      }
+      if (userIsAtBottom) keepMessagesAtBottom();
     }
 
     function scheduleSmoothRenderTracked() {
@@ -7093,6 +7137,7 @@ async function sendMessage() {
     highlightAllCode(storyDiv);
     renderAllMermaid(storyDiv);
     storyDiv.setAttribute('data-raw', asstFullText);
+    if (userIsAtBottom) keepMessagesAtBottom();
 
     const finalWordCount = asstFullText.trim().split(/\s+/).filter(w => w).length;
     const finalTokens = Math.round(finalWordCount * 1.33);
@@ -7110,6 +7155,7 @@ async function sendMessage() {
       highlightAllCode(storyDiv);
       renderAllMermaid(storyDiv);
       storyDiv.setAttribute('data-raw', asstFullText);
+      if (userIsAtBottom) keepMessagesAtBottom();
       
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
       const statsEl = storyDiv.querySelector("#live-stream-stats");
@@ -7158,6 +7204,7 @@ async function sendMessage() {
         highlightAllCode(storyDiv);
         renderAllMermaid(storyDiv);
         storyDiv.setAttribute('data-raw', asstFullText + `\n\n> ⚠️ **Error**: ${err.message}`);
+        if (userIsAtBottom) keepMessagesAtBottom();
         
         chatHistory.push({
           role: "assistant", 
