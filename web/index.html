@@ -3092,7 +3092,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       </div>
 
       <div class="legal-notice-box" style="margin-top:12px;">
-        <strong>🚀 1-Click Launch BOB Engine Locally:</strong>
+        <strong>🚀 Start the CLI engine locally:</strong>
+        <div style="margin-top:6px; line-height:1.45;">
+          These commands install the standalone CLI and browser studio. They do
+          not download the native Wails app; use <b>View Releases</b> only when
+          a native package is explicitly listed there.
+        </div>
         <div style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</span>
           <button class="btn-pill-subtle" onclick="copyLaunchCommand('curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
@@ -5098,8 +5103,10 @@ function showLocalOnboardingModal() {
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
           <code style="color: #10b981; user-select: all;">curl -sSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</code>
           <br><br>
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the local engine</span>
-          <code style="color: #3b82f6; user-select: all;">./bob-gemini-free --port 9610</code>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the installed CLI engine</span>
+          <code style="color: #3b82f6; user-select: all;">bob-gemini-free --port 9610</code>
+          <br><br>
+          <span style="color: var(--text-muted); display: block; line-height: 1.45;">Use the exact path printed by the installer. From a source checkout, use <code>./bob-gemini-free --port 9610</code> instead.</span>
         </div>
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
@@ -7119,7 +7126,7 @@ async function sendMessage() {
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
             Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
-            Ensure the engine is running (<code>./bob-gemini-free</code>), download the Native Desktop App, or <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
+            Ensure the CLI engine is running (<code>bob-gemini-free</code>), or use a native package only when one is listed on the <a href="https://github.com/div197/BOB-Gemini-Free/releases" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">official release page</a>. You can also <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
           </div>
           ${mixedContentHint}
         `;
