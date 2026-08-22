@@ -283,3 +283,21 @@ is implemented, emulated, measured, upstream-dependent, and still unknown.
 - Enabled GitHub secret scanning and push protection, and protected `main`
   against direct changes, force-pushes, and deletion while retaining the
   pull-request workflow.
+
+## Student desktop distribution follow-up — 2026-08-22
+
+- The Wails desktop entrypoint now loads the current user's optional config and
+  cookie files while forcing loopback binding, disabling desktop API keys, and
+  disabling remote origins.
+- Added explicit Wails product metadata and native-host build targets for
+  macOS, Windows NSIS/WebView2, and Linux WebKitGTK.
+- Built and locally verified a macOS universal (`arm64` + `x86_64`) ad-hoc
+  Wails bundle. Local ZIP/DMG preview packaging passed archive checks; these
+  artifacts were not published because they are not Developer ID signed or
+  notarized.
+- Added `docs/engineering/STUDENT-DISTRIBUTION.md` and corrected the README
+  boundary: the current public release contains CLI binaries, not a finished
+  cross-platform student installer set.
+- Windows and Linux GUI artifacts remain unbuilt and unverified on their
+  native hosts. The Wails app still does not expose an in-app first-run Google
+  sign-in wizard; authenticated features require each student's own session.

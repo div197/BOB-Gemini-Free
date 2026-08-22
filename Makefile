@@ -7,8 +7,9 @@
 BINARY_NAME=bob-gemini-free
 VERSION=v0.1.7
 LDFLAGS=-s -w -X main.Version=$(VERSION)
+WAILS=go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
 
-.PHONY: all build web run test test-cover dist clean
+.PHONY: all build web run test test-cover dist clean desktop desktop-mac desktop-windows desktop-linux
 
 all: build test
 
@@ -51,6 +52,18 @@ clean:
 	rm -rf cmd/desktop/build/bin/
 
 desktop: web
-	@echo "Building Wails Native Desktop App (Requires CGO & Wails CLI)..."
-	cd cmd/desktop && wails build -clean
+	@echo "Building Wails Native Desktop App (Requires Go, CGO & host toolchain)..."
+	cd cmd/desktop && $(WAILS) build -clean
 	@echo "Desktop build complete! Check cmd/desktop/build/bin/"
+
+desktop-mac: web
+	@echo "Building the macOS Wails app (run on macOS; universal target)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform darwin/universal
+
+desktop-windows: web
+	@echo "Building the Windows Wails NSIS installer (run on Windows)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform windows/amd64 -nsis -webview2 download
+
+desktop-linux: web
+	@echo "Building the Linux Wails app (run on Linux with WebKitGTK installed)..."
+	cd cmd/desktop && $(WAILS) build -clean -platform linux/amd64 -tags webkit2_41

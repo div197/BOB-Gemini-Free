@@ -37,6 +37,9 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 ### 6. Operations
 - [**Live Verification Runbook**](./6-operations/live-verification-runbook.md): Deployment, local gateway, upstream, diagnostics, benchmark, and release-build proof levels.
 
+### 7. Student Desktop Distribution
+- [**Student Distribution Contract**](./engineering/STUDENT-DISTRIBUTION.md): Native artifact matrix, first-run/authentication boundary, signing, clean-device acceptance, and no-Actions release flow.
+
 ---
 
 ## 🙏 Acknowledgements & Research Foundations

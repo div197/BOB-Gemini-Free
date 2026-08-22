@@ -167,10 +167,11 @@ BOB Gemini Free works out of the box with modern AI tools across deep coding, au
 ---
 
 ### Option 0: The Native Desktop App (Recommended)
-BOB Gemini Free now ships a **Wails desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
-* No terminal needed! Just double-click the app.
-* [**Download the Desktop App from GitHub Releases**](https://github.com/div197/BOB-Gemini-Free/releases)
-* Or compile it yourself: `make desktop`
+BOB Gemini Free has a **Wails desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
+* A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
+* The current public GitHub release contains CLI binaries; a signed, notarized, cross-platform Wails installer set is not yet published.
+* Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
+* Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
 
 ---
 
