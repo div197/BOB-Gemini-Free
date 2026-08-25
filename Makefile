@@ -17,7 +17,7 @@ all: build test
 web:
 	@echo "Syncing static web studio distribution to ./web..."
 	@mkdir -p web
-	@cp internal/server/playground.html web/index.html
+	@sed 's/__BOB_DESKTOP_VERSION__/$(VERSION)/g' internal/server/playground.html > web/index.html
 	@echo "Web distribution bundle ready in ./web"
 
 build: web

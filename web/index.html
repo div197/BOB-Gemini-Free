@@ -3003,7 +3003,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.
     </div>
     <div class="dialog-actions">
-      <button class="dialog-btn-cancel" onclick="closeConfirmModal()">Cancel</button>
+        <button class="dialog-btn-cancel" id="dialog-cancel-btn" onclick="closeConfirmModal()">Cancel</button>
       <button class="dialog-btn-danger" id="dialog-confirm-btn" onclick="executeConfirmAction()">Clear History</button>
     </div>
   </div>
@@ -3018,9 +3018,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <span class="about-star">✦</span>
           <span class="about-title">BOB GEMINI FREE</span>
         </div>
-        <span class="about-version-badge">v0.1.7</span>
+        <span class="about-version-badge" id="about-version-label">v0.1.7</span>
       </div>
-      <div class="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
+      <div class="about-subtitle" id="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
     </div>
 
     <div class="about-body">
@@ -3061,7 +3061,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         <span>GitHub Repo</span>
         <span style="font-size:0.75rem;">⭐</span>
       </a>
-      <button class="btn-pill-action" onclick="closeAboutModal()">Close</button>
+      <button class="btn-pill-action" id="about-close-btn" onclick="closeAboutModal()">Close</button>
     </div>
   </div>
 </div>
@@ -3073,23 +3073,23 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       <div class="about-header-top">
         <div class="about-brand-wrap">
           <span class="about-star">⚡</span>
-          <span class="about-title">GATEWAY ENGINE STATUS</span>
+        <span class="about-title" id="gateway-modal-title">GATEWAY ENGINE STATUS</span>
         </div>
         <span class="about-version-badge" id="modal-gateway-status-pill">Checking...</span>
       </div>
-      <div class="about-subtitle">Local-First RPC Bridge • On-Device & Zero Cloud Limits</div>
+      <div class="about-subtitle" id="gateway-modal-subtitle">Local-First RPC Bridge • On-Device • Provider limits still apply</div>
     </div>
 
     <div class="about-body">
       <div class="control-card" style="margin:0;">
         <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gateway Endpoint URL</span>
+          <span id="gateway-endpoint-label" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gateway Endpoint URL</span>
           <span id="gateway-ping-badge" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Latency: --</span>
         </label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="gateway-url-input" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-action" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
-          <button class="btn-pill-subtle" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
+          <button class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
+          <button class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
           Default: <code>http://127.0.0.1:9610</code>. Connect to custom ports, LAN IP (e.g. <code>http://192.168.1.100:9610</code>), or local Docker.
@@ -3120,9 +3120,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
     <div class="about-actions">
       <button class="btn-pill-primary-action" onclick="pingGatewayManual()">
-        <span>⚡ Test Ping</span>
+        <span id="gateway-test-ping-label">⚡ Test Ping</span>
       </button>
-      <button class="btn-pill-action" onclick="closeGatewayModal()">Close</button>
+      <button class="btn-pill-action" id="gateway-close-btn" onclick="closeGatewayModal()">Close</button>
     </div>
   </div>
 </div>
@@ -3640,10 +3640,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </button>
     <div class="nav-segmented-group">
       <button class="nav-segment-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
-        <span>◧</span> <span class="nav-btn-text">Config</span>
+        <span>◧</span> <span class="nav-btn-text" id="nav-config-label">Config</span>
       </button>
       <button class="nav-segment-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
-        <span class="nav-btn-text">Code</span> <span>◨</span>
+        <span class="nav-btn-text" id="nav-code-label">Code</span> <span>◨</span>
       </button>
     </div>
     <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
@@ -3651,7 +3651,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </button>
     <a href="https://github.com/div197/BOB-Gemini-Free" target="_blank" rel="noopener noreferrer" class="nav-pill-btn github-pill" title="View & Star Repository on GitHub" style="text-decoration:none; color:inherit;">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      <span class="nav-btn-text">GitHub</span>
+      <span class="nav-btn-text" id="nav-github-label">GitHub</span>
     </a>
 
     <select class="theme-selector" id="theme-selector" onchange="changeTheme(this.value)" title="Color Theme">
@@ -3673,12 +3673,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <!-- Left Model Configuration & Studio Controls -->
   <aside class="sidebar-panel left collapsed" id="sidebar-left">
     <div class="panel-header">
-      <span>Studio Configuration</span>
-      <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
+      <span id="left-panel-title">Studio Configuration</span>
+      <button class="btn-pill-subtle" id="left-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
     </div>
 
     <div class="control-card">
-      <label>Target Model</label>
+      <label id="label-target-model">Target Model</label>
       <select id="model-select" onchange="updateSnippet(); updateActiveModelBadge();">
         <option value="gemini-3.7-flash" selected>⚡ gemini-3.7-flash (Flagship Fast)</option>
         <option value="gemini-3.7-flash-thinking">🧠 gemini-3.7-flash-thinking (Deep Reasoning)</option>
@@ -3690,7 +3690,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
 
     <div class="control-card">
-      <label>Reasoning Depth (@think)</label>
+      <label id="label-reasoning-depth">Reasoning Depth (@think)</label>
       <select id="think-select" onchange="updateSnippet(); updateActiveModelBadge();">
         <option value="default" selected>Model Default</option>
         <option value="@think=0">Deep Thinking (@think=0)</option>
@@ -3701,14 +3701,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
     <div class="control-card">
       <label>
-        <span>Sampling Temperature</span>
+        <span id="label-sampling-temperature">Sampling Temperature</span>
         <span class="val-badge" id="temp-val-badge">1.0</span>
       </label>
       <input type="range" id="temp-range" min="0.0" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('temp-val-badge').innerText = this.value; updateSnippet();">
     </div>
 
     <div class="control-card">
-      <label>Max Output Tokens</label>
+      <label id="label-max-output-tokens">Max Output Tokens</label>
       <select id="max-tokens-select" onchange="updateSnippet()">
         <option value="8192" selected>8,192 Tokens (Balanced)</option>
         <option value="4096">4,096 Tokens (Fast)</option>
@@ -3718,7 +3718,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
 
     <div class="control-card">
-      <label>Protocol Endpoint</label>
+      <label id="label-protocol-endpoint">Protocol Endpoint</label>
       <select id="proto-select" onchange="updateSnippet()">
         <option value="openai" selected>OpenAI Standard (/v1/chat/completions)</option>
         <option value="anthropic">Anthropic Standard (/v1/messages)</option>
@@ -3727,27 +3727,27 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
     </div>
 
     <div class="control-card">
-      <label>System Prompt (Optional)</label>
+      <label id="label-system-prompt">System Prompt (Optional)</label>
       <textarea id="system-prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
     </div>
 
     <div class="control-card">
       <label>
-        <span>🔊 Natural Speech Engine</span>
+        <span id="label-natural-speech">🔊 Natural Speech Engine</span>
         <span class="val-badge" id="tts-speed-badge">1.0x</span>
       </label>
       <select id="tts-voice-select" onchange="localStorage.setItem('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
         <option value="auto">🌟 Auto Best Natural HD Voice</option>
       </select>
       <div style="display:flex; align-items:center; gap:8px;">
-        <span style="font-size:0.65rem; color:var(--text-muted); min-width:40px;">Speed:</span>
+        <span id="label-tts-speed" style="font-size:0.65rem; color:var(--text-muted); min-width:40px;">Speed:</span>
         <input type="range" id="tts-speed-range" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; localStorage.setItem('bob_tts_rate', this.value);" style="flex:1;">
       </div>
     </div>
 
     <div class="control-card" style="margin-top:12px; border-color:var(--accent-primary);">
       <button class="btn-pill-action" onclick="openInstructionsModal()" style="width:100%; justify-content:center; gap:6px;">
-        <span>🧠</span> <span>Custom Instructions & Persona</span>
+        <span>🧠</span> <span id="custom-instructions-label">Custom Instructions & Persona</span>
       </button>
     </div>
   </aside>
@@ -3770,13 +3770,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <span>🔍</span> <span class="sub-btn-text" id="zoom-level-label">100%</span>
         </button>
         <button class="btn-pill-subtle sub-desktop-only" onclick="copyFullTranscript()" title="Copy entire chat transcript">
-          <span>📋</span> <span class="sub-btn-text">Copy</span>
+          <span>📋</span> <span class="sub-btn-text" id="sub-copy-label">Copy</span>
         </button>
         <button class="btn-pill-subtle sub-desktop-only" onclick="exportMarkdown()" title="Download conversation as Markdown">
-          <span>💾</span> <span class="sub-btn-text">Export</span>
+          <span>💾</span> <span class="sub-btn-text" id="sub-export-label">Export</span>
         </button>
         <button class="btn-pill-subtle btn-clear-pill" onclick="clearChat()" title="Reset conversation">
-          <span>🗑️</span> <span class="sub-clear-text">Clear</span>
+          <span>🗑️</span> <span class="sub-clear-text" id="sub-clear-label">Clear</span>
         </button>
       </div>
     </div>
@@ -3889,16 +3889,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         <div class="input-footer">
           <div class="footer-badges">
             <button class="footer-action-btn footer-desktop-only" type="button" onclick="insertNewline()" title="Insert line break into prompt">
-              <span>Shift+Enter ↵</span> <span>Newline</span>
+              <span>Shift+Enter ↵</span> <span id="footer-newline-label">Newline</span>
             </button>
             <button class="footer-action-btn footer-desktop-only" type="button" onclick="sendMessage()" title="Send prompt message">
-              <span>Enter ↵</span> <span>Send</span>
+              <span>Enter ↵</span> <span id="footer-send-label">Send</span>
             </button>
             <button class="footer-action-btn" type="button" onclick="toggleCmdPalette()" title="Open quick command palette">
               <span id="footer-cmd-label">⌘K Quick Menu</span>
             </button>
             <button class="footer-action-btn" type="button" onclick="openAboutModal()" title="View project credits & legal disclaimers">
-              <span>ⓘ About</span>
+              <span id="footer-about-label">ⓘ About</span>
             </button>
           </div>
           <div class="footer-status-pill">
@@ -3912,30 +3912,30 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   <!-- Right Drop-in Integration Studio -->
   <aside class="sidebar-panel right collapsed" id="sidebar-right">
     <div class="panel-header">
-      <span>Drop-in Integration</span>
-      <button class="btn-pill-subtle" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
+      <span id="right-panel-title">Drop-in Integration</span>
+      <button class="btn-pill-subtle" id="right-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
     </div>
 
     <div class="code-card-box">
       <div class="code-card-header">
-        <span>Python SDK</span>
-        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
+        <span id="code-python-title">Python SDK</span>
+        <button class="btn-pill-subtle" id="code-python-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
       </div>
       <div class="code-card-body" id="code-python"></div>
     </div>
 
     <div class="code-card-box">
       <div class="code-card-header">
-        <span>Claude Code CLI</span>
-        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
+        <span id="code-claude-title">Claude Code CLI</span>
+        <button class="btn-pill-subtle" id="code-claude-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
       </div>
       <div class="code-card-body" id="code-claude"></div>
     </div>
 
     <div class="code-card-box">
       <div class="code-card-header">
-        <span>cURL Stream</span>
-        <button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
+        <span id="code-curl-title">cURL Stream</span>
+        <button class="btn-pill-subtle" id="code-curl-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
       </div>
       <div class="code-card-body" id="code-curl"></div>
     </div>
@@ -3949,6 +3949,46 @@ let pendingConfirmCallback = null;
 let activeAbortController = null;
 let isGenerating = false;
 let currentAttachedImage = null; // Base64 data URL
+
+// Native Wails WebViews do not reliably navigate target=_blank links. Route
+// real HTTP(S) links through the host's default browser when the Wails runtime
+// is present, while preserving ordinary new-tab behavior for hosted browsers.
+function openExternalURL(rawURL) {
+  let parsedURL;
+  try {
+    parsedURL = new URL(rawURL, window.location.href);
+  } catch (_) {
+    return false;
+  }
+  if (parsedURL.protocol !== "http:" && parsedURL.protocol !== "https:") {
+    return false;
+  }
+
+  if (window.runtime && typeof window.runtime.BrowserOpenURL === "function") {
+    window.runtime.BrowserOpenURL(parsedURL.href);
+    return true;
+  }
+
+  return window.open(parsedURL.href, "_blank", "noopener,noreferrer") !== null;
+}
+
+document.addEventListener("click", (event) => {
+  const target = event.target instanceof Element ? event.target.closest("a[href]") : null;
+  if (!target) return;
+
+  let linkURL;
+  try {
+    linkURL = new URL(target.href, window.location.href);
+  } catch (_) {
+    return;
+  }
+
+  const opensExternally = target.target === "_blank" || linkURL.origin !== window.location.origin;
+  if (!opensExternally || (linkURL.protocol !== "http:" && linkURL.protocol !== "https:")) return;
+
+  event.preventDefault();
+  openExternalURL(linkURL.href);
+});
 
 const STORAGE_KEY = "bob_gemini_free_chat_history";
 const THEME_KEY = "bob_gemini_free_theme";
@@ -4022,6 +4062,41 @@ const I18N = {
     toastTranslitOn: "Indic Phonetic Typing Enabled (Hindi)",
     toastTranslitOff: "Indic Phonetic Typing Disabled (English)",
     toastLangChanged: "Language set to English",
+    ui: {
+      navConfig: "Config", navCode: "Code", navMenu: "K Menu", navGitHub: "GitHub",
+      panelConfig: "Studio Configuration", panelIntegration: "Drop-in Integration", hide: "Hide",
+      targetModel: "Target Model", reasoningDepth: "Reasoning Depth (@think)", samplingTemperature: "Sampling Temperature",
+      maxOutputTokens: "Max Output Tokens", protocolEndpoint: "Protocol Endpoint", systemPrompt: "System Prompt (Optional)",
+      naturalSpeech: "🔊 Natural Speech Engine", speed: "Speed:", customInstructions: "Custom Instructions & Persona",
+      copy: "Copy", export: "Export", clear: "Clear", newline: "Newline", send: "Send", about: "ⓘ About",
+      dropIn: "Drop-in Integration", pythonSDK: "Python SDK", claudeCLI: "Claude Code CLI", curlStream: "cURL Stream",
+      response: "BOB AI RESPONSE", streaming: "Streaming...", listen: "Listen", retry: "Retry", think: "Think", flash: "Flash",
+      copyMessage: "Copy", reasoning: "Step-by-Step Reasoning", save: "Save", reset: "Reset", testPing: "⚡ Test Ping",
+      close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
+      gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
+      endpoint: "Gateway Endpoint URL", modelDefault: "Model Default", deepThinking: "Deep Thinking (@think=0)",
+      mediumThinking: "Medium Thinking (@think=2)", fastThinking: "Fast / Zero Thinking (@think=4)",
+      systemPromptPlaceholder: "Set custom instructions for the model...", ttsAuto: "🌟 Auto Best Natural HD Voice (Recommended)",
+      studioVoices: "✨ Studio HD Natural Voices (Ultra-Smooth)", standardVoices: "Standard System Voices",
+      modelOptions: {
+        "gemini-3.7-flash": "⚡ gemini-3.7-flash (Flagship Fast)",
+        "gemini-3.7-flash-thinking": "🧠 gemini-3.7-flash-thinking (Deep Reasoning)",
+        "gemini-3.6-flash": "⚡ gemini-3.6-flash",
+        "gemini-3.1-pro": "👑 gemini-3.1-pro (Pro Routing)",
+        "gemini-flash-lite": "🚀 gemini-flash-lite (Ultra Fast)",
+        "imagen-3": "🎨 imagen-3 (Image Synthesis)"
+      },
+      tokenOptions: { "8192": "8,192 Tokens (Balanced)", "4096": "4,096 Tokens (Fast)", "16384": "16,384 Tokens (Extended)", "32768": "32,768 Tokens (Maximum)" },
+      protocolOptions: { openai: "OpenAI Standard (/v1/chat/completions)", anthropic: "Anthropic Standard (/v1/messages)", google: "Google Gemini (/v1beta/models/...)" },
+      starterCards: {
+        snake: ["ARTIFACT CANVAS", "2D Cyberpunk Snake Game", "Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop."],
+        py_finance: ["PYTHON WASM SANDBOX", "Quantitative Finance & Risk (Black-Scholes)", "Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy."],
+        orbit: ["THREE.JS WEBGL", "3D Solar System & Orbit Lab", "Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails."],
+        grader: ["FIRST PRINCIPLES", "Explain to a 5th Grader", "Grounded intuitive mental models & physical analogies with Mermaid visual diagrams."]
+      },
+      commandSections: { models: "🤖 Models & Reasoning", themes: "🎨 Color Themes", zoom: "🔍 Text Size & Reading Zoom", languages: "🌐 Language, Voice & Transliteration", templates: "🎓 Study & Reasoning Templates", workspace: "⚙️ Workspace Controls" },
+      hindiCommandDescription: "मुख्य इंटरफ़ेस, बटन और संकेत हिंदी में"
+    },
     generating: "Generating response..."
   },
   hi: {
@@ -4047,7 +4122,7 @@ const I18N = {
     panelSysPrompt: "सिस्टम निर्देश (वैकल्पिक)",
     panelIntegrationTitle: "ड्रॉप-इन इंटीग्रेशन",
     heroHeadline: "कुछ भी बनाएं। <span class=\"accent\">साधारण सीमाओं को तोड़ें</span>।",
-    heroSubline: "उच्च-प्रदर्शन स्थानीय AI गेटवे जो मानक प्रोटोकॉल को Google के आंतरिक वेब RPC में अनुवादित करता है। <b>शून्य क्लाउड बिल, शून्य क्रेडिट कार्ड, 100% निःशुल्क।</b>",
+    heroSubline: "उच्च-प्रदर्शन स्थानीय AI गेटवे जो मानक प्रोटोकॉल को Google के आंतरिक वेब RPC में अनुवादित करता है। <b>स्थानीय-प्रथम, डिफ़ॉल्ट रूप से निजी; प्रदाता सीमाएं लागू रहती हैं।</b>",
     starterGraderChip: "मूल सिद्धांत",
     starterGraderTitle: "कक्षा 5 के छात्र को समझाएं",
     starterGraderDesc: "सहज भौतिक उपमाओं और मर्मेड आरेखों के साथ स्पष्ट ज्ञान (लेगो खिलौनों की घिसी-पिटी उपमाओं के बिना)।",
@@ -4083,6 +4158,41 @@ const I18N = {
     toastTranslitOn: "भारतीय ध्वन्यात्मक टाइपिंग सक्षम (हिन्दी)",
     toastTranslitOff: "ध्वन्यात्मक टाइपिंग अक्षम (English)",
     toastLangChanged: "भाषा हिन्दी पर सेट की गई",
+    ui: {
+      navConfig: "कॉन्फ़िग", navCode: "कोड", navMenu: "K मेनू", navGitHub: "गिटहब",
+      panelConfig: "स्टूडियो कॉन्फ़िगरेशन", panelIntegration: "ड्रॉप-इन इंटीग्रेशन", hide: "छिपाएं",
+      targetModel: "लक्षित मॉडल", reasoningDepth: "तर्क गहराई (@think)", samplingTemperature: "सैंपलिंग तापमान",
+      maxOutputTokens: "अधिकतम आउटपुट टोकन", protocolEndpoint: "प्रोटोकॉल एंडपॉइंट", systemPrompt: "सिस्टम निर्देश (वैकल्पिक)",
+      naturalSpeech: "🔊 प्राकृतिक वाक् इंजन", speed: "गति:", customInstructions: "कस्टम निर्देश और व्यक्तित्व",
+      copy: "कॉपी", export: "एक्सपोर्ट", clear: "हटाएं", newline: "नई पंक्ति", send: "भेजें", about: "ⓘ विवरण",
+      dropIn: "ड्रॉप-इन इंटीग्रेशन", pythonSDK: "Python SDK", claudeCLI: "Claude Code CLI", curlStream: "cURL स्ट्रीम",
+      response: "BOB AI उत्तर", streaming: "स्ट्रीमिंग...", listen: "सुनें", retry: "पुनः प्रयास", think: "सोचें", flash: "फ़ास्ट",
+      copyMessage: "कॉपी", reasoning: "चरण-दर-चरण तर्क", save: "सहेजें", reset: "रीसेट", testPing: "⚡ टेस्ट पिंग",
+      close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
+      gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
+      endpoint: "गेटवे एंडपॉइंट URL", modelDefault: "मॉडल डिफ़ॉल्ट", deepThinking: "गहन तर्क (@think=0)",
+      mediumThinking: "मध्यम तर्क (@think=2)", fastThinking: "तेज़ / शून्य तर्क (@think=4)",
+      systemPromptPlaceholder: "मॉडल के लिए कस्टम निर्देश सेट करें...", ttsAuto: "🌟 सर्वोत्तम प्राकृतिक HD आवाज़ स्वतः (अनुशंसित)",
+      studioVoices: "✨ स्टूडियो HD प्राकृतिक आवाज़ें (अत्यंत सहज)", standardVoices: "मानक सिस्टम आवाज़ें",
+      modelOptions: {
+        "gemini-3.7-flash": "⚡ gemini-3.7-flash (प्रमुख तेज़ मॉडल)",
+        "gemini-3.7-flash-thinking": "🧠 gemini-3.7-flash-thinking (गहन तर्क)",
+        "gemini-3.6-flash": "⚡ gemini-3.6-flash",
+        "gemini-3.1-pro": "👑 gemini-3.1-pro (प्रो रूटिंग)",
+        "gemini-flash-lite": "🚀 gemini-flash-lite (अत्यंत तेज़)",
+        "imagen-3": "🎨 imagen-3 (इमेज सिंथेसिस)"
+      },
+      tokenOptions: { "8192": "8,192 टोकन (संतुलित)", "4096": "4,096 टोकन (तेज़)", "16384": "16,384 टोकन (विस्तृत)", "32768": "32,768 टोकन (अधिकतम)" },
+      protocolOptions: { openai: "OpenAI मानक (/v1/chat/completions)", anthropic: "Anthropic मानक (/v1/messages)", google: "Google Gemini (/v1beta/models/...)" },
+      starterCards: {
+        snake: ["आर्टिफैक्ट कैनवास", "2D साइबरपंक स्नेक गेम", "नियॉन प्रभावों और 60fps गेम लूप वाला पूर्ण स्टैंडअलोन HTML5 Canvas आर्केड गेम।"],
+        py_finance: ["पायथन WASM सैंडबॉक्स", "मात्रात्मक वित्त और जोखिम (Black-Scholes)", "NumPy में Black-Scholes मूल्यांकन, 5 Greeks संवेदनशीलताएं और 10,000-पथ Monte Carlo VaR।"],
+        orbit: ["THREE.JS WEBGL", "3D सौरमंडल और कक्षा प्रयोगशाला", "360° OrbitControls और कक्षीय पथों वाला यथार्थवादी N-body गुरुत्वाकर्षण सिमुलेटर।"],
+        grader: ["मूल सिद्धांत", "कक्षा 5 के छात्र को समझाएं", "Mermaid दृश्य आरेखों के साथ सहज मानसिक मॉडल और वास्तविक भौतिक उपमाएं।"]
+      },
+      commandSections: { models: "🤖 मॉडल और तर्क", themes: "🎨 रंग थीम", zoom: "🔍 पाठ आकार और रीडिंग ज़ूम", languages: "🌐 भाषा, आवाज़ और लिप्यंतरण", templates: "🎓 अध्ययन और तर्क टेम्पलेट", workspace: "⚙️ वर्कस्पेस नियंत्रण" },
+      hindiCommandDescription: "मुख्य इंटरफ़ेस, बटन और संकेत हिंदी में"
+    },
     generating: "उत्तर तैयार हो रहा है..."
   }
 };
@@ -4264,29 +4374,100 @@ function stopVoiceInput() {
   if (micBtn) micBtn.classList.remove("recording");
 }
 
-function setLanguage(lang, isInitial = false) {
-  currentLang = lang || "en";
-  localStorage.setItem(LANG_KEY, currentLang);
-  document.documentElement.setAttribute("data-lang", currentLang);
+function setLanguageText(id, value) {
+  const element = document.getElementById(id);
+  if (element && value !== undefined) element.innerText = value;
+}
 
-  const dict = I18N[currentLang] || I18N.en;
+function setLanguageTitle(id, value) {
+  const element = document.getElementById(id);
+  if (element && value !== undefined) element.title = value;
+}
 
-  const sel = document.getElementById("lang-selector");
-  if (sel) sel.value = currentLang;
+function setLanguageOption(selectID, value, label) {
+  const select = document.getElementById(selectID);
+  if (!select || label === undefined) return;
+  const option = Array.from(select.options).find(item => item.value === value);
+  if (option) option.innerText = label;
+}
+
+function applyCommandPaletteLanguage(ui) {
+  const sections = ui.commandSections || {};
+  document.querySelectorAll("#cmd-items .cmd-section-label").forEach(section => {
+    const key = section.dataset.section;
+    if (sections[key]) section.innerText = sections[key];
+  });
+
+  const languageItems = document.querySelectorAll('#cmd-items .cmd-item[data-type="language"]');
+  if (languageItems.length > 1) {
+    const description = languageItems[1].querySelector(".cmd-item-desc");
+    if (description) {
+      if (!description.dataset.defaultText) description.dataset.defaultText = description.innerText;
+      description.innerText = currentLang === "hi" ? ui.hindiCommandDescription : description.dataset.defaultText;
+    }
+  }
+}
+
+function applyLanguageUI(dict) {
+  const ui = dict.ui || I18N.en.ui;
+  const textValues = {
+    "nav-config-label": ui.navConfig,
+    "nav-code-label": ui.navCode,
+    "nav-github-label": ui.navGitHub,
+    "cmd-menu-label": ui.navMenu,
+    "left-panel-title": ui.panelConfig,
+    "left-panel-hide": `✕ ${ui.hide}`,
+    "label-target-model": ui.targetModel,
+    "label-reasoning-depth": ui.reasoningDepth,
+    "label-sampling-temperature": ui.samplingTemperature,
+    "label-max-output-tokens": ui.maxOutputTokens,
+    "label-protocol-endpoint": ui.protocolEndpoint,
+    "label-system-prompt": ui.systemPrompt,
+    "label-natural-speech": ui.naturalSpeech,
+    "label-tts-speed": ui.speed,
+    "custom-instructions-label": ui.customInstructions,
+    "sub-copy-label": ui.copy,
+    "sub-export-label": ui.export,
+    "sub-clear-label": ui.clear,
+    "footer-newline-label": ui.newline,
+    "footer-send-label": ui.send,
+    "footer-cmd-label": `⌘K ${dict.footerCmd}`,
+    "footer-about-label": ui.about,
+    "right-panel-title": ui.dropIn,
+    "right-panel-hide": `✕ ${ui.hide}`,
+    "code-python-title": ui.pythonSDK,
+    "code-python-copy": ui.copy,
+    "code-claude-title": ui.claudeCLI,
+    "code-claude-copy": ui.copy,
+    "code-curl-title": ui.curlStream,
+    "code-curl-copy": ui.copy,
+    "dialog-title": dict.modalConfirmTitle,
+    "dialog-desc": dict.modalConfirmDesc,
+    "dialog-cancel-btn": ui.cancel,
+    "dialog-confirm-btn": ui.clearHistory,
+    "about-subtitle": ui.aboutSubtitle,
+    "about-close-btn": ui.close,
+    "gateway-modal-title": ui.gatewayTitle,
+    "gateway-modal-subtitle": ui.gatewaySubtitle,
+    "gateway-endpoint-label": ui.endpoint,
+    "gateway-save-btn": ui.save,
+    "gateway-reset-btn": ui.reset,
+    "gateway-test-ping-label": ui.testPing,
+    "gateway-close-btn": ui.close
+  };
+  Object.entries(textValues).forEach(([id, value]) => setLanguageText(id, value));
 
   const inputEl = document.getElementById("user-input");
   if (inputEl) inputEl.placeholder = dict.inputPlaceholder;
-
+  const systemPrompt = document.getElementById("system-prompt");
+  if (systemPrompt) systemPrompt.placeholder = ui.systemPromptPlaceholder;
   const sendLabel = document.getElementById("send-btn-label");
   if (sendLabel && !isGenerating) sendLabel.innerText = dict.btnSend;
 
   const brandTagline = document.querySelector(".brand-tagline");
   if (brandTagline) brandTagline.innerText = dict.brandTagline;
-
-  const subNewText = document.querySelector(".sub-bar-left .sub-btn-text");
-  if (subNewText) subNewText.innerText = dict.subNew;
-  const subClearText = document.querySelector(".sub-clear-text");
-  if (subClearText) subClearText.innerText = dict.subClear;
+  const newLabel = document.querySelector(".sub-bar-left .sub-btn-text");
+  if (newLabel) newLabel.innerText = dict.subNew;
 
   const statLabels = document.querySelectorAll(".telemetry-bar .stat-label");
   if (statLabels && statLabels.length >= 4) {
@@ -4296,21 +4477,45 @@ function setLanguage(lang, isInitial = false) {
     statLabels[3].innerText = dict.statSavings;
   }
 
-  const leftHead = document.querySelector("#sidebar-left .panel-header span");
-  if (leftHead) leftHead.innerText = dict.panelConfigTitle;
-  const rightHead = document.querySelector("#sidebar-right .panel-header span");
-  if (rightHead) rightHead.innerText = dict.panelIntegrationTitle;
-
   const footerStatus = document.querySelector(".footer-status-pill span");
   if (footerStatus) footerStatus.innerText = dict.footerStatus;
 
-  if (chatHistory.length === 0) {
-    renderMessages();
-  }
+  setLanguageTitle("btn-toggle-left", `${ui.panelConfig} ([)`);
+  setLanguageTitle("btn-toggle-right", `${ui.dropIn} (])`);
+  setLanguageTitle("btn-cmd-menu", `Command Palette (⌘K)`);
+  setLanguageTitle("left-panel-hide", ui.hide);
+  setLanguageTitle("right-panel-hide", ui.hide);
 
-  if (!isInitial) {
-    showToast(dict.toastLangChanged, "🌐");
-  }
+  Object.entries(ui.modelOptions || {}).forEach(([value, label]) => setLanguageOption("model-select", value, label));
+  setLanguageOption("think-select", "default", ui.modelDefault);
+  setLanguageOption("think-select", "@think=0", ui.deepThinking);
+  setLanguageOption("think-select", "@think=2", ui.mediumThinking);
+  setLanguageOption("think-select", "@think=4", ui.fastThinking);
+  Object.entries(ui.tokenOptions || {}).forEach(([value, label]) => setLanguageOption("max-tokens-select", value, label));
+  Object.entries(ui.protocolOptions || {}).forEach(([value, label]) => setLanguageOption("proto-select", value, label));
+  setLanguageOption("tts-voice-select", "auto", ui.ttsAuto);
+  const voiceGroups = document.querySelectorAll("#tts-voice-select optgroup");
+  if (voiceGroups[0]) voiceGroups[0].label = ui.studioVoices;
+  if (voiceGroups[1]) voiceGroups[1].label = ui.standardVoices;
+  applyCommandPaletteLanguage(ui);
+}
+
+function setLanguage(lang, isInitial = false) {
+  currentLang = I18N[lang] ? lang : "en";
+  localStorage.setItem(LANG_KEY, currentLang);
+  document.documentElement.setAttribute("data-lang", currentLang);
+  document.documentElement.lang = currentLang === "hi" ? "hi" : "en";
+
+  const dict = I18N[currentLang] || I18N.en;
+  const sel = document.getElementById("lang-selector");
+  if (sel) sel.value = currentLang;
+  applyLanguageUI(dict);
+
+  // Re-render stored messages only when no stream is active. Rebuilding the
+  // DOM during an upstream stream would discard the live response cursor.
+  if (!isGenerating) renderMessages();
+
+  if (!isInitial) showToast(dict.toastLangChanged, "🌐");
 }
 
 function initLanguage() {
@@ -5158,7 +5363,7 @@ function showLocalOnboardingModal() {
 
         <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
           <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue in Browser</button>
-          <button class="btn btn-primary" onclick="window.open('https://github.com/div197/BOB-Gemini-Free/releases', '_blank')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View Releases</button>
+          <button class="btn btn-primary" onclick="openExternalURL('https://github.com/div197/BOB-Gemini-Free/releases')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View Releases</button>
         </div>
       </div>
     </div>
@@ -6019,7 +6224,8 @@ function initTtsVoices() {
   if (voices.length === 0) return;
 
   const currentVal = localStorage.getItem('bob_preferred_tts_voice') || 'auto';
-  select.innerHTML = '<option value="auto">🌟 Auto Best Natural HD Voice (Recommended)</option>';
+  const ui = (I18N[currentLang] || I18N.en).ui || I18N.en.ui;
+  select.innerHTML = `<option value="auto">${ui.ttsAuto}</option>`;
 
   const validVoices = voices.filter(v => {
     const nameLower = (v.name || '').toLowerCase();
@@ -6034,7 +6240,7 @@ function initTtsVoices() {
 
   if (studioVoices.length > 0) {
     const grpStudio = document.createElement('optgroup');
-    grpStudio.label = '✨ Studio HD Natural Voices (Ultra-Smooth)';
+    grpStudio.label = ui.studioVoices;
     studioVoices.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.name;
@@ -6047,7 +6253,7 @@ function initTtsVoices() {
 
   if (otherVoices.length > 0) {
     const grpOther = document.createElement('optgroup');
-    grpOther.label = 'Standard System Voices';
+    grpOther.label = ui.standardVoices;
     otherVoices.forEach(v => {
       const opt = document.createElement('option');
       opt.value = v.name;
@@ -6221,7 +6427,7 @@ function toggleReadAloud(btn) {
   };
 
   activeTtsButton = btn;
-  btn.innerHTML = '<span>⏹️</span> <span>Stop</span>';
+  btn.innerHTML = `<span>⏹️</span> <span>${(I18N[currentLang] || I18N.en).btnStop}</span>`;
   btn.classList.add('speaking');
 
   function speakNext() {
@@ -6260,7 +6466,8 @@ function toggleReadAloud(btn) {
 
 function resetTtsButton(btn) {
   if (!btn) return;
-  btn.innerHTML = '<span>🔊</span> <span>Listen</span>';
+  const ui = (I18N[currentLang] || I18N.en).ui || I18N.en.ui;
+  btn.innerHTML = `<span>🔊</span> <span>${ui.listen}</span>`;
   btn.classList.remove('speaking');
 }
 
@@ -6693,6 +6900,7 @@ function renderMessages() {
   const content = document.getElementById("messages-content");
   content.innerHTML = "";
   const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
 
   if (chatHistory.length === 0) {
     const welcome = document.createElement("div");
@@ -6709,36 +6917,24 @@ function renderMessages() {
       </div>
       <div class="starters-grid">
         <div class="starter-card" onclick="selectStarter('snake')">
-          <div class="badge-chip">
-            <span class="mini-orb">🎮</span>
-            <span>ARTIFACT CANVAS</span>
-          </div>
-          <div class="starter-card-title">2D Cyberpunk Snake Game</div>
-          <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
+          <div class="badge-chip"><span class="mini-orb">🎮</span><span>${ui.starterCards.snake[0]}</span></div>
+          <div class="starter-card-title">${ui.starterCards.snake[1]}</div>
+          <div class="starter-card-desc">${ui.starterCards.snake[2]}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('py_finance')">
-          <div class="badge-chip">
-            <span class="mini-orb">🐍</span>
-            <span>PYTHON WASM SANDBOX</span>
-          </div>
-          <div class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</div>
-          <div class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</div>
+          <div class="badge-chip"><span class="mini-orb">🐍</span><span>${ui.starterCards.py_finance[0]}</span></div>
+          <div class="starter-card-title">${ui.starterCards.py_finance[1]}</div>
+          <div class="starter-card-desc">${ui.starterCards.py_finance[2]}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('orbit')">
-          <div class="badge-chip">
-            <span class="mini-orb">🪐</span>
-            <span>THREE.JS WEBGL</span>
-          </div>
-          <div class="starter-card-title">3D Solar System & Orbit Lab</div>
-          <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
+          <div class="badge-chip"><span class="mini-orb">🪐</span><span>${ui.starterCards.orbit[0]}</span></div>
+          <div class="starter-card-title">${ui.starterCards.orbit[1]}</div>
+          <div class="starter-card-desc">${ui.starterCards.orbit[2]}</div>
         </div>
         <div class="starter-card" onclick="selectStarter('grader')">
-          <div class="badge-chip">
-            <span class="mini-orb">🎓</span>
-            <span>FIRST PRINCIPLES</span>
-          </div>
-          <div class="starter-card-title">Explain to a 5th Grader</div>
-          <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
+          <div class="badge-chip"><span class="mini-orb">🎓</span><span>${ui.starterCards.grader[0]}</span></div>
+          <div class="starter-card-title">${ui.starterCards.grader[1]}</div>
+          <div class="starter-card-desc">${ui.starterCards.grader[2]}</div>
         </div>
       </div>
     `;
@@ -6786,18 +6982,15 @@ function renderMessages() {
       header.className = "story-card-header";
       header.innerHTML = `
         <div style="display:flex; align-items:center; gap:8px;">
-          <div class="badge-chip">
-            <span class="mini-orb">✦</span>
-            <span>BOB AI RESPONSE</span>
-          </div>
+          <div class="badge-chip"><span class="mini-orb">✦</span><span>${ui.response}</span></div>
           <span class="story-meta-stats">${wordCount} words • ~${estTokens} tokens</span>
         </div>
         <div class="story-header-actions">
-          <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>Listen</span></button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ Retry</button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 Think</button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ Flash</button>
-          <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">Copy</button>
+          <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ ${ui.retry}</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
+          <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">${ui.copyMessage}</button>
         </div>
       `;
       storyDiv.appendChild(header);
@@ -6805,7 +6998,7 @@ function renderMessages() {
       if (m.thought) {
         const tb = document.createElement("div");
         tb.className = "thought-card active";
-        tb.innerHTML = '<div class="thought-card-header"><span>🧠 Step-by-Step Reasoning</span></div>' + renderMarkdown(m.thought);
+        tb.innerHTML = `<div class="thought-card-header"><span>🧠 ${ui.reasoning}</span></div>` + renderMarkdown(m.thought);
         storyDiv.appendChild(tb);
       }
 
@@ -6847,7 +7040,8 @@ async function sendMessage() {
     if (match) {
       const word = match[1];
       const low = word.toLowerCase();
-      const cached = translitCache.get(low) || OFFLINE_INDIC_RULES.special[low];
+      const cached = translitCache.get(`${currentIndicLang}:${low}`) ||
+        (currentIndicLang.startsWith('hi-') ? OFFLINE_INDIC_RULES.special[low] : null);
       if (cached && cached !== word) {
         text = text.slice(0, text.length - word.length) + cached;
       }
@@ -6863,6 +7057,7 @@ async function sendMessage() {
   const sendLabel = document.getElementById("send-btn-label");
   const sendIcon = document.getElementById("send-btn-icon");
   const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
 
   isGenerating = true;
   try {
@@ -6930,29 +7125,26 @@ async function sendMessage() {
   header.className = "story-card-header";
   header.innerHTML = `
     <div style="display:flex; align-items:center; gap:8px;">
-      <div class="badge-chip">
-        <span class="mini-orb">✦</span>
-        <span>BOB AI RESPONSE</span>
-      </div>
-      <span class="story-meta-stats" id="live-stream-stats">Streaming...</span>
+        <div class="badge-chip"><span class="mini-orb">✦</span><span>${ui.response}</span></div>
+        <span class="story-meta-stats" id="live-stream-stats">${ui.streaming}</span>
     </div>
     <div class="story-header-actions">
-      <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>Listen</span></button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ Retry</button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 Think</button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ Flash</button>
-      <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">Copy</button>
+      <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ ${ui.retry}</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
+      <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">${ui.copyMessage}</button>
     </div>
   `;
   storyDiv.appendChild(header);
 
   const thoughtBox = document.createElement("div");
   thoughtBox.className = "thought-card";
-  thoughtBox.innerHTML = '<div class="thought-card-header"><span>🧠 Step-by-Step Reasoning</span></div><div class="thought-content"></div>';
+  thoughtBox.innerHTML = `<div class="thought-card-header"><span>🧠 ${ui.reasoning}</span></div><div class="thought-content"></div>`;
   storyDiv.appendChild(thoughtBox);
 
   const contentSpan = document.createElement("div");
-  contentSpan.innerHTML = '<div class="typing-indicator"><span>✦</span> <span>Generating response...</span></div>';
+  contentSpan.innerHTML = `<div class="typing-indicator"><span>✦</span> <span>${dict.generating}</span></div>`;
   storyDiv.appendChild(contentSpan);
 
   contentEl.appendChild(storyDiv);
