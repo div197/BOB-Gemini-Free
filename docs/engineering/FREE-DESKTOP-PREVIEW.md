@@ -1,6 +1,6 @@
 # Free Native Desktop Beta
 
-**Status:** branded public experimental preview published as `v0.1.7-preview.6`.
+**Status:** branded public experimental preview published as `v0.1.7-preview.7`.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -18,7 +18,7 @@ student-facing release names are BOB Gemini Free.
 - safe occupied-port fallback;
 - no Go, Node, Rust, SQLite, or separate server required at runtime;
 - no embedded Google cookie, API key, private release key, or teacher
-  credential; Preview 6 contains only the public updater trust key;
+  credential; Preview 7 contains only the public updater trust key;
 - native macOS maximize control, default-browser external links, and expanded
   English/Hindi UI language coverage;
 - a native Help menu with an explicit “Check for Updates” action.
@@ -33,7 +33,7 @@ Developer ID or notarization trust.
 
 ## Public preview release
 
-The manually published [v0.1.7-preview.6 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.6)
+The manually published [v0.1.7-preview.7 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
 contains:
 
 - `bob-gemini-free-macos-universal.dmg`;
@@ -41,14 +41,16 @@ contains:
 - `RELEASE-NOTICE.txt`, `SHA256SUMS`, and `SHA256SUMS.sig`.
 
 Preview 3 remains available for manual migration and retains the Windows x64
-preview asset. Preview 6 is intentionally a macOS-first signed-update pilot;
-Windows and Linux require their own native build and acceptance evidence.
+preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
+Preview 6 installations require a one-time manual migration because their
+older project signing key cannot verify Preview 7. Windows and Linux require
+their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-Preview 6 carries the branded package refresh, signed preview updater, native
+Preview 7 carries the branded package refresh, signed preview updater, native
 window/browser refinements, language coverage, and the Web Studio generation
 lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated

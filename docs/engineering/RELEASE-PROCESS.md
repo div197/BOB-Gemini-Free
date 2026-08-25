@@ -28,7 +28,7 @@ local manifest-signing step and must never be placed in the repository or a
 student command.
 
 The native Help menu's update action is intentionally user-initiated. Preview
-6 and the Preview 7 candidate check the fixed official preview channel, verify
+6 and Preview 7 check the fixed official preview channel, verify
 a signed manifest, and offer a consented staged replacement with rollback. It
 does not silently replace a running native bundle.
 
@@ -37,8 +37,8 @@ does not silently replace a running native bundle.
 Preview 4 was the first public native build with a build-embedded desktop trust
 key and a signed preview manifest. It performs an explicit preview-channel
 metadata check, and a user can approve a verified staged update with health
-confirmation and rollback. Preview 6 continues that channel; Preview 7 is the
-next unpublished candidate. Preview 3 remains manual-update-only because it
+confirmation and rollback. Preview 6 was the previous signed preview; Preview
+7 is the current published preview. Preview 3 remains manual-update-only because it
 has no embedded desktop trust key. Stable builds and preview builds never
 cross channels automatically.
 

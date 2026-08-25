@@ -1,15 +1,14 @@
-# BOB Gemini Free v0.1.7-preview.7 Release Candidate
+# BOB Gemini Free v0.1.7-preview.7 Release Evidence
 
-**Status:** local, unpublished stabilization candidate as of 2026-08-25.
-The public release remains `v0.1.7-preview.6` until the release gates below
-are closed. A new owner-controlled Ed25519 key pair has been generated because
-the original Preview 6 private key was not recoverable; its public half is
-recorded in `UPDATE-PUBLIC-KEY.txt`, while its private half remains only in
-macOS Keychain.
+**Status:** published prerelease `v0.1.7-preview.7` as of 2026-08-25.
+The tag points to merged commit `a5ec476`. A new owner-controlled Ed25519 key
+pair was generated because the original Preview 6 private key was not
+recoverable; its public half is recorded in `UPDATE-PUBLIC-KEY.txt`, while
+its private half remains only in macOS Keychain.
 
-## Candidate scope
+## Release scope
 
-This candidate is a surgical reliability pass over the Preview 6 baseline:
+This release is a surgical reliability pass over the Preview 6 baseline:
 
 - provider policy and rejection responses no longer receive automatic retry
   amplification; only transport and server failures remain retryable;
@@ -31,8 +30,8 @@ This candidate is a surgical reliability pass over the Preview 6 baseline:
 - `go test -race -count=1 ./...`
 - `go vet ./...`
 - `go build ./...`
-- all inline Web Studio scripts parse and `web/index.html` matches the source
-  template;
+- all inline Web Studio scripts parse and the generated `web/index.html` was
+  regenerated from the source template;
 - deterministic local benchmark profiles at concurrency 1, 10, 20, and 30
   completed with 100/100 requests and zero failures;
 - the installed local gateway returned `GET /healthz` status `ok`;
@@ -45,22 +44,22 @@ These are local and deterministic checks. They do not certify Google
 availability, quota, account state, shared-IP capacity, or a 30-device live
 provider burst.
 
-## Release blockers
-
-Do not publish this candidate until all of these are evidenced:
+## Publication evidence
 
 1. the Keychain-held Ed25519 private key is retrieved only by the local
    signing process and matches the documented public key;
 2. macOS artifacts are built with the matching embedded public key and the
    exact artifacts are signed with `SHA256SUMS` and `SHA256SUMS.sig`;
-3. a clean writable `/Applications` installation updates from Preview 6 to
-   Preview 7 and a deliberately failed candidate rolls back safely;
-4. the release assets, tag, notes, and manifest are manually inspected before
-   publication;
-5. one clean Mac and two or three pilot Macs pass the rollout runbook;
+3. the protected-branch PR, tag, release assets, notes, and manifest were
+   manually inspected before publication;
+4. the published GitHub assets were downloaded, byte-compared with the local
+   signed files, checksum-verified, and signature-verified;
+5. one clean Mac and two or three pilot Macs remain post-publication rollout
+   gates, not claims already closed by this release;
 6. release notes continue to state that the package is ad-hoc signed and not
    Apple Developer ID signed or notarized.
 
-The updater remains explicit and user-consented. Publishing Preview 7 will not
-silently push it to every installed Preview 6 device and will not change the
-Google upstream authentication or shared-network boundary.
+The updater remains explicit and user-consented. Preview 7 does not silently
+push itself to every installed Preview 6 device: those devices need the
+documented one-time manual migration. It does not change the Google upstream
+authentication or shared-network boundary.
