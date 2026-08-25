@@ -38,7 +38,7 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 | Status | Current meaning |
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
-| **Native updater status** | Preview 4 embeds the public key and publishes a signed preview manifest; its Help action can perform a consented staged update with confirmation and rollback, while Preview 3 remains manual-only |
+| **Native updater status** | Preview 5 embeds the public key and publishes a signed preview manifest; its Help action can perform a consented staged update with confirmation and rollback, while Preview 3 remains manual-only |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md); they are not Google latency or rate-limit measurements |
@@ -181,11 +181,11 @@ adapter route it uses before classroom or production adoption:
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.4 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.4) contains the corrected branded macOS universal package and signed project update manifest; it is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets.
+* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.5 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.5) contains the corrected branded macOS universal package, signed project update manifest, native maximize behavior, default-browser link routing, and expanded English/Hindi studio UI; it is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets.
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
-* Preview 4 has a build-pinned preview update channel. From Preview 4 onward,
+* Preview 5 has a build-pinned preview update channel. From Preview 4 onward,
   the Help menu can discover a newer signed preview, verify it, and install it
   after explicit user consent with rollback protection. Preview 3 still needs
   one manual migration because it predates the embedded trust key.
@@ -303,8 +303,8 @@ manifest and the matching Ed25519 public key is configured as
 [`docs/engineering/UPDATE-VERIFICATION.md`](docs/engineering/UPDATE-VERIFICATION.md).
 
 This CLI environment-key path is not the native desktop trust boundary.
-Production native builds must embed their public key at build time. Preview 4
-is the first public native preview with that embedded key; it still requires
+Production native builds must embed their public key at build time. Preview 5
+continues the public native preview channel with that embedded key; it still requires
 explicit user consent and does not silently replace the app. See
 [`docs/engineering/DESKTOP-UPDATE-OPERATIONS.md`](docs/engineering/DESKTOP-UPDATE-OPERATIONS.md).
 

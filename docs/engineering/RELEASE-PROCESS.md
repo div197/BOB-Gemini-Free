@@ -22,16 +22,16 @@ It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
 The native Help menu's update action is intentionally user-initiated. Preview
-4 checks the fixed official preview channel, verifies a signed manifest, and
+5 checks the fixed official preview channel, verifies a signed manifest, and
 offers a consented staged replacement with rollback. It does not silently
 replace a running native bundle.
 
 ## Native automatic-update status
 
-Preview 4 is the first public native build with a build-embedded desktop trust
+Preview 4 was the first public native build with a build-embedded desktop trust
 key and a signed preview manifest. It performs an explicit preview-channel
 metadata check, and a user can approve a verified staged update with health
-confirmation and rollback. Preview 3 remains manual-update-only because it
+confirmation and rollback. Preview 5 continues that channel. Preview 3 remains manual-update-only because it
 has no embedded desktop trust key. Stable builds and preview builds never
 cross channels automatically.
 
