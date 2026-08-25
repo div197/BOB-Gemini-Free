@@ -21,6 +21,10 @@ func TestIsNewerVersion(t *testing.T) {
 		{"v0.2.0", "v0.1.9", false},
 		{"dev", "v0.1.6", false},
 		{"0.1.5", "0.1.6", true},
+		{"v0.1.7-preview.3", "v0.1.7-preview.4", true},
+		{"v0.1.7-preview.4", "v0.1.7-preview.3", false},
+		{"v0.1.7-preview.4", "v0.1.7", true},
+		{"v0.1.7-preview.4", "not-a-version", false},
 	}
 
 	for _, tt := range tests {
@@ -140,6 +144,55 @@ func TestCheckLatestDesktopFindsNativePackage(t *testing.T) {
 	}
 	if result.ChecksumURL == "" || result.SignatureURL == "" {
 		t.Fatalf("manifest URLs = %q / %q", result.ChecksumURL, result.SignatureURL)
+	}
+}
+
+func TestCheckLatestDesktopPreviewSelectsHighestPublishedPreview(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{
+			{
+				TagName:    "v0.1.7-preview.3",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.3",
+			},
+			{
+				TagName:    "v0.1.7-preview.4",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.4",
+				Assets: []ReleaseAsset{
+					{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.7-preview.4/bob-gemini-free-macos-universal.zip", Size: 2048},
+					{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.7-preview.4/SHA256SUMS"},
+					{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.7-preview.4/SHA256SUMS.sig"},
+				},
+			},
+			{
+				TagName:    "v0.1.7-preview.5",
+				Prerelease: true,
+				Draft:      true,
+			},
+			{
+				TagName: "v0.1.8",
+			},
+		})
+	}))
+	defer server.Close()
+
+	result, err := checkLatestDesktopChannel(server.Client(), server.URL, "v0.1.7-preview.3", DesktopChannelPreview, "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("checkLatestDesktopChannel: %v", err)
+	}
+	if result.LatestVersion != "v0.1.7-preview.4" || !result.HasUpdate {
+		t.Fatalf("preview result = %#v, want v0.1.7-preview.4 update", result)
+	}
+	if result.Channel != DesktopChannelPreview || !result.AssetAvailable || !result.ManifestAvailable {
+		t.Fatalf("preview channel result = %#v", result)
+	}
+}
+
+func TestCheckLatestDesktopRejectsUnsupportedChannel(t *testing.T) {
+	if _, err := checkLatestDesktopChannel(http.DefaultClient, "https://example.invalid/releases", "v0.1.7", "nightly", "darwin", "arm64"); err == nil {
+		t.Fatal("unsupported update channel was accepted")
 	}
 }
 

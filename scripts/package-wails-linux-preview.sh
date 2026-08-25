@@ -10,7 +10,8 @@ OUTPUT_DIR="${1:-/tmp/bob-gemini-free-linux-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-linux/amd64}"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="bob-gemini-free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.4}"
+CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bob-gemini-free-linux-stage.XXXXXX")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
@@ -44,9 +45,9 @@ else
 	WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL}")
 if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
-	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
 fi
 
 cd "$ROOT_DIR/cmd/desktop"
