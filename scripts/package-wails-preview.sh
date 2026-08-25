@@ -13,9 +13,14 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.4}"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.7}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 trap 'rm -rf "$STAGE_DIR"' EXIT
+
+if [[ -z "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required for updater-capable preview packages" >&2
+	exit 1
+fi
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
 	echo "this preview packager requires macOS" >&2
@@ -102,6 +107,10 @@ No Google session, cookie, API key, or private release key is included. A
 signed preview build may contain a public Ed25519 key for verifying future
 project release manifests; this does not provide Apple Developer ID signing
 or notarization.
+Existing Preview 6 installations carry an older project verification key and
+must be manually replaced with this Preview 7 package once. Later releases
+signed with the Preview 7 key can then be installed through the explicit
+Help -> Check for Updates flow.
 NOTICE
 
 (

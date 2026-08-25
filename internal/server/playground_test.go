@@ -152,3 +152,44 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 		t.Fatal("release button still opens GitHub inside the native WebView")
 	}
 }
+
+func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`--studio-toolbar-height: 42px;`,
+		`class="sub-bar"`,
+		`title="Start a new chat canvas"`,
+		`top: var(--studio-toolbar-height);`,
+		`bottom: auto;`,
+		`height: calc(100% - var(--studio-toolbar-height));`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("responsive New Chat layout is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(html, "@media (max-width: 1140px) {\n  .telemetry-bar") &&
+		strings.Contains(html, "position: absolute;\n    top: 0;\n    bottom: 0;\n    height: 100%;") {
+		t.Fatal("responsive drawers still cover the full toolbar height")
+	}
+}
+
+func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const MAX_MANUAL_RETRIES = 2;`,
+		`const MANUAL_RETRY_COOLDOWN_MS = 4000;`,
+		`manualRetriesSinceSuccess >= MAX_MANUAL_RETRIES`,
+		`Retry this response with the current model`,
+		`function handleGenerationSafeModelChange(selectEl)`,
+		`Model changes are locked while a response is streaming`,
+		`setGenerationControlsDisabled(true);`,
+		`setGenerationControlsDisabled(false);`,
+		`let streamProtocolError = null;`,
+		`if (finishReason === "error")`,
+		`Cookie pools do not bypass quotas or provider policy.`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing provider-safety marker %q", marker)
+		}
+	}
+}

@@ -40,3 +40,18 @@ func TestCookiePool(t *testing.T) {
 	// Reset success
 	pool.MarkSuccess("sapi1")
 }
+
+func TestCookiePoolSuccessClearsFailureCooldown(t *testing.T) {
+	pool := NewCookiePool()
+	pool.AddSession("acc.txt", "SAPISID=sapi; SID=sid", "sapi", "0")
+
+	pool.MarkFailure("sapi")
+	if healthy := pool.CountHealthy(); healthy != 0 {
+		t.Fatalf("healthy sessions after failure = %d, want 0", healthy)
+	}
+
+	pool.MarkSuccess("sapi")
+	if healthy := pool.CountHealthy(); healthy != 1 {
+		t.Fatalf("healthy sessions after success = %d, want 1", healthy)
+	}
+}

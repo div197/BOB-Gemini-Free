@@ -14,6 +14,11 @@ PLATFORM="${BOB_WAILS_PLATFORM:-darwin/$(go env GOARCH)}"
 VERSION="${BOB_RELEASE_VERSION:-dev}"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
+if [[ "$VERSION" != "dev" && -z "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required for non-development desktop builds" >&2
+	exit 1
+fi
+
 if [[ "$(uname -s)" != "Darwin" ]]; then
 	echo "this script builds the macOS native bundle and requires macOS" >&2
 	exit 1

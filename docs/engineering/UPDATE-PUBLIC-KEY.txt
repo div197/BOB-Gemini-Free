@@ -1,0 +1,17 @@
+BOB Gemini Free Preview 7 updater public key
+
+Status: release-candidate key, generated 2026-08-25 and not yet published in
+a GitHub release. The matching private signing seed is stored only in the
+owner-controlled macOS Keychain and must never enter Git, chat, screenshots,
+release notes, or student packages.
+
+Encoding: hexadecimal Ed25519 public key
+ba7854781bca2a14da4f1ec5e931ff45f458ac9377c42ac127c349e5ecad2dff
+
+SHA-256 fingerprint of the public-key bytes:
+ac862068215d2944d76bee896b46a4a7ca165acfa7f51135a25bb8c2366b0c38
+
+This key is different from the public key embedded in Preview 6. Existing
+Preview 6 installations therefore require a one-time manual migration to a
+Preview 7 build carrying this key; later signed releases can update from
+Preview 7 onward.

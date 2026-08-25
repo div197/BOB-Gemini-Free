@@ -41,7 +41,7 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 | **Native updater status** | Preview 6 embeds the public key and publishes a signed preview manifest; its Help action can perform a consented staged update with confirmation and rollback, while Preview 3 remains manual-only |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
-| **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md); they are not Google latency or rate-limit measurements |
+| **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md) and the current [`LOCAL-BENCHMARK-2026-08-25.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-25.md); they are not Google latency or rate-limit measurements |
 | **Upstream-dependent** | Google model identity, entitlements, context limits, live compatibility, rate limits, authenticated vision/Imagen, and “free/unlimited” behavior |
 | **Experimental** | Pro/model aliases, image-generation routing, live browser login, and any capability not proven by an authorized live session |
 
@@ -54,6 +54,10 @@ BOB Gemini Free does not create a BOB account, require a BOB signup, or send
 chat prompts to a BOB cloud service. Google authentication, when needed, is
 the student's own provider session and remains subject to Google's policies,
 expiry, entitlements, and network behavior.
+
+The exact boundary between anonymous web access, optional Google web cookies,
+shared school-network egress, local health, and provider limits is documented
+in [`UPSTREAM-AUTHENTICATION-BOUNDARY.md`](docs/engineering/UPSTREAM-AUTHENTICATION-BOUNDARY.md).
 
 ---
 
@@ -140,7 +144,7 @@ The **BOB Series** by **ABCsteps** is a developer-first collection of open-sourc
 * **Local Aggregate Metrics**: Safe request, latency, pool, upload, cache, and token-estimate counters are available locally; no automatic telemetry is transmitted.
 * **Live Diagnostic Suite**: The built-in `./bob-gemini-free --test` command and `--bench` runner need an explicitly running gateway and may depend on upstream access.
 * **1-Click Native Login Window (`--login`)**: The browser workflow attempts to capture session tokens in an isolated profile; login success remains dependent on the local browser and Google.
-* **Multi-Account Cookie Pool (`cookie_pool`)**: Distribute requests across multiple Google accounts with automatic 60-second backoff and transparent failover on rate limits.
+* **Multi-Account Cookie Pool (`cookie_pool`)**: Route explicitly supplied Google web sessions with a local 60-second failure cooldown; it is not a quota increase, rate-limit bypass, or safe reason to share one cookie across students.
 * **Authenticated Pro Routing Path**: A configured session may expose Google's Pro aliases when the upstream account and current web protocol support them; this is not guaranteed by the gateway.
 * **Image-Generation Routing Path**: `/v1/images/generations` is implemented, but Imagen/Nano Banana output remains experimental and upstream-dependent.
 * **Anthropic-Shaped Thinking Support**: Accepts Anthropic-style thinking fields and emits the adapter's reasoning blocks; it is not native Claude inference.
@@ -189,6 +193,8 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   the Help menu can discover a newer signed preview, verify it, and install it
   after explicit user consent with rollback protection. Preview 3 still needs
   one manual migration because it predates the embedded trust key.
+  The one-clean-Mac, pilot, and 20–30-device gates are documented in
+  [`PREVIEW-ROLLOUT-VALIDATION.md`](docs/engineering/PREVIEW-ROLLOUT-VALIDATION.md).
 
 ---
 
