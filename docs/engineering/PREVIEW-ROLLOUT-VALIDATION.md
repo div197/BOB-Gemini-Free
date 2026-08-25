@@ -1,7 +1,7 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current target:** unpublished `v0.1.7-preview.7` stabilization candidate,
-based on the public `v0.1.7-preview.6` release
+**Current target:** public prerelease `v0.1.7-preview.7`, based on the public
+`v0.1.7-preview.6` release
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -16,7 +16,7 @@ provider check; it cannot be certified by a local benchmark.
 
 ## What the current desktop updater actually does
 
-Preview 6 has a build-pinned preview channel and a signed manifest verifier.
+Preview 7 has a build-pinned preview channel and a signed manifest verifier.
 The updater:
 
 - contacts the fixed official GitHub release API only after the user selects
@@ -27,6 +27,11 @@ The updater:
 - stages beside the installed application and restarts through the tested
   helper/rollback path; and
 - requires explicit user consent.
+
+Preview 6 installations cannot verify Preview 7 because the original Preview
+6 project signing key was not recoverable. Install Preview 7 manually once on
+those devices; later releases signed with the Preview 7 key can then use this
+updater.
 
 It does **not** silently check on startup, silently replace the application, or
 push a release to 30 machines. A new signed preview can therefore reduce the
@@ -126,19 +131,20 @@ This is the correct evidence boundary for a public repository: local behavior
 is regression-tested, while Google behavior is recorded as a time-stamped,
 account/network-specific observation.
 
-## Release decision for the next preview
+## Post-publication rollout decision
 
-The next preview may be published only after:
+Preview 7 is published. The remaining rollout gates are:
 
 1. the full local test/race/vet/build gate passes;
-2. the generated `web/index.html` matches `internal/server/playground.html`;
-3. the updater artifacts are signed and manually verified on a clean writable
-   application copy;
+2. the generated `web/index.html` is regenerated from
+   `internal/server/playground.html` with the documented version substitution;
+3. the updater artifacts remain signed and manually verified on a clean
+   writable application copy;
 4. the release notes disclose that platform notarization/publisher trust is
    still absent, if that remains true;
 5. the preview is tested on one clean Mac and three pilots; and
 6. the release page says explicitly that updater success and `/healthz` do not
    prove upstream Google availability.
 
-Until those gates pass, the honest status is **stabilization candidate**, not
+Until those gates pass, the honest status is **controlled public beta**, not
 “ready for an unattended 30-device production rollout.”

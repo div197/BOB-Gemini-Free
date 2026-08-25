@@ -53,9 +53,6 @@ preview/release boundaries below.
 - Stopped automatic retries for explicit upstream policy/rejection responses;
   transport retries and cumulative-stream deduplication remain protected by
   fixtures.
-- Prepared an unpublished Preview 7 stabilization candidate; its exact
-  release evidence and remaining trust gates are recorded in
-  `docs/engineering/PREVIEW-7-RELEASE-CANDIDATE.md`.
 - Kept the New/model toolbar above responsive drawers and bounded manual UI
   retries so a visible provider failure cannot be multiplied by rapid clicks.
 
@@ -74,7 +71,7 @@ preview/release boundaries below.
   generation control locking, and responsive drawer placement below the
   New/model toolbar.
 - Added regression coverage and local 20/30-client benchmark evidence for
-  the release candidate.
+  the release.
 
 ## [0.1.7-preview.6] - 2026-08-25
 

@@ -1,7 +1,7 @@
 BOB Gemini Free Preview 7 updater public key
 
-Status: release-candidate key, generated 2026-08-25 and not yet published in
-a GitHub release. The matching private signing seed is stored only in the
+Status: Preview 7 public key, generated 2026-08-25 and published with GitHub
+release v0.1.7-preview.7. The matching private signing seed is stored only in the
 owner-controlled macOS Keychain and must never enter Git, chat, screenshots,
 release notes, or student packages.
 

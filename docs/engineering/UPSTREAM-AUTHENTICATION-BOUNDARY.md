@@ -1,6 +1,6 @@
 # Upstream Authentication and Shared-Network Boundary
 
-**Status:** Current Preview 6 engineering truth
+**Status:** Current Preview 7 engineering truth
 
 This document defines what BOB Gemini Free does and does not authenticate.
 It exists because “API-free” is easy to misunderstand: BOB does not require a

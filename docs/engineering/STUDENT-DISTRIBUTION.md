@@ -15,7 +15,7 @@ screenshots from a product release that students can download and trust.
 - The app can discover a user's existing local config/cookie files, but it
   forcibly remains loopback-only and does not accept server API keys or remote
   origins in desktop mode.
-- The public [`v0.1.7-preview.6` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.6)
+- The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
 
@@ -98,13 +98,15 @@ Preview 4 was the first public native preview with a signed, build-pinned
 preview update channel. After Preview 4 is installed once, a later signed
 preview can be discovered from the Help menu, verified, staged, and rolled
 back after user consent. Preview 3 still requires one manual migration because
-it has no embedded desktop trust key.
+it has no embedded desktop trust key. Preview 6 installations also require
+  one manual migration to Preview 7 because the original project signing key
+  was not recoverable.
 
 The source contains the tested user-consented updater that
 downloads a platform-matching package, verifies a release manifest with the
 embedded Ed25519 public key, asks the user to restart, replaces the app via a
 platform-specific helper, and retains rollback evidence. It is enabled for
-Preview 6's preview channel but never treats an unsigned archive as trusted.
+Preview 7's preview channel but never treats an unsigned archive as trusted.
 Apple Developer
 ID/notarization and Windows publisher signing remain separate trust
 requirements; an Ed25519 manifest authenticates release bytes, not the
@@ -161,6 +163,7 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.1.7-preview.6` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.6):
-macOS universal `.dmg`/`.zip`. Windows Preview 3 remains available separately;
-Linux is not included in Preview 6.
+[`v0.1.7-preview.7` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7):
+macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
+one-time manual migration described in the release notes. Windows Preview 3
+remains available separately; Linux is not included in Preview 7.
