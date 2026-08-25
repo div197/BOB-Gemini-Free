@@ -82,8 +82,9 @@ BOB_WAILS_PLATFORM=darwin/arm64 \
 
 The bundle is ad-hoc signed so local macOS validation can inspect a coherent
 bundle. It is not signed with a Developer ID certificate and is not notarized.
-The release notice must remain beside any preview artifact shared with a
-student or tester.
+The DMG presents the app beside a conventional `/Applications` shortcut for
+drag-to-install use. The release notice must remain beside any preview artifact
+shared with a student or tester.
 
 ## Windows and Linux
 
@@ -148,6 +149,8 @@ To verify the local package after building:
 ```bash
 (cd /tmp/bob-gemini-free-preview && shasum -a 256 -c SHA256SUMS)
 unzip -t /tmp/bob-gemini-free-preview/bob-gemini-free-macos-universal.zip
+bash scripts/verify-macos-dmg-layout.sh \
+  /tmp/bob-gemini-free-preview/bob-gemini-free-macos-universal.dmg
 ```
 
 ## Next trust upgrade

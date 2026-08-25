@@ -72,7 +72,21 @@ codesign --verify --deep --strict --verbose=2 "$DEST_APP"
 ZIP_PATH="$OUTPUT_DIR/bob-gemini-free-macos-universal.zip"
 DMG_PATH="$OUTPUT_DIR/bob-gemini-free-macos-universal.dmg"
 ditto -c -k --norsrc --noextattr --noqtn --keepParent "$DEST_APP" "$ZIP_PATH"
-hdiutil create -volname "BOB Gemini Free" -srcfolder "$DEST_APP" -ov -format UDZO "$DMG_PATH" >/dev/null
+
+# Build a conventional drag-to-install DMG root. A DMG containing only the
+# application bundle is technically mountable, but it gives users no visible
+# installation target and makes the preview feel unfinished. Keep the alias
+# outside the signed app bundle so it cannot affect bundle verification.
+DMG_ROOT="$STAGE_DIR/dmg-root"
+mkdir -p "$DMG_ROOT"
+ditto --norsrc --noextattr --noqtn "$DEST_APP" "$DMG_ROOT/$PUBLIC_APP_NAME.app"
+ln -s /Applications "$DMG_ROOT/Applications"
+if [[ ! -L "$DMG_ROOT/Applications" || "$(readlink "$DMG_ROOT/Applications")" != "/Applications" ]]; then
+	echo "failed to create the DMG Applications shortcut" >&2
+	exit 1
+fi
+hdiutil create -volname "BOB Gemini Free" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG_PATH" >/dev/null
+bash "$ROOT_DIR/scripts/verify-macos-dmg-layout.sh" "$DMG_PATH"
 
 cat > "$OUTPUT_DIR/RELEASE-NOTICE.txt" <<'NOTICE'
 BOB Gemini Free macOS open-source beta package
