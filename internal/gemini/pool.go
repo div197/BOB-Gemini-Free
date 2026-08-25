@@ -275,6 +275,7 @@ func (p *CookiePool) MarkSuccess(sessionID string) {
 	for _, s := range p.sessions {
 		if s.ID == sessionID || s.SAPISID == sessionID {
 			atomic.StoreInt64(&s.FailureCount, 0)
+			s.LastFailure = time.Time{}
 			break
 		}
 	}

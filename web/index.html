@@ -67,6 +67,7 @@
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --reading-zoom: 1;
+  --studio-toolbar-height: 42px;
 }
 
 [data-theme="vodafone"] {
@@ -2217,9 +2218,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
   .creators-grid { grid-template-columns: 1fr; }
   .sidebar-panel {
     position: absolute;
-    top: 0;
-    bottom: 0;
-    height: 100%;
+    /* Keep the New/model toolbar above responsive drawers. */
+    top: var(--studio-toolbar-height);
+    bottom: auto;
+    height: calc(100% - var(--studio-toolbar-height));
     box-shadow: 0 0 30px rgba(0, 0, 0, 0.7);
   }
   .sidebar-panel.right { right: 0; }
@@ -3679,7 +3681,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
     <div class="control-card">
       <label id="label-target-model">Target Model</label>
-      <select id="model-select" onchange="updateSnippet(); updateActiveModelBadge();">
+      <select id="model-select" onchange="handleGenerationSafeModelChange(this)">
         <option value="gemini-3.7-flash" selected>⚡ gemini-3.7-flash (Flagship Fast)</option>
         <option value="gemini-3.7-flash-thinking">🧠 gemini-3.7-flash-thinking (Deep Reasoning)</option>
         <option value="gemini-3.6-flash">⚡ gemini-3.6-flash</option>
@@ -3691,7 +3693,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
 
     <div class="control-card">
       <label id="label-reasoning-depth">Reasoning Depth (@think)</label>
-      <select id="think-select" onchange="updateSnippet(); updateActiveModelBadge();">
+      <select id="think-select" onchange="handleGenerationSafeModelChange(this)">
         <option value="default" selected>Model Default</option>
         <option value="@think=0">Deep Thinking (@think=0)</option>
         <option value="@think=2">Medium Thinking (@think=2)</option>
@@ -3948,6 +3950,11 @@ let userIsAtBottom = true;
 let pendingConfirmCallback = null;
 let activeAbortController = null;
 let isGenerating = false;
+let manualRetriesSinceSuccess = 0;
+let lastManualRetryAt = 0;
+let pendingRetry = false;
+const MAX_MANUAL_RETRIES = 2;
+const MANUAL_RETRY_COOLDOWN_MS = 4000;
 let currentAttachedImage = null; // Base64 data URL
 
 // Native Wails WebViews do not reliably navigate target=_blank links. Route
@@ -4962,12 +4969,32 @@ function handleCmdKeyDown(e) {
 }
 
 function selectModel(modelName) {
+  if (isGenerating) {
+    showToast("Model changes are locked while a response is streaming", "⏳");
+    return;
+  }
   const sel = document.getElementById("model-select");
   sel.value = modelName;
   updateSnippet();
   updateActiveModelBadge();
   toggleCmdPalette();
   showToast("Selected model: " + modelName, "⚡");
+}
+
+function handleGenerationSafeModelChange(selectEl) {
+  if (isGenerating) {
+    showToast("Model changes are locked while a response is streaming", "⏳");
+    return;
+  }
+  updateSnippet();
+  updateActiveModelBadge();
+}
+
+function setGenerationControlsDisabled(disabled) {
+  for (const id of ["model-select", "think-select", "temp-range", "max-tokens-select", "proto-select", "system-prompt"]) {
+    const control = document.getElementById(id);
+    if (control) control.disabled = disabled;
+  }
 }
 
 function onKaTeXLoaded() {
@@ -6810,10 +6837,36 @@ function zoomReset() {
   showToast("Reading Zoom: 100%", "🔍");
 }
 
-function retryWithModel(mode = 'default') {
+function retryWithModel(mode = 'default', userIndex = -1) {
   if (chatHistory.length === 0 || isGenerating) return;
-  const lastUserMsg = [...chatHistory].reverse().find(m => m.role === 'user');
-  if (!lastUserMsg) return;
+
+  const now = Date.now();
+  if (manualRetriesSinceSuccess >= MAX_MANUAL_RETRIES) {
+    showToast("Retry limit reached for this generation; send a new prompt or wait for a fresh response", "⚠️");
+    return;
+  }
+  if (lastManualRetryAt && now - lastManualRetryAt < MANUAL_RETRY_COOLDOWN_MS) {
+    const waitSeconds = Math.ceil((MANUAL_RETRY_COOLDOWN_MS - (now - lastManualRetryAt)) / 1000);
+    showToast(`Please wait ${waitSeconds}s before retrying`, "⏳");
+    return;
+  }
+
+  let targetIndex = Number.isInteger(userIndex) ? userIndex : -1;
+  if (targetIndex < 0 || !chatHistory[targetIndex] || chatHistory[targetIndex].role !== 'user') {
+    targetIndex = -1;
+    for (let i = chatHistory.length - 1; i >= 0; i--) {
+      if (chatHistory[i].role === 'user') {
+        targetIndex = i;
+        break;
+      }
+    }
+  }
+  if (targetIndex < 0) return;
+
+  const lastUserMsg = chatHistory[targetIndex];
+  manualRetriesSinceSuccess++;
+  lastManualRetryAt = now;
+  pendingRetry = true;
 
   if (mode === 'thinking') {
     document.getElementById('think-select').value = '@think=0';
@@ -6829,15 +6882,26 @@ function retryWithModel(mode = 'default') {
     showToast("Re-running with Fast Flash...", "⚡");
   }
 
-  if (chatHistory[chatHistory.length - 1].role === 'assistant') {
-    chatHistory.pop();
-  }
-  chatHistory.pop();
+  // Retry the response card that was clicked. If it is an earlier turn, the
+  // later conversation is intentionally discarded and rebuilt from that turn.
+  chatHistory = chatHistory.slice(0, targetIndex);
   saveHistory();
   renderMessages();
 
   const inputEl = document.getElementById("user-input");
-  inputEl.value = typeof lastUserMsg.content === 'string' ? lastUserMsg.content : (lastUserMsg.content[0]?.text || '');
+  let retryText = "";
+  if (typeof lastUserMsg.content === 'string') {
+    retryText = lastUserMsg.content;
+  } else if (Array.isArray(lastUserMsg.content)) {
+    const textPart = lastUserMsg.content.find(part => part && part.type === 'text');
+    retryText = textPart ? textPart.text : '';
+  }
+  if (lastUserMsg.attachedDoc) {
+    const docMatch = retryText.match(/^\[Attached Document: .*?\]\n```[\s\S]*?```\n\n([\s\S]*)$/);
+    if (docMatch) retryText = docMatch[1];
+  }
+  inputEl.value = retryText;
+  removeAttachedAttachment();
   if (lastUserMsg.attachedImage) {
     currentAttachedImage = lastUserMsg.attachedImage;
     updateAttachmentPreviewBar();
@@ -6975,6 +7039,14 @@ function renderMessages() {
       storyDiv.className = "story-card markdown-body";
       storyDiv.setAttribute('data-raw', m.content);
 
+      let retryUserIndex = -1;
+      for (let j = i - 1; j >= 0; j--) {
+        if (chatHistory[j].role === 'user') {
+          retryUserIndex = j;
+          break;
+        }
+      }
+
       const wordCount = (m.content || "").trim().split(/\s+/).filter(w => w).length;
       const estTokens = Math.round(wordCount * 1.33);
 
@@ -6987,9 +7059,9 @@ function renderMessages() {
         </div>
         <div class="story-header-actions">
           <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ ${ui.retry}</button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
-          <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('default', ${retryUserIndex})" title="Retry this response with the current model">↻ ${ui.retry}</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('thinking', ${retryUserIndex})" title="Retry this response with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
+          <button class="btn-pill-subtle" onclick="retryWithModel('flash', ${retryUserIndex})" title="Retry this response with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
           <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">${ui.copyMessage}</button>
         </div>
       `;
@@ -7033,6 +7105,12 @@ function handleSendOrStop() {
 }
 
 async function sendMessage() {
+  const wasRetry = pendingRetry;
+  pendingRetry = false;
+  if (!wasRetry) {
+    manualRetriesSinceSuccess = 0;
+    lastManualRetryAt = 0;
+  }
   const inputEl = document.getElementById("user-input");
   let text = inputEl.value.trim();
   if (isTransliterationActive && text) {
@@ -7066,6 +7144,7 @@ async function sendMessage() {
   sendBtn.classList.add("stop-mode");
   sendLabel.innerText = dict.btnStop;
   sendIcon.innerText = "■";
+  setGenerationControlsDisabled(true);
 
   inputEl.value = "";
   inputEl.style.height = '44px';
@@ -7130,9 +7209,9 @@ async function sendMessage() {
     </div>
     <div class="story-header-actions">
       <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('default')" title="Retry current model">↻ ${ui.retry}</button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('thinking')" title="Retry with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
-      <button class="btn-pill-subtle" onclick="retryWithModel('flash')" title="Retry with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('default', ${msgIdx})" title="Retry this response with the current model">↻ ${ui.retry}</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('thinking', ${msgIdx})" title="Retry this response with Deep Thinking (@think=0)">🧠 ${ui.think}</button>
+      <button class="btn-pill-subtle" onclick="retryWithModel('flash', ${msgIdx})" title="Retry this response with Fast Flash (@think=4)">⚡ ${ui.flash}</button>
       <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message">${ui.copyMessage}</button>
     </div>
   `;
@@ -7177,7 +7256,10 @@ async function sendMessage() {
     const baseUrl = getGatewayBaseUrl();
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
-      headers: {"Content-Type": "application/json"},
+      headers: {
+        "Content-Type": "application/json",
+        "X-Client-Request-Id": "studio-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8)
+      },
       body: JSON.stringify({
         model: model,
         temperature: temp,
@@ -7205,6 +7287,7 @@ async function sendMessage() {
     const decoder = new TextDecoder("utf-8");
     let partial = "";
     let streamDone = false;
+    let streamProtocolError = null;
     let streamEnded = false;
     let streamReadError = null;
     let pendingRender = false;
@@ -7254,8 +7337,19 @@ async function sendMessage() {
             const data = JSON.parse(trimmed.slice(6));
             const choice = data.choices && data.choices[0];
             if (!choice) continue;
+            // The gateway reports provider failures inside SSE after headers
+            // have already been sent. Turn that terminal frame into a real UI
+            // error instead of storing it as a successful assistant message.
+            const finishReason = String(choice.finish_reason || "").toLowerCase();
+            if (finishReason === "error") {
+              const errorText = (choice.delta && choice.delta.content) ||
+                (data.error && data.error.message) || "Upstream request failed";
+              streamProtocolError = errorText;
+              streamDone = true;
+              break;
+            }
             // Detect finish_reason stop as secondary completion signal
-            if (choice.finish_reason === "stop") { streamDone = true; }
+            if (finishReason === "stop") { streamDone = true; }
             const delta = choice.delta;
             if (delta) {
               if (delta.reasoning_content) {
@@ -7314,6 +7408,9 @@ async function sendMessage() {
     if (!streamDone && streamEnded) {
       throw new Error("Stream ended before completion");
     }
+    if (streamProtocolError) {
+      throw new Error(streamProtocolError);
+    }
 
     // Clear throttles and do a synchronous final render
     streamRenderActive = false;
@@ -7369,12 +7466,13 @@ async function sendMessage() {
       }
 
       let errorHtml = "";
-      if (err.message && err.message.includes("Upstream")) {
+      const isProviderIssue = /upstream|barderrorinfo|provider|rate limit/i.test(err.message || "");
+      if (isProviderIssue) {
         errorHtml = `
-          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ API Rate Limit / Upstream Error</div>
+          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Provider / Session Issue</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
-            The server successfully received your request, but Google Gemini blocked it: <strong>${escapeHtml(err.message)}</strong>.<br>
-            Consider using an authenticated Cookie Pool to bypass limits.
+            The local gateway reached Google's web service, but this request was not accepted: <strong>${escapeHtml(err.message)}</strong>.<br>
+            Wait for the provider cooldown or verify the user's own authorized session. Cookie pools do not bypass quotas or provider policy.
           </div>
         `;
       } else {
@@ -7415,6 +7513,7 @@ async function sendMessage() {
     if (sendLabel) sendLabel.innerText = dict.btnSend;
     if (sendIcon) sendIcon.innerText = "➤";
     inputEl.disabled = false;
+    setGenerationControlsDisabled(false);
     inputEl.focus();
     refreshTelemetry();
   }

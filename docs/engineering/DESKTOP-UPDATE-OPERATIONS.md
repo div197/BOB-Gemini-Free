@@ -21,6 +21,13 @@ and signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update.
 Preview 3 remains a manual migration path because it predates the trust key.
 
+The local macOS, Windows, and Linux preview packagers now fail closed when a
+non-development package is built without `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`.
+That prevents a future preview from being labelled updater-capable while its
+desktop binary has no embedded trust anchor. The private signing key remains
+required only by the separate local release-manifest/signing step and is never
+embedded.
+
 ## Trust and custody controls
 
 - The Ed25519 private key is a release secret. It must never enter Git,

@@ -3,7 +3,8 @@ set -euo pipefail
 
 # Sign an already-built release directory locally. This is deliberately a
 # separate operator step: build/signing credentials never belong in source or
-# GitHub Actions, and a stale directory must not be silently re-signed.
+# GitHub Actions. An existing unsigned SHA256SUMS is regenerated from the
+# exact directory contents; an existing signed manifest is never overwritten.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASE_DIR="${1:-}"
@@ -17,9 +18,12 @@ if [[ -z "$PUBLIC_KEY" || -z "${BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY:-}" ]]; then
 	echo "both update public and private keys are required in the local release environment" >&2
 	exit 1
 fi
-if [[ -e "$RELEASE_DIR/SHA256SUMS" || -e "$RELEASE_DIR/SHA256SUMS.sig" ]]; then
-	echo "release directory already contains a checksum manifest; refusing to overwrite it" >&2
+if [[ -e "$RELEASE_DIR/SHA256SUMS.sig" ]]; then
+	echo "release directory already contains SHA256SUMS.sig; refusing to overwrite a signed manifest" >&2
 	exit 1
+fi
+if [[ -e "$RELEASE_DIR/SHA256SUMS" ]]; then
+	echo "regenerating the unsigned SHA256SUMS from the inspected release directory" >&2
 fi
 
 cd "$ROOT_DIR"

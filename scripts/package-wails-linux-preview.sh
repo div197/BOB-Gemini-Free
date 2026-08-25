@@ -10,10 +10,15 @@ OUTPUT_DIR="${1:-/tmp/bob-gemini-free-linux-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-linux/amd64}"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="bob-gemini-free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.4}"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.7}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bob-gemini-free-linux-stage.XXXXXX")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
+
+if [[ -z "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
+	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required for updater-capable preview packages" >&2
+	exit 1
+fi
 
 if [[ "$(uname -s)" != "Linux" ]]; then
 	echo "Linux desktop preview packaging must run on a native Linux host" >&2

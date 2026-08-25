@@ -3,6 +3,7 @@ package gemini
 import (
 	"bufio"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -178,7 +179,7 @@ func (c *Client) triageStatus(resp *http.Response) error {
 		return &UpstreamError{
 			Status: resp.StatusCode,
 			Kind:   "http",
-			Msg:    "upstream blocked (redirected to sorry/index); IP may be flagged - retry later or use a different proxy/IP",
+			Msg:    "upstream policy/network rejection (redirected to sorry/index); automatic retries stopped",
 		}
 	}
 	if resp.StatusCode == http.StatusTooManyRequests {
@@ -196,6 +197,30 @@ func (c *Client) triageStatus(resp *http.Response) error {
 		}
 	}
 	return nil
+}
+
+// shouldRetryUpstream limits automatic retries to failures where another
+// attempt has a reasonable chance of succeeding without amplifying a provider
+// policy decision. In particular, 3xx/401/403/429 and Bard rejection frames
+// must surface immediately; rotating identities or retrying harder is not a
+// legitimate quota or access-control strategy.
+func shouldRetryUpstream(err error) bool {
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) {
+		return false
+	}
+
+	switch upstreamErr.Kind {
+	case "transport":
+		return true
+	case "http":
+		return upstreamErr.Status >= http.StatusInternalServerError
+	default:
+		// Parser/Bard rejection errors describe the provider response, not a
+		// transient connection failure. Stream deduplication remains active
+		// for transport retries only.
+		return false
+	}
 }
 
 func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
@@ -245,10 +270,16 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 				_ = resp.Body.Close()
 				if err != nil {
 					lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+					if session != nil {
+						c.Pool.MarkFailure(session.ID)
+					}
 				} else {
 					text, err := ExtractResponseText(string(rawBytes))
 					if err != nil {
 						lastErr = &UpstreamError{Kind: "bard", Msg: err.Error()}
+						if session != nil {
+							c.Pool.MarkFailure(session.ID)
+						}
 					} else {
 						if session != nil {
 							c.Pool.MarkSuccess(session.ID)
@@ -259,6 +290,9 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 			}
 		}
 
+		if attempt >= c.Cfg.RetryAttempts-1 || !shouldRetryUpstream(lastErr) {
+			break
+		}
 		if attempt < c.Cfg.RetryAttempts-1 {
 			c.Logf("Retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
 			select {
@@ -336,10 +370,16 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 				if isClientDisconnect(err) || ctx.Err() != nil {
 					return err
 				}
+				if session != nil {
+					c.Pool.MarkFailure(session.ID)
+				}
 				lastErr = err
 			}
 		}
 
+		if attempt >= c.Cfg.RetryAttempts-1 || !shouldRetryUpstream(lastErr) {
+			break
+		}
 		if attempt < c.Cfg.RetryAttempts-1 {
 			c.Logf("Stream retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
 			timer := time.NewTimer(time.Duration(c.Cfg.RetryDelaySec) * time.Second)

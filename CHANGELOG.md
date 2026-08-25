@@ -48,6 +48,33 @@ preview/release boundaries below.
   there is no BOB signup or BOB cloud chat service, and that a packaged app's
   no-Go/no-Node/no-SQLite runtime claim is different from source-build
   prerequisites.
+- Documented the distinction between anonymous web access, optional Google web
+  cookies, shared school-network egress, local health, and provider limits.
+- Stopped automatic retries for explicit upstream policy/rejection responses;
+  transport retries and cumulative-stream deduplication remain protected by
+  fixtures.
+- Prepared an unpublished Preview 7 stabilization candidate; its exact
+  release evidence and remaining trust gates are recorded in
+  `docs/engineering/PREVIEW-7-RELEASE-CANDIDATE.md`.
+- Kept the New/model toolbar above responsive drawers and bounded manual UI
+  retries so a visible provider failure cannot be multiplied by rapid clicks.
+
+## [0.1.7-preview.7] - 2026-08-25
+
+### Native preview reliability and updater-key migration
+
+- Added the Preview 7 project update public key and signed release-manifest
+  packaging path; the private signing key remains outside the repository in
+  owner-controlled local key custody.
+- Added an explicit one-time migration notice for Preview 6 installations,
+  whose original project signing key is not recoverable.
+- Stopped retry amplification for explicit Google policy/rejection responses
+  while preserving transport/server retry and cumulative-stream deduplication.
+- Added visible terminal provider failures, bounded manual retries, safer
+  generation control locking, and responsive drawer placement below the
+  New/model toolbar.
+- Added regression coverage and local 20/30-client benchmark evidence for
+  the release candidate.
 
 ## [0.1.7-preview.6] - 2026-08-25
 

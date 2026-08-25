@@ -64,6 +64,13 @@ From macOS:
 make desktop-preview-mac
 ```
 
+The updater-capable preview packager requires the non-secret public trust key
+in `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`. The matching private key is never
+needed to build the app and must be used only by the local signing step. A
+release package without the embedded public key is rejected by the packager;
+this prevents a preview from claiming safe updates while lacking its trust
+anchor.
+
 The default output is a new directory at:
 
 ```text
@@ -80,8 +87,9 @@ RELEASE-NOTICE.txt
 SHA256SUMS
 ```
 
-The no-Actions release operator adds `SHA256SUMS.sig` with
-`scripts/sign-release-assets.sh` after inspecting the exact artifact bytes.
+The no-Actions release operator signs the exact inspected artifact directory
+with `scripts/sign-release-assets.sh`; the script regenerates any unsigned
+`SHA256SUMS` and refuses to overwrite an existing detached signature.
 
 To choose another output directory or build one architecture:
 
