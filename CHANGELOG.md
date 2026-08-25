@@ -49,6 +49,22 @@ preview/release boundaries below.
   no-Go/no-Node/no-SQLite runtime claim is different from source-build
   prerequisites.
 
+## [0.1.7-preview.6] - 2026-08-25
+
+### Native updater reliability hotfix
+
+- Bounded the unauthenticated GitHub preview-release listing to 30 entries;
+  the previous 100-entry request reproduced intermittent HTTP 504 responses
+  even though the repository had only a handful of releases.
+- Converted the macOS read-only disk-image/App Translocation staging failure
+  into actionable installation guidance: move the app to Applications,
+  relaunch it, and retry.
+- Added a regression test for the bounded preview endpoint.
+
+Preview 6 is the recommended signed preview updater target. Preview 5 remains
+published and immutable, but its preview-channel check can encounter the
+larger GitHub API page timeout on affected networks.
+
 ## [0.1.7-preview.5] - 2026-08-25
 
 ### Native desktop and language-quality refinement

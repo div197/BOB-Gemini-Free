@@ -3,6 +3,7 @@ package updater
 import (
 	"archive/zip"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -11,6 +12,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -104,7 +106,7 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 
 	stageDir, err := os.MkdirTemp(filepath.Dir(targetPath), ".bob-gemini-free-update-")
 	if err != nil {
-		return nil, fmt.Errorf("create same-filesystem update staging directory: %w", err)
+		return nil, desktopStagingDirectoryError(err)
 	}
 	keepStage := false
 	defer func() {
@@ -161,6 +163,13 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	}
 	keepStage = true
 	return plan, nil
+}
+
+func desktopStagingDirectoryError(err error) error {
+	if errors.Is(err, syscall.EROFS) {
+		return fmt.Errorf("the app is running from a read-only disk image or macOS App Translocation; move BOB Gemini Free.app to Applications, relaunch it, and try again")
+	}
+	return fmt.Errorf("create same-filesystem update staging directory: %w", err)
 }
 
 func desktopAssetNameMatches(assetName, targetOS, targetArch string) bool {

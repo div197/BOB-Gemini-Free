@@ -4,8 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"testing"
 )
+
+func TestPreviewReleaseAPIIsBounded(t *testing.T) {
+	parsed, err := url.Parse(DesktopPreviewReleaseAPIURL)
+	if err != nil {
+		t.Fatalf("parse preview release API URL: %v", err)
+	}
+	if got := parsed.Query().Get("per_page"); got != "30" {
+		t.Fatalf("preview release API per_page = %q, want 30", got)
+	}
+}
 
 func TestIsNewerVersion(t *testing.T) {
 	tests := []struct {

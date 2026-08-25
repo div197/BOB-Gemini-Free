@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 )
@@ -77,6 +78,13 @@ func TestStageDesktopUpdateVerifiesSignedMacArchiveBeforeReplacement(t *testing.
 		t.Fatalf("update plan missing: %v", err)
 	} else if info.Mode().Perm() != 0600 {
 		t.Fatalf("update plan permissions = %o, want 600", info.Mode().Perm())
+	}
+}
+
+func TestDesktopStagingDirectoryErrorExplainsReadOnlyMacInstall(t *testing.T) {
+	err := desktopStagingDirectoryError(syscall.EROFS)
+	if !strings.Contains(err.Error(), "move BOB Gemini Free.app to Applications") {
+		t.Fatalf("read-only staging error = %q", err)
 	}
 }
 
