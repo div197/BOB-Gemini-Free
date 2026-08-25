@@ -14,6 +14,13 @@ preview/release boundaries below.
 
 ## [Unreleased]
 
+### Native preview packaging
+
+- macOS preview DMGs now place `BOB Gemini Free.app` beside a conventional
+  `/Applications` shortcut for drag-to-install use.
+- Added a mounted-image layout verifier so the packager fails closed if the
+  final DMG loses the application drop target.
+
 ### Native updater engineering substrate
 
 - Added a native desktop updater path that discovers only the fixed stable

@@ -14,8 +14,9 @@ membership:
 make desktop-preview-mac
 ```
 
-This path creates an ad-hoc-signed `.app`, `.zip`, and `.dmg` plus a release
-notice and local checksums. It is explicitly not Developer ID signed,
+This path creates an ad-hoc-signed `.app`, `.zip`, and `.dmg` with a visible
+`/Applications` drag target, plus a release notice and local checksums. It is
+explicitly not Developer ID signed,
 notarized, or production-ready. It is intended for controlled evaluation only.
 It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
