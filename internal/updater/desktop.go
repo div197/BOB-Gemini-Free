@@ -17,8 +17,11 @@ const (
 	// DesktopReleaseAPIURL is intentionally fixed to the project's official
 	// repository. A desktop build must not accept an update source from mutable
 	// runtime configuration.
-	DesktopReleaseAPIURL        = "https://api.github.com/repos/div197/bob-gemini-free/releases/latest"
-	DesktopPreviewReleaseAPIURL = "https://api.github.com/repos/div197/bob-gemini-free/releases?per_page=100"
+	DesktopReleaseAPIURL = "https://api.github.com/repos/div197/bob-gemini-free/releases/latest"
+	// Keep the preview listing bounded. GitHub's unauthenticated API can time
+	// out on a 100-release page even for a small public repository; the updater
+	// only needs the recent preview channel history.
+	DesktopPreviewReleaseAPIURL = "https://api.github.com/repos/div197/bob-gemini-free/releases?per_page=30"
 	DesktopReleaseURL           = "https://github.com/div197/BOB-Gemini-Free/releases/latest"
 	DesktopPreviewReleaseURL    = "https://github.com/div197/BOB-Gemini-Free/releases"
 )
