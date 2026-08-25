@@ -113,3 +113,42 @@ func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 		t.Fatal("new responses must not scroll the nested chat viewport to the story-card top")
 	}
 }
+
+func TestPlaygroundLanguageCoverageAndScriptIsolation(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function applyLanguageUI(dict)`,
+		`document.documentElement.lang = currentLang === "hi" ? "hi" : "en"`,
+		`id="nav-config-label"`,
+		`id="label-target-model"`,
+		`id="gateway-modal-title"`,
+		`const ui = dict.ui || I18N.en.ui;`,
+		`ui.starterCards.snake[0]`,
+		"translitCache.get(`${currentIndicLang}:${low}`)",
+		`currentIndicLang.startsWith('hi-') ? OFFLINE_INDIC_RULES.special[low] : null`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing language-safety marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `translitCache.get(low) || OFFLINE_INDIC_RULES.special[low]`) {
+		t.Fatal("sendMessage still uses a language-agnostic transliteration cache key")
+	}
+}
+
+func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function openExternalURL(rawURL)`,
+		`window.runtime.BrowserOpenURL(parsedURL.href)`,
+		`target.target === "_blank" || linkURL.origin !== window.location.origin`,
+		`openExternalURL('https://github.com/div197/BOB-Gemini-Free/releases')`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing native external-link marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `onclick="window.open('https://github.com/div197/BOB-Gemini-Free/releases'`) {
+		t.Fatal("release button still opens GitHub inside the native WebView")
+	}
+}

@@ -1,6 +1,6 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 4 enables a signed, user-consented preview updater; the
+**Status:** Preview 5 enables a signed, user-consented preview updater; the
 public app remains ad-hoc signed and not Apple-notarized.
 
 This document is the operator and product boundary for the native updater. An
@@ -16,7 +16,7 @@ the user confirms, verify a signed `SHA256SUMS` manifest, stage the package
 beside the installed app, restart through a short-lived helper, and roll back
 if the new app does not confirm healthy startup.
 
-The public `v0.1.7-preview.4` build contains the embedded public update key
+The public `v0.1.7-preview.5` build contains the embedded public update key
 and signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update.
 Preview 3 remains a manual migration path because it predates the trust key.
@@ -101,7 +101,7 @@ local test run is not proof that the GitHub asset upload preserved the bytes.
 ## Rollout gates for the 30 Macs
 
 1. One clean Mac: install, first-run gateway, anonymous request behavior,
-   per-user sign-in path, Preview 4 update, rollback, and uninstall.
+   per-user sign-in path, Preview 5 update, rollback, and uninstall.
 2. Two or three pilot Macs: repeat with ordinary student accounts and the
    real classroom network; record version, OS, architecture, and provider
    session result without recording cookies or prompts.
@@ -114,7 +114,7 @@ or a manual recovery artifact.
 
 ## Current decision
 
-The code path is appropriate for the signed Preview 4 pilot, but the
+The code path is appropriate for the signed Preview 5 pilot, but the
 repository must not label an ad-hoc/unsigned package as a production
 auto-updating student release. The remaining gates are Apple/Windows platform
 trust and clean-device acceptance, not a missing fake fallback.

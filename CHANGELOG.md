@@ -49,6 +49,32 @@ preview/release boundaries below.
   no-Go/no-Node/no-SQLite runtime claim is different from source-build
   prerequisites.
 
+## [0.1.7-preview.5] - 2026-08-25
+
+### Native desktop and language-quality refinement
+
+- Enabled the native macOS zoom/maximize control while preserving the
+  resizable Wails window; the packaged candidate was maximized and exercised
+  with a real completed response on the audit device.
+- Routed external HTTP(S) links from the native WebView through the operating
+  system's default browser, while preserving ordinary new-tab behavior in a
+  hosted browser.
+- Expanded the English/Hindi UI boundary across navigation, configuration,
+  integration panels, gateway dialog, response actions, starter cards, voice
+  controls, command-palette section labels, and stored-message re-rendering.
+- Made the transliteration fallback cache language-specific so a Hindi offline
+  fallback cannot be reused for Sanskrit, Marathi, Bengali, Gujarati, Tamil,
+  Telugu, or Punjabi input.
+- Injected the actual desktop build version into the served studio instead of
+  displaying a stale hard-coded version string; the Preview 5 candidate shows
+  `v0.1.7-preview.5`.
+- Added regression checks for the native window contract, browser bridge,
+  language coverage, transliteration isolation, and version injection.
+
+Preview 5 remains an explicitly labelled, ad-hoc-signed macOS preview. It
+inherits the signed project updater channel but does not provide Apple
+Developer ID trust, notarization, silent updates, or proof of provider access.
+
 ---
 
 ## [0.1.7-preview.4] - 2026-08-25

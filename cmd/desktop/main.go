@@ -11,6 +11,7 @@ import (
 	"github.com/wailsapp/wails/v2/pkg/menu"
 	"github.com/wailsapp/wails/v2/pkg/options"
 	"github.com/wailsapp/wails/v2/pkg/options/assetserver"
+	macoptions "github.com/wailsapp/wails/v2/pkg/options/mac"
 	"github.com/wailsapp/wails/v2/pkg/runtime"
 
 	"github.com/div197/bob-gemini-free/internal/server"
@@ -65,7 +66,13 @@ func desktopOptions(app *App, gateway *desktopGateway, startupErr error) *option
 		Title:  "BOB Gemini Free",
 		Width:  1100,
 		Height: 800,
-		Menu:   desktopMenu(app),
+		// Wails disables the native macOS zoom/maximize button unless the Mac
+		// options are present and DisableZoom is explicitly false. Keep the
+		// standard window resizable so users can maximize the desktop studio.
+		Mac: &macoptions.Options{
+			DisableZoom: false,
+		},
+		Menu: desktopMenu(app),
 		AssetServer: &assetserver.Options{
 			Assets: assets,
 		},

@@ -440,6 +440,12 @@ func TestPlaygroundEndpoint(t *testing.T) {
 		if path != "/favicon.ico" && (strings.Contains(rec.Body.String(), "sql.js") || strings.Contains(rec.Body.String(), "SQLite WASM")) {
 			t.Errorf("Removed SQLite WASM studio still advertised by %s", path)
 		}
+		if path != "/favicon.ico" && !strings.Contains(rec.Body.String(), "test-version") {
+			t.Errorf("expected served playground %s to inject the application version", path)
+		}
+		if path != "/favicon.ico" && strings.Contains(rec.Body.String(), "__BOB_DESKTOP_VERSION__") {
+			t.Errorf("served playground %s leaked its version placeholder", path)
+		}
 		if path == "/favicon.ico" && len(rec.Body.Bytes()) == 0 {
 			t.Error("favicon response was empty")
 		}
