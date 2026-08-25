@@ -13,7 +13,8 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.4}"
+CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
 if [[ "$(uname -s)" != "Darwin" ]]; then
@@ -49,9 +50,9 @@ else
 	WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL}")
 if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
-	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
 fi
 
 cd "$STAGE_ROOT/cmd/desktop"
@@ -97,7 +98,10 @@ Apple Developer ID or notarized; macOS may require first-launch approval.
 That platform-trust limitation does not change the product identity or the
 fact that this is a genuine build from the public source repository.
 The package is a beta and should be tested before a broad student rollout.
-No Google session, cookie, API key, or private release key is included.
+No Google session, cookie, API key, or private release key is included. A
+signed preview build may contain a public Ed25519 key for verifying future
+project release manifests; this does not provide Apple Developer ID signing
+or notarization.
 NOTICE
 
 (

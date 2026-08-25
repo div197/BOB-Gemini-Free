@@ -21,6 +21,7 @@ import (
 // remain explicitly non-updatable instead of pretending to be a published
 // release.
 var desktopVersion = "dev"
+var desktopChannel = updater.DesktopChannelStable
 
 //go:embed all:frontend
 var assets embed.FS
@@ -102,7 +103,7 @@ func desktopMenu(app *App) *menu.Menu {
 		if app.ctx == nil {
 			return
 		}
-		update, err := updater.CheckLatestDesktop(desktopVersion)
+		update, err := updater.CheckLatestDesktopForChannel(desktopVersion, desktopChannel)
 		if err != nil {
 			_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
 				Type:    runtime.ErrorDialog,

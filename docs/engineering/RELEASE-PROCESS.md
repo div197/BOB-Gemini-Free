@@ -21,42 +21,40 @@ notarized, or production-ready. It is intended for controlled evaluation only.
 It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
-The native Help menu's update action is also intentionally user-initiated. It
-checks the official GitHub release metadata and opens the official release page
-when a matching package exists; it does not silently replace a running native
-bundle.
+The native Help menu's update action is intentionally user-initiated. Preview
+4 checks the fixed official preview channel, verifies a signed manifest, and
+offers a consented staged replacement with rollback. It does not silently
+replace a running native bundle.
 
 ## Native automatic-update status
 
-The current Preview 3 does **not** auto-update. It performs an explicit
-stable-release metadata check. Preview 3 has no embedded desktop trust key and
-the public preview has no signed manifest, so it offers the official release
-page for manual installation. Preview tags are deliberately excluded from
-the stable check.
+Preview 4 is the first public native build with a build-embedded desktop trust
+key and a signed preview manifest. It performs an explicit preview-channel
+metadata check, and a user can approve a verified staged update with health
+confirmation and rollback. Preview 3 remains manual-update-only because it
+has no embedded desktop trust key. Stable builds and preview builds never
+cross channels automatically.
 
-The source now contains a user-consented native staging/helper path. It needs
-platform-signed artifacts, trusted signed update metadata, a user-consent
-boundary, version/channel policy, atomic replacement, rollback, and clean
-device verification before it can be enabled in a public release. macOS
-Developer ID/notarization and Windows publisher signing are prerequisites for
-treating that path as a professional student distribution mechanism. Until
-those gates are complete, silently replacing a running preview would weaken
-the trust model rather than improve it.
+The source now enables that user-consented path for the signed macOS preview.
+Platform publisher signing and clean-device verification remain required for a
+professional student distribution mechanism. macOS Developer ID/notarization
+and Windows publisher signing are separate operating-system trust gates; the
+project signature cannot replace them.
 
 The implementation sequence is:
 
 1. publish a stable and preview channel contract for native packages;
-2. extend the signed-manifest verifier to the exact `.app` archive and
+2. keep the signed-manifest verifier bound to the exact `.app` archive and
    Windows installer/executable asset for each platform;
 3. add a platform-specific post-exit helper with atomic replacement, rollback,
    permission failure reporting, and restart behavior;
 4. add mocked download/tamper/rollback tests and clean-device acceptance;
-5. enable any background metadata check only after explicit consent, while keeping a
-   visible “Check for Updates” action and a manual release fallback.
+5. keep any future background metadata check opt-in, while retaining a visible
+  “Check for Updates” action and a manual release fallback.
 
-This removes repeated delete/download/install work only after the release and
-device gates above are complete. The current source path is explicit and
-user-consented; no silent install is enabled by the current preview.
+This removes repeated delete/download/install work for Preview 4 onward after
+the user approves the update. No silent install is enabled by the current
+preview.
 
 The non-technical rollout risks and operator checklist are recorded in
 [`DESKTOP-UPDATE-OPERATIONS.md`](DESKTOP-UPDATE-OPERATIONS.md).

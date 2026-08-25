@@ -23,19 +23,22 @@ preview/release boundaries below.
 
 ### Native updater engineering substrate
 
-- Added a native desktop updater path that discovers only the fixed stable
-  GitHub release channel, verifies an embedded Ed25519 trust anchor plus the
-  signed `SHA256SUMS` manifest, checks exact platform assets and sizes, stages
-  safely, and performs post-exit replacement with health confirmation and
-  rollback.
+- Added a native desktop updater path that discovers only fixed official stable
+  or preview GitHub channels, verifies an embedded Ed25519 trust anchor plus
+  the signed `SHA256SUMS` manifest, checks exact platform assets and sizes,
+  stages safely, and performs post-exit replacement with health confirmation
+  and rollback.
+- Added semver prerelease comparison and `preview.N` selection so a signed
+  Preview 4 build can discover later signed preview releases.
 - Added mocked tests for signed archive staging, environment-key rejection,
   declared-size mismatch, archive traversal, transactional replacement, and
   rollback. Tests never replace the developer's running executable.
 - Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
   documented release-key custody, platform signing, clean-device acceptance,
   and the 30-device rollout gate.
-- The public `v0.1.7-preview.3` remains manual-update-only. No unsigned or
-  ad-hoc preview is presented as a production auto-updating release.
+- Preview 4 is the first public native preview with an embedded desktop
+  update key and signed project manifest. It remains ad-hoc signed,
+  user-consented, and not a notarized production release.
 
 ### Documentation truth corrections
 
@@ -47,6 +50,20 @@ preview/release boundaries below.
   prerequisites.
 
 ---
+
+## [0.1.7-preview.4] - 2026-08-25
+
+### Signed preview update channel
+
+- Published the corrected macOS universal DMG with a visible `/Applications`
+  drag target.
+- Added the fixed `preview` release channel and correct semver ordering for
+  `v0.1.7-preview.N` releases.
+- Embedded the public Ed25519 update key into the native preview and published
+  `SHA256SUMS` plus detached `SHA256SUMS.sig` for project-level authenticity.
+- Preview 4 can discover, verify, stage, and roll back a later signed preview
+  after explicit user consent. It does not silently update or remove the
+  macOS first-launch warning because it is not Developer ID signed/notarized.
 
 ## [0.1.7-preview.3] - 2026-08-22
 

@@ -9,7 +9,8 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-windows-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-windows/amd64}"
 INTERNAL_APP_NAME="bob-gemini-free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
+VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.4}"
+CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 
 if [[ "$PLATFORM" != windows/amd64 && "$PLATFORM" != windows/arm64 ]]; then
 	echo "unsupported Windows desktop platform: $PLATFORM" >&2
@@ -35,9 +36,9 @@ else
 	WAILS=(go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0)
 fi
 
-WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION}")
+WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL}")
 if [[ -n "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
-	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
+	WAILS_LDFLAGS=(-ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}")
 fi
 
 cd "$ROOT_DIR/cmd/desktop"

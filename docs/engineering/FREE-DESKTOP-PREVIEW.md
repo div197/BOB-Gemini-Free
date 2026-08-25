@@ -1,6 +1,6 @@
 # Free Native Desktop Beta
 
-**Status:** branded public experimental preview published as `v0.1.7-preview.3`.
+**Status:** branded public experimental preview published as `v0.1.7-preview.4`.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -17,34 +17,36 @@ student-facing release names are BOB Gemini Free.
 - loopback-only gateway boundary;
 - safe occupied-port fallback;
 - no Go, Node, Rust, SQLite, or separate server required at runtime;
-- no embedded Google cookie, API key, release key, or teacher credential;
+- no embedded Google cookie, API key, private release key, or teacher
+  credential; Preview 4 contains only the public updater trust key;
 - a native Help menu with an explicit “Check for Updates” action.
 
-The update action checks the official GitHub release metadata only when the
-user selects it. It never silently downloads or replaces an application. It
-opens the official stable release page only when a matching native package is
-available. The preview is a prerelease and is intentionally downloaded
-manually from its dedicated release page; the native updater does not silently
-promote or install prereleases.
+The update action checks the fixed official GitHub preview channel only when
+the user selects it. It never silently downloads or replaces an application.
+When a newer signed preview is available, it asks for consent, verifies the
+manifest and package, stages the update, and retains rollback protection. The
+older Preview 3 must be manually migrated once because it has no embedded
+desktop trust key. This project-level signature does not create Apple
+Developer ID or notarization trust.
 
 ## Public preview release
 
-The manually published [v0.1.7-preview.3 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.3)
+The manually published [v0.1.7-preview.4 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.4)
 contains:
 
 - `bob-gemini-free-macos-universal.dmg`;
 - `bob-gemini-free-macos-universal.zip`;
-- `bob-gemini-free-windows-amd64.exe`;
-- `RELEASE-NOTICE.txt` and `SHA256SUMS`.
+- `RELEASE-NOTICE.txt`, `SHA256SUMS`, and `SHA256SUMS.sig`.
 
-The earlier Preview 2 release remains available with its legacy asset names;
-the updater accepts those names only for controlled migration/recovery.
+Preview 3 remains available for manual migration and retains the Windows x64
+preview asset. Preview 4 is intentionally a macOS-first signed-update pilot;
+Windows and Linux require their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-Preview 3 carries the branded package refresh and the Web Studio generation
+Preview 4 carries the branded package refresh, signed preview updater, and the Web Studio generation
 lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
 stream, while incomplete streams are no longer silently treated as complete.
@@ -72,6 +74,9 @@ bob-gemini-free-macos-universal.dmg
 RELEASE-NOTICE.txt
 SHA256SUMS
 ```
+
+The no-Actions release operator adds `SHA256SUMS.sig` with
+`scripts/sign-release-assets.sh` after inspecting the exact artifact bytes.
 
 To choose another output directory or build one architecture:
 

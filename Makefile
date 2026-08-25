@@ -7,7 +7,7 @@
 BINARY_NAME=bob-gemini-free
 VERSION=v0.1.7
 LDFLAGS=-s -w -X main.Version=$(VERSION)
-WAILS_LDFLAGS=-X main.desktopVersion=$(VERSION)
+WAILS_LDFLAGS=-X main.desktopVersion=$(VERSION) -X main.desktopChannel=stable
 WAILS=go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0
 
 .PHONY: all build web run test test-cover dist clean desktop desktop-preview-mac desktop-preview-windows desktop-preview-linux desktop-mac desktop-windows desktop-linux

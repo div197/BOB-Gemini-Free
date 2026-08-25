@@ -31,6 +31,8 @@ type GitHubRelease struct {
 	Name        string         `json:"name"`
 	Body        string         `json:"body"`
 	HTMLURL     string         `json:"html_url"`
+	Draft       bool           `json:"draft"`
+	Prerelease  bool           `json:"prerelease"`
 	PublishedAt time.Time      `json:"published_at"`
 	Assets      []ReleaseAsset `json:"assets"`
 }
@@ -444,33 +446,139 @@ func isNewerVersion(current, latest string) bool {
 	if current == "dev" || current == "" {
 		return false
 	}
-	cParts := parseSemVer(current)
-	lParts := parseSemVer(latest)
+	comparison, valid := compareSemanticVersions(current, latest)
+	return valid && comparison < 0
+}
 
-	for i := 0; i < len(cParts) && i < len(lParts); i++ {
-		if lParts[i] > cParts[i] {
-			return true
+type semanticVersion struct {
+	core       [3]int
+	prerelease []string
+}
+
+// compareSemanticVersions returns -1 when current is older than latest, 0
+// when equal, and 1 when current is newer. It implements the precedence rules
+// needed by the stable and preview release channels without accepting a
+// malformed or arbitrary tag as a valid update.
+func compareSemanticVersions(current, latest string) (int, bool) {
+	currentVersion, currentOK := parseSemanticVersion(current)
+	latestVersion, latestOK := parseSemanticVersion(latest)
+	if !currentOK || !latestOK {
+		return 0, false
+	}
+	for index := range currentVersion.core {
+		if currentVersion.core[index] < latestVersion.core[index] {
+			return -1, true
 		}
-		if lParts[i] < cParts[i] {
+		if currentVersion.core[index] > latestVersion.core[index] {
+			return 1, true
+		}
+	}
+	if len(currentVersion.prerelease) == 0 && len(latestVersion.prerelease) > 0 {
+		return 1, true
+	}
+	if len(currentVersion.prerelease) > 0 && len(latestVersion.prerelease) == 0 {
+		return -1, true
+	}
+	for index := 0; index < len(currentVersion.prerelease) && index < len(latestVersion.prerelease); index++ {
+		comparison := comparePrereleaseIdentifiers(currentVersion.prerelease[index], latestVersion.prerelease[index])
+		if comparison != 0 {
+			return comparison, true
+		}
+	}
+	if len(currentVersion.prerelease) < len(latestVersion.prerelease) {
+		return -1, true
+	}
+	if len(currentVersion.prerelease) > len(latestVersion.prerelease) {
+		return 1, true
+	}
+	return 0, true
+}
+
+func parseSemanticVersion(raw string) (semanticVersion, bool) {
+	clean := strings.TrimSpace(strings.TrimPrefix(raw, "v"))
+	if clean == "" {
+		return semanticVersion{}, false
+	}
+	if plus := strings.IndexByte(clean, '+'); plus >= 0 {
+		clean = clean[:plus]
+	}
+	coreText := clean
+	prereleaseText := ""
+	if dash := strings.IndexByte(clean, '-'); dash >= 0 {
+		coreText = clean[:dash]
+		prereleaseText = clean[dash+1:]
+	}
+	coreParts := strings.Split(coreText, ".")
+	if len(coreParts) == 0 || len(coreParts) > 3 {
+		return semanticVersion{}, false
+	}
+	version := semanticVersion{}
+	for index, part := range coreParts {
+		if part == "" {
+			return semanticVersion{}, false
+		}
+		number, err := strconv.Atoi(part)
+		if err != nil || number < 0 {
+			return semanticVersion{}, false
+		}
+		version.core[index] = number
+	}
+	if prereleaseText == "" {
+		return version, true
+	}
+	for _, identifier := range strings.Split(prereleaseText, ".") {
+		if identifier == "" {
+			return semanticVersion{}, false
+		}
+		for _, character := range identifier {
+			if !(character == '-' || character >= '0' && character <= '9' || character >= 'A' && character <= 'Z' || character >= 'a' && character <= 'z') {
+				return semanticVersion{}, false
+			}
+		}
+		if len(identifier) > 1 && identifier[0] == '0' && isNumericIdentifier(identifier) {
+			return semanticVersion{}, false
+		}
+		version.prerelease = append(version.prerelease, identifier)
+	}
+	return version, true
+}
+
+func comparePrereleaseIdentifiers(current, latest string) int {
+	currentNumeric := isNumericIdentifier(current)
+	latestNumeric := isNumericIdentifier(latest)
+	if currentNumeric && latestNumeric {
+		if len(current) < len(latest) {
+			return -1
+		}
+		if len(current) > len(latest) {
+			return 1
+		}
+		return strings.Compare(current, latest)
+	}
+	if currentNumeric && !latestNumeric {
+		return -1
+	}
+	if !currentNumeric && latestNumeric {
+		return 1
+	}
+	return strings.Compare(current, latest)
+}
+
+func isNumericIdentifier(value string) bool {
+	if value == "" {
+		return false
+	}
+	for _, character := range value {
+		if character < '0' || character > '9' {
 			return false
 		}
 	}
-	return len(lParts) > len(cParts)
+	return true
 }
 
-func parseSemVer(v string) []int {
-	clean := strings.TrimPrefix(v, "v")
-	parts := strings.Split(clean, ".")
-	res := make([]int, 0, len(parts))
-	for _, p := range parts {
-		if idx := strings.IndexAny(p, "-+"); idx != -1 {
-			p = p[:idx]
-		}
-		if num, err := strconv.Atoi(p); err == nil {
-			res = append(res, num)
-		}
-	}
-	return res
+func isPreviewReleaseTag(tag string) bool {
+	version, valid := parseSemanticVersion(tag)
+	return valid && len(version.prerelease) == 2 && version.prerelease[0] == "preview" && isNumericIdentifier(version.prerelease[1])
 }
 
 func copyFile(src, dst string) error {
