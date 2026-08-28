@@ -55,6 +55,12 @@ func TestEstimateTokens(t *testing.T) {
 			minCount: 10,
 			maxCount: 25,
 		},
+		{
+			name:     "Minified JSON Payload",
+			input:    `{"author":"Divyanshu","metrics":{"requests":282,"tokens":3021},"models":["gpt-5.6","claude-5-opus","gemini-3.7-flash"]}`,
+			minCount: 30,
+			maxCount: 75,
+		},
 	}
 
 	for _, tt := range tests {

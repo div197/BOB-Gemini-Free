@@ -6767,7 +6767,7 @@ function updatePromptTokenEstimate(text) {
         docCount++;
       } else if (f.markdown || f.rawText || f.ocrText) {
         const textToCount = (f.markdown || f.rawText || f.ocrText || '').trim();
-        docTokens += Math.round(textToCount.split(/\s+/).filter(w => w).length * 1.33);
+        docTokens += estimateTokensJS(textToCount);
         docCount++;
       }
     });
@@ -6779,8 +6779,7 @@ function updatePromptTokenEstimate(text) {
   }
 
   const chars = text ? text.length : 0;
-  const words = clean ? clean.split(/\s+/).filter(w => w).length : 0;
-  const textTokens = words > 0 ? Math.max(1, Math.round(words * 1.33)) : 0;
+  const textTokens = estimateTokensJS(clean);
   const totalTokens = textTokens + docTokens;
 
   if (docTokens > 0) {
@@ -7380,6 +7379,75 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
+}
+
+/* Universal High-Accuracy BPE / LLM Token Estimator */
+function estimateTokensJS(text) {
+  if (text === null || text === undefined) return 0;
+  if (typeof text !== "string") text = String(text);
+  if (text.length === 0) return 0;
+
+  let tokens = 0;
+  let currentWordLen = 0;
+  let hasNonSpace = false;
+
+  const flushWord = () => {
+    if (currentWordLen === 0) return;
+    if (currentWordLen <= 4) {
+      tokens += 1;
+    } else {
+      // Subwords approximation: ~3.5 to 4 characters per token
+      tokens += Math.ceil(currentWordLen / 3.8);
+    }
+    currentWordLen = 0;
+  };
+
+  const len = text.length;
+  for (let i = 0; i < len; i++) {
+    const code = text.charCodeAt(i);
+    // 1. Whitespace: word boundary
+    if (code <= 32) {
+      flushWord();
+      continue;
+    }
+    hasNonSpace = true;
+
+    // 2. ASCII Punctuation and Operators: ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~
+    if ((code >= 33 && code <= 47) || (code >= 58 && code <= 64) || (code >= 91 && code <= 96) || (code >= 123 && code <= 126)) {
+      flushWord();
+      tokens += 1;
+      continue;
+    }
+
+    // 3. CJK Range (Chinese characters, Japanese Kana, Korean Hangul)
+    if ((code >= 0x4e00 && code <= 0x9fa5) || (code >= 0x3040 && code <= 0x30ff) || (code >= 0xac00 && code <= 0xd7af)) {
+      flushWord();
+      tokens += 1;
+      continue;
+    }
+
+    // 4. Astral Plane Unicode / Surrogate Pairs (Emojis, Special Symbols)
+    if (code >= 0xd800 && code <= 0xdbff) {
+      flushWord();
+      tokens += 2;
+      i++; // Skip low surrogate
+      continue;
+    }
+
+    // 5. Devanagari / Indic script characters (0x0900 - 0x097F)
+    if (code >= 0x0900 && code <= 0x097f) {
+      currentWordLen += 2;
+      if (currentWordLen >= 4) flushWord();
+      continue;
+    }
+
+    // 6. Standard Alphanumeric Latin / Cyrillic / Greek letters
+    currentWordLen++;
+  }
+
+  flushWord();
+  if (tokens === 0 && hasNonSpace) tokens = 1;
+  return tokens;
 }
 
 function downloadCode(btn, lang) {
@@ -8734,9 +8802,9 @@ async function extractDocumentToMarkdown(file) {
               fileEntry.ocrText = extracted;
               currentAttachedImage.ocrText = extracted;
               fileEntry.markdown = `### Extracted Visual OCR Text (${fileName}):\n\`\`\`\n${extracted}\n\`\`\``;
-              const words = extracted.split(/\s+/).filter(w => w).length;
+              const words = extracted.trim().split(/\s+/).filter(w => w).length;
+              fileEntry.estTokens = estimateTokensJS(extracted);
               fileEntry.statusText = `✓ OCR Ready (${words} words)`;
-              fileEntry.estTokens = Math.round(words * 1.33);
             } else {
               fileEntry.statusText = '✓ Vision Ready';
             }
@@ -8760,8 +8828,7 @@ async function extractDocumentToMarkdown(file) {
     }
 
     if (meta.cat !== 'image' || !window.Tesseract) {
-      const words = (fileEntry.markdown || fileEntry.rawText || '').split(/\s+/).filter(w => w).length;
-      fileEntry.estTokens = Math.round(words * 1.33);
+      fileEntry.estTokens = estimateTokensJS(fileEntry.markdown || fileEntry.rawText || '');
       fileEntry.status = 'ready';
       fileEntry.statusText = `✓ Ready (~${fileEntry.estTokens.toLocaleString()} tok)`;
     }
@@ -8892,8 +8959,8 @@ function openDocPreviewModal(fileId) {
   const previewText = file.markdown || file.ocrText || file.rawText || (file.isImage ? `[Image: ${file.name}]` : 'No text content available');
   if (content) content.innerText = previewText;
 
-  const words = previewText.split(/\s+/).filter(w => w).length;
-  const estTok = Math.round(words * 1.33);
+  const words = previewText.trim().split(/\s+/).filter(w => w).length;
+  const estTok = estimateTokensJS(previewText);
   if (metrics) metrics.innerText = `${words.toLocaleString()} words • ~${estTok.toLocaleString()} tokens • ${(file.size/1024).toFixed(1)} KB`;
 
   if (modal) modal.classList.add('open');
@@ -9884,7 +9951,7 @@ function renderMessages() {
           if (f.isImage && f.dataUrl) {
             attachmentsHtml += `<img src="${escapeHtml(f.dataUrl)}" class="user-attached-thumb" alt="${escapeHtml(f.name)}" onclick="window.open(this.src)">`;
           } else {
-            const docTok = f.estTokens || Math.round(((f.markdown || f.rawText || f.ocrText || '').trim().split(/\s+/).filter(w => w).length) * 1.33);
+            const docTok = f.estTokens || estimateTokensJS(f.markdown || f.rawText || f.ocrText || '');
             const tokBadge = docTok > 0 ? ` • ~${docTok.toLocaleString()} tok` : '';
             const pageBadge = f.pageCount ? ` • ${f.pageCount} pg` : '';
             attachmentsHtml += `<div class="doc-attachment-chip"><span>${f.icon || '📄'}</span> <span>${escapeHtml(f.name)}${pageBadge}${tokBadge}</span></div>`;
@@ -9920,7 +9987,7 @@ function renderMessages() {
       if (!inputTokens && retryUserIndex >= 0 && chatHistory[retryUserIndex]) {
         const uMsg = chatHistory[retryUserIndex];
         const uRaw = getSafeMessageContent(uMsg.content);
-        inputTokens = Math.round(uRaw.trim().split(/\s+/).filter(w => w).length * 1.33);
+        inputTokens = estimateTokensJS(uRaw);
         if (uMsg.attachedFiles) {
           uMsg.attachedFiles.forEach(af => {
             if (af.estTokens) inputTokens += af.estTokens;
@@ -9929,7 +9996,7 @@ function renderMessages() {
       }
 
       const wordCount = asstText.trim().split(/\s+/).filter(w => w).length;
-      const estTokens = m.tokens || Math.round(wordCount * 1.33);
+      const estTokens = m.tokens || estimateTokensJS(asstText);
       const totalTokens = inputTokens > 0 ? (inputTokens + estTokens) : estTokens;
       const tpsStr = m.tps ? ` • ${m.tps.toFixed(1)} tok/s` : '';
       const inputStr = inputTokens > 0 ? `In: ~${inputTokens.toLocaleString()} tok • ` : '';
@@ -9949,7 +10016,7 @@ function renderMessages() {
       storyDiv.appendChild(header);
 
       if (m.thought) {
-        const thoughtTokens = Math.round(String(m.thought).trim().split(/\s+/).filter(w => w).length * 1.33);
+        const thoughtTokens = estimateTokensJS(m.thought);
         const tb = document.createElement("div");
         tb.className = "thought-card active";
         tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought)}</div>`;
@@ -10108,7 +10175,7 @@ async function sendMessage() {
       if (f.isImage && f.dataUrl) {
         attachmentsHtml += `<img src="${escapeHtml(f.dataUrl)}" class="user-attached-thumb" alt="${escapeHtml(f.name)}" onclick="window.open(this.src)">`;
       } else {
-        const docTok = f.estTokens || Math.round(((f.markdown || f.rawText || f.ocrText || '').trim().split(/\s+/).filter(w => w).length) * 1.33);
+        const docTok = f.estTokens || estimateTokensJS(f.markdown || f.rawText || f.ocrText || '');
         const tokBadge = docTok > 0 ? ` • ~${docTok.toLocaleString()} tok` : '';
         const pageBadge = f.pageCount ? ` • ${f.pageCount} pg` : '';
         attachmentsHtml += `<div class="doc-attachment-chip"><span>${f.icon || '📄'}</span> <span>${escapeHtml(f.name)}${pageBadge}${tokBadge}</span></div>`;
@@ -10124,10 +10191,10 @@ async function sendMessage() {
 
   let inputPromptTokens = 0;
   if (typeof userPayloadContent === 'string') {
-    inputPromptTokens = Math.round(userPayloadContent.trim().split(/\s+/).filter(w => w).length * 1.33);
+    inputPromptTokens = estimateTokensJS(userPayloadContent);
   } else if (Array.isArray(userPayloadContent)) {
     userPayloadContent.forEach(part => {
-      if (part.text) inputPromptTokens += Math.round(part.text.trim().split(/\s+/).filter(w => w).length * 1.33);
+      if (part.text) inputPromptTokens += estimateTokensJS(part.text);
       if (part.image_url) inputPromptTokens += 258;
     });
   }
@@ -10281,7 +10348,7 @@ async function sendMessage() {
       lastRenderTime = performance.now();
       if (thoughtFullText) {
         thoughtBox.classList.add("active");
-        const thoughtTokens = Math.round(thoughtFullText.trim().split(/\s+/).filter(w => w).length * 1.33);
+        const thoughtTokens = estimateTokensJS(thoughtFullText);
         const titleSpan = thoughtBox.querySelector(".thought-title-span");
         if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (~${thoughtTokens} tokens)`;
         thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
@@ -10293,7 +10360,7 @@ async function sendMessage() {
       }
 
       const liveWords = (asstFullText + " " + thoughtFullText).trim().split(/\s+/).filter(w => w).length;
-      const liveTokens = Math.round(liveWords * 1.33);
+      const liveTokens = estimateTokensJS(asstFullText + " " + thoughtFullText);
       const totalLiveTokens = (inputPromptTokens + liveTokens);
       const elapsedSec = (performance.now() - streamStartTime) / 1000;
       const speed = elapsedSec > 0.1 ? (liveTokens / elapsedSec).toFixed(1) : "0.0";
@@ -10420,7 +10487,7 @@ async function sendMessage() {
 
     if (thoughtFullText) {
       thoughtBox.classList.add("active");
-      const thoughtTokens = Math.round(thoughtFullText.trim().split(/\s+/).filter(w => w).length * 1.33);
+      const thoughtTokens = estimateTokensJS(thoughtFullText);
       const titleSpan = thoughtBox.querySelector(".thought-title-span");
       if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (${thoughtTokens} tokens)`;
       thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
@@ -10434,7 +10501,7 @@ async function sendMessage() {
 
     const finalElapsed = (performance.now() - streamStartTime) / 1000;
     const finalWordCount = asstFullText.trim().split(/\s+/).filter(w => w).length;
-    const finalTokens = Math.round(finalWordCount * 1.33);
+    const finalTokens = estimateTokensJS(asstFullText);
     const totalFinalTokens = (inputPromptTokens + finalTokens);
     const finalSpeed = finalElapsed > 0.1 ? (finalTokens / finalElapsed).toFixed(1) : "0.0";
     const inFinalStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';
@@ -10469,7 +10536,7 @@ async function sendMessage() {
       
       const stopElapsed = (performance.now() - streamStartTime) / 1000;
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
-      const stopTokens = Math.round(finalWords * 1.33);
+      const stopTokens = estimateTokensJS(asstFullText);
       const totalStopTokens = (inputPromptTokens + stopTokens);
       const inStopStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';
       const statsEl = storyDiv.querySelector("#live-stream-stats");
