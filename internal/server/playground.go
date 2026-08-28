@@ -20,6 +20,8 @@ func (a *App) handlePlayground(w http.ResponseWriter, r *http.Request) {
 	}
 	html := bytes.ReplaceAll(playgroundHTML, []byte("__BOB_DESKTOP_VERSION__"), []byte(version))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+	w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src 'self' data: blob:; connect-src *;")
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(html)
 }

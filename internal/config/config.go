@@ -6,26 +6,30 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/div197/bob-gemini-free/internal/models"
 )
 
 type Config struct {
-	Port              int      `json:"port"`
-	Host              string   `json:"host"`
-	RetryAttempts     int      `json:"retry_attempts"`
-	RetryDelaySec     int      `json:"retry_delay_sec"`
-	RequestTimeoutSec int      `json:"request_timeout_sec"`
-	GeminiBL          string   `json:"gemini_bl"`
-	AuthUser          string   `json:"auth_user"`
-	XSRFToken         string   `json:"xsrf_token"`
-	DefaultModel      string   `json:"default_model"`
-	LogRequests       bool     `json:"log_requests"`
-	CookieFile        string   `json:"cookie_file"`
-	CookiePool        []string `json:"cookie_pool,omitempty"`
-	Proxy             string   `json:"proxy"`
-	APIKeys           []string `json:"api_keys"`
-	AllowedOrigins    []string `json:"allowed_origins,omitempty"`
-	Impersonate       string   `json:"impersonate"`
-	Version           string   `json:"version,omitempty"`
+	Port              int                           `json:"port"`
+	Host              string                        `json:"host"`
+	RetryAttempts     int                           `json:"retry_attempts"`
+	RetryDelaySec     int                           `json:"retry_delay_sec"`
+	RequestTimeoutSec int                           `json:"request_timeout_sec"`
+	GeminiBL          string                        `json:"gemini_bl"`
+	AuthUser          string                        `json:"auth_user"`
+	XSRFToken         string                        `json:"xsrf_token"`
+	DefaultModel      string                        `json:"default_model"`
+	LogRequests       bool                          `json:"log_requests"`
+	CookieFile        string                        `json:"cookie_file"`
+	CookiePool        []string                      `json:"cookie_pool,omitempty"`
+	Proxy             string                        `json:"proxy"`
+	APIKeys           []string                      `json:"api_keys"`
+	AllowedOrigins    []string                      `json:"allowed_origins,omitempty"`
+	Impersonate       string                        `json:"impersonate"`
+	Version           string                        `json:"version,omitempty"`
+	CustomModels      map[string]models.Model       `json:"custom_models,omitempty"`
+	CustomPricing     map[string]models.PricingInfo `json:"custom_pricing,omitempty"`
 }
 
 func Default() Config {
@@ -78,8 +82,10 @@ func Load(path string) (Config, error) {
 			CookiePool        *[]string `json:"cookie_pool"`
 			Proxy             *string   `json:"proxy"`
 			APIKeys           *[]string `json:"api_keys"`
-			AllowedOrigins    *[]string `json:"allowed_origins"`
-			Impersonate       *string   `json:"impersonate"`
+			AllowedOrigins    *[]string                      `json:"allowed_origins"`
+			Impersonate       *string                        `json:"impersonate"`
+			CustomModels      *map[string]models.Model       `json:"custom_models"`
+			CustomPricing     *map[string]models.PricingInfo `json:"custom_pricing"`
 		}
 
 		if err := json.Unmarshal(data, &aux); err != nil {
@@ -133,6 +139,18 @@ func Load(path string) (Config, error) {
 		}
 		if aux.Impersonate != nil {
 			cfg.Impersonate = *aux.Impersonate
+		}
+		if aux.CustomModels != nil {
+			cfg.CustomModels = *aux.CustomModels
+			for name, m := range cfg.CustomModels {
+				models.RegisterModel(name, m)
+			}
+		}
+		if aux.CustomPricing != nil {
+			cfg.CustomPricing = *aux.CustomPricing
+			for name, p := range cfg.CustomPricing {
+				models.RegisterPricing(name, p)
+			}
 		}
 	}
 

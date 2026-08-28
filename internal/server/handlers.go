@@ -85,12 +85,15 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 func (a *App) handleModels(w http.ResponseWriter, r *http.Request) {
 	var data []map[string]any
 	for name, m := range models.MODELS {
+		pricing := models.GetModelPricing(name)
 		data = append(data, map[string]any{
 			"id":          name,
 			"object":      "model",
 			"created":     1700000000,
-			"owned_by":    "google",
+			"owned_by":    pricing.Provider,
 			"description": m.Desc,
+			"category":    pricing.Category,
+			"pricing":     pricing,
 		})
 	}
 
