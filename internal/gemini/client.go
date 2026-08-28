@@ -35,6 +35,7 @@ type Client struct {
 	HTTP    Requester
 	Cookies *CookieCache
 	Pool    *CookiePool
+	Flight  *StreamFlight
 	Logf    func(format string, args ...any)
 	Metrics *metrics.Registry
 }
@@ -53,11 +54,12 @@ func NewClient(cfg config.Config) *Client {
 	if req == nil {
 		transport := &http.Transport{
 			DisableCompression:    true,
+			ForceAttemptHTTP2:     true,
 			ResponseHeaderTimeout: time.Duration(cfg.RequestTimeoutSec) * time.Second,
 			IdleConnTimeout:       90 * time.Second,
-			MaxIdleConns:          1000,
-			MaxIdleConnsPerHost:   100,
-			MaxConnsPerHost:       1000,
+			MaxIdleConns:          2000,
+			MaxIdleConnsPerHost:   500,
+			MaxConnsPerHost:       2000,
 		}
 
 		if cfg.Proxy != "" {
@@ -98,11 +100,12 @@ func NewClient(cfg config.Config) *Client {
 		HTTP:    req,
 		Cookies: NewCookieCache(cfg.CookieFile),
 		Pool:    pool,
+		Flight:  NewStreamFlight(),
 		Logf:    logFn,
 	}
 }
 
-func (c *Client) buildHeaders(session *AccountSession) http.Header {
+func (c *Client) buildHeaders(session *AccountSession, guestCookies string) http.Header {
 	authUser := c.Cfg.AuthUser
 	if session != nil && session.AuthUser != "" {
 		authUser = session.AuthUser
@@ -133,16 +136,25 @@ func (c *Client) buildHeaders(session *AccountSession) http.Header {
 				h.Set("Authorization", hash)
 			}
 		}
+	} else if c.Pool != nil && c.Pool.Count() > 0 {
+		// Configured pool session is in failure cooldown -> seamlessly fallback to live guest session!
+		if guestCookies != "" {
+			h.Set("Cookie", guestCookies)
+		}
 	} else {
 		cookieInfo, _ := c.Cookies.Load()
 		if cookieInfo.Cookie != "" {
 			h.Set("Cookie", cookieInfo.Cookie)
-		}
-		if cookieInfo.SAPISID != "" {
-			hash := SAPISIDHash(cookieInfo.SAPISID)
-			if hash != "" {
-				h.Set("Authorization", hash)
+			if cookieInfo.SAPISID != "" {
+				hash := SAPISIDHash(cookieInfo.SAPISID)
+				if hash != "" {
+					h.Set("Authorization", hash)
+				}
 			}
+		} else if guestCookies != "" {
+			h.Set("Cookie", guestCookies)
+		} else if cookieInfo.GuestCookies != "" {
+			h.Set("Cookie", cookieInfo.GuestCookies)
 		}
 	}
 
@@ -228,9 +240,19 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 }
 
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
-	atToken := c.Cookies.GetAtToken(ctx, c.HTTP, c.Cfg.AuthUser)
+	if c.Flight != nil {
+		flightKey := c.Flight.Key(prompt, modelID, thinkMode, fileRefs)
+		return c.Flight.Execute(flightKey, func() (string, error) {
+			return c.generateContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra)
+		})
+	}
+	return c.generateContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra)
+}
+
+func (c *Client) generateContextDirect(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
+	atToken, blToken, guestCookies, _ := c.Cookies.GetSessionInfo(ctx, c.HTTP, c.Cfg.AuthUser)
 	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
-	reqURL := BuildURL(c.Cfg)
+	reqURL := BuildURLWithBL(c.Cfg, blToken)
 
 	var lastErr error
 	for attempt := 0; attempt < c.Cfg.RetryAttempts; attempt++ {
@@ -241,7 +263,7 @@ func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, th
 		}
 
 		session := c.Pool.GetHealthySession()
-		headers := c.buildHeaders(session)
+		headers := c.buildHeaders(session, guestCookies)
 
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {
@@ -311,9 +333,19 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 }
 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
-	atToken := c.Cookies.GetAtToken(ctx, c.HTTP, c.Cfg.AuthUser)
+	if c.Flight != nil {
+		flightKey := c.Flight.Key(prompt, modelID, thinkMode, fileRefs)
+		return c.Flight.ExecuteStream(flightKey, func(streamEmit func(string) error) error {
+			return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
+		}, emit)
+	}
+	return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, emit)
+}
+
+func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
+	atToken, blToken, guestCookies, _ := c.Cookies.GetSessionInfo(ctx, c.HTTP, c.Cfg.AuthUser)
 	bodyStr := BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, c.Cfg, atToken)
-	reqURL := BuildURL(c.Cfg)
+	reqURL := BuildURLWithBL(c.Cfg, blToken)
 
 	parser := NewStreamParser()
 	var lastErr error
@@ -334,7 +366,7 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 		}
 
 		session := c.Pool.GetHealthySession()
-		headers := c.buildHeaders(session)
+		headers := c.buildHeaders(session, guestCookies)
 
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
 		if err != nil {

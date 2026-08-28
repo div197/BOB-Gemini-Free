@@ -423,26 +423,6 @@ func main() {
 		handleService(*serviceFlag, port, nil)
 	}
 
-	if *statusFlag {
-		handleStatus(*testURLFlag, *testKeyFlag)
-	}
-
-	if *loginFlag {
-		handleBrowserLogin()
-	}
-
-	if *testFlag {
-		handleDiagnostics(*testURLFlag, *testKeyFlag)
-	}
-
-	if *benchFlag {
-		handleBenchmark(*testURLFlag, *testKeyFlag, *benchConcurrencyFlag, *benchRequestsFlag)
-	}
-
-	if *setupCookieFlag || *cookieStringFlag != "" {
-		handleCookieSetup(*cookieStringFlag)
-	}
-
 	var configPath string
 	if configFlag != nil && *configFlag != "" {
 		if *configFlag == "none" {
@@ -457,6 +437,32 @@ func main() {
 	cfg, err := config.Load(configPath)
 	if err != nil && configPath != "" {
 		log.Printf("Warning: failed to load config from %s: %v", configPath, err)
+	}
+
+	// Auto-fallback test key if none specified and API keys are configured
+	activeTestKey := *testKeyFlag
+	if activeTestKey == "" && len(cfg.APIKeys) > 0 {
+		activeTestKey = cfg.APIKeys[0]
+	}
+
+	if *statusFlag {
+		handleStatus(*testURLFlag, activeTestKey)
+	}
+
+	if *loginFlag {
+		handleBrowserLogin()
+	}
+
+	if *testFlag {
+		handleDiagnostics(*testURLFlag, activeTestKey)
+	}
+
+	if *benchFlag {
+		handleBenchmark(*testURLFlag, activeTestKey, *benchConcurrencyFlag, *benchRequestsFlag)
+	}
+
+	if *setupCookieFlag || *cookieStringFlag != "" {
+		handleCookieSetup(*cookieStringFlag)
 	}
 
 	if *hostFlag != "" {

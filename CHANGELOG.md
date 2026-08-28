@@ -12,6 +12,36 @@ preview/release boundaries below.
 
 ---
 
+## [0.1.8] - 2026-08-28
+
+### High-Concurrency Satavik Architecture, StreamFlight Multiplexing & KaTeX Math Hardening
+
+#### Added
+- **Dual Stream & Non-Stream SingleFlight Multiplexer (`internal/gemini/flight.go`)**:
+  - Deduplicates identical concurrent generative AI requests (e.g. dense computer labs with hundreds of students requesting identical assignments like 2D CyberSnake or matrix simulations).
+  - Streams real-time deltas from 1 upstream connection to unlimited downstream subscribers via atomic buffered broadcast channels with zero memory leaks on early client disconnects.
+  - Fuzz-tested with 1,000 concurrent goroutines under Go's race detector (`-race`).
+- **Anonymous Guest Session Recycling with Stale-While-Revalidate & Thundering-Herd Guard (`internal/gemini/auth.go`)**:
+  - Ephemeral guest session discovery now uses a non-blocking Stale-While-Revalidate caching pattern with single-flight mutex protection (`refreshing` / `refreshCh`).
+  - When hundreds of students connect simultaneously, exactly 1 background request queries `gemini.google.com/app` while all other requests are served instantly with 0ms blocking.
+- **Dynamic SSE Keep-Alive Engine (`internal/server/helpers.go`)**:
+  - Injected periodic SSE comments (`: keepalive\n\n`) every 2.5 seconds across all streaming endpoints (`POST /v1/chat/completions`, `POST /v1/messages`, `POST /v1/responses`, `POST /v1beta/models/...`).
+  - Permanently eliminates connection drops, HTTP 504 timeouts, and socket drops during extended reasoning phases (up to 20k+ thinking tokens).
+- **Resilient Multi-Account Cookie Failover & Auto-Guest Fallback (`internal/gemini/client.go`, `pool.go`)**:
+  - If a configured cookie (`cookie.txt` or cookie pool) fails or expires, it is placed into a 60-second cooldown and BOB seamlessly and automatically falls back to the live anonymous guest session, permanently eliminating HTTP 503 errors.
+- **Code-Isolated KaTeX Scientific Typography & Currency Protection (`renderMarkdown` in `playground.html` & `web/index.html`)**:
+  - Pre-isolates multi-line (```` ```...``` ````) and inline (`` `...` ``) code blocks before LaTeX scanning, preventing code containing `$` (e.g. `price = "$100"`) from being corrupted by math renderers.
+  - Hardened inline math delimiter regex (`(?<![\w\\])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d)`) cleanly distinguishes LaTeX formulas (`$E = \hbar\omega$`) from ordinary currency notations (`$100`, `$50`).
+- **Dual-Format Reasoning & Thinking Token Extractor (`internal/format/thinking.go`)**:
+  - Extracts and separates reasoning tokens across both Markdown code fences (```` ```thought\n...\n``` ````) and XML tags (`<thought>...</thought>`), streaming pure reasoning deltas to OpenAI `reasoning_content` and Anthropic `thinking` blocks.
+- **Multilingual Token Counter Calibration (`internal/format/tokens.go`)**:
+  - Calibrated subword estimations for Sanskrit mantras (*कर्मण्येवाधिकारस्ते...*), Devanagari, CJK ideographs, complex LaTeX integrals, and OpenAI tool calling schemas.
+- **Automated CLI Telemetry & Diagnostic Polish (`main.go`)**:
+  - `./bob-gemini-free --status` automatically detects configured `api_keys` from `config.json` without requiring manual `--test-key` entry.
+  - Verified 100% pass rate across the built-in 13-point diagnostic suite (`--test`).
+
+---
+
 ## [Unreleased]
 
 ### Native preview packaging

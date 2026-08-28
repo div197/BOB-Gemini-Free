@@ -37,6 +37,24 @@ func TestEstimateTokens(t *testing.T) {
 			minCount: 8,
 			maxCount: 25,
 		},
+		{
+			name:     "Sanskrit Shloka",
+			input:    "कर्मण्येवाधिकारस्ते मा फलेषु कदाचन। मा कर्मफलहेतुर्भूर्मा ते सङ्गोऽस्त्वकर्मणि॥",
+			minCount: 8,
+			maxCount: 35,
+		},
+		{
+			name:     "LaTeX Mathematical Formula",
+			input:    "\\int_{-\\infty}^{\\infty} e^{-x^2} dx = \\sqrt{\\pi}",
+			minCount: 5,
+			maxCount: 35,
+		},
+		{
+			name:     "CJK Characters",
+			input:    "こんにちは世界！量子計算と人工知能",
+			minCount: 10,
+			maxCount: 25,
+		},
 	}
 
 	for _, tt := range tests {
@@ -76,10 +94,19 @@ func TestCountOpenAITokens(t *testing.T) {
 			{Role: "system", Content: "You are a helpful assistant."},
 			{Role: "user", Content: "Write a binary search algorithm in Go."},
 		},
+		Tools: []models.OpenAITool{
+			{
+				Type: "function",
+				Function: models.OpenAIFunction{
+					Name:        "get_weather",
+					Description: "Get current weather in a city",
+				},
+			},
+		},
 	}
 
 	count := CountOpenAITokens(req)
-	if count < 10 {
-		t.Errorf("CountOpenAITokens() = %d, expected >= 10", count)
+	if count < 20 {
+		t.Errorf("CountOpenAITokens() = %d, expected >= 20", count)
 	}
 }

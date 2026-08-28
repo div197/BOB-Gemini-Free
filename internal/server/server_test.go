@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/format"
@@ -452,5 +453,39 @@ func TestPlaygroundEndpoint(t *testing.T) {
 		if path != "/favicon.ico" && rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
 			t.Errorf("Expected text/html Content-Type for %s, got %s", path, rec.Header().Get("Content-Type"))
 		}
+	}
+}
+
+func TestStreamWithKeepAlive(t *testing.T) {
+	rec := httptest.NewRecorder()
+	ctx := t.Context()
+
+	// Slow upstream generation that takes 80ms while keepalive interval is 20ms
+	runStream := func(emit func(string) error) error {
+		time.Sleep(50 * time.Millisecond)
+		if err := emit("chunk1"); err != nil {
+			return err
+		}
+		time.Sleep(50 * time.Millisecond)
+		return emit("chunk2")
+	}
+
+	var emitted []string
+	err := StreamWithKeepAlive(ctx, rec, 20*time.Millisecond, runStream, func(delta string) error {
+		emitted = append(emitted, delta)
+		return nil
+	})
+
+	if err != nil {
+		t.Fatalf("StreamWithKeepAlive failed: %v", err)
+	}
+
+	if len(emitted) != 2 || emitted[0] != "chunk1" || emitted[1] != "chunk2" {
+		t.Errorf("unexpected emitted chunks: %#v", emitted)
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, ": keepalive") {
+		t.Errorf("expected keepalive comment in stream output, got %q", body)
 	}
 }

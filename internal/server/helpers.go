@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
@@ -9,6 +10,7 @@ import (
 	"fmt"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/gemini"
@@ -101,6 +103,62 @@ func writeSSEEvent(w http.ResponseWriter, event string, data any) error {
 		flusher.Flush()
 	}
 	return nil
+}
+
+func writeSSEComment(w http.ResponseWriter, comment string) error {
+	_, err := fmt.Fprintf(w, ": %s\n\n", comment)
+	if err != nil {
+		return err
+	}
+	if flusher, ok := w.(http.Flusher); ok {
+		flusher.Flush()
+	}
+	return nil
+}
+
+// StreamWithKeepAlive periodically flushes standard SSE comment heartbeats (`: keepalive\n\n`)
+// while waiting for upstream reasoning or generation tokens, preventing classroom client timeouts
+// during lengthy code generation (e.g. 2D CyberSnake games).
+func StreamWithKeepAlive(ctx context.Context, w http.ResponseWriter, interval time.Duration, runStream func(emit func(string) error) error, emitDelta func(string) error) error {
+	if interval <= 0 {
+		interval = 2500 * time.Millisecond
+	}
+
+	ticker := time.NewTicker(interval)
+	defer ticker.Stop()
+
+	stopTicker := make(chan struct{})
+	defer close(stopTicker)
+
+	var mu sync.Mutex
+	lastWrite := time.Now()
+
+	go func() {
+		for {
+			select {
+			case <-stopTicker:
+				return
+			case <-ctx.Done():
+				return
+			case <-ticker.C:
+				mu.Lock()
+				if time.Since(lastWrite) >= interval-200*time.Millisecond {
+					_ = writeSSEComment(w, "keepalive")
+					lastWrite = time.Now()
+				}
+				mu.Unlock()
+			}
+		}
+	}()
+
+	err := runStream(func(delta string) error {
+		mu.Lock()
+		lastWrite = time.Now()
+		mu.Unlock()
+		return emitDelta(delta)
+	})
+
+	return err
 }
 
 func writeSSEDone(w http.ResponseWriter) error {

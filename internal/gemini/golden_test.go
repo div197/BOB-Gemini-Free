@@ -236,9 +236,12 @@ type goldenRequester struct {
 	called    int
 }
 
-func (r *goldenRequester) Do(_ *http.Request) (*http.Response, error) {
+func (r *goldenRequester) Do(req *http.Request) (*http.Response, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
+	if req != nil && req.URL != nil && strings.Contains(req.URL.Path, "/app") {
+		return goldenOK(io.NopCloser(strings.NewReader(`"SNlM0e":"fixture-at","cfb2h":"fixture-bl"`))), nil
+	}
 	if r.called >= len(r.responses) {
 		return nil, errors.New("unexpected fixture request")
 	}

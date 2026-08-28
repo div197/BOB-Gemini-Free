@@ -113,7 +113,9 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			return writeSSEData(w, baseChunk)
 		}
 
-		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		emitErr := StreamWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emitDelta func(string) error) error {
+			return a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, emitDelta)
+		}, func(delta string) error {
 			for _, ch := range splitter.Feed(delta) {
 				if err := emitChunk(ch); err != nil {
 					return err

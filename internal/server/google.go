@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -97,7 +98,9 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var fullText string
-		emitErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		emitErr := StreamWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emitDelta func(string) error) error {
+			return a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, emitDelta)
+		}, func(delta string) error {
 			if delta == "" {
 				return nil
 			}

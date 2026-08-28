@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -217,7 +218,9 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 
-		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		streamErr := StreamWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emitDelta func(string) error) error {
+			return a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, emitDelta)
+		}, func(delta string) error {
 			for _, ch := range splitter.Feed(delta) {
 				if err := emitChunk(ch); err != nil {
 					return err
