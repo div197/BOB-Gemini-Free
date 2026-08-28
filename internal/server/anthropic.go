@@ -256,6 +256,48 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		fullThinking := splitter.GetFullThinking()
 		fullContent := splitter.GetFullContent()
 
+		stopReason := "end_turn"
+		if len(chatReq.Tools) > 0 && fullContent != "" {
+			_, toolCalls := format.ParseToolCalls(fullContent)
+			if len(toolCalls) > 0 {
+				stopReason = "tool_use"
+				for _, tc := range toolCalls {
+					currentBlockIndex++
+					tID := tc.ID
+					if tID == "" {
+						tID = fmt.Sprintf("toolu_%s", format.RandHex(12))
+					}
+					var inputMap map[string]any
+					_ = json.Unmarshal([]byte(tc.Function.Arguments), &inputMap)
+					if inputMap == nil {
+						inputMap = make(map[string]any)
+					}
+					_ = writeSSEEvent(w, "content_block_start", map[string]any{
+						"type":  "content_block_start",
+						"index": currentBlockIndex,
+						"content_block": map[string]any{
+							"type":  "tool_use",
+							"id":    tID,
+							"name":  tc.Function.Name,
+							"input": inputMap,
+						},
+					})
+					_ = writeSSEEvent(w, "content_block_delta", map[string]any{
+						"type":  "content_block_delta",
+						"index": currentBlockIndex,
+						"delta": map[string]any{
+							"type":         "input_json_delta",
+							"partial_json": tc.Function.Arguments,
+						},
+					})
+					_ = writeSSEEvent(w, "content_block_stop", map[string]any{
+						"type":  "content_block_stop",
+						"index": currentBlockIndex,
+					})
+				}
+			}
+		}
+
 		outTokens := format.EstimateTokens(fullContent)
 		if fullThinking != "" {
 			outTokens += format.EstimateTokens(fullThinking)
@@ -267,7 +309,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		_ = writeSSEEvent(w, "message_delta", map[string]any{
 			"type": "message_delta",
 			"delta": map[string]any{
-				"stop_reason":   "end_turn",
+				"stop_reason":   stopReason,
 				"stop_sequence": nil,
 			},
 			"usage": map[string]any{

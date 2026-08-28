@@ -58,6 +58,15 @@ func TestDiagnosticsRunner(t *testing.T) {
 	})
 
 	mux.HandleFunc("POST /v1/messages", func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Stream bool `json:"stream"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&req)
+		if req.Stream {
+			w.Header().Set("Content-Type", "text/event-stream")
+			_, _ = w.Write([]byte("event: message_start\ndata: {}\n\nevent: content_block_start\ndata: {}\n\n"))
+			return
+		}
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"role": "assistant",
 			"content": []map[string]any{
@@ -93,8 +102,8 @@ func TestDiagnosticsRunner(t *testing.T) {
 	defer ts.Close()
 
 	results := RunDiagnostics(ts.URL, "test-key")
-	if len(results) != 13 {
-		t.Fatalf("expected 13 diagnostic test results, got %d", len(results))
+	if len(results) != 15 {
+		t.Fatalf("expected 15 diagnostic test results, got %d", len(results))
 	}
 
 	for _, res := range results {

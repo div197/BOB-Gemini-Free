@@ -40,6 +40,13 @@ guarantee of uninterrupted streams.
                                        │ Mark 60s Backoff      │
                                        │ Transparent Retry on  │
                                        │ Next Healthy Account  │
+                                       └──────────┬────────────┘
+                                                  │ (If all in cooldown)
+                                                  ▼
+                                       ┌───────────────────────┐
+                                       │ Fallback to Live      │
+                                       │ Anonymous Guest Mode  │
+                                       │ (Zero 503 Outage)     │
                                        └───────────────────────┘
 ```
 
