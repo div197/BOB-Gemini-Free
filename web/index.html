@@ -3965,7 +3965,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <span class="about-star">✦</span>
           <span class="about-title">BOB GEMINI FREE</span>
         </div>
-        <span class="about-version-badge" id="about-version-label">v0.1.9</span>
+        <span class="about-version-badge" id="about-version-label">v0.2.0</span>
       </div>
       <div class="about-subtitle" id="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
     </div>
@@ -4742,6 +4742,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
         <kbd>⌘⇧P</kbd>
       </div>
+      <div class="cmd-item" data-type="action" onclick="refineCurrentPromptDeep(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🧠</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Deep Invariant Refiner (4-Stage Reasoning)</span>
+            <span class="cmd-item-desc">Recursive requirement decomposition, self-audit & synthesis</span>
+          </div>
+        </div>
+        <kbd>⌘⇧R</kbd>
+      </div>
       <div class="cmd-item" data-type="action" onclick="exportMarkdown(); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">💾</span>
@@ -5138,7 +5148,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
             </button>
           </div>
           <div class="footer-status-pill">
-            <span>🔒 Pure Local RPC • Private by default • v0.1.9</span>
+            <span>🔒 Pure Local RPC • Private by default • v0.2.0</span>
           </div>
         </div>
       </div>
@@ -5287,14 +5297,14 @@ const I18N = {
     footerSend: "Send",
     footerCmd: "Quick Menu",
     footerAbout: "ⓘ About",
-    footerStatus: "🔒 Pure Local RPC • Private by default • v0.1.9",
+    footerStatus: "🔒 Pure Local RPC • Private by default • v0.2.0",
     modalGatewayTitle: "GATEWAY ENGINE STATUS",
     modalGatewaySub: "Local-First RPC Bridge • On-Device • Provider limits still apply",
     modalGatewayLabel: "Gateway Endpoint URL",
     modalGatewaySave: "Save",
     modalGatewayReset: "Reset",
     modalAboutTitle: "BOB GEMINI FREE",
-    modalAboutSub: "Universal Local AI Gateway Engine • v0.1.9",
+    modalAboutSub: "Universal Local AI Gateway Engine • v0.2.0",
     modalAboutClose: "Close",
     modalConfirmTitle: "Clear Conversation?",
     modalConfirmDesc: "Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.",
@@ -5451,14 +5461,14 @@ const I18N = {
     footerSend: "भेजें",
     footerCmd: "त्वरित मेनू",
     footerAbout: "ⓘ विवरण",
-    footerStatus: "🔒 शुद्ध स्थानीय RPC • डिफ़ॉल्ट रूप से निजी • v0.1.9",
+    footerStatus: "🔒 शुद्ध स्थानीय RPC • डिफ़ॉल्ट रूप से निजी • v0.2.0",
     modalGatewayTitle: "गेटवे इंजन स्थिति",
     modalGatewaySub: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
     modalGatewayLabel: "गेटवे एंडपॉइंट URL",
     modalGatewaySave: "सहेजें",
     modalGatewayReset: "रीसेट",
     modalAboutTitle: "BOB GEMINI FREE",
-    modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.1.9",
+    modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.2.0",
     modalAboutClose: "बंद करें",
     modalConfirmTitle: "बातचीत हटाएं?",
     modalConfirmDesc: "क्या आप वाकई अपना वर्तमान इतिहास हटाना चाहते हैं? यह कैनवास को रीसेट कर देगा।",
@@ -6262,9 +6272,9 @@ async function pingGatewayManual() {
       if (isHostedStudio()) {
         localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
       }
-      const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.9" }));
+      const data = await res.json().catch(() => ({ status: "ok", version: "v0.2.0" }));
       if (pill) {
-        pill.innerText = "ONLINE • " + (data.version || "v0.1.9");
+        pill.innerText = "ONLINE • " + (data.version || "v0.2.0");
         pill.style.background = "rgba(16, 185, 129, 0.2)";
         pill.style.color = "#10b981";
       }
@@ -6277,7 +6287,7 @@ async function pingGatewayManual() {
         const poolT = data.pool_sessions_total != null ? data.pool_sessions_total : (data.metrics?.session_pool_total || 0);
         const poolStr = poolT > 0 ? `${poolH}/${poolT} active sessions` : 'Live Guest Session Pool';
         content.innerHTML = `
-          <div><b>Engine:</b> ${escapeHtml(data.engine || 'BOB Gemini Free')} (${escapeHtml(data.version || 'v0.1.9')})</div>
+          <div><b>Engine:</b> ${escapeHtml(data.engine || 'BOB Gemini Free')} (${escapeHtml(data.version || 'v0.2.0')})</div>
           <div><b>Session Pool:</b> ${escapeHtml(poolStr)}</div>
           <div><b>Requests Served:</b> ${data.requests_served || 0}</div>
           <div><b>Tokens Processed:</b> ${(data.tokens_processed || 0).toLocaleString()}</div>
@@ -9636,6 +9646,51 @@ async function enhanceCurrentPrompt() {
   inputEl.focus();
   showToast("Prompt expanded with temple-grade specifications!", "🪄");
   if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
+}
+
+async function refineCurrentPromptDeep() {
+  const inputEl = document.getElementById("user-input");
+  const raw = inputEl.value.trim();
+  if (!raw) {
+    showToast("Type a prompt or task first, then trigger Deep Refiner!", "🧠");
+    inputEl.focus();
+    return;
+  }
+
+  showToast("🧠 Running 4-Stage Deep Invariant Refinement...", "✨");
+  try {
+    const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash-thinking";
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    const res = await fetch(getGatewayBaseUrl() + "/v1/refine", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer none"
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        prompt: raw
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.final_output) {
+        inputEl.value = data.final_output;
+        autoResize(inputEl);
+        inputEl.focus();
+        showToast("🧠 Deep 4-Stage Invariant Refinement Complete!", "✨");
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Deep refiner fallback:", err);
+  }
+  enhanceCurrentPrompt();
 }
 
 function printConversation() {

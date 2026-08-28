@@ -4742,6 +4742,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
         <kbd>⌘⇧P</kbd>
       </div>
+      <div class="cmd-item" data-type="action" onclick="refineCurrentPromptDeep(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🧠</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">Deep Invariant Refiner (4-Stage Reasoning)</span>
+            <span class="cmd-item-desc">Recursive requirement decomposition, self-audit & synthesis</span>
+          </div>
+        </div>
+        <kbd>⌘⇧R</kbd>
+      </div>
       <div class="cmd-item" data-type="action" onclick="exportMarkdown(); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">💾</span>
@@ -9636,6 +9646,51 @@ async function enhanceCurrentPrompt() {
   inputEl.focus();
   showToast("Prompt expanded with temple-grade specifications!", "🪄");
   if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
+}
+
+async function refineCurrentPromptDeep() {
+  const inputEl = document.getElementById("user-input");
+  const raw = inputEl.value.trim();
+  if (!raw) {
+    showToast("Type a prompt or task first, then trigger Deep Refiner!", "🧠");
+    inputEl.focus();
+    return;
+  }
+
+  showToast("🧠 Running 4-Stage Deep Invariant Refinement...", "✨");
+  try {
+    const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash-thinking";
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+    const res = await fetch(getGatewayBaseUrl() + "/v1/refine", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer none"
+      },
+      body: JSON.stringify({
+        model: activeModel,
+        prompt: raw
+      }),
+      signal: controller.signal
+    });
+    clearTimeout(timeoutId);
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.final_output) {
+        inputEl.value = data.final_output;
+        autoResize(inputEl);
+        inputEl.focus();
+        showToast("🧠 Deep 4-Stage Invariant Refinement Complete!", "✨");
+        return;
+      }
+    }
+  } catch (err) {
+    console.warn("Deep refiner fallback:", err);
+  }
+  enhanceCurrentPrompt();
 }
 
 function printConversation() {
