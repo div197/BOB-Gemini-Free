@@ -185,15 +185,23 @@ func (s *ThinkingStreamSplitter) GetFullContent() string {
 	return strings.TrimSpace(s.fullContent.String())
 }
 
-var reThinkingBlock = regexp.MustCompile(`(?s)\x60\x60\x60(?:thought|thinking)\s*\n(.*?)\n\x60\x60\x60`)
+var (
+	reThinkingFence = regexp.MustCompile(`(?s)\x60\x60\x60(?:thought|thinking)\s*\n(.*?)\n\x60\x60\x60`)
+	reThinkingTag   = regexp.MustCompile(`(?s)<(?:thought|thinking)>(.*?)</(?:thought|thinking)>`)
+)
 
-// ExtractThinking extracts reasoning/thinking traces (e.g. ```thought\n...\n```) from Gemini responses,
+// ExtractThinking extracts reasoning/thinking traces from Gemini responses,
+// supporting both Markdown code fence format (```thought\n...\n```) and XML tag format (<thought>...</thought>),
 // separating internal thinking tokens from the clean user-facing response.
 func ExtractThinking(text string) (thinking string, cleanContent string) {
-	matches := reThinkingBlock.FindStringSubmatch(text)
-	if len(matches) == 2 {
+	if matches := reThinkingFence.FindStringSubmatch(text); len(matches) == 2 {
 		thinking = strings.TrimSpace(matches[1])
-		cleanContent = strings.TrimSpace(reThinkingBlock.ReplaceAllString(text, ""))
+		cleanContent = strings.TrimSpace(reThinkingFence.ReplaceAllString(text, ""))
+		return thinking, cleanContent
+	}
+	if matches := reThinkingTag.FindStringSubmatch(text); len(matches) == 2 {
+		thinking = strings.TrimSpace(matches[1])
+		cleanContent = strings.TrimSpace(reThinkingTag.ReplaceAllString(text, ""))
 		return thinking, cleanContent
 	}
 	return "", text

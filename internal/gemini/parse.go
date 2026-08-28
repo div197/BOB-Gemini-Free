@@ -94,10 +94,6 @@ func IsBardError(raw string) (string, bool) {
 }
 
 func ExtractResponseText(raw string) (string, error) {
-	if code, ok := IsBardError(raw); ok {
-		return "", fmt.Errorf("%s", FormatBardError(code))
-	}
-
 	var lastText string
 	lines := strings.Split(raw, "\n")
 	for _, line := range lines {
@@ -109,5 +105,13 @@ func ExtractResponseText(raw string) (string, error) {
 		}
 	}
 
-	return CleanText(lastText, true), nil
+	if lastText != "" {
+		return CleanText(lastText, true), nil
+	}
+
+	if code, ok := IsBardError(raw); ok {
+		return "", fmt.Errorf("%s", FormatBardError(code))
+	}
+
+	return "", nil
 }

@@ -98,13 +98,21 @@ func BuildBody(prompt string, modelID, thinkMode int, fileRefs []string, extra m
 	return BuildBodyWithAt(prompt, modelID, thinkMode, fileRefs, extra, cfg, "")
 }
 
-func BuildURL(cfg config.Config) string {
+func BuildURLWithBL(cfg config.Config, bl string) string {
 	reqid := time.Now().Unix() % 1000000
 	prefix := AccountPrefix(cfg.AuthUser)
+	targetBL := cfg.GeminiBL
+	if bl != "" {
+		targetBL = bl
+	}
 	return fmt.Sprintf(
 		"https://gemini.google.com%s/_/BardChatUi/data/assistant.lamda.BardFrontendService/StreamGenerate?bl=%s&hl=en&_reqid=%d&rt=c",
 		prefix,
-		cfg.GeminiBL,
+		targetBL,
 		reqid,
 	)
+}
+
+func BuildURL(cfg config.Config) string {
+	return BuildURLWithBL(cfg, "")
 }

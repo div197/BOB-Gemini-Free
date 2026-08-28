@@ -25,7 +25,7 @@ func (p *StreamParser) ResetBuffer() {
 func (p *StreamParser) Feed(chunk string) ([]string, error) {
 	p.buf = append(p.buf, chunk...)
 
-	if bytes.Contains(p.buf, []byte("BardErrorInfo")) {
+	if bytes.Contains(p.buf, []byte("BardErrorInfo")) && p.prevText == "" {
 		if code, ok := IsBardError(string(p.buf)); ok {
 			return nil, fmt.Errorf("%s", FormatBardError(code))
 		}

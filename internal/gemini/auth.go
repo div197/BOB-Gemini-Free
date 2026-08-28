@@ -22,18 +22,21 @@ var (
 )
 
 type CookieInfo struct {
-	Cookie  string
-	SAPISID string
-	At      string
-	BL      string
-	AtTime  time.Time
+	Cookie       string
+	GuestCookies string
+	SAPISID      string
+	At           string
+	BL           string
+	AtTime       time.Time
 }
 
 type CookieCache struct {
-	mu    sync.Mutex
-	file  string
-	mtime time.Time
-	info  CookieInfo
+	mu         sync.Mutex
+	file       string
+	mtime      time.Time
+	info       CookieInfo
+	refreshing bool
+	refreshCh  chan struct{}
 }
 
 func NewCookieCache(file string) *CookieCache {
@@ -58,83 +61,168 @@ func (c *CookieCache) loadUnlocked() error {
 
 	contentBytes, err := os.ReadFile(c.file)
 	if err != nil {
-		if c.info.Cookie != "" {
-			return nil
-		}
 		return err
 	}
 
+	c.mtime = stat.ModTime()
 	content := strings.TrimSpace(string(contentBytes))
-	var cookieStr string
-	var sapisid string
+
+	c.info.Cookie = ""
+	c.info.SAPISID = ""
 
 	if strings.HasPrefix(content, "{") {
-		var data struct {
-			Cookie  string `json:"cookie"`
-			SAPISID string `json:"sapisid"`
+		var jsonCookies map[string]any
+		if err := json.Unmarshal(contentBytes, &jsonCookies); err == nil {
+			if cookieVal, ok := jsonCookies["cookie"].(string); ok {
+				c.info.Cookie = cookieVal
+			}
+			if sapisidVal, ok := jsonCookies["sapisid"].(string); ok {
+				c.info.SAPISID = sapisidVal
+			}
 		}
-		if err := json.Unmarshal([]byte(content), &data); err == nil {
-			cookieStr = data.Cookie
-			sapisid = data.SAPISID
-		}
-	}
-	if cookieStr == "" {
+	} else {
 		extracted, err := ExtractCookies(content)
 		if err == nil && extracted != nil {
-			cookieStr = extracted.RawCookie
-			sapisid = extracted.SAPISID
+			c.info.Cookie = extracted.RawCookie
+			c.info.SAPISID = extracted.SAPISID
 		} else {
-			cookieStr = content
+			c.info.Cookie = content
+			for _, part := range strings.Split(content, ";") {
+				part = strings.TrimSpace(part)
+				if strings.HasPrefix(part, "SAPISID=") {
+					c.info.SAPISID = strings.TrimPrefix(part, "SAPISID=")
+					break
+				}
+			}
 		}
 	}
-
-	c.mtime = stat.ModTime()
-	c.info.Cookie = cookieStr
-	c.info.SAPISID = sapisid
 
 	return nil
 }
 
-func (c *CookieCache) GetAtToken(ctx context.Context, httpClient Requester, authUser string) string {
+// GetSessionInfo dynamically resolves active SNlM0e `at` token, `bl` build, and cookies
+// for both authenticated user sessions and anonymous/guest school lab sessions.
+// It includes Stale-While-Revalidate and Thundering-Herd protection for 500+ concurrent students.
+func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, authUser string) (atToken string, blToken string, cookieHeader string, sapisid string) {
 	c.mu.Lock()
 	_ = c.loadUnlocked()
 
-	if c.info.Cookie == "" {
-		c.mu.Unlock()
-		return ""
-	}
-
+	hasCookie := c.info.Cookie != ""
 	if time.Since(c.info.AtTime) < 10*time.Minute && c.info.At != "" {
 		at := c.info.At
+		bl := c.info.BL
+		cookie := c.info.Cookie
+		if cookie == "" {
+			cookie = c.info.GuestCookies
+		}
+		sapi := c.info.SAPISID
 		c.mu.Unlock()
-		return at
+		return at, bl, cookie, sapi
 	}
 
+	// If another goroutine is already refreshing /app:
+	if c.refreshing {
+		// If we already have a previous token, serve it stale immediately (zero blocking!)
+		if c.info.At != "" {
+			at := c.info.At
+			bl := c.info.BL
+			cookie := c.info.Cookie
+			if cookie == "" {
+				cookie = c.info.GuestCookies
+			}
+			sapi := c.info.SAPISID
+			c.mu.Unlock()
+			return at, bl, cookie, sapi
+		}
+
+		// Initial startup with no token yet: wait for the active refresh to finish
+		waitCh := c.refreshCh
+		c.mu.Unlock()
+		if waitCh != nil {
+			select {
+			case <-waitCh:
+			case <-ctx.Done():
+				return "", "", "", ""
+			}
+		}
+		c.mu.Lock()
+		at := c.info.At
+		bl := c.info.BL
+		cookie := c.info.Cookie
+		if cookie == "" {
+			cookie = c.info.GuestCookies
+		}
+		sapi := c.info.SAPISID
+		c.mu.Unlock()
+		return at, bl, cookie, sapi
+	}
+
+	// Designated refresher goroutine
+	c.refreshing = true
+	c.refreshCh = make(chan struct{})
 	cookieStr := c.info.Cookie
 	sapi := c.info.SAPISID
 	lastAt := c.info.At
-	c.mu.Unlock() // Release lock for network request!
+	lastBL := c.info.BL
+	lastGuest := c.info.GuestCookies
+	c.mu.Unlock()
+
+	defer func() {
+		c.mu.Lock()
+		c.refreshing = false
+		if c.refreshCh != nil {
+			close(c.refreshCh)
+			c.refreshCh = nil
+		}
+		c.mu.Unlock()
+	}()
+
+	if httpClient == nil {
+		return lastAt, lastBL, cookieStr, sapi
+	}
 
 	reqURL := fmt.Sprintf("https://gemini.google.com%s/app", AccountPrefix(authUser))
 	req, err := http.NewRequestWithContext(ctx, "GET", reqURL, nil)
 	if err != nil {
-		return lastAt
+		return lastAt, lastBL, cookieStr, sapi
 	}
-	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-	req.Header.Set("Cookie", cookieStr)
-	if sapi != "" {
-		req.Header.Set("Authorization", SAPISIDHash(sapi))
+
+	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+	req.Header.Set("Accept-Language", "en-US,en;q=0.9")
+	req.Header.Set("Sec-Fetch-Dest", "document")
+	req.Header.Set("Sec-Fetch-Mode", "navigate")
+	req.Header.Set("Sec-Fetch-Site", "none")
+
+	if hasCookie {
+		req.Header.Set("Cookie", cookieStr)
+		if sapi != "" {
+			req.Header.Set("Authorization", SAPISIDHash(sapi))
+		}
+	} else if lastGuest != "" {
+		req.Header.Set("Cookie", lastGuest)
 	}
 
 	resp, err := httpClient.Do(req)
 	if err != nil || resp == nil {
-		return lastAt
+		return lastAt, lastBL, cookieStr, sapi
 	}
 	defer resp.Body.Close()
 
+	// Extract Set-Cookie headers for guest session
+	var extractedGuestCookies []string
+	if resp.Header != nil {
+		for _, rawCookie := range resp.Header.Values("Set-Cookie") {
+			parts := strings.SplitN(rawCookie, ";", 2)
+			if len(parts) > 0 && strings.TrimSpace(parts[0]) != "" {
+				extractedGuestCookies = append(extractedGuestCookies, strings.TrimSpace(parts[0]))
+			}
+		}
+	}
+	newGuestCookies := strings.Join(extractedGuestCookies, "; ")
+
 	bodyBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return lastAt
+		return lastAt, lastBL, cookieStr, sapi
 	}
 	html := string(bodyBytes)
 
@@ -147,8 +235,20 @@ func (c *CookieCache) GetAtToken(ctx context.Context, httpClient Requester, auth
 	if m := reBL.FindStringSubmatch(html); len(m) > 1 {
 		c.info.BL = m[1]
 	}
+	if !hasCookie && newGuestCookies != "" {
+		c.info.GuestCookies = newGuestCookies
+	}
 
-	return c.info.At
+	finalCookie := c.info.Cookie
+	if finalCookie == "" {
+		finalCookie = c.info.GuestCookies
+	}
+	return c.info.At, c.info.BL, finalCookie, c.info.SAPISID
+}
+
+func (c *CookieCache) GetAtToken(ctx context.Context, httpClient Requester, authUser string) string {
+	at, _, _, _ := c.GetSessionInfo(ctx, httpClient, authUser)
+	return at
 }
 
 func (c *CookieCache) Load() (CookieInfo, error) {

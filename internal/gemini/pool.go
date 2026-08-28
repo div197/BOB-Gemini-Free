@@ -223,11 +223,16 @@ func (p *CookiePool) GetHealthySession() *AccountSession {
 	if total == 0 {
 		return nil
 	}
-	if total == 1 {
-		return p.sessions[0]
-	}
 
 	now := time.Now()
+	if total == 1 {
+		s := p.sessions[0]
+		if s.Active && now.Sub(s.LastFailure) > 60*time.Second {
+			return s
+		}
+		return nil
+	}
+
 	startIdx := p.cursor.Add(1) % uint64(total)
 
 	// 1. First pass: find active session with no recent failure cooldown (60s)

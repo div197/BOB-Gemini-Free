@@ -1,6 +1,8 @@
 package gemini
 
 import (
+	"io"
+	"net/http"
 	"os"
 	"path/filepath"
 	"strings"
@@ -136,5 +138,51 @@ func TestSaveCookieFile(t *testing.T) {
 	}
 	if perm := info.Mode().Perm(); perm != 0600 {
 		t.Errorf("expected 0600 permissions, got %o", perm)
+	}
+}
+
+type mockSessionRequester struct {
+	body string
+	respCookies []string
+}
+
+func (m *mockSessionRequester) Do(req *http.Request) (*http.Response, error) {
+	h := make(http.Header)
+	for _, c := range m.respCookies {
+		h.Add("Set-Cookie", c)
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     h,
+		Body:       io.NopCloser(strings.NewReader(m.body)),
+	}, nil
+}
+
+func TestGetSessionInfoGuestAndCookie(t *testing.T) {
+	// 1. Guest anonymous mode
+	cache := NewCookieCache("")
+	mockReq := &mockSessionRequester{
+		body: `"SNlM0e":"guest-at-token","cfb2h":"guest-bl-build"`,
+		respCookies: []string{"__Secure-BUCKET=b1; Path=/", "NID=nid1; Path=/"},
+	}
+
+	at, bl, cookie, sapi := cache.GetSessionInfo(t.Context(), mockReq, "")
+	if at != "guest-at-token" {
+		t.Fatalf("expected guest at token 'guest-at-token', got %q", at)
+	}
+	if bl != "guest-bl-build" {
+		t.Fatalf("expected guest bl 'guest-bl-build', got %q", bl)
+	}
+	if !strings.Contains(cookie, "__Secure-BUCKET=b1") {
+		t.Fatalf("expected guest cookies, got %q", cookie)
+	}
+	if sapi != "" {
+		t.Fatalf("expected empty sapi for guest, got %q", sapi)
+	}
+
+	// 2. Cached check
+	at2, bl2, _, _ := cache.GetSessionInfo(t.Context(), nil, "")
+	if at2 != "guest-at-token" || bl2 != "guest-bl-build" {
+		t.Fatalf("expected cached tokens, got %q %q", at2, bl2)
 	}
 }

@@ -151,3 +151,26 @@ func TestThinkingStreamSplitter_CodeBlockInContent(t *testing.T) {
 		t.Errorf("Content mismatch:\nGot: %q\nWant: %q", splitter.GetFullContent(), expected)
 	}
 }
+
+func TestExtractThinking_FenceAndTag(t *testing.T) {
+	// 1. Markdown fence format
+	rawFence := "```thought\nPlanning solution\n```\nResult: 42"
+	th1, c1 := ExtractThinking(rawFence)
+	if th1 != "Planning solution" || c1 != "Result: 42" {
+		t.Errorf("Fence extraction failed: got th=%q, c=%q", th1, c1)
+	}
+
+	// 2. XML tag format
+	rawTag := "<thought>\nAnalyzing quantum state\n</thought>\nState: |0>"
+	th2, c2 := ExtractThinking(rawTag)
+	if th2 != "Analyzing quantum state" || c2 != "State: |0>" {
+		t.Errorf("XML tag extraction failed: got th=%q, c=%q", th2, c2)
+	}
+
+	// 3. No thinking
+	rawPlain := "Just pure text"
+	th3, c3 := ExtractThinking(rawPlain)
+	if th3 != "" || c3 != "Just pure text" {
+		t.Errorf("Plain extraction failed: got th=%q, c=%q", th3, c3)
+	}
+}

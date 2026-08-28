@@ -3020,7 +3020,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
           <span class="about-star">✦</span>
           <span class="about-title">BOB GEMINI FREE</span>
         </div>
-        <span class="about-version-badge" id="about-version-label">v0.1.7</span>
+        <span class="about-version-badge" id="about-version-label">v0.1.8</span>
       </div>
       <div class="about-subtitle" id="about-subtitle">High-Performance Local AI Gateway • Web RPC Protocol Bridge</div>
     </div>
@@ -3904,7 +3904,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             </button>
           </div>
           <div class="footer-status-pill">
-            <span>🔒 Pure Local RPC • Private by default • v0.1.7</span>
+            <span>🔒 Pure Local RPC • Private by default • v0.1.8</span>
           </div>
         </div>
       </div>
@@ -4053,14 +4053,14 @@ const I18N = {
     footerSend: "Send",
     footerCmd: "Quick Menu",
     footerAbout: "ⓘ About",
-    footerStatus: "🔒 Pure Local RPC • Private by default • v0.1.7",
+    footerStatus: "🔒 Pure Local RPC • Private by default • v0.1.8",
     modalGatewayTitle: "GATEWAY ENGINE STATUS",
     modalGatewaySub: "Local-First RPC Bridge • On-Device • Provider limits still apply",
     modalGatewayLabel: "Gateway Endpoint URL",
     modalGatewaySave: "Save",
     modalGatewayReset: "Reset",
     modalAboutTitle: "BOB GEMINI FREE",
-    modalAboutSub: "Universal Local AI Gateway Engine • v0.1.7",
+    modalAboutSub: "Universal Local AI Gateway Engine • v0.1.8",
     modalAboutClose: "Close",
     modalConfirmTitle: "Clear Conversation?",
     modalConfirmDesc: "Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.",
@@ -4149,14 +4149,14 @@ const I18N = {
     footerSend: "भेजें",
     footerCmd: "त्वरित मेनू",
     footerAbout: "ⓘ विवरण",
-    footerStatus: "🔒 शुद्ध स्थानीय RPC • डिफ़ॉल्ट रूप से निजी • v0.1.7",
+    footerStatus: "🔒 शुद्ध स्थानीय RPC • डिफ़ॉल्ट रूप से निजी • v0.1.8",
     modalGatewayTitle: "गेटवे इंजन स्थिति",
     modalGatewaySub: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
     modalGatewayLabel: "गेटवे एंडपॉइंट URL",
     modalGatewaySave: "सहेजें",
     modalGatewayReset: "रीसेट",
     modalAboutTitle: "BOB GEMINI FREE",
-    modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.1.7",
+    modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.1.8",
     modalAboutClose: "बंद करें",
     modalConfirmTitle: "बातचीत हटाएं?",
     modalConfirmDesc: "क्या आप वाकई अपना वर्तमान इतिहास हटाना चाहते हैं? यह कैनवास को रीसेट कर देगा।",
@@ -4778,9 +4778,9 @@ async function pingGatewayManual() {
       if (isHostedStudio()) {
         localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
       }
-      const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.7" }));
+      const data = await res.json().catch(() => ({ status: "ok", version: "v0.1.8" }));
       if (pill) {
-        pill.innerText = "ONLINE • " + (data.version || "v0.1.7");
+        pill.innerText = "ONLINE • " + (data.version || "v0.1.8");
         pill.style.background = "rgba(16, 185, 129, 0.2)";
         pill.style.color = "#10b981";
       }
@@ -5782,7 +5782,15 @@ function openArtifactCanvas(artId) {
 
   switchArtifactTab(art.isInteractive ? 'preview' : 'code');
   const modal = document.getElementById("artifact-modal");
-  if (modal) modal.classList.add("open");
+  if (modal) {
+    modal.classList.add("open");
+    setTimeout(() => {
+      const iframe = document.getElementById("art-sandbox-iframe");
+      if (iframe && iframe.contentWindow) {
+        try { iframe.contentWindow.focus(); } catch(e){}
+      }
+    }, 120);
+  }
 }
 
 function closeArtifactCanvas() {
@@ -5955,9 +5963,26 @@ if (window.marked) {
 function renderMarkdown(text) {
   if (!text) return "";
 
-  // 1. Protect LaTeX Math blocks before Marked parsing
-  const mathBlocks = [];
+  // 1. Protect code blocks first so math regex doesn't match inside code
+  const codeBlocks = [];
   let processed = text;
+  
+  // Protect multi-line code blocks
+  processed = processed.replace(/(```[\s\S]*?```)/g, function(match) {
+    const idx = codeBlocks.length;
+    codeBlocks.push(match);
+    return `@@@BOB_CODE_${idx}@@@`;
+  });
+
+  // Protect inline code blocks
+  processed = processed.replace(/(`[^`\n]+`)/g, function(match) {
+    const idx = codeBlocks.length;
+    codeBlocks.push(match);
+    return `@@@BOB_CODE_${idx}@@@`;
+  });
+
+  // 2. Protect LaTeX Math blocks
+  const mathBlocks = [];
   // Display math: $$...$$ or \[...\]
   processed = processed.replace(/(\$\$[\s\S]*?\$\$|\\\[[\s\S]*?\\\])/g, function(match) {
     const idx = mathBlocks.length;
@@ -5965,27 +5990,32 @@ function renderMarkdown(text) {
     return `@@@BOB_MATH_${idx}@@@`;
   });
 
-  // Inline math: $...$ or \(...\)
-  processed = processed.replace(/(\$[^\$\n]+\$|\\\([^\n]*?\\\))/g, function(match) {
+  // Inline math: \(...\) or $...$ (ensuring not matched for currency like $100)
+  processed = processed.replace(/(\\\([^\n]*?\\\)|(?<![\w\\])\$(?!\s)([^$\n]+?)(?<!\s)\$(?!\d))/g, function(match) {
     const idx = mathBlocks.length;
     mathBlocks.push(match);
     return `@@@BOB_MATH_${idx}@@@`;
   });
 
-  // 2. Balance unclosed code blocks during active streaming
+  // 3. Restore protected Code blocks before Marked parsing
+  for (let i = 0; i < codeBlocks.length; i++) {
+    processed = processed.replaceAll(`@@@BOB_CODE_${i}@@@`, codeBlocks[i]);
+  }
+
+  // 4. Balance unclosed code blocks during active streaming
   const backtickMatches = processed.match(/```/g);
   if (backtickMatches && backtickMatches.length % 2 !== 0) {
     processed += "\n```";
   }
 
-  // 3. Process GitHub-style Alert Callouts
+  // 5. Process GitHub-style Alert Callouts
   processed = processed.replace(/^>\s*\[!NOTE\]\s*(.*$)/gim, '<div class="callout callout-note"><div class="callout-title">ℹ️ Note</div>$1</div>');
   processed = processed.replace(/^>\s*\[!TIP\]\s*(.*$)/gim, '<div class="callout callout-tip"><div class="callout-title">💡 Tip</div>$1</div>');
   processed = processed.replace(/^>\s*\[!IMPORTANT\]\s*(.*$)/gim, '<div class="callout callout-important"><div class="callout-title">📌 Important</div>$1</div>');
   processed = processed.replace(/^>\s*\[!WARNING\]\s*(.*$)/gim, '<div class="callout callout-warning"><div class="callout-title">⚠️ Warning</div>$1</div>');
   processed = processed.replace(/^>\s*\[!CAUTION\]\s*(.*$)/gim, '<div class="callout callout-caution"><div class="callout-title">🛑 Caution</div>$1</div>');
 
-  // 4. Universal Marked.js standard parsing
+  // 6. Universal Marked.js standard parsing
   let html = "";
   if (window.marked && typeof marked.parse === 'function') {
     try {
@@ -5997,15 +6027,15 @@ function renderMarkdown(text) {
     html = escapeHtml(processed);
   }
 
-  // 5. Universal DOMPurify Sanitization
+  // 7. Universal DOMPurify Sanitization
   if (window.DOMPurify && typeof DOMPurify.sanitize === 'function') {
     html = DOMPurify.sanitize(html, {
-      ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input', 'a', 'p', 'ul', 'ol', 'li', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'em', 'strong', 'del', 'kbd'],
-      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel', 'referrerpolicy', 'onerror', 'href', 'title', 'alt', 'src']
+      ADD_TAGS: ['pre', 'code', 'button', 'span', 'div', 'hr', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'img', 'input', 'a', 'p', 'ul', 'ol', 'li', 'blockquote', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'em', 'strong', 'del', 'kbd', 'svg', 'path', 'g', 'circle', 'rect', 'line', 'polygon', 'polyline', 'text'],
+      ADD_ATTR: ['class', 'style', 'onclick', 'loading', 'data-raw', 'type', 'disabled', 'checked', 'target', 'rel', 'referrerpolicy', 'onerror', 'href', 'title', 'alt', 'src', 'd', 'fill', 'stroke', 'stroke-width', 'viewBox', 'xmlns', 'width', 'height', 'cx', 'cy', 'r', 'x', 'y', 'x1', 'y1', 'x2', 'y2', 'points', 'transform']
     });
   }
 
-  // 6. Synchronously render protected LaTeX Math blocks with KaTeX
+  // 8. Synchronously render protected LaTeX Math blocks with KaTeX
   for (let i = 0; i < mathBlocks.length; i++) {
     const rawMath = mathBlocks[i];
     let renderedMath = rawMath;

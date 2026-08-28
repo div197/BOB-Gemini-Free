@@ -164,7 +164,9 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 
 		// 4. Real-time delta stream
 		var fullStreamText string
-		streamErr := a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, func(delta string) error {
+		streamErr := StreamWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emitDelta func(string) error) error {
+			return a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, emitDelta)
+		}, func(delta string) error {
 			fullStreamText += delta
 			return writeSSEEvent(w, "response.output_text.delta", map[string]any{
 				"type":          "response.output_text.delta",
