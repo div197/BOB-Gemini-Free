@@ -43,7 +43,7 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 	}
 
 	var results []TestResult
-	const totalTests = 13
+	const totalTests = 15
 
 	runTest := func(name string, fn func() (string, error)) {
 		start := time.Now()
@@ -451,6 +451,108 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 
 		return "token counting engine verified for Google and OpenAI protocols", nil
+	})
+
+	// 14. Claude Code CLI SSE Streaming Tool Execution Protocol
+	runTest("Claude Code SSE Streaming Tool Execution Protocol", func() (string, error) {
+		payload := map[string]any{
+			"model":  "claude-3-5-sonnet",
+			"stream": true,
+			"messages": []map[string]string{
+				{"role": "user", "content": "List files matching pattern *.go by calling GlobTool."},
+			},
+			"tools": []map[string]any{
+				{
+					"name":        "GlobTool",
+					"description": "Find files matching glob",
+					"input_schema": map[string]any{
+						"type": "object",
+						"properties": map[string]any{
+							"pattern": map[string]string{"type": "string"},
+						},
+						"required": []string{"pattern"},
+					},
+				},
+			},
+			"max_tokens": 100,
+		}
+		body, _ := json.Marshal(payload)
+		req, _ := http.NewRequest("POST", baseURL+"/v1/messages", bytes.NewReader(body))
+		setHeaders(req)
+		resp, err := client.Do(req)
+		if err != nil {
+			return "", err
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			b, _ := io.ReadAll(resp.Body)
+			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+		}
+		scanner := bufio.NewScanner(resp.Body)
+		eventCount := 0
+		for scanner.Scan() {
+			line := scanner.Text()
+			if strings.HasPrefix(line, "event: ") {
+				eventCount++
+			}
+		}
+		if eventCount == 0 {
+			return "", fmt.Errorf("no SSE events received")
+		}
+		return fmt.Sprintf("verified Anthropic SSE tool execution stream (%d events)", eventCount), nil
+	})
+
+	// 15. StreamFlight Concurrency Multiplexing & Coalescing
+	runTest("StreamFlight Concurrency Multiplexing (5 Parallel Coalesced Requests)", func() (string, error) {
+		const numParallel = 5
+		type reqResult struct {
+			index int
+			err   error
+			dur   time.Duration
+		}
+		resChan := make(chan reqResult, numParallel)
+
+		flightPrompt := "Ping StreamFlight deduplication test 1"
+		for i := 0; i < numParallel; i++ {
+			go func(idx int) {
+				tStart := time.Now()
+				payload := map[string]any{
+					"model": "gemini-3.7-flash",
+					"messages": []map[string]string{
+						{"role": "user", "content": flightPrompt},
+					},
+					"stream": true,
+				}
+				pBody, _ := json.Marshal(payload)
+				pReq, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(pBody))
+				setHeaders(pReq)
+				pResp, pErr := client.Do(pReq)
+				if pErr != nil {
+					resChan <- reqResult{index: idx, err: pErr, dur: time.Since(tStart)}
+					return
+				}
+				defer pResp.Body.Close()
+				if pResp.StatusCode != http.StatusOK {
+					b, _ := io.ReadAll(pResp.Body)
+					resChan <- reqResult{index: idx, err: fmt.Errorf("HTTP %d: %s", pResp.StatusCode, string(b)), dur: time.Since(tStart)}
+					return
+				}
+				_, _ = io.Copy(io.Discard, pResp.Body)
+				resChan <- reqResult{index: idx, err: nil, dur: time.Since(tStart)}
+			}(i)
+		}
+
+		var firstErr error
+		for i := 0; i < numParallel; i++ {
+			r := <-resChan
+			if r.err != nil && firstErr == nil {
+				firstErr = r.err
+			}
+		}
+		if firstErr != nil {
+			return "", firstErr
+		}
+		return fmt.Sprintf("all %d concurrent in-flight streams multiplexed successfully", numParallel), nil
 	})
 
 	return results

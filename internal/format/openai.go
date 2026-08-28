@@ -181,7 +181,7 @@ func MessagesToPrompt(req models.OpenAIChatRequest) (string, error) {
 	return prompt, err
 }
 
-var reToolCall = regexp.MustCompile(`(?s)\x60\x60\x60tool_call\s*\n(.*?)\n\x60\x60\x60`)
+var reToolCall = regexp.MustCompile(`(?s)\x60\x60\x60(?:tool_call|function_call)\s*\n(.*?)\n\x60\x60\x60`)
 
 // ParseToolCalls extracts tool calls from the raw string output of the model.
 // The model is instructed to output tool calls in markdown blocks e.g. ```tool_call\n{...}\n```.

@@ -563,6 +563,8 @@ header {
   align-items: center;
   justify-content: center;
   gap: 5px;
+  white-space: nowrap !important;
+  flex-shrink: 0;
   transition: all 0.15s ease;
 }
 .nav-pill-btn:hover {
@@ -946,20 +948,35 @@ input[type="range"] {
   font-family: var(--font-mono);
   white-space: pre-wrap;
   display: none;
-  max-height: 260px;
+  max-height: 280px;
   overflow-y: auto;
   transition: font-size 0.15s ease;
 }
 .thought-card.active { display: block; }
+.thought-card.collapsed {
+  max-height: none;
+  padding: 8px 14px;
+}
+.thought-card.collapsed .thought-content {
+  display: none;
+}
 .thought-card-header {
   color: var(--accent-primary);
   font-weight: 800;
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin-bottom: 6px;
   display: flex;
   justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+}
+.thought-card.collapsed .thought-toggle-icon {
+  transform: rotate(-90deg);
+}
+.thought-toggle-icon {
+  transition: transform 0.2s ease;
 }
 
 /* Typing / Thinking Pulse Indicator */
@@ -3098,6 +3115,23 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
       </div>
 
+      <div class="control-card" style="margin-top:10px;">
+        <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">API Key (Bearer Auth)</span>
+          <span style="font-size:0.72rem; color:var(--text-muted);">Optional for unauthenticated local instances</span>
+        </label>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="gateway-api-key-input" placeholder="sk-gemini or leave empty for none" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <button class="btn-pill-subtle" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
+        </div>
+      </div>
+
+      <div id="modal-gateway-stats-card" class="control-card" style="margin-top:10px; display:none; background:rgba(0,0,0,0.15);">
+        <div style="font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent-primary); margin-bottom:6px;">⚡ Live Engine Telemetry & Pool</div>
+        <div id="modal-gateway-stats-content" style="font-size:0.78rem; font-family:var(--font-mono); line-height:1.6; color:var(--text-main);">
+        </div>
+      </div>
+
       <div class="legal-notice-box" style="margin-top:12px;">
         <strong>🚀 Start the CLI engine locally:</strong>
         <div style="margin-top:6px; line-height:1.45;">
@@ -3547,6 +3581,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
         </div>
         <kbd>]</kbd>
       </div>
+      <div class="cmd-item" data-type="action" onclick="enhanceCurrentPrompt(); toggleCmdPalette();">
+        <div class="cmd-item-left">
+          <span class="cmd-item-icon">🪄</span>
+          <div class="cmd-item-info">
+            <span class="cmd-item-title">AI Prompt Magic Wand</span>
+            <span class="cmd-item-desc">Transform rough thoughts into high-precision master prompts</span>
+          </div>
+        </div>
+        <kbd>⌘⇧P</kbd>
+      </div>
       <div class="cmd-item" data-type="action" onclick="exportMarkdown(); toggleCmdPalette();">
         <div class="cmd-item-left">
           <span class="cmd-item-icon">💾</span>
@@ -3555,7 +3599,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             <span class="cmd-item-desc">Download complete conversation transcript</span>
           </div>
         </div>
-        <kbd>E</kbd>
+        <kbd>⌘⇧E</kbd>
       </div>
       <div class="cmd-item" data-type="action" onclick="copyFullTranscript(); toggleCmdPalette();">
         <div class="cmd-item-left">
@@ -3565,7 +3609,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             <span class="cmd-item-desc">Copy all messages to clipboard</span>
           </div>
         </div>
-        <kbd>T</kbd>
+        <kbd>⌘⇧C</kbd>
       </div>
       <div class="cmd-item" data-type="action" onclick="clearChat(); toggleCmdPalette();">
         <div class="cmd-item-left">
@@ -3575,7 +3619,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
             <span class="cmd-item-desc">Reset canvas and conversation history</span>
           </div>
         </div>
-        <kbd>C</kbd>
+        <kbd>⌘⇧L</kbd>
       </div>
       <div class="cmd-item" data-type="action" onclick="openInstructionsModal(); toggleCmdPalette();">
         <div class="cmd-item-left">
@@ -3649,7 +3693,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
       </button>
     </div>
     <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
-      <span>⌘</span><span class="nav-btn-text" id="cmd-menu-label">K Menu</span>
+      <span id="cmd-menu-label" style="white-space:nowrap;">⌘K Menu</span>
     </button>
     <a href="https://github.com/div197/BOB-Gemini-Free" target="_blank" rel="noopener noreferrer" class="nav-pill-btn github-pill" title="View & Star Repository on GitHub" style="text-decoration:none; color:inherit;">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
@@ -3878,6 +3922,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.02); }
               <button class="capsule-tool-btn btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
               <button class="capsule-tool-btn btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
               <button class="capsule-tool-btn btn-wand-pill" id="btn-wand" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
+              <span id="prompt-token-estimate" style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-left:6px; opacity:0; transition:opacity 0.2s ease; pointer-events:none;">0 chars • ~0 tok</span>
             </div>
             <div class="capsule-tools-right">
               <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
@@ -4550,7 +4595,7 @@ function initPlatformShortcuts() {
   const shortcutKey = isMac ? "⌘K" : "Ctrl+K";
   
   const menuLabel = document.getElementById("cmd-menu-label");
-  if (menuLabel) menuLabel.innerText = isMac ? "K Menu" : "Ctrl+K";
+  if (menuLabel) menuLabel.innerText = isMac ? "⌘K Menu" : "Ctrl+K Menu";
 
   const footerLabel = document.getElementById("footer-cmd-label");
   if (footerLabel) footerLabel.innerText = shortcutKey + " Quick Menu";
@@ -4720,7 +4765,9 @@ function getGatewayBaseUrl() {
 function openGatewayModal() {
   const modal = document.getElementById("gateway-modal");
   const input = document.getElementById("gateway-url-input");
+  const keyInput = document.getElementById("gateway-api-key-input");
   if (input) input.value = getGatewayBaseUrl();
+  if (keyInput) keyInput.value = localStorage.getItem('bob_api_key') || '';
   if (modal) modal.classList.add("open");
 }
 
@@ -4729,6 +4776,23 @@ function closeGatewayModal() {
   if (modal) modal.classList.remove("open");
   const input = document.getElementById("user-input");
   if (input) input.focus();
+}
+
+function saveApiKeyFromInput(val) {
+  const clean = (val || "").trim();
+  if (clean) {
+    localStorage.setItem('bob_api_key', clean);
+  } else {
+    localStorage.removeItem('bob_api_key');
+  }
+  refreshTelemetry();
+  if (!backendModelsLoaded) syncBackendModels();
+}
+
+function toggleApiKeyVisibility() {
+  const input = document.getElementById("gateway-api-key-input");
+  if (!input) return;
+  input.type = input.type === "password" ? "text" : "password";
 }
 
 function saveGatewayEndpoint() {
@@ -4745,6 +4809,7 @@ function saveGatewayEndpoint() {
   refreshTelemetry();
   updateSnippet();
   pingGatewayManual();
+  syncBackendModels();
 }
 
 function resetGatewayEndpoint() {
@@ -4756,23 +4821,32 @@ function resetGatewayEndpoint() {
   refreshTelemetry();
   updateSnippet();
   pingGatewayManual();
+  syncBackendModels();
 }
 
 async function pingGatewayManual() {
   const pill = document.getElementById("modal-gateway-status-pill");
   const badge = document.getElementById("gateway-ping-badge");
+  const card = document.getElementById("modal-gateway-stats-card");
+  const content = document.getElementById("modal-gateway-stats-content");
+
   if (pill) {
     pill.innerText = "Pinging...";
     pill.style.background = "rgba(245, 158, 11, 0.2)";
     pill.style.color = "#f59e0b";
   }
   const start = performance.now();
+  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const headers = {};
+  if (apiKey) {
+    headers["Authorization"] = "Bearer " + apiKey;
+  }
   try {
     let checkUrl = getGatewayBaseUrl() + "/";
     if (getGatewayBaseUrl() === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
       checkUrl = getGatewayBaseUrl() + "/health";
     }
-    const res = await fetch(checkUrl, { method: "GET" });
+    const res = await fetch(checkUrl, { method: "GET", headers: headers });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
       if (isHostedStudio()) {
@@ -4787,6 +4861,22 @@ async function pingGatewayManual() {
       if (badge) badge.innerText = "Latency: " + latency + "ms";
       updateGatewayStatusIndicator(true, latency);
 
+      if (card && content && data) {
+        card.style.display = "block";
+        const poolH = data.pool_sessions_healthy != null ? data.pool_sessions_healthy : (data.metrics?.session_pool_healthy || 0);
+        const poolT = data.pool_sessions_total != null ? data.pool_sessions_total : (data.metrics?.session_pool_total || 0);
+        const poolStr = poolT > 0 ? `${poolH}/${poolT} active sessions` : 'Live Guest Session Pool';
+        content.innerHTML = `
+          <div><b>Engine:</b> ${escapeHtml(data.engine || 'BOB Gemini Free')} (${escapeHtml(data.version || '__BOB_DESKTOP_VERSION__')})</div>
+          <div><b>Session Pool:</b> ${escapeHtml(poolStr)}</div>
+          <div><b>Requests Served:</b> ${data.requests_served || 0}</div>
+          <div><b>Tokens Processed:</b> ${(data.tokens_processed || 0).toLocaleString()}</div>
+          <div><b>Estimated Savings:</b> <span style="color:#10b981; font-weight:700;">${escapeHtml(data.estimated_savings_usd || '$0.00')}</span></div>
+        `;
+      }
+
+      if (!backendModelsLoaded) syncBackendModels();
+
       // Check for latest release updates from GitHub
       fetch(getGatewayBaseUrl() + "/v1/update/check")
         .then(r => r.json())
@@ -4795,6 +4885,15 @@ async function pingGatewayManual() {
             if (badge) badge.innerHTML = `Latency: ${latency}ms • <span style="color:#f59e0b; font-weight:600;">✨ Update ${escapeHtml(up.latest_version)} Available</span> (run <code>bob-gemini-free --update</code>)`;
           }
         }).catch(() => {});
+    } else if (res.status === 401) {
+      if (pill) {
+        pill.innerText = "ONLINE (SECURED)";
+        pill.style.background = "rgba(16, 185, 129, 0.2)";
+        pill.style.color = "#10b981";
+      }
+      if (badge) badge.innerText = "Latency: " + latency + "ms";
+      updateGatewayStatusIndicator(true, latency);
+      if (!backendModelsLoaded) syncBackendModels();
     } else {
       throw new Error("HTTP " + res.status);
     }
@@ -4805,6 +4904,7 @@ async function pingGatewayManual() {
       pill.style.color = "#ef4444";
     }
     if (badge) badge.innerText = "Latency: Unreachable";
+    if (card) card.style.display = "none";
     updateGatewayStatusIndicator(false, null);
   }
 }
@@ -5111,8 +5211,105 @@ window.addEventListener("resize", () => {
   if (userIsAtBottom) requestAnimationFrame(keepMessagesAtBottom);
 });
 
+function updatePromptTokenEstimate(text) {
+  const el = document.getElementById("prompt-token-estimate");
+  if (!el) return;
+  const clean = (text || "").trim();
+  if (!clean) {
+    el.style.opacity = "0";
+    return;
+  }
+  const chars = text.length;
+  const words = clean.split(/\s+/).filter(w => w).length;
+  const estTokens = Math.max(1, Math.round(words * 1.33));
+  el.innerText = `${chars} chars • ~${estTokens} tok`;
+  el.style.opacity = "0.9";
+}
+
+let backendModelsLoaded = false;
+async function syncBackendModels() {
+  const baseUrl = getGatewayBaseUrl();
+  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const headers = {};
+  if (apiKey) headers["Authorization"] = "Bearer " + apiKey;
+
+  try {
+    const res = await fetch(baseUrl + "/v1/models", { headers: headers });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (!data || !Array.isArray(data.data) || data.data.length === 0) return;
+
+    const select = document.getElementById("model-select");
+    if (!select) return;
+
+    const currentVal = select.value;
+    const modelIds = data.data.map(m => m.id);
+
+    const geminiFrontier = [];
+    const claudeAliases = [];
+    const openAIAliases = [];
+    const imageModels = [];
+    const otherModels = [];
+
+    for (const m of modelIds) {
+      if (m.startsWith("gemini-") || m.startsWith("chat-")) {
+        geminiFrontier.push(m);
+      } else if (m.startsWith("claude-")) {
+        claudeAliases.push(m);
+      } else if (m.startsWith("gpt-") || m.startsWith("o1") || m.startsWith("o3") || m.startsWith("o4") || m.startsWith("codex")) {
+        openAIAliases.push(m);
+      } else if (m.startsWith("imagen-") || m.startsWith("dall-e")) {
+        imageModels.push(m);
+      } else {
+        otherModels.push(m);
+      }
+    }
+
+    let html = "";
+    if (geminiFrontier.length > 0) {
+      html += '<optgroup label="⚡ Google Gemini Frontier">';
+      for (const m of geminiFrontier) {
+        const icon = m.includes("thinking") ? "🧠" : (m.includes("pro") ? "👑" : "⚡");
+        html += `<option value="${escapeHtml(m)}">${icon} ${escapeHtml(m)}</option>`;
+      }
+      html += '</optgroup>';
+    }
+    if (claudeAliases.length > 0) {
+      html += '<optgroup label="🎭 Anthropic Claude (Claude Code)">';
+      for (const m of claudeAliases) {
+        html += `<option value="${escapeHtml(m)}">🎭 ${escapeHtml(m)}</option>`;
+      }
+      html += '</optgroup>';
+    }
+    if (openAIAliases.length > 0) {
+      html += '<optgroup label="🤖 OpenAI & Codex CLI">';
+      for (const m of openAIAliases) {
+        html += `<option value="${escapeHtml(m)}">🤖 ${escapeHtml(m)}</option>`;
+      }
+      html += '</optgroup>';
+    }
+    if (imageModels.length > 0) {
+      html += '<optgroup label="🎨 Image Synthesis (Imagen 3)">';
+      for (const m of imageModels) {
+        html += `<option value="${escapeHtml(m)}">🎨 ${escapeHtml(m)}</option>`;
+      }
+      html += '</optgroup>';
+    }
+
+    select.innerHTML = html;
+    if (modelIds.includes(currentVal)) {
+      select.value = currentVal;
+    } else if (modelIds.includes("gemini-3.7-flash")) {
+      select.value = "gemini-3.7-flash";
+    }
+    updateActiveModelBadge();
+    backendModelsLoaded = true;
+  } catch(e) {}
+}
+
 function autoResize(el) {
   if (!el) return;
+  updatePromptTokenEstimate(el.value);
   el.style.height = 'auto';
   el.style.overflowX = 'hidden';
   const isMobile = window.innerWidth <= 640;
@@ -5292,7 +5489,19 @@ document.addEventListener("keydown", (e) => {
     }
   }
 
-  if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+  if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'p') {
+    e.preventDefault();
+    enhanceCurrentPrompt();
+  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'l') {
+    e.preventDefault();
+    clearChat();
+  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'e') {
+    e.preventDefault();
+    exportMarkdown();
+  } else if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key.toLowerCase() === 'c') {
+    e.preventDefault();
+    copyFullTranscript();
+  } else if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
     e.preventDefault();
     toggleCmdPalette();
   } else if ((e.metaKey || e.ctrlKey) && (e.key === '=' || e.key === '+')) {
@@ -5336,13 +5545,18 @@ async function refreshTelemetry() {
     return;
   }
   const baseUrl = getGatewayBaseUrl();
+  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const headers = {};
+  if (apiKey) {
+    headers["Authorization"] = "Bearer " + apiKey;
+  }
   try {
     const start = performance.now();
     let statsUrl = baseUrl + "/";
     if (baseUrl === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
       statsUrl = baseUrl + "/health";
     }
-    const res = await fetch(statsUrl, { method: "GET" });
+    const res = await fetch(statsUrl, { method: "GET", headers: headers });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
       const data = await res.json().catch(() => ({}));
@@ -5351,8 +5565,15 @@ async function refreshTelemetry() {
       document.getElementById("stat-tokens").innerText = (data.tokens_processed || 0).toLocaleString();
       document.getElementById("stat-savings").innerText = data.estimated_savings_usd || (data.estimated_usd_saved ? "$" + data.estimated_usd_saved.toFixed(2) : "$0.00");
       updateGatewayStatusIndicator(true, latency);
+    } else if (res.status === 401) {
+      updateGatewayStatusIndicator(true, latency);
     } else {
-      updateGatewayStatusIndicator(false, null);
+      const healthRes = await fetch(baseUrl + "/healthz").catch(() => null);
+      if (healthRes && healthRes.ok) {
+        updateGatewayStatusIndicator(true, latency);
+      } else {
+        updateGatewayStatusIndicator(false, null);
+      }
     }
   } catch(e) {
     updateGatewayStatusIndicator(false, null);
@@ -7249,7 +7470,7 @@ async function sendMessage() {
 
   const thoughtBox = document.createElement("div");
   thoughtBox.className = "thought-card";
-  thoughtBox.innerHTML = `<div class="thought-card-header"><span>🧠 ${ui.reasoning}</span></div><div class="thought-content"></div>`;
+  thoughtBox.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning}</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content"></div>`;
   storyDiv.appendChild(thoughtBox);
 
   const contentSpan = document.createElement("div");
@@ -7284,12 +7505,17 @@ async function sendMessage() {
   let lastMathRenderTime = 0;
 
     const baseUrl = getGatewayBaseUrl();
+    const apiKey = localStorage.getItem('bob_api_key') || '';
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Client-Request-Id": "studio-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8)
+    };
+    if (apiKey) {
+      headers["Authorization"] = "Bearer " + apiKey;
+    }
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-Client-Request-Id": "studio-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8)
-      },
+      headers: headers,
       body: JSON.stringify({
         model: model,
         temperature: temp,
@@ -7320,10 +7546,11 @@ async function sendMessage() {
     let streamProtocolError = null;
     let streamEnded = false;
     let streamReadError = null;
+    let streamRenderActive = true;
     let pendingRender = false;
     let lastRenderTime = 0;
     let fallbackTimer = 0;
-    let streamRenderActive = true;
+    let streamStartTime = performance.now();
 
     function doRender() {
       if (!streamRenderActive) return;
@@ -7335,11 +7562,24 @@ async function sendMessage() {
       lastRenderTime = performance.now();
       if (thoughtFullText) {
         thoughtBox.classList.add("active");
+        const thoughtTokens = Math.round(thoughtFullText.trim().split(/\s+/).filter(w => w).length * 1.33);
+        const titleSpan = thoughtBox.querySelector(".thought-title-span");
+        if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (~${thoughtTokens} tokens)`;
         thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
       }
       if (asstFullText) {
         contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
       }
+
+      const liveWords = (asstFullText + " " + thoughtFullText).trim().split(/\s+/).filter(w => w).length;
+      const liveTokens = Math.round(liveWords * 1.33);
+      const elapsedSec = (performance.now() - streamStartTime) / 1000;
+      const speed = elapsedSec > 0.1 ? (liveTokens / elapsedSec).toFixed(1) : "0.0";
+      const statsEl = storyDiv.querySelector("#live-stream-stats");
+      if (statsEl) {
+        statsEl.innerText = `${liveWords} words • ~${liveTokens} tokens (${speed} tok/s ⚡)`;
+      }
+
       if (userIsAtBottom) keepMessagesAtBottom();
     }
 
@@ -7449,6 +7689,9 @@ async function sendMessage() {
 
     if (thoughtFullText) {
       thoughtBox.classList.add("active");
+      const thoughtTokens = Math.round(thoughtFullText.trim().split(/\s+/).filter(w => w).length * 1.33);
+      const titleSpan = thoughtBox.querySelector(".thought-title-span");
+      if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (${thoughtTokens} tokens)`;
       thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
     }
     contentSpan.innerHTML = renderMarkdown(asstFullText);
@@ -7458,11 +7701,13 @@ async function sendMessage() {
     storyDiv.setAttribute('data-raw', asstFullText);
     if (userIsAtBottom) keepMessagesAtBottom();
 
+    const finalElapsed = (performance.now() - streamStartTime) / 1000;
     const finalWordCount = asstFullText.trim().split(/\s+/).filter(w => w).length;
     const finalTokens = Math.round(finalWordCount * 1.33);
+    const finalSpeed = finalElapsed > 0.1 ? (finalTokens / finalElapsed).toFixed(1) : "0.0";
     const statsEl = storyDiv.querySelector("#live-stream-stats");
     if (statsEl) {
-      statsEl.innerText = `${finalWordCount} words • ~${finalTokens} tokens`;
+      statsEl.innerText = `${finalWordCount} words • ~${finalTokens} tokens (${finalSpeed} tok/s • ${finalElapsed.toFixed(2)}s)`;
     }
 
     chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});
@@ -7476,10 +7721,12 @@ async function sendMessage() {
       storyDiv.setAttribute('data-raw', asstFullText);
       if (userIsAtBottom) keepMessagesAtBottom();
       
+      const stopElapsed = (performance.now() - streamStartTime) / 1000;
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
+      const stopTokens = Math.round(finalWords * 1.33);
       const statsEl = storyDiv.querySelector("#live-stream-stats");
       if (statsEl) {
-        statsEl.innerText = `${finalWords} words (stopped)`;
+        statsEl.innerText = `${finalWords} words • ~${stopTokens} tokens (stopped • ${stopElapsed.toFixed(2)}s)`;
       }
 
       chatHistory.push({role: "assistant", content: asstFullText, thought: thoughtFullText});

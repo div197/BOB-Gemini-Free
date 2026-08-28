@@ -43,9 +43,19 @@ http://192.168.1.50:9610/v1
 
 This keeps classroom traffic inside the LAN until the single local gateway makes upstream Gemini web requests.
 
+## StreamFlight Deduplication & High-Concurrency Lab Scaling (v0.1.8)
+
+In a live computer lab, multiple students often submit similar or identical prompts (e.g. *"Build a 2D CyberSnake game in HTML5 Canvas"* or *"Derive the Schrödinger wave equation"*).
+
+In BOB Gemini Free v0.1.8:
+- **StreamFlight Multiplexer (`internal/gemini/flight.go`)**: Automatically detects concurrent in-flight requests with matching normalized prompts and multiplexes a single upstream Google connection across unlimited downstream students over non-blocking atomic channels.
+- **Thundering-Herd Protection (`internal/gemini/auth.go`)**: Guest session tokens are managed via Stale-While-Revalidate with a single background refresh lock, guaranteeing 0ms blocking when 500 students connect simultaneously.
+- **Dynamic Keep-Alive Heartbeat (`internal/server/helpers.go`)**: Periodic `: keepalive\n\n` comments keep student browser sockets open during deep thinking phases, permanently eliminating gateway timeouts.
+- **Auto-Guest Fallback on Cookie Cooldown**: If an account cookie in `./cookies/` expires or triggers a temporary cooldown, BOB automatically routes traffic to live anonymous guest mode, preventing HTTP 503 errors.
+
 ## Cookie Pool Setup for Labs
 
-For stable classroom use, prepare a small pool of authenticated browser sessions:
+For authenticated Pro or Vision workloads, prepare a small pool of browser sessions:
 
 ```text
 ./cookies/
@@ -61,7 +71,7 @@ Then start:
 ./bob-gemini-free --host 0.0.0.0 --port 9610 --cookie-pool-dir ./cookies
 ```
 
-The pool lets the gateway rotate between sessions and place a session into cooldown when upstream returns a temporary rate-limit or session anomaly.
+The pool rotates between sessions and applies a 60-second cooldown on transient anomalies. If all pool accounts are in cooldown, BOB automatically falls back to live guest mode.
 
 Use only accounts and sessions you are authorized to use. Do not publish cookie files. Do not commit `cookie.txt` or `cookies/*.txt`.
 

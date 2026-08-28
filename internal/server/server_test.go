@@ -489,3 +489,42 @@ func TestStreamWithKeepAlive(t *testing.T) {
 		t.Errorf("expected keepalive comment in stream output, got %q", body)
 	}
 }
+
+func TestAnthropicMessagesStreamWithToolCalls(t *testing.T) {
+	fakeToolBody := mockGeminiBody("```tool_call\n{\"name\": \"get_weather\", \"arguments\": {\"location\": \"Bengaluru\"}}\n```")
+	cfg := config.Default()
+	app := New(cfg, "v0.1.8")
+	app.Gem.HTTP = fakeGeminiRequester{body: fakeToolBody}
+	handler := app.Handler()
+
+	payload := `{
+		"model": "claude-3-7-sonnet",
+		"max_tokens": 1000,
+		"stream": true,
+		"tools": [
+			{
+				"name": "get_weather",
+				"description": "Get weather info",
+				"input_schema": {"type": "object", "properties": {"location": {"type": "string"}}}
+			}
+		],
+		"messages": [{"role": "user", "content": "What is the weather in Bengaluru?"}]
+	}`
+
+	req := httptest.NewRequest("POST", "/v1/messages", strings.NewReader(payload))
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	body := rec.Body.String()
+	if !strings.Contains(body, "event: content_block_start") || !strings.Contains(body, "\"tool_use\"") {
+		t.Errorf("Expected tool_use block start in SSE stream, got:\n%s", body)
+	}
+	if !strings.Contains(body, "\"stop_reason\":\"tool_use\"") {
+		t.Errorf("Expected stop_reason tool_use in message_delta, got:\n%s", body)
+	}
+}
