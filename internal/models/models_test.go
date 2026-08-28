@@ -155,3 +155,33 @@ func TestResolveEnhanced(t *testing.T) {
 		t.Errorf("Expected extra fields {31:2, 80:3}, got %v", res.Extra)
 	}
 }
+
+func TestPricing(t *testing.T) {
+	pClaude := GetModelPricing("claude-5-sonnet")
+	if pClaude.BlendedPer1M != 9.00 {
+		t.Errorf("expected claude-5-sonnet blended price 9.00, got %f", pClaude.BlendedPer1M)
+	}
+
+	pOpus := GetModelPricing("claude-5-opus")
+	if pOpus.BlendedPer1M != 45.00 {
+		t.Errorf("expected claude-5-opus blended price 45.00, got %f", pOpus.BlendedPer1M)
+	}
+
+	pGPT := GetModelPricing("gpt-5.6-sol")
+	if pGPT.BlendedPer1M != 12.50 {
+		t.Errorf("expected gpt-5.6-sol blended price 12.50, got %f", pGPT.BlendedPer1M)
+	}
+
+	pGemini := GetModelPricing("gemini-3.7-flash")
+	if pGemini.BlendedPer1M != 0.375 {
+		t.Errorf("expected gemini-3.7-flash blended price 0.375, got %f", pGemini.BlendedPer1M)
+	}
+
+	// Test exact savings calculation for 100k tokens
+	savings := CalculateSavingsUSD("claude-5-sonnet", 100_000)
+	expectedSavings := 0.90 // 100k / 1M * $9.00 = $0.90
+	if savings != expectedSavings {
+		t.Errorf("expected savings $0.90, got %f", savings)
+	}
+}
+

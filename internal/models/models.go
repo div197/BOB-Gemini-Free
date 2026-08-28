@@ -5,6 +5,7 @@ import (
 	"log"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // Model represents a Gemini backend routing configuration.
@@ -321,3 +322,24 @@ func Resolve(modelName, defaultName string) (Resolved, error) {
 		Extra: cfg.Extra,
 	}, nil
 }
+
+var modelsMu sync.RWMutex
+
+// RegisterModel dynamically registers or overrides a model definition at runtime.
+func RegisterModel(name string, m Model) {
+	modelsMu.Lock()
+	defer modelsMu.Unlock()
+	MODELS[name] = m
+}
+
+// GetAllModels returns a thread-safe copy of all registered models.
+func GetAllModels() map[string]Model {
+	modelsMu.RLock()
+	defer modelsMu.RUnlock()
+	res := make(map[string]Model, len(MODELS))
+	for k, v := range MODELS {
+		res[k] = v
+	}
+	return res
+}
+

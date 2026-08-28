@@ -12,6 +12,57 @@ preview/release boundaries below.
 
 ---
 
+## [0.1.9] - 2026-08-28
+
+### Client-Side Edge Document Intelligence, BPE Tokenizer Lab, Financial Analytics & Niṣkāma UI Polish
+
+#### Added
+- **Client-Side Edge Document Intelligence Engine (Zero-Cloud / Zero-Server Architecture)**:
+  - In-browser document parsing and conversion for **PDF** (`pdf.min.js`), **Word DOCX** (`mammoth.browser.min.js`), **Excel XLSX / XLS / CSV / TSV** (`xlsx.full.min.js`), **Code / Data / Markdown / SQL / Log / Env / JSON / YAML**, and **Image OCR** (`tesseract.min.js`).
+  - Zero server uploads: All files are parsed directly into spec-compliant structured Markdown with tables and section headings on the user's client machine before prompt assembly.
+  - Interactive Document Preview Modal (`openDocPreviewModal`) with full Markdown formatting, code syntax highlighting, token count stats, and one-click clipboard copy.
+  - Full-window drag-and-drop backdrop overlay (`.drop-zone-overlay`) and dynamic multi-file attachment shelf (`.attachments-shelf`) with individual file preview and removal.
+  - **Client-Side Local OCR Auto-Healing**: If Google upstream returns `BardErrorInfo [1003]` on unauthenticated multimodal requests, BOB automatically extracts text from the image using in-browser Tesseract WASM and injects it into the prompt seamlessly.
+- **Interactive BPE Tokenizer Lab & Multi-Dimensional Token Intelligence (`openTokenizerModal`)**:
+  - Interactive BPE visualizer modal displaying subword token boundaries, token count, character length, compression ratio, byte counts, and raw integer token arrays.
+  - Live Prompt Token Estimator (`updatePromptTokenEstimate`) dynamically computing the combined token weight of typed text **plus** all attached multi-page PDFs, spreadsheets, and documents in real time.
+  - User attachment badges in chat history displaying page counts and token weights (`📕 Artificial_Intelligence_of_Pushpaka_Vimana.pdf • 7 pg • ~4,820 tok`).
+  - Assistant card telemetry reporting a complete three-tier token breakdown:
+    $$\text{In: } \sim 4,845 \text{ tok} \;\bullet\; \text{Out: } \sim 524 \text{ tok} \;\bullet\; \text{Total: } \sim 5,369 \text{ tok} \;\bullet\; 60.4 \text{ tok/s}$$
+- **Financial Savings & Multi-Model Benchmark Pricing Engine (`internal/models/pricing.go`)**:
+  - Real-time dollar savings calculator benchmarking requests against commercial cloud pricing (August 2026 rates) for Claude 5/4.5/3.7, GPT-5.6/5.5/4o/o3, Gemini 3.7/3.1, and DeepSeek models.
+  - Integrated into top status bar (`Saved: $X.XX`), gateway `/healthz` telemetry, and client response metadata.
+- **10 Distinct Color Themes & Custom Theme Color Studio (`openCustomThemeModal`)**:
+  - 10 hand-crafted color palettes: `bob-builder` (Obsidian Gold), `apple` (Cupertino Parchment Light), `vodafone` (Scarlet Light), `spotify` (OLED Pitch Dark / Emerald), `quantum` (Cyan Glow), `tokyo-night` (Neon Purple), `monokai` (Hacker Gold), `nord` (Arctic Slate), `solarized-light` (Warm Amber), and `custom`.
+  - Real-time Custom Theme Color Studio modal with interactive color pickers for accent, app background, card background, and main text, with presets (Cyberpunk, Synthwave, Dracula, Matrix).
+- **8-Language Internationalization & Offline Indic Transliteration (`I18N`)**:
+  - Full UI localization across 8 languages: English, Hindi (हिंदी), Sanskrit (संस्कृतम्), Spanish (Español), French (Français), German (Deutsch), Japanese (日本語), Chinese (中文).
+  - Integrated offline rule-based phonetic transliteration engine for Indic scripts (Hinglish to Hindi/Sanskrit/Marathi) with instant Ctrl+G toggle and word boundary caching.
+- **Engineering Specifications & System Architecture Documentation**:
+  - Added [`docs/engineering/MULTI-LINGUAL-I18N-SYSTEM.md`](docs/engineering/MULTI-LINGUAL-I18N-SYSTEM.md) detailing internationalization and offline transliteration architecture.
+  - Added [`docs/engineering/ROADMAP-v0.1.9-NISHKAAM-VISION.md`](docs/engineering/ROADMAP-v0.1.9-NISHKAAM-VISION.md) detailing the architectural evolution and Niṣkāma Karma Yoga principles.
+  - Added [`docs/engineering/WISHLIST-16YO-HACKER-v0.1.9.md`](docs/engineering/WISHLIST-16YO-HACKER-v0.1.9.md) detailing hacker tooling, WASM Python sandbox, and BPE tokenizer lab.
+
+#### Changed & Refined
+- **Proportional Zoom Architecture (`--reading-zoom`)**:
+  - Dynamically scales Markdown responses, input dock, reasoning cards, tables, and starter cards proportionally across zoom levels from 50% to 200%.
+- **Markdown Table Typography & Contrast**:
+  - Upgraded table cells (`td`, `th`) with `10px 14px` padding, 2px borders, bold gold header accents, and proportional zoom scaling (`calc(clamp(0.95rem, 0.92rem + 0.15vw, 1.05rem) * var(--reading-zoom))`).
+- **Streamlined Assistant Response Card Layout**:
+  - Removed duplicate button clusters from card headers. Header now displays sleek assistant badge and multi-dimensional token stats, while footer provides the interactive action suite (`📋 Copy`, `🔊 Listen`, `↻ Retry`, `🧠 Think`, `⚡ Flash`).
+- **Toast Notification Stack Architecture**:
+  - Shifted `.toast-stack` to `top: 68px` on desktop and floating above the input dock on mobile screens (`bottom: calc(var(--composer-offset) + 14px)`). Added de-duplication to prevent duplicate alerts.
+- **Mobile (< 640px) Responsive Harmony**:
+  - Streamlined mobile header layout: hides `.github-pill` and collapses gateway status text to prevent horizontal overflow on narrow mobile screens.
+
+#### Fixed
+- **iCloud Keychain / Password AutoFill Interference**:
+  - Added `<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">` to `<head>`.
+  - Added anti-autofill attributes to `#user-input` (`name="chat_prompt_body"`, `data-disable-password-manager="true"`, `data-1p-ignore="true"`, `data-lpignore="true"`, `data-bwignore="true"`, `data-form-type="other"`, `data-private="true"`).
+  - Hardened modal inputs with `autocomplete="new-password"` to permanently suppress browser autofill heuristics from targeting `localhost:9610`.
+
+---
+
 ## [0.1.8] - 2026-08-28
 
 ### High-Concurrency Satavik Architecture, StreamFlight Multiplexing & KaTeX Math Hardening
