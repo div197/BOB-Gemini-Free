@@ -5,7 +5,7 @@
 # ==============================================================================
 
 BINARY_NAME=bob-gemini-free
-VERSION=v0.1.9
+VERSION=v0.2.0
 LDFLAGS=-s -w -X main.Version=$(VERSION)
 WAILS_LDFLAGS=-X main.desktopVersion=$(VERSION) -X main.desktopChannel=stable
 WAILS=go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0

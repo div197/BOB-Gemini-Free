@@ -528,3 +528,30 @@ func TestAnthropicMessagesStreamWithToolCalls(t *testing.T) {
 		t.Errorf("Expected stop_reason tool_use in message_delta, got:\n%s", body)
 	}
 }
+
+func TestRefineEndpoint(t *testing.T) {
+	fakeBody := mockGeminiBody("1. Objective: Build game.\n2. Invariants: 60 FPS.\n3. Verified output.")
+	cfg := config.Default()
+	app := New(cfg, "v0.2.0")
+	app.Gem.HTTP = fakeGeminiRequester{body: fakeBody}
+	handler := app.Handler()
+
+	payload := `{"prompt": "Build a Cyberpunk Snake game"}`
+	req := httptest.NewRequest("POST", "/v1/refine", strings.NewReader(payload))
+	rec := httptest.NewRecorder()
+
+	handler.ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected status 200, got %d: %s", rec.Code, rec.Body.String())
+	}
+
+	var resp map[string]any
+	if err := json.Unmarshal(rec.Body.Bytes(), &resp); err != nil {
+		t.Fatalf("Failed to parse JSON response: %v", err)
+	}
+
+	if resp["original_prompt"] != "Build a Cyberpunk Snake game" {
+		t.Errorf("Expected original_prompt, got %v", resp["original_prompt"])
+	}
+}
