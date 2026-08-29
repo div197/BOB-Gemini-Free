@@ -2,7 +2,6 @@ package format
 
 import (
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -205,43 +204,57 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 		} else if contentList, ok := msg.Content.([]any); ok {
 			var textParts []string
 			for _, item := range contentList {
-				if mapItem, ok := item.(map[string]any); ok {
-					iType, _ := mapItem["type"].(string)
-					if iType == "text" || iType == "input_text" {
-						if t, ok := mapItem["text"].(string); ok {
-							textParts = append(textParts, t)
-						}
-					} else if iType == "image_url" || iType == "image" {
-						var urlStr string
-						if imgURLMap, ok := mapItem["image_url"].(map[string]any); ok {
-							urlStr, _ = imgURLMap["url"].(string)
-						} else if strURL, ok := mapItem["image_url"].(string); ok {
-							urlStr = strURL
-						} else if strURL, ok := mapItem["url"].(string); ok {
-							urlStr = strURL
-						}
-
-						if strings.HasPrefix(urlStr, "data:") {
-							commaIdx := strings.Index(urlStr, ",")
-							if commaIdx != -1 {
-								meta := urlStr[:commaIdx]
-								b64Data := urlStr[commaIdx+1:]
-								mime := "image/png"
-								if semiIdx := strings.Index(meta, ";"); semiIdx != -1 {
-									mime = strings.TrimPrefix(meta[:semiIdx], "data:")
-								}
-								if dec, err := base64.StdEncoding.DecodeString(b64Data); err == nil && len(dec) > 0 {
-									images = append(images, Image{Data: dec, MIME: mime})
-								}
-							}
-						} else if strings.HasPrefix(urlStr, "http://") || strings.HasPrefix(urlStr, "https://") {
-							images = append(images, Image{URL: urlStr})
-						} else if strings.Contains(urlStr, "://") {
-							images = append(images, Image{URL: urlStr})
-						} else if dec, err := base64.StdEncoding.DecodeString(urlStr); err == nil && len(dec) > 0 {
-							images = append(images, Image{Data: dec, MIME: "image/png"})
-						}
+				mapItem, ok := item.(map[string]any)
+				if !ok {
+					return "", nil, fmt.Errorf("unsupported multimodal content item type %T", item)
+				}
+				iType, _ := mapItem["type"].(string)
+				if iType == "text" || iType == "input_text" {
+					if t, ok := mapItem["text"].(string); ok {
+						textParts = append(textParts, t)
 					}
+				} else if iType == "image_url" || iType == "image" {
+					var urlStr string
+					if imgURLMap, ok := mapItem["image_url"].(map[string]any); ok {
+						urlStr, _ = imgURLMap["url"].(string)
+					} else if strURL, ok := mapItem["image_url"].(string); ok {
+						urlStr = strURL
+					} else if strURL, ok := mapItem["url"].(string); ok {
+						urlStr = strURL
+					}
+
+					if urlStr == "" {
+						return "", nil, fmt.Errorf("image content item has no image URL")
+					}
+					if strings.HasPrefix(strings.ToLower(urlStr), "data:") {
+						commaIdx := strings.Index(urlStr, ",")
+						if commaIdx == -1 {
+							return "", nil, fmt.Errorf("image data URL is missing its payload")
+						}
+						meta := urlStr[:commaIdx]
+						metaParts := strings.Split(meta, ";")
+						if len(metaParts) < 2 || !strings.EqualFold(strings.TrimSpace(metaParts[len(metaParts)-1]), "base64") {
+							return "", nil, fmt.Errorf("image data URL must use base64 encoding")
+						}
+						mimeType := strings.TrimPrefix(strings.TrimSpace(metaParts[0]), "data:")
+						dec, normalizedMIME, err := decodeInlineImageData(urlStr[commaIdx+1:], mimeType)
+						if err != nil {
+							return "", nil, fmt.Errorf("invalid image data URL: %w", err)
+						}
+						images = append(images, Image{Data: dec, MIME: normalizedMIME})
+					} else if strings.HasPrefix(urlStr, "http://") || strings.HasPrefix(urlStr, "https://") {
+						images = append(images, Image{URL: urlStr})
+					} else if strings.Contains(urlStr, "://") {
+						images = append(images, Image{URL: urlStr})
+					} else {
+						dec, mimeType, err := decodeInlineImageData(urlStr, "image/png")
+						if err != nil {
+							return "", nil, fmt.Errorf("invalid inline image data: %w", err)
+						}
+						images = append(images, Image{Data: dec, MIME: mimeType})
+					}
+				} else {
+					return "", nil, fmt.Errorf("unsupported multimodal content type %q", iType)
 				}
 			}
 			contentStr = strings.Join(textParts, " ")

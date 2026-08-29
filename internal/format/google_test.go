@@ -137,3 +137,35 @@ func TestGoogleFormatting(t *testing.T) {
 		t.Errorf("Expected clean text to have function_call block removed, got: %s", cleanText)
 	}
 }
+
+func TestGoogleContentsToPromptRejectsInvalidInlineImages(t *testing.T) {
+	tests := []struct {
+		name string
+		part models.GooglePart
+		want string
+	}{
+		{
+			name: "invalid base64",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: "not-base64"}},
+			want: "base64 is invalid",
+		},
+		{
+			name: "non-image MIME",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "text/plain", Data: "aGk="}},
+			want: "not an image",
+		},
+		{
+			name: "oversized encoded input",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: strings.Repeat("A", 28<<20)}},
+			want: "exceeds",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, err := GoogleContentsToPrompt(models.GoogleGenerateRequest{Contents: []models.GoogleContent{{Parts: []models.GooglePart{test.part}}}})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}

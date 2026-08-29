@@ -145,7 +145,7 @@ initial Mission 0 snapshot, the package-local results were: root 0.6%,
 | Images are compressed to 1024 px JPEG quality 75 and below 1 MB | STALE_OR_INCORRECT | `internal/multimodal/compress.go:17-58` caps dimensions and uses quality 75 when recompressing | The code does not loop or reject if the JPEG remains over the requested byte limit. The `<1MB` claim is not guaranteed. |
 | Scotty upload uses a two-step resumable protocol | VERIFIED_IN_SOURCE | `internal/multimodal/upload.go:41-126` | Upload URL/header parsing and file-reference shape are source-backed; no controlled authenticated live upload was run. |
 | Image deduplication prevents duplicate uploads | VERIFIED_BY_UNIT_TEST | `internal/server/image_cache.go`, `internal/server/helpers.go`, and `image_cache_test.go` cover bounded LRU reuse, cookie-scope separation, concurrent single-flight, and waiter cancellation | Provider reference expiry remains unknown; configured cookie pools intentionally disable reuse. |
-| Google inline image data is faithfully accepted | VERIFIED_IN_SOURCE | `internal/format/google.go:103-120` decodes base64 and creates upload inputs | Decode errors are silently ignored and no upstream vision fixture exists. Full fidelity is UNKNOWN. |
+| Google inline image data is validated before upload | VERIFIED_BY_UNIT_TEST | `internal/format/images.go`, `internal/format/google.go`, and `google_test.go` bound/decode base64 data, validate image MIME types, and reject malformed or oversized input | Provider-specific media acceptance and authenticated vision fidelity still require a live test. |
 
 ### Security, trust, and operational boundaries
 

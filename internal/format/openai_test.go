@@ -234,6 +234,30 @@ func TestMessagesToPromptAndImages(t *testing.T) {
 	}
 }
 
+func TestMessagesToPromptAndImagesRejectsInvalidInlineImages(t *testing.T) {
+	tests := []struct {
+		name string
+		url  string
+		want string
+	}{
+		{name: "invalid base64", url: "data:image/png;base64,not-base64", want: "base64 is invalid"},
+		{name: "missing base64 marker", url: "data:image/png,hello", want: "must use base64"},
+		{name: "non-image MIME", url: "data:text/plain;base64,aGk=", want: "not an image"},
+		{name: "missing payload", url: "data:image/png;base64", want: "missing its payload"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, err := MessagesToPromptAndImages(models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{
+				Role:    "user",
+				Content: []any{map[string]any{"type": "image_url", "image_url": map[string]any{"url": test.url}}},
+			}}})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
 func TestMessagesToPromptAndImagesRemoteURL(t *testing.T) {
 	req := models.OpenAIChatRequest{
 		Messages: []models.OpenAIMessage{

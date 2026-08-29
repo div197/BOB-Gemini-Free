@@ -1,7 +1,6 @@
 package format
 
 import (
-	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"regexp"
@@ -135,13 +134,11 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 			if p.Text != "" {
 				msgParts = append(msgParts, p.Text)
 			} else if p.InlineData != nil {
-				mime := p.InlineData.MIMEType
-				if mime == "" {
-					mime = "image/png"
+				dec, mimeType, err := decodeInlineImageData(p.InlineData.Data, p.InlineData.MIMEType)
+				if err != nil {
+					return "", nil, fmt.Errorf("invalid inline image: %w", err)
 				}
-				if dec, err := base64.StdEncoding.DecodeString(p.InlineData.Data); err == nil {
-					images = append(images, Image{Data: dec, MIME: mime})
-				}
+				images = append(images, Image{Data: dec, MIME: mimeType})
 			} else if p.FunctionCall != nil {
 				args := p.FunctionCall.Args
 				if args == nil {
