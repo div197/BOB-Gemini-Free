@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.7-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.1-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -27,6 +27,16 @@
 ---
 
 **BOB Gemini Free** (बॉब जेमिनी फ्री), [**ABCsteps.com**](https://abcsteps.com/) — जोधपुर, राजस्थान (भारत) में **दिव्यांशु सिंह चौहान** ([@div197](https://github.com/div197)) द्वारा स्थापित ऑनलाइन एआई इंजीनियरिंग स्कूल — की **BOB सीरीज़** (*Break Ordinary Boundaries*) का एक प्रमुख उत्पाद है।
+
+## वर्तमान स्थिति और प्रमाण सीमा
+
+वर्तमान सार्वजनिक macOS migration preview `v0.2.0-preview.1` है; stable
+`v0.2.0` अभी प्रकाशित नहीं है। यह दस्तावेज़ सुविधा-सूची है, production या
+unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
+Google session और live compatibility provider पर निर्भर हैं; tool calling और
+token counts के कुछ हिस्से emulated/estimated हैं। अंग्रेज़ी
+[`VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md) में हर
+दावे का source/test/device boundary दिया गया है।
 
 ---
 
@@ -57,7 +67,7 @@
 | :--- | :--- |
 | 💳 क्रेडिट कार्ड और क्लाउड बिलिंग खाता अनिवार्य | **₹0.00 / शून्य क्रेडिट कार्ड की ज़रूरत** |
 | 💸 हर मिलियन टोकन और रीज़निंग स्टेप का महँगा बिल | **Gateway billing नहीं; upstream quotas और session rules लागू** |
-| 🔑 API Key लीक होने पर लाखों का नुकसान | **सुरक्षित लोकल सेशन (`0600` फ़ाइल परमिशन)** |
+| 🔑 API Key लीक होने पर लाखों का नुकसान | **वैकल्पिक student-owned key केवल Studio memory में; default route को Developer API key नहीं चाहिए** |
 | 🔒 किसी एक कंपनी के CLI या टूल में क़ैद | **यूनिवर्सल 4-इन-1 ट्रांसलेशन (OpenAI, Claude, Google, Go)** |
 | 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **लोकल अनुमानित टोकन व बचत काउंटर (`GET /`); billing record नहीं** |
 
@@ -109,7 +119,9 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **Google वेब सेशन पर निर्भर रूटिंग**: मॉडल, कोटा, context, reasoning और image access वर्तमान Google session पर निर्भर हैं; कोई fixed free/unlimited guarantee नहीं है।
 * **Multi-Protocol Adapter**: OpenAI, Anthropic, Google और Go interfaces implement और fixture-tested हैं; हर client feature के लिए native/drop-in guarantee नहीं है।
 * **1-क्लिक नेटिव लॉगिन (`--login`)**: बिना DevTools या चाबी (Keychain) पॉपअप के एक क्लिक में गूगल अकाउंट जोड़ें।
-* **मल्टी-अकाउंट कुकी पूल (`cookie_pool`)**: कई गूगल खातों में लोड-बैलेंसिंग और 429 एरर पर ऑटोमैटिक फ़ेलओवर।
+* **मल्टी-अकाउंट कुकी पूल (`cookie_pool`)**: स्पष्ट रूप से दिए गए Google web
+  sessions के बीच स्थानीय चयन और failure cooldown; यह quota बढ़ाने, 429 को
+  bypass करने या साझा cookie बाँटने का तरीका नहीं है।
 * **Authenticated Pro/Image path**: सही session और upstream support होने पर Pro/Image aliases उपलब्ध हो सकते हैं; gateway इसे guarantee नहीं करता।
 * **Anthropic-shaped thinking**: Claude Code-shaped requests के लिए reasoning blocks मिलते हैं; यह native Claude inference नहीं है।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — ऑटोमैटिक कम्प्रेशन के साथ।
@@ -147,7 +159,7 @@ BOB Gemini Free कई AI coding tools के लिए adapter endpoints दे
 
 ---
 
-### ऑटोमैटिक 13-पॉइंट टेस्ट किट (Diagnostic Test Kit)
+### ऑटोमैटिक 15-पॉइंट टेस्ट किट (Diagnostic Test Kit)
 
 सभी 13 मॉडल्स, स्ट्रीमिंग, टोकन काउंटिंग, और API फ़ॉर्मेट्स की लाइव जाँच के लिए:
 
@@ -183,9 +195,17 @@ docker compose up -d
 ### विकल्प B: ऑटोमैटिक इंस्टॉलर स्क्रिप्ट (macOS / Linux)
 
 ```bash
+curl --fail --location --proto '=https' --proto-redir '=https' \
+  --output install.sh \
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh
+less install.sh
 chmod +x install.sh
 ./install.sh
 ```
+
+स्क्रिप्ट को पहले स्थानीय फ़ाइल के रूप में डाउनलोड करके पढ़ें। डिफ़ॉल्ट
+इंस्टॉलर signed manifest और SHA-256 की जाँच के बिना binary इंस्टॉल नहीं करता;
+यह अनजाने current directory को source से compile भी नहीं करता।
 
 ---
 
@@ -235,8 +255,8 @@ Public `v0.2.0-preview.1` migration bridge में project update key embedded
 * 🧭 **कोई server database या memory service नहीं**: gateway stateless request handling, explicit session pool और safe aggregate counters तक सीमित है; studio SQLite या server-side database provision नहीं करता।
 * ⚡ **नेटिव क्लाइंट-साइड इंटरैक्टिव आर्टिफ़ैक्ट्स इंजन (Claude-Style Live Canvas)**: HTML5 वेब ऍप्लिकेशन्स, CSS3 एनिमेशन्स, Canvas 2D/WebGL गेम्स, SVG वेक्टर ग्राफिक्स और Mermaid डायग्राम्स को 1-क्लिक **`Launch ⚡`** चिप से सीधे सैंडबॉक्स्ड स्टूडियो मोडल (`[ ▶ Preview | ⟨/⟩ Code ]`) में चलाएँ।
 * 🪄 **Prompt assistant (`🪄`)**: local gateway उपलब्ध होने पर prompt सुधारने का
-  प्रयास करता है; unavailable होने पर स्पष्ट रूप से heuristic local template
-  देता है। यह provider response या latency guarantee नहीं है।
+  प्रयास करता है; unavailable होने पर स्पष्ट error देता है और मूल prompt को
+  जस का तस रखता है। यह नकली provider response या latency guarantee नहीं है।
 * 🔍 **नॉन-ब्रेकिंग रीडिंग टेक्स्ट ज़ूम कंट्रोलर (`🔍 100%`)**: सब-बार चिप, `⌘+`/`⌘-`/`⌘0` और कमांड पैलेट द्वारा पूरे लेआउट को बिना तोड़े पढ़ने के फॉन्ट साइज़ को बढ़ाएँ/घटाएँ।
 * 🏛️ **यूनिफ़ाइड सेक्रेड ज्योमेट्री स्टूडियो इनपुट कैप्सूल**: मोबाइल व डेस्कटॉप दोनों पर टेक्स्टएरिया, विज़न अटैचमेंट्स, टूल्स (`📎`, `अ`, `🎙️`, `🪄`) और स्वर्णिम `SEND ➤` बटन को समाहित करने वाला एकल कैप्सूल।
 * 🎙️ **नेचुरल HD स्पीच स्टूडियो व फ्लोटिंग ऑडियो बार**: NotebookLM-श्रेणी का न्यूरल वॉइस सिंथेसाइज़र (Play/Pause, `0.8x`–`1.5x` स्पीड, और 4-बार लाइव इक्वलाइज़र)।
@@ -252,6 +272,25 @@ Public `v0.2.0-preview.1` migration bridge में project update key embedded
   अनुमानित savings दिख सकते हैं; यह external analytics या provider billing
   record नहीं है।
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
+
+#### वैकल्पिक: छात्र की अपनी Gemini Developer API key
+
+सामान्य BOB web-session route के लिए Google AI Studio key की आवश्यकता नहीं है।
+यदि कोई छात्र अपने project का उपयोग करना चाहता है, तो **Config → Gemini
+Developer API** खोलें और [Google AI Studio key page](https://aistudio.google.com/app/apikey)
+पर अपनी key बनाएँ या प्रबंधित करें। [वर्तमान model list](https://ai.google.dev/gemini-api/docs/models) और
+[rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) देखें, फिर Key को
+BOB में केवल current session के लिए paste करें और **Use for this session** चालू करें।
+
+यह quota bypass नहीं है। Key page memory में रहती है, `localStorage`, config
+file, logs, metrics या release में save नहीं होती, और BOB keys की list rotate
+नहीं करता। हर छात्र केवल अपने authorized project/key का उपयोग करे। Google के
+current model, free-tier, rate-limit, billing और data-use नियम लागू रहते हैं।
+पूरी route और limit सीमा [`GEMINI-API-ROUTING.md`](docs/engineering/GEMINI-API-ROUTING.md)
+में है। Hosted public Studio में key भेजने से पहले local या explicitly trusted
+gateway endpoint save करना अनिवार्य है; public demo में अज्ञात gateway को key
+न दें। Direct route provider के `gemini-*` model IDs को forward करता है, इसलिए
+भविष्य के model IDs को BOB alias समझकर silently बदलता नहीं है।
 
 <p align="center">
   <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — BOB Builder Theme Default" width="100%">
@@ -437,11 +476,9 @@ func main() {
 
 | पैमाना / विशेषता | Google AI Studio (Free Tier) | **BOB Gemini Free (लोकल गेटवे)** |
 | :--- | :--- | :--- |
-| **Flash दैनिक सीमा (RPD)** | **1,500 अनुरोध / दिन** (दैनिक सीमा पार होते ही बंद) | **स्थापित नहीं; Google web session पर निर्भर** |
-| **Flash प्रति मिनट अनुरोध (RPM)** | **15 RPM** (`429 RESOURCE_EXHAUSTED`) | **स्थापित नहीं; gateway quota न मानें** |
-| **Flash टोकन दर (TPM)** | 1,000,000 टोकन / मिनट | बफ़र्ड हाई-स्पीड थ्रूपुट |
-| **Pro दैनिक सीमा (RPD)** | **50 अनुरोध / दिन** (अत्यंत सीमित) | **स्थापित नहीं; Google web session पर निर्भर** |
-| **Pro प्रति मिनट अनुरोध (RPM)** | **2 RPM** (भारी थ्रॉटलिंग) | **सामान्य इंटरैक्टिव वेब कंकरेंसी** |
+| **Requests और token quota** | Model, project, tier, region और provider policy के अनुसार बदलते हैं; current [AI Studio limits](https://ai.google.dev/gemini-api/docs/rate-limits) देखें | **स्थापित नहीं; Google web session पर निर्भर** |
+| **Free-tier model availability** | Current [pricing page](https://ai.google.dev/gemini-api/docs/pricing) पर selected models और शर्तें बदल सकती हैं | **स्थापित नहीं; Google web session पर निर्भर** |
+| **Paid billing** | Paid project/key से charges हो सकते हैं; [billing](https://ai.google.dev/gemini-api/docs/billing) जाँचें | **BOB gateway billing नहीं; provider/session rules लागू** |
 | **रीज़निंग / थिंकिंग गहराई** | मुफ़्त कुंजियों पर सीमित | **Upstream-dependent; fixed character guarantee नहीं** |
 | **OpenAI प्रोटोकॉल सपोर्ट** | ❌ शून्य (कस्टम SDK कोड चाहिए) | **✅ Adapter routes; fixture-tested, universal/full नहीं** |
 | **Developer रोल सपोर्ट** | ❌ नहीं | **✅ Prompt transformation; native role semantics नहीं** |
@@ -457,11 +494,9 @@ func main() {
 नीचे के पुराने आँकड़े release guarantee नहीं हैं। Quota, context, concurrency और output depth को target environment और current Google session में मापें:
 
 * **Output/context limits**: gateway द्वारा कोई fixed सीमा स्थापित नहीं है; Google web behavior upstream-dependent है।
-* **अनुकूलतम कंकरेंसी बैंडविड्थ**:
-  * **Flash 3.7 / 3.6 / Flash Lite**: **3 से 5 समवर्ती स्ट्रीम्स** प्रति IP/इंस्टेंस।
-  * **Deep Thinking और Pro 3.1**: **2 से 3 समवर्ती स्ट्रीम्स**।
+* **Concurrency**: repository के local benchmark numbers Google limits या safe live classroom capacity नहीं बताते। Burst से बचें और छोटे rollout waves में test करें।
 * **Retry strategy**: configurable attempts और fixed retry delay हैं; upstream errors/rate limits फिर भी आ सकते हैं।
-* **Images**: compression path oversized inputs को घटाने की कोशिश करता है; exact final byte size guarantee नहीं है।
+* **Images**: compression path oversized input को validate करके dimensions सीमित करता है और requested byte budget तक JPEG quality/resolution घटाता है; budget असंभव होने पर over-budget image upload करने के बजाय request fail होती है।
 
 ---
 
@@ -790,22 +825,23 @@ docker logs bob-gemini-free
 <details>
 <summary><strong>1. BOB Gemini Free अपने gateway API key और billing account के बिना कैसे काम करता है?</strong></summary>
 
-**BOB Gemini Free** selected OpenAI-shaped और Google-shaped requests को Google के internal web RPC में translate करता है। वास्तविक model access, quota, authentication और cost current Google web session और provider policy पर निर्भर हैं।
+**BOB Gemini Free** selected OpenAI-shaped और Google-shaped requests को Google के internal web RPC में translate करता है। Default web route में model access, quota, authentication और cost current Google web session और provider policy पर निर्भर हैं। Optional Developer API route में छात्र के अपने project की key और quota लागू होती है।
 </details>
 
 <details>
 <summary><strong>2. क्या मेरा गूगल अकाउंट सुरक्षित है? रेट लिमिट्स या बैन का कोई ख़तरा?</strong></summary>
 
 * **बिना configured cookie**: BOB user-provided Google session file load नहीं करता; upstream access और identity behavior provider-controlled हैं, इसलिए इसे anonymous guarantee न समझें।
-* **Gemini Advanced ($20/माह) मोड**: BOB Gemini Free वास्तविक ब्राउज़र TLS फ़िंगरप्रिंट (`tls-client` Chrome 133) और सामान्य वेब ट्रैफ़िक पैटर्न का उपयोग करता है।
-* **ऑपरेशनल दिशानिर्देश**: एक समय में 3 से 5 समवर्ती अनुरोध चलाएँ। एक ही IP से प्रति सेकंड सैकड़ों अनुरोध भेजने से बचें।
+* **Google session safety**: Cookie उपयोगकर्ता की अपनी local session होनी चाहिए; expiry और provider policy लागू रहती है।
+* **ऑपरेशनल दिशानिर्देश**: छोटे classroom waves रखें, burst traffic से बचें, और 401/403/429 को provider conditions मानें। Proxy rotation, fingerprint changes या shared cookies से limits bypass न करें।
 </details>
 
 <details>
 <summary><strong>3. यह Google AI Studio Free Tier या Paid OpenAI APIs की तुलना में कैसा है?</strong></summary>
 
-* **Google AI Studio Free Tier**: 15 RPM और सख्त दैनिक कोटा सीमा लगाता है (दैनिक सीमा समाप्त होने पर मध्यरात्रि UTC तक सेवा बंद हो जाती है)।
-* **BOB Gemini Free**: Google के interactive web backend के लिए adapter है; दैनिक सीमा, token cost, model access और reasoning depth current session/provider rules पर निर्भर हैं।
+* **Google AI Studio Free Tier**: exact quota model और usage tier के अनुसार बदलता है। Current [pricing](https://ai.google.dev/gemini-api/docs/pricing) और [rate-limit](https://ai.google.dev/gemini-api/docs/rate-limits) pages तथा AI Studio project view देखें। पुराने fixed RPM/RPD numbers पर निर्भर न करें।
+* **BOB Gemini Free web route**: Google interactive web backend का adapter है; daily limit, token cost, model access और reasoning depth current session/provider rules पर निर्भर हैं।
+* **BOB Gemini Free Developer API route**: छात्र द्वारा चुने गए project/key की current quota और billing settings लागू होती हैं।
 </details>
 
 <details>
@@ -849,7 +885,7 @@ OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भ�
 <details>
 <summary><strong>9. क्या कई ऐप्स या टीम के सदस्य एक ही गेटवे शेयर कर सकते हैं?</strong></summary>
 
-हाँ। `config.json` में `api_keys: ["sk-team-1", "sk-team-2"]` सेट करें। सभी आने वाले अनुरोधों का प्रमाणीकरण टाइमिंग-हमलों से सुरक्षित कॉन्स्टेंट-टाइम कम्पैरिजन (`crypto/subtle`) द्वारा होता है।
+हाँ। `config.json` में `api_keys: ["sk-team-1", "sk-team-2"]` सेट करें। सभी आने वाले अनुरोधों का प्रमाणीकरण टाइमिंग-हमलों से सुरक्षित कॉन्स्टेंट-टाइम कम्पैरिजन (`crypto/subtle`) द्वारा होता है। Credential को `Authorization`, `x-api-key` या `x-goog-api-key` header में भेजें। URL में `?key=` प्रमाणीकरण default रूप से बंद है क्योंकि URL history, logs, referrer और proxy में leak हो सकता है। पुराने client के लिए केवल स्पष्ट opt-in के साथ `allow_query_api_key: true` या `BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY=true` सेट करें और gateway को local रखें।
 </details>
 
 <details>

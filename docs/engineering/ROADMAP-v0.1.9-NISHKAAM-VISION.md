@@ -9,7 +9,7 @@
 
 **BOB Gemini Free** (*Break Ordinary Boundaries*) by **ABCsteps** ([abcsteps.com](https://abcsteps.com/)) and **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)) was born out of a singular, sacred mission:
 
-**To provide every student, young coder, and independent builder on Earth with 100% free, zero-friction, private access to frontier AI on their own local computer — without requiring signups, phone OTPs, credit cards, cloud invoices, or vendor lock-in.**
+**To make private, local-first AI exploration as accessible as possible for every student, young coder, and independent builder — without a BOB subscription, BOB signup, phone OTP, or BOB cloud invoice.** Google provider/session access, model availability, quotas, billing, and policy still apply; this is an educational vision, not a promise of free or unlimited AI access.
 
 ### The Educational Open-Source Paradigm:
 1. **Zero-Barrier Exploration**: Anyone can download a single portable executable or clone the source, double-click or run `./bob-gemini-free`, and instantly start exploring, creating, and learning.
@@ -33,11 +33,11 @@ In **v0.1.9**, the gateway matures into a harmonious, non-dual architecture wher
                     │                                                   │
          ▼ SHIVA (The Silent Core)                            ▼ SHAKTI (The Living Expression)
   ┌─────────────────────────────────────┐              ┌─────────────────────────────────────┐
-  │ • Zero-Dependency Go Binary         │              │ • Zero-Flash Web Studio & Themes    │
+  │ • Single-Binary Runtime Distribution│              │ • Zero-Flash Web Studio & Themes    │
   │ • StreamFlight Concurrency Multiplex│  ◄─────────► │ • Live KaTeX Mathematical Rendering │
-  │ • Anonymous Session Pool Recycling  │  (Real-Time) │ • Interactive Pyodide/WASM Sandbox  │
+  │ • Explicit Session Routing          │  (Real-Time) │ • Interactive Pyodide/WASM Sandbox  │
   │ • 15-Point Automated Test Kit       │              │ • Sub-word Token Estimator Badge    │
-  │ • Local 0600 Secure Credential Store│              │ • Dynamic Model & Persona Discovery │
+  │ • Local 0600 Secure Credential Store│              │ • Provider-Aware Model & Persona UX │
   └─────────────────────────────────────┘              └─────────────────────────────────────┘
 ```
 
@@ -58,7 +58,7 @@ In **v0.1.9**, the gateway matures into a harmonious, non-dual architecture wher
 
 ### 📦 Milestone 3: Universal Portable Student Distribution
 * **Self-Extracting Desktop Artifacts**:
-  - Single-click portable launch scripts for macOS (`.dmg`), Windows (`.zip`/`.exe`), and Linux (`tar.gz`) that start the gateway and open the local studio canvas with 0 terminal commands required.
+  - Single-click portable launch scripts for macOS (`.dmg`), Windows (`.zip`/`.exe`), and Linux (`tar.gz`) that target a low-friction local studio experience. Platform runtime libraries, signing, packaging, and clean-device acceptance remain release-specific gates.
 
 ### 🔌 Milestone 4: Student Extension & Sidecar API
 * **Local Webhook & MCP Support**:

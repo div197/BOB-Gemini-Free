@@ -70,9 +70,9 @@ Query live metrics directly from your terminal:
 
 ---
 
-## 3. Automated 13-Point Diagnostic Suite (`--test`)
+## 3. Automated 15-Point Diagnostic Suite (`--test`)
 
-Run the 13-point diagnostic test against any local or remote BOB gateway:
+Run the 15-point diagnostic test against any local or remote BOB gateway:
 
 ```bash
 ./bob-gemini-free --test --test-url http://127.0.0.1:9610
@@ -92,6 +92,14 @@ Run the 13-point diagnostic test against any local or remote BOB gateway:
 11. `OpenAI Function Calling & Tool Invocation`
 12. `Image Generation & Gemini Nano Banana Pipeline`
 13. `Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count)`
+14. `Claude Code SSE Streaming Tool Execution Protocol`
+15. `StreamFlight Concurrency Multiplexing (5 Parallel Coalesced Requests)`
+
+The suite is fail-closed: malformed JSON, empty or `[DONE]`-only streams,
+metadata-only responses, and unavailable provider-dependent image generation
+are reported as failures. A green local run proves the responses observed from
+that gateway; it does not prove Google quota, session longevity, model
+identity, or clean-device release behavior.
 
 ---
 
@@ -112,6 +120,12 @@ Run a load test with concurrent workers:
 - **99th Percentile Latency (P99)**
 - **Request Throughput (req/sec)**
 - **Token Generation Throughput (tokens/sec)**
+
+The live benchmark caps the requested workload at 128 workers and 10,000
+requests. Invalid, empty, oversized, or malformed JSON responses count as
+failures. Token throughput is shown only when every successful response
+includes positive provider-reported usage; otherwise it is reported as
+unavailable.
 
 ---
 

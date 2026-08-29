@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,10 @@ import (
 )
 
 func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/responses") {
+		return
+	}
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
 		return
@@ -52,15 +54,18 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := format.ResponsesInputToMessages(inputRaw, instructions)
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid input structure"}})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
 		return
 	}
 
 	var reqMessages []models.OpenAIMessage
 	for _, m := range messages {
-		role, _ := m["role"].(string)
-		content := m["content"]
-		reqMessages = append(reqMessages, models.OpenAIMessage{Role: role, Content: content})
+		message, err := responsesInputMapToOpenAIMessage(m)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+			return
+		}
+		reqMessages = append(reqMessages, message)
 	}
 
 	var reqTools []models.OpenAITool
@@ -94,22 +99,25 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
-	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty input"}})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty input", "type": "invalid_request_error"}})
 		return
 	}
 	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
 		prompt = "Please analyze the attached image."
 	}
 
-	fileRefs, err := a.uploadImages(images)
+	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 
-	strChoice, isStr := toolChoice.(string)
-	isToolNone := isStr && strChoice == "none"
+	isToolNone := format.IsToolChoiceNone(toolChoice)
 
 	rid := fmt.Sprintf("resp_%s", format.RandHex(16))
 	mid := fmt.Sprintf("msg_%s", format.RandHex(12))
@@ -179,7 +187,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		if streamErr != nil {
 			_ = writeSSEEvent(w, "error", map[string]any{
 				"type":    "error",
-				"message": streamErr.Error(),
+				"message": publicUpstreamErrorMessage(streamErr),
 			})
 			return
 		}
@@ -250,7 +258,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	// --- Non-streaming path (or streaming with tools: buffer then replay) ---
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
 		return
 	}
 
@@ -342,4 +350,19 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 	}
+}
+
+func responsesInputMapToOpenAIMessage(input map[string]any) (models.OpenAIMessage, error) {
+	encoded, err := json.Marshal(input)
+	if err != nil {
+		return models.OpenAIMessage{}, fmt.Errorf("encode Responses input message: %w", err)
+	}
+	var message models.OpenAIMessage
+	if err := json.Unmarshal(encoded, &message); err != nil {
+		return models.OpenAIMessage{}, fmt.Errorf("decode Responses input message: %w", err)
+	}
+	if strings.TrimSpace(message.Role) == "" {
+		return models.OpenAIMessage{}, fmt.Errorf("Responses input message is missing role")
+	}
+	return message, nil
 }

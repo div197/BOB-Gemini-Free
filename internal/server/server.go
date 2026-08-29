@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/gemini"
+	"github.com/div197/bob-gemini-free/internal/geminiapi"
 	"github.com/div197/bob-gemini-free/internal/metrics"
 	"github.com/div197/bob-gemini-free/internal/multimodal"
 )
@@ -17,6 +19,7 @@ import (
 type App struct {
 	Cfg             config.Config
 	Gem             *gemini.Client
+	GeminiAPI       *geminiapi.Client
 	Tokens          *multimodal.TokenCache
 	HTTPClient      *http.Client
 	Logf            func(format string, args ...any)
@@ -24,8 +27,10 @@ type App struct {
 	RequestsServed  atomic.Uint64
 	TokensProcessed atomic.Uint64
 	StartTime       time.Time
-	ImageCache      sync.Map // Caches SHA256 -> Scotty FileRef to prevent redundant uploads in long multi-turn vision chats
+	ImageCache      imageRefCache // Bounded authenticated-image SHA256 -> Scotty FileRef cache
 	Metrics         *metrics.Registry
+	stopPoolReload  func()
+	closeOnce       sync.Once
 }
 
 func createHTTPClient(cfg config.Config) *http.Client {
@@ -65,6 +70,7 @@ func New(cfg config.Config, version string) *App {
 	app := &App{
 		Cfg:        cfg,
 		Gem:        gemClient,
+		GeminiAPI:  geminiapi.NewClient(httpClient),
 		Tokens:     multimodal.NewTokenCache(cfg, gemClient.Cookies, httpClient),
 		HTTPClient: httpClient,
 		Logf:       logFn,
@@ -73,14 +79,40 @@ func New(cfg config.Config, version string) *App {
 		Metrics:    registry,
 	}
 
-	if gemClient.Pool != nil {
-		gemClient.Pool.StartAutoReload(30 * time.Second)
+	// Guest-only apps have no file-backed session state to reload. Avoid
+	// starting an idle ticker in every embedded handler; configured session
+	// apps still get reload behavior and must be closed by their owner.
+	if gemClient.Pool != nil && (cfg.CookieFile != "" || len(cfg.CookiePool) > 0) {
+		app.stopPoolReload = gemClient.Pool.StartAutoReloadContext(context.Background(), 30*time.Second)
 	}
 
 	return app
 }
 
+// Close stops background gateway-owned workers. It is safe to call more than
+// once and is used by both the CLI and desktop lifecycle hooks.
+func (a *App) Close() {
+	if a == nil {
+		return
+	}
+	a.closeOnce.Do(func() {
+		if a.stopPoolReload != nil {
+			a.stopPoolReload()
+		}
+	})
+}
+
 func (a *App) Handler() http.Handler {
+	if a == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+				"error": map[string]any{
+					"message": "gateway app is not initialized",
+					"type":    "api_error",
+				},
+			})
+		})
+	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", a.handleHealth)
@@ -89,6 +121,8 @@ func (a *App) Handler() http.Handler {
 	mux.HandleFunc("GET /playground", a.handlePlayground)
 	mux.HandleFunc("GET /ui", a.handlePlayground)
 	mux.HandleFunc("GET /favicon.ico", a.handleFavicon)
+	mux.HandleFunc("GET /manifest.json", a.handleLocalManifest)
+	mux.HandleFunc("GET /sw.js", a.handleLocalServiceWorker)
 	mux.HandleFunc("GET /v1/models", a.handleModels)
 	mux.HandleFunc("GET /v1/models/{model}", a.handleSingleModel)
 	mux.HandleFunc("POST /v1/chat/completions", a.handleChat)

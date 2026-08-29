@@ -62,6 +62,9 @@ if [[ "$PLATFORM" != darwin/universal && "$PLATFORM" != darwin/arm64 && "$PLATFO
 	echo "unsupported macOS platform: $PLATFORM" >&2
 	exit 1
 fi
+
+bash "$ROOT_DIR/scripts/verify-release-source.sh" "$VERSION"
+
 if [[ -e "$OUTPUT_DIR" ]]; then
 	echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
 	exit 1
@@ -141,9 +144,10 @@ No Google session, cookie, API key, or private release key is included. User
 authentication, provider availability, quotas, model access, and network
 behavior remain account- and upstream-dependent.
 
-The native updater is explicit and user-consented. It does not silently check,
-download, or replace the application. Existing builds must be installed in a
-writable application directory before an update can be staged.
+The native updater can perform a low-frequency metadata check while the app is
+running, but every download, replacement, and restart remains explicit and
+user-consented. Existing builds must be installed in a writable application
+directory before an update can be staged.
 NOTICE
 
 (

@@ -254,7 +254,7 @@ func goldenOK(body io.ReadCloser) *http.Response {
 	return &http.Response{StatusCode: http.StatusOK, Header: make(http.Header), Body: body}
 }
 
-func TestGoldenStreamRetryDeduplicatesCumulativeFrames(t *testing.T) {
+func TestGoldenStreamDoesNotReplayAfterPartialOutput(t *testing.T) {
 	first := goldenBoQLine("Hello") + goldenBoQLine("Hello world")
 	second := goldenBoQLine("Hello") + goldenBoQLine("Hello world")
 	requester := &goldenRequester{responses: []goldenHTTPResponse{
@@ -276,16 +276,36 @@ func TestGoldenStreamRetryDeduplicatesCumulativeFrames(t *testing.T) {
 		deltas = append(deltas, delta)
 		return nil
 	})
-	if err != nil {
-		t.Fatalf("GenerateStreamContext: %v", err)
+	if err == nil || !strings.Contains(err.Error(), "connection reset") {
+		t.Fatalf("GenerateStreamContext error = %v, want ambiguous transport failure", err)
 	}
 	if !reflect.DeepEqual(deltas, []string{"Hello", " world"}) {
-		t.Fatalf("retry deltas = %#v", deltas)
+		t.Fatalf("partial stream deltas = %#v", deltas)
 	}
 	requester.mu.Lock()
 	called := requester.called
 	requester.mu.Unlock()
-	if called != 2 {
-		t.Fatalf("fixture request count = %d, want 2", called)
+	if called != 1 {
+		t.Fatalf("fixture request count = %d, want 1 after partial output", called)
+	}
+}
+
+func TestGoldenStreamParserStillDeduplicatesReconnectFrames(t *testing.T) {
+	parser := NewStreamParser()
+	var deltas []string
+	for _, frame := range []string{
+		goldenBoQLine("Hello"),
+		goldenBoQLine("Hello world"),
+		goldenBoQLine("Hello"),
+		goldenBoQLine("Hello world"),
+	} {
+		got, err := parser.Feed(frame)
+		if err != nil {
+			t.Fatalf("parser Feed: %v", err)
+		}
+		deltas = append(deltas, got...)
+	}
+	if got, want := strings.Join(deltas, ""), "Hello world"; got != want {
+		t.Fatalf("deduplicated parser output = %q, want %q", got, want)
 	}
 }

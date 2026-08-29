@@ -19,6 +19,11 @@ func TestNewHandlerEmbedded(t *testing.T) {
 		WithImpersonate("chrome"),
 		WithProxy("http://127.0.0.1:8080"),
 	)
+	managed, ok := handler.(CloseableHandler)
+	if !ok {
+		t.Fatal("NewHandler result does not expose Close()")
+	}
+	defer func() { _ = managed.Close() }()
 
 	if handler == nil {
 		t.Fatalf("Expected non-nil handler")
@@ -33,7 +38,8 @@ func TestNewHandlerEmbedded(t *testing.T) {
 	}
 
 	// 2. Test authorized request
-	req2 := httptest.NewRequest("GET", "/?key=sk-embed-key", nil)
+	req2 := httptest.NewRequest("GET", "/", nil)
+	req2.Header.Set("Authorization", "Bearer sk-embed-key")
 	rec2 := httptest.NewRecorder()
 	handler.ServeHTTP(rec2, req2)
 	if rec2.Code != http.StatusOK {
@@ -41,7 +47,8 @@ func TestNewHandlerEmbedded(t *testing.T) {
 	}
 
 	// 3. Test models lookup
-	req3 := httptest.NewRequest("GET", "/v1/models?key=sk-embed-key", nil)
+	req3 := httptest.NewRequest("GET", "/v1/models", nil)
+	req3.Header.Set("Authorization", "Bearer sk-embed-key")
 	rec3 := httptest.NewRecorder()
 	handler.ServeHTTP(rec3, req3)
 	if rec3.Code != http.StatusOK {
@@ -62,6 +69,7 @@ func TestNewEngine(t *testing.T) {
 	if engine == nil {
 		t.Fatalf("Expected non-nil Engine")
 	}
+	defer engine.Close()
 
 	h := engine.Handler()
 	if h == nil {
@@ -91,6 +99,7 @@ func TestNewEngineClampsRetryAttempts(t *testing.T) {
 	if engine == nil {
 		t.Fatalf("Expected non-nil Engine")
 	}
+	defer engine.Close()
 	if engine.app.Cfg.RetryAttempts != 1 {
 		t.Errorf("Expected retry attempts to be clamped to 1, got %d", engine.app.Cfg.RetryAttempts)
 	}
@@ -104,6 +113,7 @@ func TestEngineGenerateMethods(t *testing.T) {
 	if engine == nil {
 		t.Fatalf("Expected non-nil Engine")
 	}
+	defer engine.Close()
 
 	// Verify methods return context error when context is canceled
 	ctx, cancel := context.WithCancel(t.Context())
@@ -131,5 +141,18 @@ func TestEngineGenerateMethods(t *testing.T) {
 	})
 	if err == nil {
 		t.Errorf("Expected context error for canceled context in GenerateStreamWithMedia")
+	}
+}
+
+func TestNilEngineMethodsFailClosed(t *testing.T) {
+	var engine *Engine
+	if got := engine.Handler(); got == nil {
+		t.Fatal("nil Engine Handler returned nil")
+	}
+	if _, err := engine.Generate(context.Background(), "hello", "gemini-3.7-flash"); err == nil {
+		t.Fatal("nil Engine Generate unexpectedly succeeded")
+	}
+	if err := engine.GenerateStream(context.Background(), "hello", "gemini-3.7-flash", func(string) error { return nil }); err == nil {
+		t.Fatal("nil Engine GenerateStream unexpectedly succeeded")
 	}
 }

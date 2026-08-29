@@ -156,6 +156,46 @@ func TestResolveEnhanced(t *testing.T) {
 	}
 }
 
+func TestResolveStrictRejectsUnknownModelWithoutFallback(t *testing.T) {
+	if _, err := ResolveStrict("not-a-gemini-model", "gemini-3.6-flash"); err == nil {
+		t.Fatal("ResolveStrict unexpectedly accepted an unknown model")
+	}
+	resolved, err := ResolveStrict("gemini-3.7-flash@think=0", "gemini-3.6-flash")
+	if err != nil {
+		t.Fatalf("ResolveStrict known model: %v", err)
+	}
+	if resolved.Name != "gemini-3.7-flash" || resolved.Think != 0 {
+		t.Fatalf("strict resolution = %#v", resolved)
+	}
+}
+
+func TestModelRegistrySnapshotsAreSafeAndDeterministic(t *testing.T) {
+	extra := map[int]any{1: "original"}
+	RegisterModel("test-snapshot-model", Model{Mode: 9, Think: 3, Extra: extra})
+	extra[1] = "mutated after registration"
+
+	model, ok := GetModel("test-snapshot-model")
+	if !ok || model.Mode != 9 || model.Extra[1] != "original" {
+		t.Fatalf("GetModel() = %#v, %v", model, ok)
+	}
+	model.Extra[1] = "mutated outside registry"
+	again, ok := GetModel("test-snapshot-model")
+	if !ok || again.Extra[1] != "original" {
+		t.Fatalf("GetModel() exposed mutable Extra map: %#v, %v", again, ok)
+	}
+
+	resolved, err := Resolve("unknown-model", "test-snapshot-model")
+	if err != nil || resolved.Mode != 9 || resolved.Extra[1] != "original" {
+		t.Fatalf("Resolve() fallback = %#v, %v", resolved, err)
+	}
+}
+
+func TestResolveRejectsMissingDefaultModelInsteadOfReturningZeroConfig(t *testing.T) {
+	if _, err := Resolve("unknown-model", "missing-default-model"); err == nil {
+		t.Fatal("Resolve() accepted a missing default model")
+	}
+}
+
 func TestPricing(t *testing.T) {
 	pClaude := GetModelPricing("claude-5-sonnet")
 	if pClaude.BlendedPer1M != 9.00 {
@@ -184,4 +224,3 @@ func TestPricing(t *testing.T) {
 		t.Errorf("expected savings $0.90, got %f", savings)
 	}
 }
-

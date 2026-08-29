@@ -30,7 +30,7 @@ It translates three major protocol standards into Google's internal web RPC prot
 └── internal/
     ├── browser/                # 1-click native interactive login window (CDP WebSocket)
     ├── config/                 # Configuration loader & cookie auto-discovery
-    ├── diag/                   # 13-point diagnostic test kit, bench runner & e2e tests
+    ├── diag/                   # 15-point diagnostic test kit, bench runner & e2e tests
     ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images, Citations, Tokens)
     ├── gemini/                 # Upstream client, auth, cookie pool load-balancer, parser
     ├── models/                 # Model registry & alias catalog (Imagen 3, Nano Banana 2/Pro)
@@ -186,6 +186,8 @@ All configuration fields can be set without mounting a `config.json` file:
 | `BOB_GEMINI_FREE_DEFAULT_MODEL` | string | `gemini-3.6-flash` | Default model when none is specified in request |
 | `BOB_GEMINI_FREE_AUTH_USER` | string | `""` | Multi-account index (`"0"`, `"1"`, etc.) |
 | `BOB_GEMINI_FREE_API_KEYS` | string | `` | Comma-separated authorized API keys |
+| `BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY` | bool | `false` | Explicit legacy opt-in for `?key=` gateway authentication; header credentials are safer and preferred |
+| `BOB_GEMINI_FREE_GEMINI_API_KEY` | string | `` | One optional student/process-owned Google Gemini Developer API key; never use a comma-separated pool and never persist it |
 | `BOB_GEMINI_FREE_PROXY` | string | `` | HTTP/SOCKS5 proxy URL |
 | `BOB_GEMINI_FREE_IMPERSONATE` | string | `` | TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
 | `BOB_GEMINI_FREE_LOG_REQUESTS` | bool | `false` | Enable request lifecycle logging (`true`/`1`/`yes`) |

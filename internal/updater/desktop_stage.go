@@ -28,6 +28,9 @@ const (
 	// MaxDesktopArchiveBytes bounds both the downloaded archive and the total
 	// uncompressed ZIP payload. The current desktop artifacts are much smaller.
 	MaxDesktopArchiveBytes int64 = 512 << 20
+
+	desktopStagingStaleAfter = 24 * time.Hour
+	desktopStagingPrefix     = ".bob-gemini-free-update-"
 )
 
 // DesktopUpdatePlan describes a verified candidate which has not yet replaced
@@ -61,6 +64,7 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	if client == nil {
 		return nil, fmt.Errorf("desktop update staging requires an HTTP client")
 	}
+	client = withUpdateRedirectPolicy(client)
 	if result == nil {
 		return nil, fmt.Errorf("desktop update staging requires a release result")
 	}
@@ -81,6 +85,9 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	}
 	if result.AssetSize > MaxDesktopArchiveBytes {
 		return nil, fmt.Errorf("desktop asset %s exceeds the %d-byte safety limit", result.AssetName, MaxDesktopArchiveBytes)
+	}
+	if result.AssetSize <= 0 {
+		return nil, fmt.Errorf("desktop asset %s has no trusted positive size", result.AssetName)
 	}
 	if strings.TrimSpace(result.Channel) == "" {
 		return nil, fmt.Errorf("desktop update release channel is missing; refusing automatic installation")
@@ -103,6 +110,7 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	if err := validateInstallTarget(targetPath, targetOS); err != nil {
 		return nil, err
 	}
+	cleanupStaleDesktopStaging(targetPath)
 
 	stageDir, err := os.MkdirTemp(filepath.Dir(targetPath), ".bob-gemini-free-update-")
 	if err != nil {
@@ -115,11 +123,11 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 		}
 	}()
 
-	manifest, err := downloadBytes(client, result.ChecksumURL, 1<<20)
+	manifest, err := downloadBytes(client, result.ChecksumURL, MaxUpdateManifestBytes)
 	if err != nil {
 		return nil, fmt.Errorf("download desktop checksum manifest: %w", err)
 	}
-	signature, err := downloadBytes(client, result.SignatureURL, 16<<10)
+	signature, err := downloadBytes(client, result.SignatureURL, MaxUpdateSignatureBytes)
 	if err != nil {
 		return nil, fmt.Errorf("download desktop checksum signature: %w", err)
 	}
@@ -130,9 +138,6 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	downloadPath := filepath.Join(stageDir, "verified-download")
 	if _, err := downloadVerifiedArtifactLimited(client, result.DownloadURL, downloadPath, result.AssetName, manifest, signature, publicKey, MaxDesktopArchiveBytes); err != nil {
 		return nil, fmt.Errorf("verified desktop package download failed: %w", err)
-	}
-	if result.AssetSize <= 0 {
-		return nil, fmt.Errorf("desktop release asset %s has no trusted positive size", result.AssetName)
 	}
 	if info, statErr := os.Stat(downloadPath); statErr != nil {
 		return nil, fmt.Errorf("inspect verified desktop package: %w", statErr)
@@ -170,6 +175,43 @@ func desktopStagingDirectoryError(err error) error {
 		return fmt.Errorf("the app is running from a read-only disk image or macOS App Translocation; move BOB Gemini Free.app to Applications, relaunch it, and try again")
 	}
 	return fmt.Errorf("create same-filesystem update staging directory: %w", err)
+}
+
+// cleanupStaleDesktopStaging removes only old, updater-owned directories whose
+// committed plan still points at this exact install target. A crash before a
+// plan is committed is left alone for manual inspection; this keeps cleanup
+// conservative and prevents a broad temporary-directory sweep.
+func cleanupStaleDesktopStaging(targetPath string) {
+	targetPath = filepath.Clean(targetPath)
+	parent := filepath.Dir(targetPath)
+	entries, err := os.ReadDir(parent)
+	if err != nil {
+		return
+	}
+	now := time.Now()
+	for _, entry := range entries {
+		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !strings.HasPrefix(entry.Name(), desktopStagingPrefix) {
+			continue
+		}
+		stagePath := filepath.Join(parent, entry.Name())
+		info, err := entry.Info()
+		if err != nil || now.Sub(info.ModTime()) <= desktopStagingStaleAfter {
+			continue
+		}
+		planPath := filepath.Join(stagePath, "update-plan.json")
+		data, err := readBoundedDesktopUpdateFile(planPath, maxDesktopUpdatePlanBytes)
+		if err != nil {
+			continue
+		}
+		var plan DesktopUpdatePlan
+		if err := json.Unmarshal(data, &plan); err != nil || filepath.Clean(plan.StageDir) != stagePath || filepath.Clean(plan.InstallTarget) != targetPath {
+			continue
+		}
+		if err := validateDesktopUpdatePlan(&plan); err != nil {
+			continue
+		}
+		_ = os.RemoveAll(stagePath)
+	}
 }
 
 func desktopAssetNameMatches(assetName, targetOS, targetArch string) bool {
@@ -272,9 +314,14 @@ func extractMacOSApp(zipPath, destination string) (string, error) {
 
 	var totalUncompressed uint64
 	var candidatePath string
+	seenPaths := make(map[string]struct{}, len(archive.File))
 	for _, entry := range archive.File {
-		if entry.FileInfo().Mode()&os.ModeSymlink != 0 {
+		entryMode := entry.FileInfo().Mode()
+		if entryMode&os.ModeSymlink != 0 {
 			return "", fmt.Errorf("macOS update archive contains a symlink: %s", entry.Name)
+		}
+		if entryMode&(os.ModeDevice|os.ModeNamedPipe|os.ModeSocket|os.ModeCharDevice) != 0 {
+			return "", fmt.Errorf("macOS update archive contains a special file: %s", entry.Name)
 		}
 		if entry.UncompressedSize64 > uint64(MaxDesktopArchiveBytes) {
 			return "", fmt.Errorf("macOS update archive entry is too large: %s", entry.Name)
@@ -288,6 +335,10 @@ func extractMacOSApp(zipPath, destination string) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		if _, exists := seenPaths[cleanName]; exists {
+			return "", fmt.Errorf("macOS update archive contains a duplicate path: %s", entry.Name)
+		}
+		seenPaths[cleanName] = struct{}{}
 		parts := strings.Split(filepath.ToSlash(cleanName), "/")
 		if len(parts) == 0 || !isDesktopBundleRoot(parts[0]) {
 			return "", fmt.Errorf("macOS update archive contains unexpected root path: %s", entry.Name)
@@ -301,7 +352,7 @@ func extractMacOSApp(zipPath, destination string) (string, error) {
 		if err := ensurePathWithin(destination, target); err != nil {
 			return "", err
 		}
-		if entry.FileInfo().IsDir() {
+		if entryMode.IsDir() {
 			if err := os.MkdirAll(target, 0755); err != nil {
 				return "", fmt.Errorf("create macOS archive directory %s: %w", entry.Name, err)
 			}
@@ -356,9 +407,18 @@ func findDesktopBundleBinary(appPath string) (string, error) {
 }
 
 func safeArchiveName(name string) (string, error) {
-	name = filepath.ToSlash(strings.TrimSpace(name))
+	name = filepath.ToSlash(name)
 	if name == "" || strings.HasPrefix(name, "/") || strings.ContainsRune(name, '\x00') {
 		return "", fmt.Errorf("unsafe macOS archive path: %q", name)
+	}
+	if strings.TrimSpace(name) != name {
+		return "", fmt.Errorf("unsafe macOS archive path contains surrounding whitespace: %q", name)
+	}
+	parts := strings.Split(name, "/")
+	for index, part := range parts {
+		if part == ".." || part == "." || (part == "" && index != len(parts)-1) {
+			return "", fmt.Errorf("macOS archive path contains an ambiguous component: %q", name)
+		}
 	}
 	clean := filepath.ToSlash(filepath.Clean(filepath.FromSlash(name)))
 	if clean == "." || clean == ".." || strings.HasPrefix(clean, "../") || strings.Contains(clean, "/../") {

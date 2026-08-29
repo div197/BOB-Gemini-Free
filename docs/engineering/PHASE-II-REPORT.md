@@ -103,10 +103,13 @@ The pre-change wildcard-CORS/no-key behavior was reproduced with a local
 - `/v1/metrics` remains API-key protected.
 
 Remote image fetching also rejects private/local IP and DNS results,
-nonstandard ports, and cross-host redirects. This is defense in depth, not a
-claim of complete protection against every proxy, DNS-rebinding, or custom
-transport topology. Query-string API keys remain a compatibility risk and
-should not be used for sensitive deployments.
+nonstandard ports, and cross-host redirects. The exported fetch seam now
+requires a guardable HTTP client whose direct transport re-resolves the host
+immediately before dialing and connects only to an approved literal public IP;
+configured proxies are not used for remote-image fetches. Live egress policy
+and network topology remain separate acceptance gates. Query-string API keys
+are disabled by default and remain only as an explicit legacy compatibility
+option; header credentials should be used for sensitive deployments.
 
 ### Mission 3 — Supply-chain updater hardening
 
@@ -221,10 +224,10 @@ go build ./...
 go run ./cmd/benchmark-local -requests 100
 ```
 
-Latest package coverage is not uniformly 80%: `internal/gemini` 53.2%,
-`internal/server` 36.6%, `internal/updater` 28.4%, and `internal/service`
-0.0% are examples. Stronger deterministic core coverage is not being confused
-with whole-package coverage.
+The earlier Phase-II baseline package coverage was not uniformly 80%:
+`internal/gemini` 53.2%, `internal/server` 36.6%, `internal/updater` 28.4%,
+and `internal/service` 0.0% were examples. This historical measurement is kept
+for provenance; the 2026-08-29 addendum records the later coverage run.
 
 ## 4. Remaining fragility and unresolved assumptions
 
@@ -237,11 +240,14 @@ with whole-package coverage.
    Pro routing, browser login, and Wails GUI acceptance remain unrun.
 4. Native Google function calling has not been evidenced; prompt extraction
    remains vulnerable to model noncompliance and hostile tool-like text.
-5. Remote image SSRF controls are application-level checks. A release
-   deployment should additionally constrain egress at the network/transport
-   layer and test DNS rebinding behavior.
-6. API keys in query parameters can leak through URLs, logs, and referrers;
-   header-based credentials should be required for exposed deployments.
+5. Remote image SSRF controls now include a guarded final DNS lookup and
+   literal-IP dial in the production HTTP-client path. A release deployment
+   should additionally constrain egress at the network layer and test the
+   deployed DNS/proxy topology.
+6. Header-based credentials are the default. Legacy gateway query-key
+   authentication is disabled unless explicitly opted in; URLs can still leak
+   credentials when an operator enables that compatibility mode, so it remains
+   unsuitable for exposed deployments.
 7. Legacy diagnostic tests still contain best-effort upstream-aware paths and
    permit 502 responses. They are not a substitute for live acceptance.
 8. The updater’s security contract is fail-closed only after release assets and
@@ -277,10 +283,247 @@ with whole-package coverage.
 5. Only revisit native tool calling or an upstream interface after capturing
    evidence of the Google schema and a measurable reduction in coupling.
 
-## Final success criterion
+## Historical Phase II success criterion
 
 BOB Gemini Free is now safer to evolve: fragile behavior is executable as
 deterministic tests, security and supply-chain boundaries are explicit, and
 unsupported performance/compatibility claims are identified. The remaining
 work is intentionally live/provider and release-operation work, not speculative
 architecture rewriting.
+
+## 7. 2026-08-29 addendum — student-owned Gemini Developer API route
+
+The dated report above remains the historical Phase II snapshot. The current
+working branch adds an explicit, opt-in Gemini Developer API path without
+changing the default web-session route:
+
+- Web Studio students can open **Config → Gemini Developer API**, use the
+  official Google AI Studio key page, review the current model, rate-limit, and
+  pricing pages, and choose **Use for this session**.
+- The provider key is held in page memory, sent only on generation requests,
+  and never stored in `localStorage`, `config.json`, logs, metrics, update
+  checks, or release assets. There is no key pool, rotation, or silent
+  cross-provider fallback.
+- The isolated route supports OpenAI-shaped chat plus native Google
+  `generateContent`, streaming, and `countTokens` forwarding. Provider-shaped
+  `gemini-*` IDs are passed to Google for acceptance; the local model list is
+  not presented as a live entitlement catalogue.
+- Explicit provider-key use is rejected on adapters that have not been
+  translated to the Developer API contract. This is intentional fail-closed
+  behavior, not missing fallback logic.
+- Google controls free-tier availability, rate limits, billing, model access,
+  and policy. The current student procedure and official links are maintained
+  in [`GEMINI-API-ROUTING.md`](GEMINI-API-ROUTING.md); no fixed RPM/RPD or
+  unlimited-access promise is made.
+
+The current local validation also passed `make web`, JavaScript syntax
+validation, `go test -count=1 ./...`, `go test -race -count=1 ./...`,
+`go vet ./...`, `go build ./...`, `go mod verify`, `git diff --check`, and a
+repository secret-pattern scan. No live Google key or account was used, so
+provider acceptance and real quota behavior remain unverified external gates.
+
+The continuation also tightened the student bootstrap and provider-stream
+boundaries: installers now verify a fixed Ed25519-signed manifest and exact
+asset digest with no unsigned default path; release operators can record a
+non-secret local receipt tying the asset set to a clean source commit and
+toolchain; generation POST retries are limited to known pre-connection
+transport failures; direct Developer API tool calls are assembled and emitted
+only after a successful bounded stream; unknown candidate/finish ambiguity and
+tool-result correlation errors fail closed; and web-RPC/direct API stream
+failures are sent as structured errors rather than fabricated assistant text.
+These are local protections, not substitutes for clean Windows/macOS package
+acceptance, Apple/Windows publisher trust, public release reconciliation, or
+live Google behavior.
+
+## 8. 2026-08-29 addendum — 100-path reliability continuation
+
+The follow-up audit converted the remaining concerns into the numbered
+[`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md). It does not relabel open
+risks as complete. The local implementation continuation added:
+
+- local `/manifest.json` and `/sw.js` serving with versioned, API-excluding
+  service-worker behavior;
+- bounded StreamFlight subscribers/history with explicit slow-subscriber and
+  cancellation errors, plus session-safe request coalescing rules;
+- bounded upstream response bodies/stream lines and nil/status/timeout guards;
+- secure cookie-file hashing/reload and pool deduplication/cooldown behavior;
+- bounded image/upload input and strict Scotty URL/response validation;
+- final remote-image DNS revalidation with a direct literal-public-IP dial and
+  rejection of unguardable HTTP-client seams;
+- updater redirect, metadata, asset-size, exact-byte, and staged-package
+  guardrails;
+- artifact token normalization and empty-editor recovery; geometry-driven
+  top/bottom chat controls; generated public-bundle synchronization; and
+  bounded client attachment/history storage.
+- atomic per-install updater locking with conservative stale-lock recovery,
+  post-lock target revalidation, and conservative cleanup of old committed
+  staging plans;
+- ZIP extraction rejection for ambiguous paths, duplicates, symlinks, and
+  special files;
+- bounded, single-cookie-scoped Scotty reference caching with explicit
+  multi-account-pool disablement and concurrent upload single-flight; provider
+  reference expiry remains open and upstream-dependent.
+- bounded operational retry configuration plus capped exponential jitter and
+  `Retry-After` handling for transient upstream failures, while retaining
+  immediate failure for 429, policy, and provider rejection responses.
+- explicit browser failure-state handling for `finish_reason: error`, broken
+  transport, incomplete EOF, and user cancellation; failed/stopped assistant
+  turns are not replayed as successful conversation history;
+- shared reflection-safe tool-schema budgets for typed and JSON-decoded
+  schemas, plus fail-closed provider tool-output validation and explicit nil
+  callback/context guards at the stream boundaries.
+- strict selected Responses input normalization: unsupported items and content
+  blocks now return client-visible validation errors, malformed function calls
+  and results fail closed, and `call_id`, `name`, and `tool_calls` survive the
+  server conversion into the shared OpenAI message model.
+- strict Anthropic input normalization: unsupported content blocks, malformed
+  images, invalid tool-use fields, and missing tool-result correlation data now
+  fail closed; mixed text/tool-result blocks retain their order before shared
+  prompt translation.
+- the direct Gemini Developer API SSE parser now rejects an empty,
+  `[DONE]`-only, or metadata-only stream instead of allowing the server to
+  fabricate a normal stop, and rejects empty semantic events; standard
+  comments and multi-line data fixtures remain supported.
+- native updater recovery now repairs validated interrupted transactions at
+  the next startup: healthy candidates are finalized, unconfirmed candidates
+  are rolled back, and ambiguous states fail visibly; isolated fixtures cover
+  missing-target, unconfirmed, confirmed, candidate-start, and ambiguous
+  states, while real power-loss and clean-device proof remain external gates.
+- a shared 32 MiB request-body reader at every JSON handler seam, so direct
+  handler or embedding calls retain the same memory bound as normal HTTP
+  middleware.
+- a clean-source release gate on every CLI/native packager and a read-only
+  signed-asset verifier that reconciles the detached manifest with every local
+  release file before upload or after public download.
+- bounded browser history retention: 200 runtime messages, clipped persisted
+  content/reasoning, a 4-million-character serialized budget, and a safe guard
+  for oversized legacy localStorage payloads.
+- structured, credential-safe upstream failures across web-RPC, direct
+  Developer API, and native Google-shaped streams; native Google SSE now emits
+  a top-level error rather than assistant-authored Markdown, while OpenAI-style
+  streams retain their `[DONE]` terminal sentinel.
+- empty web-RPC generation streams and empty Google-shaped non-stream responses
+  now fail explicitly instead of fabricating an assistant apology or normal
+  stop; Responses and Anthropic stream errors use the same credential-safe
+  summaries.
+- page-token refresh is context-cancelable, redirect-resistant, bounded to an
+  8 MiB response and 4 KiB token values, and preserves the last known-good
+  token set after a failed refresh; focused tests cover valid refresh,
+  oversized response, and redirect behavior.
+- credential-safe image/update-check error envelopes and retry logs; signed
+  image URLs, Web RPC tokens, generated diagnostic output, and update-server
+  transport details are no longer echoed to API clients or optional retry logs.
+- bounded artifact rendering: source is capped at 2 million characters before syntax
+  highlighting or iframe construction, render-scoped IDs prevent repeated
+  streaming renders from accumulating duplicate registry entries, and the
+  in-memory registry is capped at 128 entries/8 million characters with interactive execution
+  disabled when capacity cannot be established.
+- Mermaid and Pyodide artifact dependency failures now report visibly to the
+  host preview, and a failed deep-refiner request leaves the user's original
+  prompt unchanged instead of silently applying a different local transformation.
+- A provider vision-upload failure no longer launches an automatic OCR-only
+  replay. OCR remains available as an explicit user action, preserving the
+  requested multimodal semantics and avoiding an unannounced second quota
+  request.
+- successful non-JSON Developer API bodies are rejected before raw passthrough,
+  public error truncation is UTF-8 safe, and metadata-only provider streams
+  cannot be reported as normal completions;
+- generated artifact pop-outs retain a sandboxed nested iframe, report blocked
+  browser popups, and defer object-URL revocation long enough for the browser to
+  consume the download;
+- the three-stage refiner now bounds the user prompt and every intermediate or
+  final stage, checks cancellation between calls, and fails closed on empty
+  stages; the UI now labels the actual three-stage pipeline rather than the old
+  four-stage description;
+- the model catalog is read through lock-protected snapshots in deterministic
+  order, while embedded and experimental mobile generation rejects invalid
+  explicit models instead of silently substituting a zero-valued route;
+- embedded engine lifecycle is explicit: guest-only handlers do not start an
+  idle cookie-reload worker, `Engine.Close` is idempotent, and `NewHandler`
+  returns a closeable handler for configured session state; partial health,
+  metrics, image-upload, and refinement construction paths fail with explicit
+  responses instead of panics.
+- documented TLS fingerprint names now resolve to their matching profiles;
+  unknown names no longer silently turn into a random Safari profile. This is
+  a correctness/error-reporting control only, not a method for avoiding Google
+  rate limits, WAF decisions, or shared-egress detection.
+- unenforced synthetic rate-limit headers were removed; malformed discovered
+  configuration now stops with a visible error instead of silently reverting to
+  defaults; status, CDP, and updater transaction metadata reads are bounded;
+  and updater plan paths are constrained to updater-owned names.
+- browser fallback and Wails bootstrap failures now return or display an error
+  instead of logging a successful open when no browser or gateway is available;
+- all three preview desktop Make targets now forward the checked-in public
+  updater key to their packagers, and each preview packager rejects a stable
+  version or non-preview channel before invoking Wails;
+- the 15-check diagnostic runner now fails closed on malformed/empty response
+  objects, incomplete Anthropic lifecycles, oversized streams, and unavailable
+  provider-dependent image generation rather than reporting a transport-only
+  success. On the current no-cookie audit gateway, a real run passed 13 checks
+  and failed strict web-route JSON output plus image generation (HTTP 502); this
+  is evidence of the capability boundary, not a reason to weaken the check.
+  nil embedded Developer API clients fail closed.
+
+The focused server, Gemini, multimodal, updater, and desktop tests passed
+after these changes, as did inline JavaScript syntax validation. The rebuilt
+binary also passed local endpoint and hostile-origin checks, and the in-app
+browser rendered the branded studio with zero console errors. The empty-state
+browser smoke did not exercise provider generation, CDN-backed artifact
+execution, long-history performance, or a clean-device updater; those remain
+separate gates. The register records 100 failure paths with explicit
+`PROTECTED`, `PARTIAL`, `OPEN`, and `EXTERNAL` statuses and remains the honest
+boundary for future release decisions.
+
+## Current success criterion
+
+BOB is safer to evolve and easier for students to understand: the default
+web-session route remains intact, the optional provider route is explicit and
+quota-accountable, and local behavior is protected by deterministic tests.
+Student-facing release readiness still requires an authorized live provider
+sample, clean-device acceptance, and the separate signed desktop release gates.
+
+## Latest local hardening addendum — 2026-08-29
+
+This addendum supersedes the host/toolchain and Git-state wording of the dated
+historical snapshot above for the current working tree. The current audit host
+is macOS `darwin/arm64`, Go `go1.26.6`, with `CGO_ENABLED=1`. The reviewed
+branch is `codex/release-readiness-v0.2.0`; its relationship to `main` and the
+public release is recorded separately from source tests and must not be
+inferred from the branch name.
+
+The latest local slice added and tested:
+
+- bounded status, desktop health-probe, CDP version, updater-plan, and
+  updater-confirmation reads;
+- strict updater-owned staging/plan/rollback/confirmation/helper path names;
+- visible Wails gateway/configuration startup errors and truthful system-browser
+  fallback errors;
+- fail-closed nil `geminiapi.Client` behavior;
+- removal of unenforced synthetic request-rate headers; and
+- semantic validation for native Google-shaped JSON/SSE generation so
+  metadata-only or finish-only provider responses cannot appear successful;
+- removal of the benchmark's invented token-count fallback, with token
+  throughput reported only when successful responses provide usage; and
+- the generated `web/index.html` synchronization after the UI changes.
+
+The following local commands passed after this slice: `make build`,
+`make desktop-key-check`, `make web`, `go test -count=1 ./...`,
+`go test -race -count=1 ./...`, `go vet ./...`, `go build ./...`,
+`go mod verify`, and `git diff --check`. Six CGO-disabled CLI targets also
+cross-compiled into an isolated temporary directory for Darwin arm64/amd64,
+Linux arm64/amd64, and Windows arm64/amd64; their Mach-O, ELF, and PE file
+types were inspected. Inline JavaScript parsing passed for the source bundle,
+generated web bundle, and Wails module. Release-directory publication,
+platform-native packaging, and real installed-bundle checks remain separate
+gates. No GitHub Actions were added or run, and no provider/API/release
+private key was used.
+
+The subsequent clean-commit preview packaging check also passed on macOS:
+`make desktop-preview-mac` forwarded the checked-in public updater key,
+produced a universal arm64/x86_64 `.app`, ZIP, and drag-to-Applications DMG,
+and passed checksum, bundle-signature, PWA-route, and native GUI
+Quit/gateway-shutdown checks. The preview packager now rejects a stable
+version or non-preview channel before invoking Wails. This is local package
+evidence only; the manifest was not signed or uploaded, and no Apple
+Developer ID/notarization, clean-device update, Windows, Linux, or provider
+acceptance claim follows from it.

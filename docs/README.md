@@ -29,7 +29,7 @@ Welcome to the comprehensive documentation suite for **BOB Gemini Free** (*Break
 - [**Anthropic Messages Protocol**](./4-api-reference/anthropic-endpoints.md): `/v1/messages`, thinking blocks lifecycle.
 - [**Google-Shaped Gemini v1beta**](./4-api-reference/google-v1beta-endpoints.md): `/v1beta/models`, `/v1beta/models/{model}:generateContent`.
 - [**Image Generation: Imagen 3 & Gemini Nano Banana**](./4-api-reference/imagen-3-and-nano-banana.md): `/v1/images/generations`, upstream-dependent image routing.
-- [**Health, Diagnostics & Benchmarking**](./4-api-reference/health-and-diagnostics.md): Health monitoring, 13-point diagnostic kit, stress benchmarks.
+- [**Health, Diagnostics & Benchmarking**](./4-api-reference/health-and-diagnostics.md): Health monitoring, 15-point diagnostic kit, stress benchmarks.
 
 ### 5. Embedded Go SDK
 - [**Embedded Go Library Guide (`pkg/gateway`)**](./5-embedded-sdk/go-library-guide.md): Embedding the gateway directly inside Go microservices.

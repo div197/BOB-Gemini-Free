@@ -1,6 +1,9 @@
 package gemini
 
 import (
+	"context"
+	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"sync"
@@ -54,6 +57,19 @@ func TestStreamFlightMultiplexesConcurrentSubscribers(t *testing.T) {
 	}
 }
 
+func TestStreamFlightScopeSeparatesRequestDomains(t *testing.T) {
+	flight := NewStreamFlight()
+	anonymous := flight.KeyWithScope("anonymous", "same prompt", 1, 4, nil)
+	accountA := flight.KeyWithScope("account-a", "same prompt", 1, 4, nil)
+	accountB := flight.KeyWithScope("account-b", "same prompt", 1, 4, nil)
+	if anonymous == accountA || accountA == accountB {
+		t.Fatal("different flight scopes unexpectedly shared a key")
+	}
+	if anonymous != flight.KeyWithScope("anonymous", "same prompt", 1, 4, nil) {
+		t.Fatal("same flight scope did not produce a stable key")
+	}
+}
+
 func TestStreamFlightHandlesEarlySubscriberDisconnect(t *testing.T) {
 	flight := NewStreamFlight()
 	key := flight.Key("game-early-cancel", 1, 4, nil)
@@ -104,6 +120,230 @@ func TestStreamFlightHandlesEarlySubscriberDisconnect(t *testing.T) {
 	if len(followerEmitted) != 2 {
 		t.Fatalf("follower was supposed to abort at 2 chunks, got %d chunks: %#v", len(followerEmitted), followerEmitted)
 	}
+}
+
+func TestStreamFlightReportsSlowSubscriberInsteadOfDropping(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("slow-subscriber", 1, 4, nil)
+	upstreamStarted := make(chan struct{})
+	startEmitting := make(chan struct{})
+	followerRelease := make(chan struct{})
+	leaderDone := make(chan error, 1)
+	followerDone := make(chan error, 1)
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContext(context.Background(), key, func(emit func(string) error) error {
+			close(upstreamStarted)
+			<-startEmitting
+			for i := 0; i < maxStreamSubscriberBuffer+2; i++ {
+				if err := emit(fmt.Sprintf("chunk-%03d", i)); err != nil {
+					return err
+				}
+			}
+			return nil
+		}, func(string) error { return nil })
+	}()
+
+	<-upstreamStarted
+	go func() {
+		followerDone <- flight.ExecuteStreamContext(context.Background(), key, func(emit func(string) error) error {
+			return nil
+		}, func(delta string) error {
+			if delta == "chunk-000" {
+				// The callback intentionally stops consuming while the bounded
+				// subscriber queue fills, exercising the explicit overflow path.
+				<-followerRelease
+			}
+			return nil
+		})
+	}()
+
+	waitForFlightSubscriber(t, flight, key)
+	close(startEmitting)
+
+	select {
+	case err := <-leaderDone:
+		if err != nil {
+			t.Fatalf("leader returned unexpected error: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("leader did not finish after subscriber overflow")
+	}
+
+	close(followerRelease)
+	select {
+	case err := <-followerDone:
+		if !errors.Is(err, ErrStreamSubscriberTooSlow) {
+			t.Fatalf("follower error = %v, want ErrStreamSubscriberTooSlow", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("slow follower did not receive an explicit completion error")
+	}
+}
+
+func TestStreamFlightFollowerContextCancellation(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("cancel-follower", 1, 4, nil)
+	upstreamStarted := make(chan struct{})
+	releaseUpstream := make(chan struct{})
+	leaderDone := make(chan error, 1)
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContext(context.Background(), key, func(emit func(string) error) error {
+			close(upstreamStarted)
+			<-releaseUpstream
+			return emit("final")
+		}, func(string) error { return nil })
+	}()
+	<-upstreamStarted
+
+	ctx, cancel := context.WithCancel(context.Background())
+	followerDone := make(chan error, 1)
+	go func() {
+		followerDone <- flight.ExecuteStreamContext(ctx, key, func(emit func(string) error) error {
+			return emit("unexpected-history")
+		}, func(string) error { return nil })
+	}()
+	waitForFlightSubscriber(t, flight, key)
+	cancel()
+
+	select {
+	case err := <-followerDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("follower error = %v, want context.Canceled", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("follower did not stop after context cancellation")
+	}
+
+	close(releaseUpstream)
+	select {
+	case err := <-leaderDone:
+		if err != nil {
+			t.Fatalf("leader returned unexpected error: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("leader did not finish after follower cancellation")
+	}
+}
+
+func TestStreamFlightLeaderContextCancellationPropagatesToStream(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("cancel-leader", 1, 4, nil)
+	upstreamStarted := make(chan struct{})
+	releaseUpstream := make(chan struct{})
+	leaderCtx, cancelLeader := context.WithCancel(context.Background())
+	defer cancelLeader()
+	leaderDone := make(chan error, 1)
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContext(leaderCtx, key, func(emit func(string) error) error {
+			close(upstreamStarted)
+			<-releaseUpstream
+			return emit("late")
+		}, func(string) error { return nil })
+	}()
+	<-upstreamStarted
+
+	followerDone := make(chan error, 1)
+	go func() {
+		followerDone <- flight.ExecuteStreamContext(context.Background(), key, func(func(string) error) error {
+			return nil
+		}, func(string) error { return nil })
+	}()
+	waitForFlightSubscriber(t, flight, key)
+
+	cancelLeader()
+	close(releaseUpstream)
+
+	select {
+	case err := <-leaderDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("leader error = %v, want context.Canceled", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("leader did not stop after context cancellation")
+	}
+	select {
+	case err := <-followerDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("follower error = %v, want context.Canceled", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("follower did not receive the cancelled stream result")
+	}
+}
+
+func TestStreamFlightRejectsNilCallbacks(t *testing.T) {
+	flight := NewStreamFlight()
+	if _, err := flight.ExecuteContext(context.Background(), "key", nil); !errors.Is(err, ErrStreamRunnerNil) {
+		t.Fatalf("ExecuteContext(nil) error = %v, want %v", err, ErrStreamRunnerNil)
+	}
+	if err := flight.ExecuteStreamContext(context.Background(), "key", nil, func(string) error { return nil }); !errors.Is(err, ErrStreamRunnerNil) {
+		t.Fatalf("ExecuteStreamContext(nil runner) error = %v, want %v", err, ErrStreamRunnerNil)
+	}
+	if err := flight.ExecuteStreamContext(context.Background(), "key", func(func(string) error) error { return nil }, nil); !errors.Is(err, ErrStreamEmitterNil) {
+		t.Fatalf("ExecuteStreamContext(nil emitter) error = %v, want %v", err, ErrStreamEmitterNil)
+	}
+}
+
+func TestStreamFlightRejectsNewSubscriberAfterHistoryLimit(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("history-limit", 1, 4, nil)
+	historyLimitReached := make(chan struct{})
+	releaseUpstream := make(chan struct{})
+	leaderDone := make(chan error, 1)
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContext(context.Background(), key, func(emit func(string) error) error {
+			for i := 0; i < maxStreamHistoryChunks+1; i++ {
+				if err := emit("x"); err != nil {
+					return err
+				}
+			}
+			close(historyLimitReached)
+			<-releaseUpstream
+			return nil
+		}, func(string) error { return nil })
+	}()
+
+	<-historyLimitReached
+	err := flight.ExecuteStreamContext(context.Background(), key, func(func(string) error) error {
+		return nil
+	}, func(string) error { return nil })
+	if !errors.Is(err, ErrStreamHistoryLimit) {
+		t.Fatalf("new subscriber error = %v, want ErrStreamHistoryLimit", err)
+	}
+
+	close(releaseUpstream)
+	select {
+	case err := <-leaderDone:
+		if err != nil {
+			t.Fatalf("leader returned unexpected error: %v", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("leader did not finish after history-limit check")
+	}
+}
+
+func waitForFlightSubscriber(t *testing.T, flight *StreamFlight, key string) {
+	t.Helper()
+	deadline := time.Now().Add(2 * time.Second)
+	for time.Now().Before(deadline) {
+		flight.mu.Lock()
+		stream := flight.streams[key]
+		flight.mu.Unlock()
+		if stream != nil {
+			stream.mu.Lock()
+			subscribers := len(stream.subscribers)
+			stream.mu.Unlock()
+			if subscribers > 0 {
+				return
+			}
+		}
+		time.Sleep(time.Millisecond)
+	}
+	t.Fatal("timed out waiting for StreamFlight follower subscription")
 }
 
 func TestStreamFlight1000GoroutineChaosFuzz(t *testing.T) {

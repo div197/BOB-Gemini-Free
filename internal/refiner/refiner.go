@@ -6,6 +6,7 @@ package refiner
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -20,6 +21,15 @@ const (
 	StageHypothesize Stage = "hypothesize" // Stage 2: Formulate solution hypotheses & algorithms
 	StageAudit       Stage = "audit"       // Stage 3: Self-critical verification & boundary checking
 	StageSynthesize  Stage = "synthesize"  // Stage 4: Clean final implementation without preamble
+)
+
+const (
+	// MaxUserPromptBytes bounds the prompt before it is repeated into the
+	// decomposition, audit, and synthesis instructions.
+	MaxUserPromptBytes = 256 << 10
+	// MaxStageOutputBytes bounds intermediate model output before it is copied
+	// into the next stage's prompt and retained in the result traces.
+	MaxStageOutputBytes = 4 << 20
 )
 
 // ThoughtTrace holds the internal reasoning steps generated during refinement.
@@ -104,6 +114,22 @@ USER SPECIFICATION:
 // Refine executes the three-stage reasoning pipeline through the supplied
 // inference function.
 func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceFunc) (*RefinementResult, error) {
+	if e == nil {
+		return nil, errors.New("refiner engine is nil")
+	}
+	if infer == nil {
+		return nil, errors.New("refiner inference function is nil")
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if strings.TrimSpace(userPrompt) == "" {
+		return nil, errors.New("refiner prompt is empty")
+	}
+	if len(userPrompt) > MaxUserPromptBytes {
+		return nil, fmt.Errorf("refiner prompt exceeds %d bytes", MaxUserPromptBytes)
+	}
+
 	startTime := time.Now()
 	res := &RefinementResult{
 		OriginalPrompt: userPrompt,
@@ -111,11 +137,17 @@ func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceF
 	}
 
 	// 1. Stage 1: Deconstruct & Plan
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	t0 := time.Now()
 	decompPrompt := BuildDecompositionPrompt(userPrompt)
 	planOutput, err := infer(ctx, decompPrompt)
 	if err != nil {
 		return nil, fmt.Errorf("decomposition failed: %w", err)
+	}
+	if err := validateStageOutput("decomposition", planOutput); err != nil {
+		return nil, err
 	}
 	res.Traces = append(res.Traces, ThoughtTrace{
 		Stage:     StageDecompose,
@@ -126,11 +158,17 @@ func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceF
 	})
 
 	// 2. Stage 2: Audit & Self-Correction
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	t1 := time.Now()
 	auditPrompt := BuildAuditPrompt(userPrompt, planOutput)
 	auditOutput, err := infer(ctx, auditPrompt)
 	if err != nil {
 		return nil, fmt.Errorf("audit failed: %w", err)
+	}
+	if err := validateStageOutput("audit", auditOutput); err != nil {
+		return nil, err
 	}
 	res.Traces = append(res.Traces, ThoughtTrace{
 		Stage:     StageAudit,
@@ -141,11 +179,17 @@ func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceF
 	})
 
 	// 3. Stage 3: Final Synthesis
+	if err := ctx.Err(); err != nil {
+		return nil, err
+	}
 	t2 := time.Now()
 	synthPrompt := BuildSynthesisPrompt(userPrompt, planOutput, auditOutput)
 	finalCode, err := infer(ctx, synthPrompt)
 	if err != nil {
 		return nil, fmt.Errorf("synthesis failed: %w", err)
+	}
+	if err := validateStageOutput("synthesis", finalCode); err != nil {
+		return nil, err
 	}
 	res.Traces = append(res.Traces, ThoughtTrace{
 		Stage:     StageSynthesize,
@@ -163,4 +207,14 @@ func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceF
 	}
 
 	return res, nil
+}
+
+func validateStageOutput(stage, output string) error {
+	if strings.TrimSpace(output) == "" {
+		return fmt.Errorf("%s returned no usable output", stage)
+	}
+	if len(output) > MaxStageOutputBytes {
+		return fmt.Errorf("%s output exceeds %d bytes", stage, MaxStageOutputBytes)
+	}
+	return nil
 }

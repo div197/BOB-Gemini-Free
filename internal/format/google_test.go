@@ -45,6 +45,7 @@ func TestGoogleFormatting(t *testing.T) {
 	}
 
 	reqAny := models.GoogleGenerateRequest{
+		Tools: []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{{Name: "search_web"}}}},
 		ToolConfig: &models.GoogleToolConfig{
 			FunctionCallingConfig: &models.GoogleFunctionCallingConfig{
 				Mode:                 "ANY",
@@ -135,5 +136,164 @@ func TestGoogleFormatting(t *testing.T) {
 	}
 	if strings.Contains(cleanText, "```function_call") {
 		t.Errorf("Expected clean text to have function_call block removed, got: %s", cleanText)
+	}
+}
+
+func TestGoogleContentsToPromptRejectsInvalidInlineImages(t *testing.T) {
+	tests := []struct {
+		name string
+		part models.GooglePart
+		want string
+	}{
+		{
+			name: "invalid base64",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: "not-base64"}},
+			want: "base64 is invalid",
+		},
+		{
+			name: "non-image MIME",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "text/plain", Data: "aGk="}},
+			want: "not an image",
+		},
+		{
+			name: "oversized encoded input",
+			part: models.GooglePart{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: strings.Repeat("A", 28<<20)}},
+			want: "exceeds",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, _, err := GoogleContentsToPrompt(models.GoogleGenerateRequest{Contents: []models.GoogleContent{{Parts: []models.GooglePart{test.part}}}})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestGoogleFunctionCallingModeFailsClosedAndNormalizes(t *testing.T) {
+	declaration := models.GoogleFunctionDeclaration{Name: "lookup", Parameters: map[string]any{"type": "object"}}
+	base := models.GoogleGenerateRequest{
+		Contents: []models.GoogleContent{{Role: "user", Parts: []models.GooglePart{{Text: "lookup"}}}},
+		Tools:    []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{declaration}}},
+	}
+
+	base.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{Mode: " none "}}
+	mode, err := GoogleFunctionCallingMode(base)
+	if err != nil || mode != "NONE" {
+		t.Fatalf("normalized mode = %q, error = %v; want NONE", mode, err)
+	}
+	prompt, _, err := GoogleContentsToPrompt(base)
+	if err != nil || strings.Contains(prompt, "# Tool Use") {
+		t.Fatalf("NONE prompt = %q, error = %v", prompt, err)
+	}
+
+	base.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{
+		Mode:                 "any",
+		AllowedFunctionNames: []string{"lookup"},
+	}}
+	mode, err = GoogleFunctionCallingMode(base)
+	if err != nil || mode != "ANY" {
+		t.Fatalf("normalized ANY mode = %q, error = %v", mode, err)
+	}
+	if !strings.Contains(GoogleToolChoiceInstruction(base), "lookup") {
+		t.Fatalf("ANY instruction lost allowed function: %q", GoogleToolChoiceInstruction(base))
+	}
+
+	invalid := []struct {
+		name string
+		mode string
+		want string
+	}{
+		{name: "unknown mode", mode: "maybe", want: "unsupported Google function-calling mode"},
+		{name: "undeclared name", mode: "ANY", want: "is not declared"},
+		{name: "allowed name with auto", mode: "AUTO", want: "require Google function-calling mode ANY"},
+	}
+	for _, test := range invalid {
+		t.Run(test.name, func(t *testing.T) {
+			request := base
+			request.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{Mode: test.mode}}
+			if test.name == "undeclared name" {
+				request.ToolConfig.FunctionCallingConfig.AllowedFunctionNames = []string{"delete_all"}
+			} else if test.name == "allowed name with auto" {
+				request.ToolConfig.FunctionCallingConfig.AllowedFunctionNames = []string{"lookup"}
+			}
+			if _, _, err := GoogleContentsToPrompt(request); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestGoogleContentsToPromptRejectsSilentLossBoundaries(t *testing.T) {
+	base := models.GoogleGenerateRequest{
+		Contents: []models.GoogleContent{{Role: "user", Parts: []models.GooglePart{{Text: "hello"}}}},
+	}
+	tests := []struct {
+		name   string
+		mutate func(*models.GoogleGenerateRequest)
+		want   string
+	}{
+		{
+			name: "empty part",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{{}}
+			},
+			want: "no supported value",
+		},
+		{
+			name: "ambiguous part",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{
+					{Text: "hello", FunctionCall: &models.GoogleFunctionCall{Name: "lookup"}},
+				}
+			},
+			want: "multiple values",
+		},
+		{
+			name: "unknown role",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Role = "assistant"
+			},
+			want: "unsupported Google content role",
+		},
+		{
+			name: "malformed function call",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{{FunctionCall: &models.GoogleFunctionCall{Name: "  "}}}
+			},
+			want: "function call name is empty",
+		},
+		{
+			name: "duplicate declarations",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Tools = []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{
+					{Name: "lookup"}, {Name: "lookup"},
+				}}}
+			},
+			want: "declared more than once",
+		},
+		{
+			name: "non-text system instruction",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.SystemInstruction = &models.GoogleContent{Parts: []models.GooglePart{{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: "aGk="}}}}
+			},
+			want: "only text is supported",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := models.GoogleGenerateRequest{
+				Contents: []models.GoogleContent{{
+					Role:  base.Contents[0].Role,
+					Parts: append([]models.GooglePart(nil), base.Contents[0].Parts...),
+				}},
+			}
+			test.mutate(&request)
+			if _, _, err := GoogleContentsToPrompt(request); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
 	}
 }

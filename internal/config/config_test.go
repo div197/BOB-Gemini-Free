@@ -1,8 +1,11 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -60,8 +63,24 @@ func TestLoadConfigFile(t *testing.T) {
 	if len(cfg.AllowedOrigins) != 1 || cfg.AllowedOrigins[0] != "https://studio.example.test" {
 		t.Errorf("unexpected allowed origins: %v", cfg.AllowedOrigins)
 	}
+	if cfg.AllowQueryAPIKey {
+		t.Error("query API keys must remain disabled unless explicitly configured")
+	}
 	if cfg.CookieFile != "/path/to/cookie.txt" {
 		t.Errorf("expected cookie file /path/to/cookie.txt, got %s", cfg.CookieFile)
+	}
+}
+
+func TestLoadRejectsOversizedConfigFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+	content := bytes.Repeat([]byte{' '}, int(MaxConfigFileBytes)+1)
+	if err := os.WriteFile(configFile, content, 0600); err != nil {
+		t.Fatalf("failed to write oversized config file: %v", err)
+	}
+
+	if _, err := Load(configFile); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("expected bounded config read error, got %v", err)
 	}
 }
 
@@ -111,6 +130,42 @@ func TestEnvVarAllowedOrigins(t *testing.T) {
 	}
 	if len(cfg.AllowedOrigins) != 2 || cfg.AllowedOrigins[1] != "https://two.example" {
 		t.Fatalf("unexpected allowed origins from env: %v", cfg.AllowedOrigins)
+	}
+}
+
+func TestEnvVarAllowQueryAPIKey(t *testing.T) {
+	for _, value := range []string{"true", "1", "yes"} {
+		t.Setenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY", value)
+		cfg, err := Load("")
+		if err != nil {
+			t.Fatalf("unexpected load error: %v", err)
+		}
+		if !cfg.AllowQueryAPIKey {
+			t.Fatalf("expected query API key compatibility for env value %q", value)
+		}
+	}
+	t.Setenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY", "false")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.AllowQueryAPIKey {
+		t.Fatal("expected false to disable query API key compatibility")
+	}
+}
+
+func TestConfigFileCanExplicitlyEnableQueryAPIKey(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+	if err := os.WriteFile(configFile, []byte(`{"allow_query_api_key":true}`), 0600); err != nil {
+		t.Fatalf("failed to write config file: %v", err)
+	}
+	cfg, err := Load(configFile)
+	if err != nil {
+		t.Fatalf("failed to load config file: %v", err)
+	}
+	if !cfg.AllowQueryAPIKey {
+		t.Fatal("expected config file to enable query API key compatibility")
 	}
 }
 
@@ -166,6 +221,30 @@ func TestRetryAttemptsClampedFromConfigFile(t *testing.T) {
 	}
 }
 
+func TestOperationalTimingBounds(t *testing.T) {
+	cfg := Config{
+		RetryAttempts:     MaxRetryAttempts + 1,
+		RetryDelaySec:     MaxRetryDelaySec + 1,
+		RequestTimeoutSec: MaxRequestTimeoutSec + 1,
+	}
+	Normalize(&cfg)
+	if cfg.RetryAttempts != MaxRetryAttempts {
+		t.Fatalf("retry attempts = %d, want %d", cfg.RetryAttempts, MaxRetryAttempts)
+	}
+	if cfg.RetryDelaySec != MaxRetryDelaySec {
+		t.Fatalf("retry delay = %d, want %d", cfg.RetryDelaySec, MaxRetryDelaySec)
+	}
+	if cfg.RequestTimeoutSec != MaxRequestTimeoutSec {
+		t.Fatalf("request timeout = %d, want %d", cfg.RequestTimeoutSec, MaxRequestTimeoutSec)
+	}
+
+	zero := Config{}
+	Normalize(&zero)
+	if zero.RetryAttempts != 1 || zero.RequestTimeoutSec != DefaultRequestTimeoutSec {
+		t.Fatalf("zero-value normalization = %+v, want minimum attempts and default timeout", zero)
+	}
+}
+
 func TestEnvVarRequestTimeout(t *testing.T) {
 	t.Setenv("BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC", "300")
 	cfg, err := Load("")
@@ -191,5 +270,24 @@ func TestEnvVarCookiePoolDir(t *testing.T) {
 	}
 	if len(cfg.CookiePool) < 2 {
 		t.Errorf("expected at least 2 cookie pool files from dir, got %d", len(cfg.CookiePool))
+	}
+}
+
+func TestEnvVarGeminiAPIKeyIsProcessOnly(t *testing.T) {
+	const key = "test-provider-key"
+	t.Setenv("BOB_GEMINI_FREE_GEMINI_API_KEY", key)
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.GeminiAPIKey != key {
+		t.Fatalf("GeminiAPIKey = %q, want %q", cfg.GeminiAPIKey, key)
+	}
+	encoded, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatalf("marshal config: %v", err)
+	}
+	if string(encoded) == "" || strings.Contains(string(encoded), key) {
+		t.Fatalf("provider key was persisted in config JSON: %s", encoded)
 	}
 }

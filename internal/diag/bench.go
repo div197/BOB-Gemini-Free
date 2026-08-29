@@ -1,7 +1,6 @@
 package diag
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -26,18 +25,38 @@ type BenchmarkReport struct {
 	TotalTokens     int64
 	TokensPerSecond float64
 	RequestsPerSec  float64
+	// TokenCountsMeasured is true only when every successful response supplied
+	// a positive provider-reported total_tokens value. A benchmark must not
+	// invent token counts when the gateway or provider omits usage metadata.
+	TokenCountsMeasured bool
 }
 
-// RunBenchmark conducts a concurrent stress and performance benchmark against the gateway.
-func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) BenchmarkReport {
-	baseURL = strings.TrimRight(baseURL, "/")
+const (
+	maxBenchmarkConcurrency = 128
+	maxBenchmarkRequests    = 10000
+)
 
+func normalizeBenchmarkSettings(concurrency, totalRequests int) (int, int) {
 	if concurrency <= 0 {
 		concurrency = 3
 	}
 	if totalRequests <= 0 {
 		totalRequests = 6
 	}
+	if concurrency > maxBenchmarkConcurrency {
+		concurrency = maxBenchmarkConcurrency
+	}
+	if totalRequests > maxBenchmarkRequests {
+		totalRequests = maxBenchmarkRequests
+	}
+	return concurrency, totalRequests
+}
+
+// RunBenchmark conducts a concurrent stress and performance benchmark against the gateway.
+func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) BenchmarkReport {
+	baseURL = strings.TrimRight(baseURL, "/")
+
+	concurrency, totalRequests = normalizeBenchmarkSettings(concurrency, totalRequests)
 
 	transport := &http.Transport{
 		MaxIdleConns:        concurrency * 4,
@@ -50,7 +69,7 @@ func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) Benchm
 		Timeout:   60 * time.Second,
 	}
 
-	var successful, failed, totalTokens atomic.Int64
+	var successful, failed, totalTokens, tokenCountSamples atomic.Int64
 	latencies := make([]time.Duration, totalRequests)
 	var latenciesMu sync.Mutex
 
@@ -76,8 +95,11 @@ func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) Benchm
 					},
 				}
 				bodyBytes, _ := json.Marshal(payload)
-				httpReq, err := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(bodyBytes))
+				httpReq, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", bodyBytes)
 				if err != nil {
+					latenciesMu.Lock()
+					latencies[reqIdx] = time.Since(reqStart)
+					latenciesMu.Unlock()
 					failed.Add(1)
 					continue
 				}
@@ -101,19 +123,42 @@ func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) Benchm
 					continue
 				}
 
+				responseBody, readErr := readDiagnosticBody(resp)
+				resp.Body.Close()
+				if readErr != nil {
+					failed.Add(1)
+					continue
+				}
+
 				var chatRes struct {
+					Choices []struct {
+						Message struct {
+							Content   string            `json:"content"`
+							Reasoning string            `json:"reasoning_content"`
+							ToolCalls []json.RawMessage `json:"tool_calls"`
+						} `json:"message"`
+					} `json:"choices"`
 					Usage struct {
 						TotalTokens int `json:"total_tokens"`
 					} `json:"usage"`
 				}
-				_ = json.NewDecoder(resp.Body).Decode(&chatRes)
-				resp.Body.Close()
-
+				if !json.Valid(responseBody) || json.Unmarshal(responseBody, &chatRes) != nil {
+					failed.Add(1)
+					continue
+				}
+				if len(chatRes.Choices) == 0 {
+					failed.Add(1)
+					continue
+				}
+				message := chatRes.Choices[0].Message
+				if strings.TrimSpace(message.Content) == "" && strings.TrimSpace(message.Reasoning) == "" && len(message.ToolCalls) == 0 {
+					failed.Add(1)
+					continue
+				}
 				successful.Add(1)
 				if chatRes.Usage.TotalTokens > 0 {
 					totalTokens.Add(int64(chatRes.Usage.TotalTokens))
-				} else {
-					totalTokens.Add(30) // estimated fallback
+					tokenCountSamples.Add(1)
 				}
 			}
 		}()
@@ -143,20 +188,25 @@ func RunBenchmark(baseURL, apiKey string, concurrency, totalRequests int) Benchm
 	}
 
 	rps := float64(successful.Load()) / totalDur.Seconds()
-	tps := float64(totalTokens.Load()) / totalDur.Seconds()
+	tokenCountsMeasured := successful.Load() > 0 && tokenCountSamples.Load() == successful.Load()
+	tps := float64(0)
+	if tokenCountsMeasured && totalDur > 0 {
+		tps = float64(totalTokens.Load()) / totalDur.Seconds()
+	}
 
 	return BenchmarkReport{
-		TotalRequests:   totalRequests,
-		Concurrency:     concurrency,
-		Successful:      successful.Load(),
-		Failed:          failed.Load(),
-		TotalDuration:   totalDur,
-		AverageLatency:  avg,
-		P50Latency:      p50,
-		P90Latency:      p90,
-		P99Latency:      p99,
-		TotalTokens:     totalTokens.Load(),
-		TokensPerSecond: tps,
-		RequestsPerSec:  rps,
+		TotalRequests:       totalRequests,
+		Concurrency:         concurrency,
+		Successful:          successful.Load(),
+		Failed:              failed.Load(),
+		TotalDuration:       totalDur,
+		AverageLatency:      avg,
+		P50Latency:          p50,
+		P90Latency:          p90,
+		P99Latency:          p99,
+		TotalTokens:         totalTokens.Load(),
+		TokensPerSecond:     tps,
+		RequestsPerSec:      rps,
+		TokenCountsMeasured: tokenCountsMeasured,
 	}
 }

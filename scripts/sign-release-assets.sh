@@ -57,4 +57,6 @@ else
 	exit 1
 fi
 
+bash "$ROOT_DIR/scripts/verify-release-assets.sh" "$RELEASE_DIR"
+
 echo "signed release assets are ready: $RELEASE_DIR"

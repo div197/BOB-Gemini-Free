@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,10 @@ import (
 )
 
 func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/messages") {
+		return
+	}
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"type": "error",
@@ -67,7 +69,17 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	chatReq := format.AnthropicToOpenAIChatRequest(req)
+	chatReq, err := format.AnthropicToOpenAIChatRequest(req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"type": "error",
+			"error": map[string]any{
+				"type":    "invalid_request_error",
+				"message": err.Error(),
+			},
+		})
+		return
+	}
 	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
 	if err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
@@ -97,13 +109,13 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	// Upload any multimodal image attachments if present
 	var fileRefs []string
 	if len(images) > 0 {
-		fileRefs, err = a.uploadImages(images)
+		fileRefs, err = a.uploadImagesContext(r.Context(), images)
 		if err != nil {
 			writeJSON(w, http.StatusBadGateway, map[string]any{
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
-					"message": err.Error(),
+					"message": publicAttachmentErrorMessage(err),
 				},
 			})
 			return
@@ -234,7 +246,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
-					"message": streamErr.Error(),
+					"message": publicUpstreamErrorMessage(streamErr),
 				},
 			})
 			return
@@ -257,7 +269,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		fullContent := splitter.GetFullContent()
 
 		stopReason := "end_turn"
-		if len(chatReq.Tools) > 0 && fullContent != "" {
+		if len(chatReq.Tools) > 0 && fullContent != "" && !format.IsToolChoiceNone(chatReq.ToolChoice) {
 			_, toolCalls := format.ParseToolCalls(fullContent)
 			if len(toolCalls) > 0 {
 				stopReason = "tool_use"
@@ -332,14 +344,14 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			"type": "error",
 			"error": map[string]any{
 				"type":    "api_error",
-				"message": fmt.Sprintf("upstream error: %v", err),
+				"message": publicUpstreamErrorMessage(err),
 			},
 		})
 		return
 	}
 
 	var toolCalls []models.OpenAIToolCall
-	if len(chatReq.Tools) > 0 && text != "" {
+	if len(chatReq.Tools) > 0 && text != "" && !format.IsToolChoiceNone(chatReq.ToolChoice) {
 		text, toolCalls = format.ParseToolCalls(text)
 	}
 

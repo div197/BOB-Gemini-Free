@@ -9,7 +9,7 @@ import (
 	"net"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 	"sync"
 	"time"
 
@@ -37,12 +37,39 @@ type MobileGateway struct {
 	baseURL    string
 	running    bool
 	cookiePath string
+	runCtx     context.Context
+	runCancel  context.CancelFunc
 }
 
 var (
 	defaultGateway *MobileGateway
 	once           sync.Once
 )
+
+const maxMobileCookieBytes = 1 << 20
+
+func normalizeMobileHost(host string) (string, error) {
+	host = strings.TrimSpace(host)
+	if host == "" {
+		return "127.0.0.1", nil
+	}
+	cleanHost := strings.Trim(host, "[]")
+	if strings.EqualFold(cleanHost, "localhost") {
+		return "127.0.0.1", nil
+	}
+	ip := net.ParseIP(cleanHost)
+	if ip == nil || !ip.IsLoopback() {
+		return "", fmt.Errorf("mobile gateway host must be loopback, got %q", host)
+	}
+	return cleanHost, nil
+}
+
+func resolveMobileModel(modelName string) (models.Resolved, error) {
+	if strings.TrimSpace(modelName) == "" {
+		modelName = "gemini-3.7-flash"
+	}
+	return models.ResolveStrict(modelName, "gemini-3.7-flash")
+}
 
 // GetDefaultGateway returns the singleton mobile gateway instance.
 func GetDefaultGateway() *MobileGateway {
@@ -63,11 +90,16 @@ func (m *MobileGateway) Start(port int, host string, cookieContent string) (stri
 		return m.baseURL, nil
 	}
 
-	if host == "" {
-		host = "127.0.0.1"
+	var err error
+	host, err = normalizeMobileHost(host)
+	if err != nil {
+		return "", err
 	}
 	if port <= 0 {
 		port = 9610
+	}
+	if port > 65535 {
+		return "", fmt.Errorf("mobile gateway port %d is out of range", port)
 	}
 
 	cfg := config.Default()
@@ -76,25 +108,52 @@ func (m *MobileGateway) Start(port int, host string, cookieContent string) (stri
 	cfg.LogRequests = false
 
 	if cookieContent != "" {
-		tmpDir := os.TempDir()
-		cookieFile := filepath.Join(tmpDir, "bob_mobile_cookie.txt")
-		_ = os.WriteFile(cookieFile, []byte(cookieContent), 0600)
-		cfg.CookieFile = cookieFile
-		m.cookiePath = cookieFile
+		if len(cookieContent) > maxMobileCookieBytes {
+			return "", fmt.Errorf("mobile cookie content exceeds %d bytes", maxMobileCookieBytes)
+		}
+		cookieFile, createErr := os.CreateTemp("", "bob-mobile-cookie-*.txt")
+		if createErr != nil {
+			return "", fmt.Errorf("create mobile cookie file: %w", createErr)
+		}
+		cookiePath := cookieFile.Name()
+		cleanupCookie := func() {
+			_ = cookieFile.Close()
+			_ = os.Remove(cookiePath)
+		}
+		if _, writeErr := cookieFile.WriteString(cookieContent); writeErr != nil {
+			cleanupCookie()
+			return "", fmt.Errorf("write mobile cookie file: %w", writeErr)
+		}
+		if closeErr := cookieFile.Close(); closeErr != nil {
+			_ = os.Remove(cookiePath)
+			return "", fmt.Errorf("close mobile cookie file: %w", closeErr)
+		}
+		if chmodErr := os.Chmod(cookiePath, 0600); chmodErr != nil {
+			_ = os.Remove(cookiePath)
+			return "", fmt.Errorf("protect mobile cookie file: %w", chmodErr)
+		}
+		cfg.CookieFile = cookiePath
+		m.cookiePath = cookiePath
 	}
 
 	app := server.New(cfg, "v0.2.0-mobile")
 
-	addr := fmt.Sprintf("%s:%d", host, port)
+	addr := net.JoinHostPort(host, fmt.Sprintf("%d", port))
 	ln, err := net.Listen("tcp", addr)
 	if err != nil {
 		// Fallback to random available port if specified port is occupied
-		ln, err = net.Listen("tcp", fmt.Sprintf("%s:0", host))
+		ln, err = net.Listen("tcp", net.JoinHostPort(host, "0"))
 		if err != nil {
+			app.Close()
+			if m.cookiePath != "" {
+				_ = os.Remove(m.cookiePath)
+				m.cookiePath = ""
+			}
 			return "", fmt.Errorf("failed to bind mobile port: %w", err)
 		}
 	}
 
+	m.runCtx, m.runCancel = context.WithCancel(context.Background())
 	m.listener = ln
 	m.app = app
 	m.baseURL = fmt.Sprintf("http://%s", ln.Addr().String())
@@ -121,10 +180,17 @@ func (m *MobileGateway) Stop() error {
 		return nil
 	}
 
+	app := m.app
+	if m.runCancel != nil {
+		m.runCancel()
+	}
 	if m.httpSrv != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 		defer cancel()
 		_ = m.httpSrv.Shutdown(ctx)
+	}
+	if app != nil {
+		app.Close()
 	}
 
 	if m.cookiePath != "" {
@@ -134,6 +200,11 @@ func (m *MobileGateway) Stop() error {
 
 	m.running = false
 	m.baseURL = ""
+	m.app = nil
+	m.httpSrv = nil
+	m.listener = nil
+	m.runCtx = nil
+	m.runCancel = nil
 	return nil
 }
 
@@ -156,18 +227,20 @@ func (m *MobileGateway) GetURL() string {
 func (m *MobileGateway) Generate(prompt string, modelName string) (string, error) {
 	m.mu.RLock()
 	app := m.app
+	running := m.running
+	runCtx := m.runCtx
 	m.mu.RUnlock()
 
-	if app == nil {
+	if !running || app == nil {
 		return "", fmt.Errorf("mobile gateway is not running; call Start() first")
 	}
 
-	resolved, err := models.Resolve(modelName, "gemini-3.7-flash")
+	resolved, err := resolveMobileModel(modelName)
 	if err != nil {
-		resolved = models.Resolved{Mode: 1, Think: 4}
+		return "", err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second)
+	ctx, cancel := context.WithTimeout(runCtx, 120*time.Second)
 	defer cancel()
 
 	return app.Gem.GenerateContext(ctx, prompt, resolved.Mode, resolved.Think, nil, resolved.Extra)
@@ -177,18 +250,20 @@ func (m *MobileGateway) Generate(prompt string, modelName string) (string, error
 func (m *MobileGateway) GenerateStream(prompt string, modelName string, cb StreamCallback) error {
 	m.mu.RLock()
 	app := m.app
+	running := m.running
+	runCtx := m.runCtx
 	m.mu.RUnlock()
 
-	if app == nil {
+	if !running || app == nil {
 		return fmt.Errorf("mobile gateway is not running; call Start() first")
 	}
 
-	resolved, err := models.Resolve(modelName, "gemini-3.7-flash")
+	resolved, err := resolveMobileModel(modelName)
 	if err != nil {
-		resolved = models.Resolved{Mode: 1, Think: 4}
+		return err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	ctx, cancel := context.WithTimeout(runCtx, 180*time.Second)
 	defer cancel()
 
 	var totalTokens int
@@ -221,19 +296,21 @@ func (m *MobileGateway) CountTokens(text string) int {
 func (m *MobileGateway) Refine(prompt string) (string, error) {
 	m.mu.RLock()
 	app := m.app
+	running := m.running
+	runCtx := m.runCtx
 	m.mu.RUnlock()
 
-	if app == nil {
+	if !running || app == nil {
 		return "", fmt.Errorf("mobile gateway is not running; call Start() first")
 	}
 
 	engine := refiner.NewEngine()
-	ctx, cancel := context.WithTimeout(context.Background(), 180*time.Second)
+	ctx, cancel := context.WithTimeout(runCtx, 180*time.Second)
 	defer cancel()
 
-	resolved, err := models.Resolve("gemini-3.7-flash-thinking", "gemini-3.7-flash")
+	resolved, err := models.ResolveStrict("gemini-3.7-flash-thinking", "gemini-3.7-flash")
 	if err != nil {
-		resolved = models.Resolved{Mode: 2, Think: 0}
+		return "", err
 	}
 
 	res, err := engine.Refine(ctx, prompt, func(ctx context.Context, p string) (string, error) {

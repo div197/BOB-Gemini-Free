@@ -36,6 +36,12 @@ Preview 3 and other builds without the current embedded desktop trust key still
 require a manual migration. This project-level signature does not create Apple
 Developer ID or notarization trust.
 
+The standalone CLI installer is a separate path. It verifies the signed
+release manifest before installing a CLI binary; it is not a native desktop
+installer. Download the installer as a local file, inspect it, and run it
+locally. Do not pipe a mutable repository branch directly into a shell, and do
+not interpret the CLI's project signature as Apple or Windows publisher trust.
+
 ## Public preview releases
 
 The current [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)

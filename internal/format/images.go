@@ -1,9 +1,53 @@
 package format
 
 import (
+	"encoding/base64"
+	"fmt"
+	"mime"
 	"regexp"
 	"strings"
 )
+
+const (
+	// MaxInlineImageBytes bounds the decoded representation before it reaches
+	// the upload/compression layer. The request-body limit is a separate guard;
+	// this one also protects direct library callers from oversized base64.
+	MaxInlineImageBytes     = 20 << 20
+	MaxInlineImageMIMEBytes = 128
+)
+
+// decodeInlineImageData validates and decodes a provider inline image before
+// it is converted into an upload request. Invalid image data must be an error,
+// not an omitted attachment that changes the meaning of the prompt.
+func decodeInlineImageData(encoded, declaredMIME string) ([]byte, string, error) {
+	declaredMIME = strings.TrimSpace(declaredMIME)
+	if declaredMIME == "" {
+		declaredMIME = "image/png"
+	}
+	if len(declaredMIME) > MaxInlineImageMIMEBytes || strings.ContainsAny(declaredMIME, "\r\n\x00") {
+		return nil, "", fmt.Errorf("inline image MIME type is invalid")
+	}
+	mediaType, _, err := mime.ParseMediaType(declaredMIME)
+	if err != nil || !strings.HasPrefix(strings.ToLower(mediaType), "image/") {
+		return nil, "", fmt.Errorf("inline image MIME type %q is not an image", declaredMIME)
+	}
+
+	encoded = strings.TrimSpace(encoded)
+	if encoded == "" {
+		return nil, "", fmt.Errorf("inline image data is empty")
+	}
+	if base64.StdEncoding.DecodedLen(len(encoded)) > MaxInlineImageBytes {
+		return nil, "", fmt.Errorf("inline image exceeds %d decoded bytes", MaxInlineImageBytes)
+	}
+	decoded, err := base64.StdEncoding.DecodeString(encoded)
+	if err != nil {
+		return nil, "", fmt.Errorf("inline image base64 is invalid: %w", err)
+	}
+	if len(decoded) == 0 {
+		return nil, "", fmt.Errorf("inline image data is empty")
+	}
+	return decoded, mediaType, nil
+}
 
 var (
 	reImageMarkdown     = regexp.MustCompile(`!\[(.*?)\]\((https?://[^\s\)]+)\)`)

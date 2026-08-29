@@ -4,6 +4,23 @@ BOB Gemini Free exposes Google-shaped adapter routes on `/v1beta/*`. They are
 translated into Google's undocumented web RPC and are not Google's official
 API implementation; live behavior remains session/provider-dependent.
 
+There are two explicit modes. Without `X-BOB-Gemini-API-Key`, these adapter
+routes use BOB's existing cookie/guest web-RPC path. With that header, BOB
+forwards the request to Google's documented Gemini Developer API using the
+student's own project key. The latter route is opt-in, does not rotate keys,
+and does not silently fall back to web RPC. See
+[`GEMINI-API-ROUTING.md`](../engineering/GEMINI-API-ROUTING.md) for the
+student setup link, current-limit policy, and supported model-ID boundary.
+
+Example explicit provider request (use only your own key; do not commit it):
+
+```bash
+curl -X POST http://127.0.0.1:9610/v1beta/models/gemini-3.7-flash:generateContent \
+  -H 'Content-Type: application/json' \
+  -H 'X-BOB-Gemini-API-Key: YOUR_OWN_AI_STUDIO_KEY' \
+  -d '{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}'
+```
+
 ---
 
 ## 1. List Models (`GET /v1beta/models`)

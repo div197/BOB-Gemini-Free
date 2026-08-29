@@ -1,11 +1,15 @@
 package updater
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
+	"sync/atomic"
 	"testing"
+	"time"
 )
 
 func TestPreviewReleaseAPIIsBounded(t *testing.T) {
@@ -43,6 +47,31 @@ func TestIsNewerVersion(t *testing.T) {
 		if got != tt.want {
 			t.Errorf("isNewerVersion(%q, %q) = %v, want %v", tt.current, tt.latest, got, tt.want)
 		}
+	}
+}
+
+func TestIsDesktopVersionCheckable(t *testing.T) {
+	for _, test := range []struct {
+		version string
+		want    bool
+	}{
+		{version: "v0.2.0", want: true},
+		{version: "v0.1.7-preview.7", want: true},
+		{version: "dev", want: false},
+		{version: "local-ui", want: false},
+		{version: "", want: false},
+	} {
+		if got := IsDesktopVersionCheckable(test.version); got != test.want {
+			t.Errorf("IsDesktopVersionCheckable(%q) = %v, want %v", test.version, got, test.want)
+		}
+	}
+}
+
+func TestDesktopUpdateCheckContextCancellationIsHonored(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, err := checkLatestDesktopChannelContext(ctx, http.DefaultClient, "http://127.0.0.1:1/releases", "v0.1.7", DesktopChannelStable, "darwin", "arm64"); err == nil {
+		t.Fatal("canceled desktop update check unexpectedly succeeded")
 	}
 }
 
@@ -99,6 +128,7 @@ func TestIsOfficialGitHubURLPinsOfficialRepository(t *testing.T) {
 		{name: "release asset", raw: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: true},
 		{name: "case variation", raw: "https://github.com/DIV197/bob-gemini-free/releases/tag/v0.2.0", want: true},
 		{name: "release CDN", raw: "https://objects.githubusercontent.com/github-production-release-asset/1/2/3?x=1", want: true},
+		{name: "release asset CDN", raw: "https://release-assets.githubusercontent.com/github-production-release-asset/1/2/3?x=1", want: true},
 		{name: "other owner", raw: "https://github.com/another/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: false},
 		{name: "other repository", raw: "https://github.com/div197/other-repository/releases/download/v0.2.0/app.zip", want: false},
 		{name: "wrong scheme", raw: "http://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: false},
@@ -111,6 +141,42 @@ func TestIsOfficialGitHubURLPinsOfficialRepository(t *testing.T) {
 				t.Fatalf("isOfficialGitHubURL(%q) = %v, want %v", tt.raw, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestUpdateClientRejectsUntrustedRedirect(t *testing.T) {
+	var destinationRequests atomic.Int32
+	destination := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		destinationRequests.Add(1)
+		_, _ = w.Write([]byte("unexpected"))
+	}))
+	defer destination.Close()
+	redirect := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, destination.URL, http.StatusFound)
+	}))
+	defer redirect.Close()
+
+	client := newUpdateHTTPClient(time.Second)
+	_, err := client.Get(redirect.URL)
+	if err == nil || !strings.Contains(err.Error(), "untrusted host") {
+		t.Fatalf("untrusted redirect error = %v", err)
+	}
+	if got := destinationRequests.Load(); got != 0 {
+		t.Fatalf("untrusted redirect reached destination %d times", got)
+	}
+}
+
+func TestReadBoundedUpdateResponseRejectsNilAndOversizedBodies(t *testing.T) {
+	if _, err := readBoundedUpdateResponse(nil, 4); err == nil {
+		t.Fatal("nil update response was accepted")
+	}
+	empty := &http.Response{StatusCode: http.StatusOK, Body: http.NoBody}
+	if _, err := readBoundedUpdateResponse(empty, 4); err != nil {
+		t.Fatalf("empty bounded response: %v", err)
+	}
+	oversized := &http.Response{StatusCode: http.StatusOK, ContentLength: 5, Body: http.NoBody}
+	if _, err := readBoundedUpdateResponse(oversized, 4); err == nil || !strings.Contains(err.Error(), "exceeded") {
+		t.Fatalf("oversized content-length response error = %v", err)
 	}
 }
 

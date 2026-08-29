@@ -95,7 +95,7 @@ func TestGoldenToolCallTortureFixtures(t *testing.T) {
 			name:      "invalid json",
 			input:     "before\n```tool_call\n{not valid}\n```\nafter",
 			wantCalls: 0,
-			preserve:  "before",
+			preserve:  "after",
 		},
 		{
 			name:      "accidental json markdown",
@@ -124,6 +124,20 @@ func TestGoldenToolCallTortureFixtures(t *testing.T) {
 				t.Errorf("clean text lost %q: %q", fixture.preserve, clean)
 			}
 		})
+	}
+}
+
+func TestToolParsersPreserveRejectedBlocks(t *testing.T) {
+	openAIInput := "before\n```tool_call\n{\"name\":\"lookup\",\"arguments\":\"not-json\"}\n```\nafter"
+	clean, calls := ParseToolCalls(openAIInput)
+	if len(calls) != 0 || clean != openAIInput {
+		t.Fatalf("OpenAI rejected block changed: clean %q calls %#v", clean, calls)
+	}
+
+	googleInput := "before\n```function_call\n{\"name\":\"lookup\",\"args\":[] }\n```\nafter"
+	clean, googleCalls := ParseGoogleFunctionCalls(googleInput)
+	if len(googleCalls) != 0 || clean != googleInput {
+		t.Fatalf("Google rejected block changed: clean %q calls %#v", clean, googleCalls)
 	}
 }
 
@@ -196,7 +210,7 @@ func TestGoldenGoogleFunctionCallTortureFixtures(t *testing.T) {
 
 	invalid := "```function_call\n{invalid}\n```"
 	clean, calls = ParseGoogleFunctionCalls(invalid)
-	if len(calls) != 0 || strings.Contains(clean, "function_call") {
+	if len(calls) != 0 || clean != invalid {
 		t.Fatalf("invalid Google call result = clean %q calls %#v", clean, calls)
 	}
 	accidental := "```json\n{\"name\":\"not_a_function_call\"}\n```"
@@ -215,9 +229,13 @@ func TestGoldenAdaptersPreserveEquivalentSemanticFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenAI adapter: %v", err)
 	}
-	anthropicPrompt, err := MessagesToPrompt(AnthropicToOpenAIChatRequest(models.AnthropicMessagesRequest{
+	anthropicRequest, err := AnthropicToOpenAIChatRequest(models.AnthropicMessagesRequest{
 		Messages: []models.AnthropicMessage{{Role: "user", Content: semantic}},
-	}))
+	})
+	if err != nil {
+		t.Fatalf("Anthropic adapter conversion: %v", err)
+	}
+	anthropicPrompt, err := MessagesToPrompt(anthropicRequest)
 	if err != nil {
 		t.Fatalf("Anthropic adapter: %v", err)
 	}

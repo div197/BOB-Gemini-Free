@@ -4,7 +4,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -15,7 +14,10 @@ import (
 )
 
 func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/images/generations") {
+		return
+	}
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"error": map[string]any{
@@ -38,12 +40,33 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	responseFormat := strings.ToLower(strings.TrimSpace(req.ResponseFormat))
+	if responseFormat != "" && responseFormat != "url" && responseFormat != "b64_json" {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": map[string]any{
+				"message": "unsupported response_format; use url or b64_json",
+				"type":    "invalid_request_error",
+				"code":    "bad_request",
+			},
+		})
+		return
+	}
 
 	targetModel := req.Model
 	if targetModel == "" {
 		targetModel = "imagen-3"
 	}
-	resolved, _ := models.Resolve(targetModel, a.Cfg.DefaultModel)
+	resolved, err := models.ResolveStrict(targetModel, a.Cfg.DefaultModel)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"error": map[string]any{
+				"message": err.Error(),
+				"type":    "invalid_request_error",
+				"code":    "bad_request",
+			},
+		})
+		return
+	}
 
 	imagePrompt := fmt.Sprintf("Generate an image of: %s. Return the generated image directly.", req.Prompt)
 
@@ -51,7 +74,7 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeJSON(w, ErrorToStatusCode(err), map[string]any{
 			"error": map[string]any{
-				"message": fmt.Sprintf("upstream error: %v", err),
+				"message": publicUpstreamErrorMessage(err),
 				"type":    "api_error",
 			},
 		})
@@ -70,12 +93,17 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 		}
 
 		if strings.ToLower(req.ResponseFormat) == "b64_json" {
-			imgBytes, err := multimodal.FetchImageBytes(a.HTTPClient, img.URL)
-			if err == nil && len(imgBytes) > 0 {
-				obj.B64JSON = base64.StdEncoding.EncodeToString(imgBytes)
-			} else {
-				obj.URL = img.URL
+			imgBytes, err := multimodal.FetchImageBytesContext(r.Context(), a.HTTPClient, img.URL)
+			if err != nil || len(imgBytes) == 0 {
+				writeJSON(w, http.StatusBadGateway, map[string]any{
+					"error": map[string]any{
+						"message": publicAttachmentErrorMessage(err),
+						"type":    "api_error",
+					},
+				})
+				return
 			}
+			obj.B64JSON = base64.StdEncoding.EncodeToString(imgBytes)
 		} else {
 			obj.URL = img.URL
 		}
@@ -87,7 +115,6 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 			"error": map[string]any{
 				"message": "upstream response did not contain a generated image URL",
 				"type":    "api_error",
-				"details": text,
 			},
 		})
 		return

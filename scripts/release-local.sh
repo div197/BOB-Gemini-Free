@@ -27,6 +27,8 @@ if [[ -e "$ROOT_DIR/$OUTPUT_DIR" ]]; then
   exit 1
 fi
 
+bash "$ROOT_DIR/scripts/verify-release-source.sh" "$VERSION"
+
 cd "$ROOT_DIR"
 mkdir -p "$OUTPUT_DIR"
 

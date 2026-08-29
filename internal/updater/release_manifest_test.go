@@ -124,3 +124,121 @@ func TestCreateSignedManifestRejectsSymlinkAsset(t *testing.T) {
 		t.Fatalf("symlink asset was accepted: %v", err)
 	}
 }
+
+func TestVerifySignedReleaseDirectoryReconcilesEveryAsset(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "bob.zip"), []byte("package"), 0600); err != nil {
+		t.Fatalf("write asset: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "RELEASE-NOTICE.txt"), []byte("notice"), 0600); err != nil {
+		t.Fatalf("write notice: %v", err)
+	}
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	manifest, signature, err := CreateSignedManifest(directory, privateKey)
+	if err != nil {
+		t.Fatalf("CreateSignedManifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS"), manifest, 0600); err != nil {
+		t.Fatalf("write manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), signature, 0600); err != nil {
+		t.Fatalf("write signature: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, publicKey); err != nil {
+		t.Fatalf("VerifySignedReleaseDirectory: %v", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(directory, "unlisted.txt"), []byte("extra"), 0600); err != nil {
+		t.Fatalf("write extra asset: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, publicKey); err == nil || !strings.Contains(err.Error(), "missing from SHA256SUMS") {
+		t.Fatalf("unlisted asset result = %v, want manifest mismatch", err)
+	}
+}
+
+func TestVerifySignedReleaseDirectoryRejectsTamperingAndDuplicateEntries(t *testing.T) {
+	directory := t.TempDir()
+	assetPath := filepath.Join(directory, "bob.zip")
+	if err := os.WriteFile(assetPath, []byte("package"), 0600); err != nil {
+		t.Fatalf("write asset: %v", err)
+	}
+	publicKey, privateKey, err := ed25519.GenerateKey(rand.Reader)
+	if err != nil {
+		t.Fatalf("GenerateKey: %v", err)
+	}
+	manifest, signature, err := CreateSignedManifest(directory, privateKey)
+	if err != nil {
+		t.Fatalf("CreateSignedManifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS"), manifest, 0600); err != nil {
+		t.Fatalf("write manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), signature, 0600); err != nil {
+		t.Fatalf("write signature: %v", err)
+	}
+	if err := os.WriteFile(assetPath, []byte("tampered"), 0600); err != nil {
+		t.Fatalf("tamper asset: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, publicKey); err == nil || !strings.Contains(err.Error(), "SHA-256 mismatch") {
+		t.Fatalf("tampered asset result = %v, want checksum mismatch", err)
+	}
+
+	if err := os.WriteFile(assetPath, []byte("package"), 0600); err != nil {
+		t.Fatalf("restore asset: %v", err)
+	}
+	digest := sha256.Sum256([]byte("package"))
+	duplicateManifest := []byte(hexDigest(digest[:]) + "  bob.zip\n" + hexDigest(digest[:]) + "  bob.zip\n")
+	duplicateSignature := ed25519.Sign(privateKey, duplicateManifest)
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS"), duplicateManifest, 0600); err != nil {
+		t.Fatalf("write duplicate manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), []byte(base64.StdEncoding.EncodeToString(duplicateSignature)), 0600); err != nil {
+		t.Fatalf("write duplicate signature: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, publicKey); err == nil || !strings.Contains(err.Error(), "duplicate") {
+		t.Fatalf("duplicate manifest result = %v, want duplicate rejection", err)
+	}
+}
+
+func TestVerifySignedReleaseDirectoryBoundsControlFiles(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS"), []byte(strings.Repeat("x", maxReleaseManifestBytes+1)), 0600); err != nil {
+		t.Fatalf("write oversized manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), []byte("signature"), 0600); err != nil {
+		t.Fatalf("write signature: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, make(ed25519.PublicKey, ed25519.PublicKeySize)); err == nil || !strings.Contains(err.Error(), "control file exceeds") {
+		t.Fatalf("oversized manifest result = %v, want bounded read failure", err)
+	}
+
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS"), []byte("manifest"), 0600); err != nil {
+		t.Fatalf("write small manifest: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), []byte(strings.Repeat("x", maxReleaseSignatureBytes+1)), 0600); err != nil {
+		t.Fatalf("write oversized signature: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, make(ed25519.PublicKey, ed25519.PublicKeySize)); err == nil || !strings.Contains(err.Error(), "control file exceeds") {
+		t.Fatalf("oversized signature result = %v, want bounded read failure", err)
+	}
+}
+
+func TestVerifySignedReleaseDirectoryRejectsControlSymlinks(t *testing.T) {
+	directory := t.TempDir()
+	outside := filepath.Join(t.TempDir(), "outside")
+	if err := os.WriteFile(outside, []byte("control"), 0600); err != nil {
+		t.Fatalf("write outside control: %v", err)
+	}
+	if err := os.Symlink(outside, filepath.Join(directory, "SHA256SUMS")); err != nil {
+		t.Skipf("symlinks unavailable on this host: %v", err)
+	}
+	if err := os.WriteFile(filepath.Join(directory, "SHA256SUMS.sig"), []byte("signature"), 0600); err != nil {
+		t.Fatalf("write signature: %v", err)
+	}
+	if err := VerifySignedReleaseDirectory(directory, make(ed25519.PublicKey, ed25519.PublicKeySize)); err == nil || !strings.Contains(err.Error(), "regular file") {
+		t.Fatalf("control symlink result = %v, want regular-file rejection", err)
+	}
+}

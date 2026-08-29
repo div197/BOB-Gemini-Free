@@ -2,13 +2,12 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
+	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/models"
 )
 
@@ -21,10 +20,11 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	modelName := target
 	stream := false
+	action := "generateContent"
 
 	isCountTokens := false
 	if idx := strings.LastIndex(target, ":"); idx != -1 {
-		action := target[idx+1:]
+		action = target[idx+1:]
 		modelName = target[:idx]
 		if action == "streamGenerateContent" {
 			stream = true
@@ -36,9 +36,23 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bodyBytes, err := io.ReadAll(r.Body)
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+	if !json.Valid(bodyBytes) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+
+	providerKey, useDeveloperAPI, keyErr := a.geminiAPIKeyForRequest(r)
+	if keyErr != nil {
+		writeGeminiAPIError(w, keyErr)
+		return
+	}
+	if useDeveloperAPI {
+		a.handleDirectGoogleGenerate(w, r, modelName, action, bodyBytes, providerKey)
 		return
 	}
 
@@ -68,25 +82,30 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fcMode := "AUTO"
-	if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil && req.ToolConfig.FunctionCallingConfig.Mode != "" {
-		fcMode = req.ToolConfig.FunctionCallingConfig.Mode
+	fcMode, err := format.GoogleFunctionCallingMode(req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
 	}
 
 	hasTools := len(req.Tools) > 0 && fcMode != "NONE"
 
 	prompt, images, err := format.GoogleContentsToPrompt(req)
-	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty content"}})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty content", "type": "invalid_request_error"}})
 		return
 	}
 	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
 		prompt = "Please analyze the attached image."
 	}
 
-	fileRefs, err := a.uploadImages(images)
+	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 	a.RequestsServed.Add(1) // Track all Google API requests, not just countTokens
@@ -122,6 +141,9 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			return writeSSEData(w, chunkObj)
 		})
 
+		if emitErr == nil && strings.TrimSpace(fullText) == "" {
+			emitErr = &gemini.UpstreamError{Kind: "protocol", Msg: "upstream response contained no usable text"}
+		}
 		if emitErr == nil {
 			promptTokens := format.EstimateTokens(prompt)
 			candidatesTokens := format.EstimateTokens(fullText)
@@ -147,30 +169,26 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			}
 			_ = writeSSEData(w, finalChunk)
 		} else {
-			a.Logf("Google stream error: %v", emitErr)
-			errChunk := models.GoogleGenerateResponse{
-				Candidates: []models.GoogleCandidate{
-					{
-						Content: &models.GoogleContent{
-							Role: "model",
-							Parts: []models.GooglePart{
-								{Text: fmt.Sprintf("\n\n> ⚠️ **Upstream Error**: %v\n", emitErr)},
-							},
-						},
-						Index:        0,
-						FinishReason: "ERROR",
-					},
-				},
-				ModelVersion: resolved.Name,
-			}
-			_ = writeSSEData(w, errChunk)
+			a.Logf("Google stream error: %s", publicUpstreamErrorMessage(emitErr))
+			// Headers have already been sent. A top-level error preserves the
+			// native Google-shaped stream contract without pretending that a
+			// provider failure is model-authored Markdown. Native Google SSE
+			// streams terminate with HTTP EOF rather than OpenAI's [DONE].
+			_ = writeSSEError(w, emitErr)
 		}
 		return
 	}
 
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
+		return
+	}
+	if strings.TrimSpace(text) == "" {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{
+			"message": "upstream response contained no usable text",
+			"type":    "api_error",
+		}})
 		return
 	}
 
@@ -193,11 +211,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			responseParts = append(responseParts, models.GooglePart{Text: text})
 		}
 	} else {
-		fallbackText := text
-		if fallbackText == "" {
-			fallbackText = "I apologize, but I was unable to generate a response. Please try again."
-		}
-		responseParts = append(responseParts, models.GooglePart{Text: fallbackText})
+		responseParts = append(responseParts, models.GooglePart{Text: text})
 	}
 
 	promptTokens := format.EstimateTokens(prompt)

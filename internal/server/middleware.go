@@ -32,7 +32,7 @@ func (lrw *loggingResponseWriter) Flush() {
 	}
 }
 
-func authorize(r *http.Request, apiKeys []string) bool {
+func authorize(r *http.Request, apiKeys []string, allowQueryAPIKey bool) bool {
 	if len(apiKeys) == 0 {
 		return true
 	}
@@ -58,10 +58,12 @@ func authorize(r *http.Request, apiKeys []string) bool {
 		}
 	}
 
-	if queryKey := r.URL.Query().Get("key"); queryKey != "" {
-		for _, key := range apiKeys {
-			if subtle.ConstantTimeCompare([]byte(queryKey), []byte(key)) == 1 {
-				return true
+	if allowQueryAPIKey {
+		if queryKey := r.URL.Query().Get("key"); queryKey != "" {
+			for _, key := range apiKeys {
+				if subtle.ConstantTimeCompare([]byte(queryKey), []byte(key)) == 1 {
+					return true
+				}
 			}
 		}
 	}
@@ -72,7 +74,11 @@ func authorize(r *http.Request, apiKeys []string) bool {
 func (a *App) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := strings.TrimSpace(r.Header.Get("Origin"))
-		if origin != "" && !isAllowedOrigin(origin, a.Cfg.AllowedOrigins) {
+		requestScheme := "http"
+		if r.TLS != nil {
+			requestScheme = "https"
+		}
+		if origin != "" && !isAllowedOrigin(origin, a.Cfg.AllowedOrigins, r.Host, requestScheme) {
 			w.Header().Set("Vary", "Origin")
 			writeJSON(w, http.StatusForbidden, map[string]any{
 				"error": map[string]any{
@@ -92,8 +98,8 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 			w.Header().Add("Vary", "Origin")
 		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, *")
-		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, x-ratelimit-limit-requests, x-ratelimit-remaining-requests, x-ratelimit-reset-requests, content-length, *")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, x-bob-gemini-api-key, *")
+		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, content-length")
 		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 
 		if r.Method == "OPTIONS" {
@@ -105,7 +111,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 	})
 }
 
-func isAllowedOrigin(origin string, configured []string) bool {
+func isAllowedOrigin(origin string, configured []string, requestHost, requestScheme string) bool {
 	parsed, err := url.Parse(origin)
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.User != nil {
 		return false
@@ -122,17 +128,31 @@ func isAllowedOrigin(origin string, configured []string) bool {
 		}
 	}
 
-	host := strings.ToLower(parsed.Hostname())
-	if host == "localhost" || host == "wails.localhost" {
-		return true
-	}
-	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {
+	// A local browser page needs no cross-origin permission when it talks to
+	// the exact gateway origin that served it. Do not trust every loopback
+	// port by default: another local web server can be malicious and the
+	// gateway may hold privileged Google session credentials.
+	if strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
 		return true
 	}
 	return false
 }
 
 const maxRequestBodySize = 32 << 20 // 32 MB limit
+
+const maxRequestIDBytes = 128
+
+func requestIDFor(r *http.Request) string {
+	if r != nil {
+		requestID := strings.TrimSpace(r.Header.Get("X-Client-Request-Id"))
+		if requestID != "" && len(requestID) <= maxRequestIDBytes && strings.IndexFunc(requestID, func(r rune) bool {
+			return r < 0x20 || r == 0x7f
+		}) < 0 {
+			return requestID
+		}
+	}
+	return fmt.Sprintf("req_%s", format.RandHex(16))
+}
 
 func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -151,11 +171,9 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		start := time.Now()
 		lrw := newLoggingResponseWriter(w)
 
-		// Set standard request metadata and rate limit headers
-		reqID := r.Header.Get("X-Client-Request-Id")
-		if reqID == "" {
-			reqID = fmt.Sprintf("req_%s", format.RandHex(16))
-		}
+		// Set standard request metadata. Do not advertise rate limits that this
+		// process does not actually enforce.
+		reqID := requestIDFor(r)
 		w.Header().Set("x-request-id", reqID)
 		w.Header().Set("x-powered-by", "BOB-Gemini-Free / ABCsteps (div197)")
 		w.Header().Set("openai-version", "2020-10-01")
@@ -164,10 +182,6 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		w.Header().Set("x-xss-protection", "1; mode=block")
 		w.Header().Set("referrer-policy", "strict-origin-when-cross-origin")
 		w.Header().Set("cross-origin-opener-policy", "same-origin-allow-popups")
-		w.Header().Set("x-ratelimit-limit-requests", "1000")
-		w.Header().Set("x-ratelimit-remaining-requests", "999")
-		w.Header().Set("x-ratelimit-reset-requests", "1s")
-
 		isPublicRoute := false
 		// Routes that must always be publicly accessible (never blocked by api_keys):
 		// - /playground and /ui: the embedded Web Studio must always load
@@ -186,7 +200,7 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 			isPublicRoute = true
 		}
 
-		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys) {
+		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys, a.Cfg.AllowQueryAPIKey) {
 			writeJSON(lrw, http.StatusUnauthorized, map[string]any{
 				"error": map[string]any{
 					"message": "invalid api key",

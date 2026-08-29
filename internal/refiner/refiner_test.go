@@ -72,3 +72,46 @@ func TestRefinerErrorHandling(t *testing.T) {
 		t.Errorf("expected decomposition error, got %v", err)
 	}
 }
+
+func TestRefinerRejectsInvalidInputsAndEmptyStageOutput(t *testing.T) {
+	engine := NewEngine()
+	if _, err := engine.Refine(context.Background(), "prompt", nil); err == nil || !strings.Contains(err.Error(), "inference function is nil") {
+		t.Fatalf("nil inference error = %v", err)
+	}
+	if _, err := engine.Refine(context.Background(), "   ", func(context.Context, string) (string, error) { return "ok", nil }); err == nil || !strings.Contains(err.Error(), "prompt is empty") {
+		t.Fatalf("empty prompt error = %v", err)
+	}
+	if _, err := engine.Refine(context.Background(), strings.Repeat("x", MaxUserPromptBytes+1), func(context.Context, string) (string, error) { return "ok", nil }); err == nil || !strings.Contains(err.Error(), "prompt exceeds") {
+		t.Fatalf("oversized prompt error = %v", err)
+	}
+	if _, err := engine.Refine(context.Background(), "prompt", func(context.Context, string) (string, error) { return "\n", nil }); err == nil || !strings.Contains(err.Error(), "decomposition returned no usable output") {
+		t.Fatalf("empty stage error = %v", err)
+	}
+}
+
+func TestRefinerBoundsIntermediateAndFinalOutput(t *testing.T) {
+	engine := NewEngine()
+	call := 0
+	_, err := engine.Refine(context.Background(), "prompt", func(context.Context, string) (string, error) {
+		call++
+		if call == 1 {
+			return strings.Repeat("x", MaxStageOutputBytes+1), nil
+		}
+		return "ok", nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "decomposition output exceeds") {
+		t.Fatalf("oversized stage error = %v", err)
+	}
+
+	call = 0
+	_, err = engine.Refine(context.Background(), "prompt", func(context.Context, string) (string, error) {
+		call++
+		if call < 3 {
+			return "ok", nil
+		}
+		return strings.Repeat("x", MaxStageOutputBytes+1), nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "synthesis output exceeds") {
+		t.Fatalf("oversized final output error = %v", err)
+	}
+}

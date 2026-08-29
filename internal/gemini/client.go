@@ -7,8 +7,11 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
+	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,13 +20,42 @@ import (
 )
 
 type UpstreamError struct {
-	Status int
-	Kind   string
-	Msg    string
+	Status     int
+	Kind       string
+	Msg        string
+	RetryAfter time.Duration
 }
 
 func (e *UpstreamError) Error() string {
 	return e.Msg
+}
+
+// upstreamLogMessage deliberately keeps transport details out of optional
+// request logs. net/http can include the complete Web RPC URL in an error;
+// that URL may contain the short-lived `bl` token used by Gemini's frontend.
+func upstreamLogMessage(err error) string {
+	if err == nil {
+		return "request failed"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "request canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "request timed out"
+	}
+
+	var upstreamErr *UpstreamError
+	if errors.As(err, &upstreamErr) && upstreamErr != nil {
+		kind := strings.TrimSpace(upstreamErr.Kind)
+		if kind == "" {
+			kind = "upstream"
+		}
+		if upstreamErr.Status > 0 {
+			return fmt.Sprintf("%s failure (HTTP %d)", kind, upstreamErr.Status)
+		}
+		return kind + " failure"
+	}
+	return "request failed"
 }
 
 type Requester interface {
@@ -40,12 +72,26 @@ type Client struct {
 	Metrics *metrics.Registry
 }
 
+const (
+	maxUpstreamResponseBytes   = 32 << 20
+	maxUpstreamStreamLineBytes = 16 << 20
+	maxUpstreamStreamBytes     = 32 << 20
+)
+
+var errUpstreamStreamLineTooLarge = errors.New("upstream stream line exceeded configured limit")
+var errUpstreamStreamTooLarge = errors.New("upstream stream exceeded configured limit")
+
 func NewClient(cfg config.Config) *Client {
+	config.Normalize(&cfg)
+	timeoutSec := cfg.RequestTimeoutSec
+	if timeoutSec <= 0 {
+		timeoutSec = config.DefaultRequestTimeoutSec
+	}
 	var req Requester
 	if cfg.Impersonate != "" && cfg.Proxy == "" {
-		tlsAdapter, err := getTLSClient(cfg.Impersonate, cfg.RequestTimeoutSec)
+		tlsAdapter, err := getTLSClient(cfg.Impersonate, timeoutSec)
 		if err != nil {
-			log.Printf("Failed to create TLS client for profile %s: %v, falling back to stdlib", cfg.Impersonate, err)
+			log.Printf("TLS impersonation unavailable for profile %s; using standard transport", cfg.Impersonate)
 		} else {
 			req = tlsAdapter
 		}
@@ -55,7 +101,7 @@ func NewClient(cfg config.Config) *Client {
 		transport := &http.Transport{
 			DisableCompression:    true,
 			ForceAttemptHTTP2:     true,
-			ResponseHeaderTimeout: time.Duration(cfg.RequestTimeoutSec) * time.Second,
+			ResponseHeaderTimeout: time.Duration(timeoutSec) * time.Second,
 			IdleConnTimeout:       90 * time.Second,
 			MaxIdleConns:          2000,
 			MaxIdleConnsPerHost:   500,
@@ -72,6 +118,7 @@ func NewClient(cfg config.Config) *Client {
 
 		req = &http.Client{
 			Transport: transport,
+			Timeout:   time.Duration(timeoutSec) * time.Second,
 			CheckRedirect: func(req *http.Request, via []*http.Request) error {
 				return http.ErrUseLastResponse
 			},
@@ -119,9 +166,15 @@ func (c *Client) buildHeaders(session *AccountSession, guestCookies string) http
 	h.Set("X-Same-Domain", "1")
 
 	// Dynamic Fingerprint matching (Mobile/iOS High-Trust Rotation)
-	fp := ResolveFingerprint(c.Cfg.Impersonate)
-	for k, v := range fp.Headers {
-		h.Set(k, v)
+	if strings.TrimSpace(c.Cfg.Impersonate) == "" {
+		fp, _ := ResolveFingerprint("")
+		for k, v := range fp.Headers {
+			h.Set(k, v)
+		}
+	} else if fp, err := ResolveFingerprint(c.Cfg.Impersonate); err == nil {
+		for k, v := range fp.Headers {
+			h.Set(k, v)
+		}
 	}
 
 	if prefix != "" && authUser != "" {
@@ -136,11 +189,11 @@ func (c *Client) buildHeaders(session *AccountSession, guestCookies string) http
 				h.Set("Authorization", hash)
 			}
 		}
-	} else if c.Pool != nil && c.Pool.Count() > 0 {
-		// Configured pool session is in failure cooldown -> seamlessly fallback to live guest session!
-		if guestCookies != "" {
-			h.Set("Cookie", guestCookies)
-		}
+	} else if c.configuredSessionRoute() {
+		// A configured session pool is an explicit authenticated route. If no
+		// healthy account was selected, do not silently downgrade the request to
+		// guest cookies. This also covers a configured cookie file that is
+		// unreadable or malformed and therefore did not enter the pool.
 	} else {
 		cookieInfo, _ := c.Cookies.Load()
 		if cookieInfo.Cookie != "" {
@@ -187,35 +240,41 @@ func (c *Client) doUpstream(req *http.Request) (*http.Response, error) {
 }
 
 func (c *Client) triageStatus(resp *http.Response) error {
+	retryAfter := parseRetryAfter(resp.Header.Get("Retry-After"))
 	if resp.StatusCode == http.StatusFound || resp.StatusCode == http.StatusMovedPermanently {
 		return &UpstreamError{
-			Status: resp.StatusCode,
-			Kind:   "http",
-			Msg:    "upstream policy/network rejection (redirected to sorry/index); automatic retries stopped",
+			Status:     resp.StatusCode,
+			Kind:       "http",
+			Msg:        "upstream policy/network rejection (redirected to sorry/index); automatic retries stopped",
+			RetryAfter: retryAfter,
 		}
 	}
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return &UpstreamError{
-			Status: resp.StatusCode,
-			Kind:   "http",
-			Msg:    "upstream rate limited (HTTP 429); retry later",
+			Status:     resp.StatusCode,
+			Kind:       "http",
+			Msg:        "upstream rate limited (HTTP 429); retry later",
+			RetryAfter: retryAfter,
 		}
 	}
 	if resp.StatusCode != http.StatusOK {
 		return &UpstreamError{
-			Status: resp.StatusCode,
-			Kind:   "http",
-			Msg:    fmt.Sprintf("upstream HTTP %d", resp.StatusCode),
+			Status:     resp.StatusCode,
+			Kind:       "http",
+			Msg:        fmt.Sprintf("upstream HTTP %d", resp.StatusCode),
+			RetryAfter: retryAfter,
 		}
 	}
 	return nil
 }
 
-// shouldRetryUpstream limits automatic retries to failures where another
-// attempt has a reasonable chance of succeeding without amplifying a provider
-// policy decision. In particular, 3xx/401/403/429 and Bard rejection frames
-// must surface immediately; rotating identities or retrying harder is not a
-// legitimate quota or access-control strategy.
+// shouldRetryUpstream classifies failures where another attempt could have a
+// reasonable chance of succeeding without amplifying a provider policy
+// decision. The generation operation applies the stricter idempotency policy
+// in canRetryGeneration: classification alone does not authorize replaying a
+// POST after request delivery may have started. In particular, 3xx/401/403/429
+// and Bard rejection frames must surface immediately; rotating identities or
+// retrying harder is not a legitimate quota or access-control strategy.
 func shouldRetryUpstream(err error) bool {
 	var upstreamErr *UpstreamError
 	if !errors.As(err, &upstreamErr) {
@@ -235,14 +294,133 @@ func shouldRetryUpstream(err error) bool {
 	}
 }
 
+// retryableBeforeRequest reports whether a transport error is known to have
+// happened before a connection could be established. A POST to Google's
+// generation endpoint has no idempotency contract: once a connection may have
+// accepted request bytes, retrying can create a second generation even when
+// the client never receives its response. Keep automatic retries limited to
+// errors whose operation is still known not to have reached the provider.
+func retryableBeforeRequest(err error) bool {
+	if err == nil {
+		return false
+	}
+	var opErr *net.OpError
+	if !errors.As(err, &opErr) {
+		return false
+	}
+	switch strings.ToLower(opErr.Op) {
+	case "dial", "connect", "lookup":
+		return true
+	default:
+		return false
+	}
+}
+
+// canRetryGeneration applies the operation-level idempotency policy after
+// shouldRetryUpstream has classified the error. HTTP 5xx responses and stream
+// read failures remain ambiguous for a POST, so they are surfaced once rather
+// than replayed. Only a pre-connection dial/lookup failure is safe to repeat.
+func canRetryGeneration(err error, safeTransportFailure bool) bool {
+	if !shouldRetryUpstream(err) {
+		return false
+	}
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) {
+		return false
+	}
+	return upstreamErr.Kind == "transport" && safeTransportFailure
+}
+
+const maxUpstreamRetryBackoff = 60 * time.Second
+
+func parseRetryAfter(value string) time.Duration {
+	value = strings.TrimSpace(value)
+	if value == "" {
+		return 0
+	}
+	if seconds, err := strconv.Atoi(value); err == nil {
+		if seconds <= 0 {
+			return 0
+		}
+		delay := time.Duration(seconds) * time.Second
+		if delay < 0 || delay > maxUpstreamRetryBackoff {
+			return maxUpstreamRetryBackoff
+		}
+		return delay
+	}
+	when, err := http.ParseTime(value)
+	if err != nil {
+		return 0
+	}
+	delay := time.Until(when)
+	if delay <= 0 {
+		return 0
+	}
+	if delay > maxUpstreamRetryBackoff {
+		return maxUpstreamRetryBackoff
+	}
+	return delay
+}
+
+func upstreamRetryDelay(attempt, baseDelaySec int) time.Duration {
+	if attempt < 0 {
+		attempt = 0
+	}
+	if baseDelaySec <= 0 {
+		return 0
+	}
+	delay := time.Duration(baseDelaySec) * time.Second
+	if delay <= 0 {
+		return 0
+	}
+	for step := 0; step < attempt && delay < maxUpstreamRetryBackoff; step++ {
+		if delay > maxUpstreamRetryBackoff/2 {
+			delay = maxUpstreamRetryBackoff
+			break
+		}
+		delay *= 2
+	}
+	if delay > maxUpstreamRetryBackoff {
+		delay = maxUpstreamRetryBackoff
+	}
+	// Keep retries from synchronizing across a classroom while retaining a
+	// deterministic upper bound. The package-level math/rand functions are
+	// concurrency-safe; a zero configured delay remains entirely immediate for
+	// hermetic tests and explicit low-latency configurations.
+	jitterWindow := delay / 2
+	if jitterWindow <= 0 {
+		return delay
+	}
+	return delay/2 + time.Duration(rand.Int63n(int64(jitterWindow)+1))
+}
+
+func waitForUpstreamRetry(ctx context.Context, err error, attempt, baseDelaySec int) error {
+	delay := upstreamRetryDelay(attempt, baseDelaySec)
+	var upstreamErr *UpstreamError
+	if errors.As(err, &upstreamErr) && upstreamErr.RetryAfter > 0 && upstreamErr.RetryAfter <= maxUpstreamRetryBackoff {
+		delay = upstreamErr.RetryAfter
+	}
+	if delay <= 0 {
+		return nil
+	}
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	case <-timer.C:
+		return nil
+	}
+}
+
 func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
 	return c.GenerateContext(context.Background(), prompt, modelID, thinkMode, fileRefs, extra)
 }
 
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
 	if c.Flight != nil {
-		flightKey := c.Flight.Key(prompt, modelID, thinkMode, fileRefs)
-		return c.Flight.Execute(flightKey, func() (string, error) {
+		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
+		return c.Flight.ExecuteContext(ctx, flightKey, func() (string, error) {
 			return c.generateContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra)
 		})
 	}
@@ -262,7 +440,12 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 		default:
 		}
 
-		session := c.Pool.GetHealthySession()
+		retrySafe := false
+		session, sessionErr := c.healthySession()
+		if sessionErr != nil {
+			lastErr = sessionErr
+			break
+		}
 		headers := c.buildHeaders(session, guestCookies)
 
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
@@ -277,50 +460,75 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 				return "", ctx.Err()
 			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+			retrySafe = retryableBeforeRequest(err)
 			if session != nil {
 				c.Pool.MarkFailure(session.ID)
 			}
 		} else {
-			if err := c.triageStatus(resp); err != nil {
-				_ = resp.Body.Close()
+			if resp == nil {
+				lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response"}
+				if session != nil {
+					c.Pool.MarkFailure(session.ID)
+				}
+			} else if err := c.triageStatus(resp); err != nil {
+				closeResponseBody(resp)
 				lastErr = err
 				if session != nil {
 					c.Pool.MarkFailure(session.ID)
 				}
 			} else {
-				rawBytes, err := io.ReadAll(resp.Body)
-				_ = resp.Body.Close()
-				if err != nil {
-					lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+				if resp.Body == nil {
+					lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response body"}
 					if session != nil {
 						c.Pool.MarkFailure(session.ID)
 					}
 				} else {
-					text, err := ExtractResponseText(string(rawBytes))
+					rawBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxUpstreamResponseBytes+1))
+					closeResponseBody(resp)
 					if err != nil {
-						lastErr = &UpstreamError{Kind: "bard", Msg: err.Error()}
+						lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+						if session != nil {
+							c.Pool.MarkFailure(session.ID)
+						}
+					} else if len(rawBytes) > maxUpstreamResponseBytes {
+						lastErr = &UpstreamError{Kind: "protocol", Msg: fmt.Sprintf("upstream response exceeded %d bytes", maxUpstreamResponseBytes)}
 						if session != nil {
 							c.Pool.MarkFailure(session.ID)
 						}
 					} else {
-						if session != nil {
-							c.Pool.MarkSuccess(session.ID)
+						text, err := ExtractResponseText(string(rawBytes))
+						if err != nil {
+							lastErr = &UpstreamError{Kind: "bard", Msg: err.Error()}
+							if session != nil {
+								c.Pool.MarkFailure(session.ID)
+							}
+						} else if strings.TrimSpace(text) == "" {
+							// A syntactically readable Web RPC response can still
+							// contain no model output. Treat it as a provider
+							// protocol failure so adapters cannot fabricate a normal
+							// assistant stop or apology.
+							lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream response contained no usable text"}
+							if session != nil {
+								c.Pool.MarkFailure(session.ID)
+							}
+						} else {
+							if session != nil {
+								c.Pool.MarkSuccess(session.ID)
+							}
+							return text, nil
 						}
-						return text, nil
 					}
 				}
 			}
 		}
 
-		if attempt >= c.Cfg.RetryAttempts-1 || !shouldRetryUpstream(lastErr) {
+		if attempt >= c.Cfg.RetryAttempts-1 || !canRetryGeneration(lastErr, retrySafe) {
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
-			select {
-			case <-ctx.Done():
-				return "", ctx.Err()
-			case <-time.After(time.Duration(c.Cfg.RetryDelaySec) * time.Second):
+			c.Logf("Retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
+			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
+				return "", err
 			}
 		}
 	}
@@ -334,12 +542,45 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	if c.Flight != nil {
-		flightKey := c.Flight.Key(prompt, modelID, thinkMode, fileRefs)
-		return c.Flight.ExecuteStream(flightKey, func(streamEmit func(string) error) error {
+		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
+		return c.Flight.ExecuteStreamContext(ctx, flightKey, func(streamEmit func(string) error) error {
 			return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
 		}, emit)
 	}
 	return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, emit)
+}
+
+// requestFlightKey keeps request coalescing limited to anonymous upstream
+// work. A response produced with a browser session can vary by account,
+// entitlement, experiment, or session state; sharing it across concurrent
+// requests would be a correctness and privacy hazard. Anonymous requests can
+// still use the existing deduplication path to reduce duplicate bursts.
+func (c *Client) requestFlightKey(prompt string, modelID, thinkMode int, fileRefs []string) string {
+	if c == nil || c.Flight == nil || c.sessionBound() {
+		return ""
+	}
+	return c.Flight.KeyWithScope("anonymous", prompt, modelID, thinkMode, fileRefs)
+}
+
+func (c *Client) sessionBound() bool {
+	if c == nil {
+		return false
+	}
+	if strings.TrimSpace(c.Cfg.CookieFile) != "" || len(c.Cfg.CookiePool) > 0 {
+		return true
+	}
+	return c.Pool != nil && c.Pool.Count() > 0
+}
+
+// configuredSessionRoute reports an explicit authenticated configuration even
+// when its files failed validation and the pool is currently empty. Keeping
+// this distinction prevents a bad/expired cookie from silently changing the
+// provider route to anonymous guest traffic.
+func (c *Client) configuredSessionRoute() bool {
+	if c == nil {
+		return false
+	}
+	return strings.TrimSpace(c.Cfg.CookieFile) != "" || len(c.Cfg.CookiePool) > 0 || (c.Pool != nil && c.Pool.Count() > 0)
 }
 
 func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
@@ -349,6 +590,7 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 
 	parser := NewStreamParser()
 	var lastErr error
+	var streamBytes int64
 
 	for attempt := 0; attempt < c.Cfg.RetryAttempts; attempt++ {
 		select {
@@ -365,7 +607,12 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			c.Metrics.SessionFailovers.Add(1)
 		}
 
-		session := c.Pool.GetHealthySession()
+		retrySafe := false
+		session, sessionErr := c.healthySession()
+		if sessionErr != nil {
+			lastErr = sessionErr
+			break
+		}
 		headers := c.buildHeaders(session, guestCookies)
 
 		req, err := http.NewRequestWithContext(ctx, "POST", reqURL, strings.NewReader(bodyStr))
@@ -380,19 +627,25 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 				return ctx.Err()
 			}
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
+			retrySafe = retryableBeforeRequest(err)
 			if session != nil {
 				c.Pool.MarkFailure(session.ID)
 			}
 		} else {
-			if err := c.triageStatus(resp); err != nil {
-				_ = resp.Body.Close()
+			if resp == nil {
+				lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response"}
+				if session != nil {
+					c.Pool.MarkFailure(session.ID)
+				}
+			} else if err := c.triageStatus(resp); err != nil {
+				closeResponseBody(resp)
 				lastErr = err
 				if session != nil {
 					c.Pool.MarkFailure(session.ID)
 				}
 			} else {
-				err = c.streamAttempt(resp.Body, parser, emit)
-				_ = resp.Body.Close()
+				err = c.streamAttempt(resp.Body, parser, emit, &streamBytes)
+				closeResponseBody(resp)
 				if err == nil {
 					if session != nil {
 						c.Pool.MarkSuccess(session.ID)
@@ -409,17 +662,13 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			}
 		}
 
-		if attempt >= c.Cfg.RetryAttempts-1 || !shouldRetryUpstream(lastErr) {
+		if attempt >= c.Cfg.RetryAttempts-1 || !canRetryGeneration(lastErr, retrySafe) {
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Stream retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
-			timer := time.NewTimer(time.Duration(c.Cfg.RetryDelaySec) * time.Second)
-			select {
-			case <-ctx.Done():
-				timer.Stop()
-				return ctx.Err()
-			case <-timer.C:
+			c.Logf("Stream retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
+			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
+				return err
 			}
 		}
 	}
@@ -427,13 +676,31 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 	return lastErr
 }
 
-func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(string) error) error {
+func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(string) error, streamBytes *int64) error {
+	if body == nil {
+		return &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty stream body"}
+	}
+	if parser == nil {
+		return &UpstreamError{Kind: "protocol", Msg: "upstream stream parser is unavailable"}
+	}
+	if emit == nil {
+		return &UpstreamError{Kind: "protocol", Msg: "upstream stream callback is unavailable"}
+	}
 	reader := bufio.NewReader(body)
 	for {
-		lineBytes, err := reader.ReadBytes('\n')
+		lineBytes, err := readBoundedStreamLine(reader)
+		if streamBytes != nil {
+			*streamBytes += int64(len(lineBytes))
+			if *streamBytes > maxUpstreamStreamBytes {
+				return &UpstreamError{Kind: "protocol", Msg: fmt.Sprintf("upstream stream exceeded %d bytes", maxUpstreamStreamBytes)}
+			}
+		}
 		if len(lineBytes) > 0 {
 			deltas, parseErr := parser.Feed(string(lineBytes))
 			if parseErr != nil {
+				if errors.Is(parseErr, errStreamTextTooLarge) {
+					return &UpstreamError{Kind: "protocol", Msg: parseErr.Error()}
+				}
 				return &UpstreamError{Kind: "bard", Msg: parseErr.Error()}
 			}
 			for _, delta := range deltas {
@@ -443,9 +710,12 @@ func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(s
 			}
 		}
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				deltas, parseErr := parser.Flush()
 				if parseErr != nil {
+					if errors.Is(parseErr, errStreamTextTooLarge) {
+						return &UpstreamError{Kind: "protocol", Msg: parseErr.Error()}
+					}
 					return &UpstreamError{Kind: "bard", Msg: parseErr.Error()}
 				}
 				for _, delta := range deltas {
@@ -453,10 +723,51 @@ func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(s
 						return emitErr
 					}
 				}
+				if !parser.HasText() {
+					return &UpstreamError{Kind: "protocol", Msg: "upstream stream contained no usable text"}
+				}
 				return nil
+			}
+			if errors.Is(err, errUpstreamStreamLineTooLarge) || errors.Is(err, errUpstreamStreamTooLarge) {
+				return &UpstreamError{Kind: "protocol", Msg: err.Error()}
 			}
 			return &UpstreamError{Kind: "transport", Msg: err.Error()}
 		}
+	}
+}
+
+func (c *Client) healthySession() (*AccountSession, error) {
+	if c.Pool == nil || c.Pool.Count() == 0 {
+		return nil, nil
+	}
+	session := c.Pool.GetHealthySession()
+	if session == nil {
+		return nil, &UpstreamError{
+			Kind: "session",
+			Msg:  "all configured Google sessions are unavailable or in cooldown; retry later",
+		}
+	}
+	return session, nil
+}
+
+func closeResponseBody(resp *http.Response) {
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
+}
+
+func readBoundedStreamLine(reader *bufio.Reader) ([]byte, error) {
+	var line []byte
+	for {
+		fragment, err := reader.ReadSlice('\n')
+		line = append(line, fragment...)
+		if len(line) > maxUpstreamStreamLineBytes {
+			return nil, fmt.Errorf("%w: %d bytes", errUpstreamStreamLineTooLarge, maxUpstreamStreamLineBytes)
+		}
+		if err == bufio.ErrBufferFull {
+			continue
+		}
+		return line, err
 	}
 }
 

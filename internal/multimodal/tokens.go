@@ -1,11 +1,13 @@
 package multimodal
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -14,9 +16,11 @@ import (
 )
 
 const (
-	DefaultPushID = "feeds/mcudyrk2a4khkz"
-	DefaultPctx   = "CgcSBWjK7pYx"
-	TokenCacheTTL = 600 * time.Second
+	DefaultPushID             = "feeds/mcudyrk2a4khkz"
+	DefaultPctx               = "CgcSBWjK7pYx"
+	TokenCacheTTL             = 600 * time.Second
+	MaxPageTokenResponseBytes = 8 << 20
+	MaxPageTokenValueBytes    = 4096
 )
 
 // Internal regex patterns used to extract hidden session tokens embedded in Gemini HTML responses:
@@ -61,18 +65,27 @@ func NewTokenCache(cfg config.Config, cookie *gemini.CookieCache, client *http.C
 	}
 }
 
-func (c *TokenCache) fetchPageTokens() PageTokens {
+func (c *TokenCache) fetchPageTokens(ctx context.Context) (PageTokens, bool) {
+	if c == nil {
+		return PageTokens{PushID: DefaultPushID, Pctx: DefaultPctx}, false
+	}
 	tokens := PageTokens{
 		PushID: DefaultPushID,
 		Pctx:   DefaultPctx,
 		At:     "",
 		BL:     c.cfg.GeminiBL,
 	}
+	if c.client == nil {
+		return tokens, false
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
 
 	reqURL := fmt.Sprintf("https://gemini.google.com%s/app", gemini.AccountPrefix(c.cfg.AuthUser))
-	req, err := http.NewRequest("GET", reqURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, reqURL, nil)
 	if err != nil {
-		return tokens
+		return tokens, false
 	}
 
 	req.Header.Set("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
@@ -87,36 +100,83 @@ func (c *TokenCache) fetchPageTokens() PageTokens {
 		req.Header.Set("Authorization", gemini.SAPISIDHash(cookieInfo.SAPISID))
 	}
 
-	resp, err := c.client.Do(req)
+	// Do not allow a page-token request carrying session credentials to follow
+	// a redirect to an untrusted or unexpected host. The shared application
+	// client is cloned so image-fetch behavior and caller configuration remain
+	// unchanged.
+	client := *c.client
+	client.CheckRedirect = func(_ *http.Request, _ []*http.Request) error {
+		return http.ErrUseLastResponse
+	}
+	resp, err := client.Do(req)
 	if err != nil {
-		log.Printf("Page token fetch failed: %v", err)
-		return tokens
+		// The request carries the user's session authorization; keep transport
+		// details and URLs out of logs.
+		log.Printf("Page token fetch failed")
+		return tokens, false
+	}
+	if resp == nil || resp.Body == nil {
+		return tokens, false
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		return tokens, false
+	}
+	if resp.ContentLength > MaxPageTokenResponseBytes {
+		return tokens, false
+	}
 
-	bodyBytes, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return tokens
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, MaxPageTokenResponseBytes+1))
+	if err != nil || len(bodyBytes) > MaxPageTokenResponseBytes {
+		return tokens, false
 	}
 
 	html := string(bodyBytes)
+	found := false
 	if m := rePushID.FindStringSubmatch(html); len(m) > 1 {
-		tokens.PushID = m[1]
+		if tokenValueUsable(m[1]) {
+			tokens.PushID = m[1]
+			found = true
+		}
 	}
 	if m := rePctx.FindStringSubmatch(html); len(m) > 1 {
-		tokens.Pctx = m[1]
+		if tokenValueUsable(m[1]) {
+			tokens.Pctx = m[1]
+			found = true
+		}
 	}
 	if m := reAt.FindStringSubmatch(html); len(m) > 1 {
-		tokens.At = m[1]
+		if tokenValueUsable(m[1]) {
+			tokens.At = m[1]
+			found = true
+		}
 	}
 	if m := reBL.FindStringSubmatch(html); len(m) > 1 {
-		tokens.BL = m[1]
+		if tokenValueUsable(m[1]) {
+			tokens.BL = m[1]
+			found = true
+		}
 	}
 
-	return tokens
+	return tokens, found
 }
 
 func (c *TokenCache) Get() PageTokens {
+	return c.GetContext(context.Background())
+}
+
+// GetContext refreshes page tokens without allowing a failed refresh to erase
+// the last known-good token set. This matters for Scotty uploads: a transient
+// login-page, redirect, or oversized response should fail the current upload,
+// but should not turn every subsequent request into a request with empty
+// authorization state.
+func (c *TokenCache) GetContext(ctx context.Context) PageTokens {
+	if c == nil {
+		return PageTokens{PushID: DefaultPushID, Pctx: DefaultPctx}
+	}
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	c.mu.Lock()
 	if time.Since(c.ts) > TokenCacheTTL {
 		// Immediately update the timestamp to prevent a dog-pile of concurrent fetches.
@@ -124,15 +184,24 @@ func (c *TokenCache) Get() PageTokens {
 		c.ts = time.Now()
 		c.mu.Unlock()
 
-		newTokens := c.fetchPageTokens()
+		newTokens, ok := c.fetchPageTokens(ctx)
 
 		c.mu.Lock()
-		c.tokens = newTokens
+		if ok {
+			c.tokens = newTokens
+		}
+		tokens := c.tokens
 		c.mu.Unlock()
-		return newTokens
+		return tokens
 	}
 
 	t := c.tokens
 	c.mu.Unlock()
 	return t
+}
+
+func tokenValueUsable(value string) bool {
+	return value != "" && len(value) <= MaxPageTokenValueBytes && strings.IndexFunc(value, func(r rune) bool {
+		return r < 0x20 || r == 0x7f
+	}) == -1
 }

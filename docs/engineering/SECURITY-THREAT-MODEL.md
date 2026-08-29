@@ -48,7 +48,7 @@ identify the trust gap.
 | API keys are optional | Source-verified | No-key installs have no credential check for API routes |
 | Public Web Studio needs cross-origin access | Intentional product requirement | A blanket CORS disable would break the hosted Studio use case |
 | Remote image fetch reaches attacker-controlled/private targets | Mitigated by application checks | `FetchImageBytes` now rejects private/local IP and DNS results, nonstandard ports, and cross-host redirects; residual DNS/proxy topology risk remains |
-| Query-string API key leaks through logs/history/referrers | Source-verified | Existing compatibility path makes accidental disclosure possible |
+| Query-string API key leaks through logs/history/referrers | Mitigated by default | Legacy query-key compatibility is disabled unless the operator explicitly enables `allow_query_api_key`; header credentials remain the supported path |
 
 ## Design options
 
@@ -93,8 +93,11 @@ can issue a short-lived capability after a user-visible local confirmation.
 
 Configured API keys remain the strongest general-purpose application
 credential in this codebase. They should be sent in `Authorization` or a
-dedicated header. Query `?key=` remains only for compatibility and should be
-discouraged because URLs are more likely to be logged or copied.
+dedicated header. Query `?key=` authentication is disabled by default and
+exists only as an explicit legacy compatibility opt-in
+(`allow_query_api_key` or `BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY=true`). It
+should remain disabled for remote deployments because URLs are more likely to
+be logged or copied.
 
 ## Chosen minimum change
 
@@ -105,7 +108,8 @@ Implement strict origin filtering now:
 3. allow additional exact origins only through explicit configuration;
 4. return a failed preflight/403 for an unapproved origin;
 5. reflect the exact approved origin and add `Vary: Origin`;
-6. keep API-key authorization independent and unchanged;
+6. keep API-key authorization independent, with header credentials preferred and
+   query-string compatibility disabled by default;
 7. keep `/playground` publicly navigable, but do not grant its API calls to
    an unapproved remote origin.
 

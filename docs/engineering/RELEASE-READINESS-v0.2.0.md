@@ -39,9 +39,14 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes are merged into `main` at `e019cf8`. The signed
-`v0.2.0-preview.1` migration bridge is publicly published. Stable `v0.2.0`
-remains unpublished until the clean-device and pilot gates pass.
+These changes are on the reviewed branch `codex/release-readiness-v0.2.0`,
+which is not merged into `main` in this checkout. The native package evidence
+below was produced from clean source commit `d318b4f`; subsequent commits only
+refresh the evidence documents and release wiring. `origin/main` is at
+`a3e65ea`. The branch relationship must be reconciled through review before
+any publication. The signed `v0.2.0-preview.1` migration bridge is publicly
+published. Stable `v0.2.0` remains unpublished until the clean-device and pilot
+gates pass.
 
 ## Evidence already available
 
@@ -55,34 +60,35 @@ go vet ./...
 go build ./...
 go mod verify
 make desktop-key-check
-make dist
 git diff --check
 ```
 
-The same final-source run also passed the release-script syntax checks (with
-`bash -n`) and `go test -count=1 -cover ./...` (the
-package-local results aggregate to approximately 53.6% statement coverage),
-`go mod verify`, the six CLI cross-builds in `make dist`, and the public-key
-presence gate. Coverage remains a measured limitation, not a blanket 80%
-claim.
+The same local readiness run also passed `make build`, the release-script
+syntax checks (with `bash -n`), and `go test -count=1 -cover ./...`. A weighted
+per-package profile over that run measured 63.6% statement coverage; the
+package-local results range from 0.0% to 89.3%, so no blanket 80% claim is
+valid. The run also passed `go mod verify`, six equivalent CGO-disabled CLI
+cross-builds in an isolated
+temporary directory, and the public-key presence gate. Coverage remains a
+measured limitation.
 
-The post-Preview-7 source delta is 60 files, approximately 10,127 insertions,
-and 985 deletions. This is therefore a release-candidate audit of a large
-feature milestone, not a routine patch release. Repository-wide statement
-coverage measured 53.6% in the current local run; the project must not claim
-blanket 80% coverage. The current local-only 1/10/20/30-concurrency baseline
-is recorded in
+The working tree is currently clean. The complete post-Preview-7 branch delta
+is 134 files relative to `origin/main`, so this remains a release-candidate
+audit of a large feature milestone, not a routine patch release. Repository-wide
+weighted statement coverage measured 63.6% in the current local run; the project
+must not claim blanket 80% coverage. The current local-only 1/10/20/30-concurrency baseline is recorded in
 [`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
 Google capacity or latency result.
 
-A final-source macOS universal `v0.2.0` candidate and a same-key
-`v0.2.0-preview.1` migration-bridge candidate were built locally. For both,
-checksum verification, ZIP integrity, universal Mach-O inspection, bundle
-metadata, ad-hoc signature verification, DMG Applications layout, and a
-packaged `/healthz` smoke test passed. `spctl` rejected the stable candidate as
-expected for a package without Apple Developer ID trust. An intentionally
-missing Keychain item also caused the manifest signer to fail closed; the real
-private key was not read.
+The current clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
+package run on this Mac. The resulting universal ad-hoc-signed app, ZIP, DMG,
+Applications shortcut, checksum file, bundle metadata, local PWA routes, and
+native GUI quit/shutdown path were verified. This remains a local unsigned-
+manifest candidate: the current source still requires a signed release
+manifest, public-upload reconciliation, clean-device updater run, and pilot
+before publication. `spctl` rejection remains expected for a package without
+Apple Developer ID trust. An intentionally missing Keychain item also caused
+the manifest signer to fail closed; the real private key was not read.
 
 The public GitHub state was also checked:
 

@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,7 @@ import (
 )
 
 func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
 		return
@@ -22,6 +21,20 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 	var req models.OpenAIChatRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+
+	// Resolve an explicit Developer API key before consulting BOB's web-RPC
+	// alias catalog. The public provider may publish a new gemini-* model ID
+	// before this local web catalog is updated; that route must be forwarded to
+	// Google unchanged rather than rejected by the web adapter.
+	providerKey, useDeveloperAPI, keyErr := a.geminiAPIKeyForRequest(r)
+	if keyErr != nil {
+		writeGeminiAPIError(w, keyErr)
+		return
+	}
+	if useDeveloperAPI {
+		a.handleDirectGeminiChat(w, r, req, providerKey)
 		return
 	}
 
@@ -52,24 +65,27 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 	}
 
 	prompt, images, err := format.MessagesToPromptAndImages(req)
-	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty prompt"}})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty prompt", "type": "invalid_request_error"}})
 		return
 	}
 	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
 		prompt = "Please analyze the attached image."
 	}
 
-	fileRefs, err := a.uploadImages(images)
+	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 	cid := fmt.Sprintf("chatcmpl-%s", format.RandHex(12))
 	a.RequestsServed.Add(1)
 
-	strChoice, isStr := req.ToolChoice.(string)
-	isToolNone := isStr && strChoice == "none"
+	isToolNone := format.IsToolChoiceNone(req.ToolChoice)
 
 	if req.Stream && (len(req.Tools) == 0 || isToolNone) {
 		if !startSSE(w) {
@@ -187,24 +203,13 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 			_ = writeSSEDone(w)
 		} else {
-			a.Logf("Chat stream error: %v", emitErr)
-			errMsg := fmt.Sprintf("\n\n> ⚠️ **Upstream Error**: %v\n", emitErr)
-			_ = emitChunk(format.StreamChunk{Type: format.DeltaContent, Text: errMsg})
-			stopReason := "error"
-			_ = writeSSEData(w, models.OpenAIChatResponse{
-				ID:                cid,
-				Object:            "chat.completion.chunk",
-				Created:           time.Now().Unix(),
-				Model:             resolved.Name,
-				SystemFingerprint: "fp_bob_gemini",
-				Choices: []models.OpenAIChoice{
-					{
-						Index:        0,
-						Delta:        &models.OpenAIMessage{},
-						FinishReason: &stopReason,
-					},
-				},
-			})
+			a.Logf("Chat stream error: %s", publicUpstreamErrorMessage(emitErr))
+			// Headers have already been sent, so preserve any partial model
+			// output but never turn a transport/provider failure into
+			// assistant-authored Markdown. The browser and standard SSE
+			// consumers can classify this structured error without storing it as
+			// successful model output.
+			_ = writeSSEError(w, emitErr)
 			_ = writeSSEDone(w)
 		}
 		return
@@ -212,7 +217,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
 		return
 	}
 

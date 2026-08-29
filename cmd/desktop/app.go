@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"sync"
 )
 
 // App struct
@@ -10,6 +11,10 @@ type App struct {
 	ctx                    context.Context
 	gatewayURL             string
 	updateConfirmationPath string
+	updateMu               sync.Mutex
+	updateCancel           context.CancelFunc
+	updatePromptedVersion  string
+	updateDialogMu         sync.Mutex
 }
 
 // NewApp creates a new App application struct

@@ -2,6 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -11,26 +13,44 @@ import (
 )
 
 type Config struct {
-	Port              int                           `json:"port"`
-	Host              string                        `json:"host"`
-	RetryAttempts     int                           `json:"retry_attempts"`
-	RetryDelaySec     int                           `json:"retry_delay_sec"`
-	RequestTimeoutSec int                           `json:"request_timeout_sec"`
-	GeminiBL          string                        `json:"gemini_bl"`
-	AuthUser          string                        `json:"auth_user"`
-	XSRFToken         string                        `json:"xsrf_token"`
-	DefaultModel      string                        `json:"default_model"`
-	LogRequests       bool                          `json:"log_requests"`
-	CookieFile        string                        `json:"cookie_file"`
-	CookiePool        []string                      `json:"cookie_pool,omitempty"`
-	Proxy             string                        `json:"proxy"`
-	APIKeys           []string                      `json:"api_keys"`
-	AllowedOrigins    []string                      `json:"allowed_origins,omitempty"`
-	Impersonate       string                        `json:"impersonate"`
-	Version           string                        `json:"version,omitempty"`
-	CustomModels      map[string]models.Model       `json:"custom_models,omitempty"`
-	CustomPricing     map[string]models.PricingInfo `json:"custom_pricing,omitempty"`
+	Port              int      `json:"port"`
+	Host              string   `json:"host"`
+	RetryAttempts     int      `json:"retry_attempts"`
+	RetryDelaySec     int      `json:"retry_delay_sec"`
+	RequestTimeoutSec int      `json:"request_timeout_sec"`
+	GeminiBL          string   `json:"gemini_bl"`
+	AuthUser          string   `json:"auth_user"`
+	XSRFToken         string   `json:"xsrf_token"`
+	DefaultModel      string   `json:"default_model"`
+	LogRequests       bool     `json:"log_requests"`
+	CookieFile        string   `json:"cookie_file"`
+	CookiePool        []string `json:"cookie_pool,omitempty"`
+	Proxy             string   `json:"proxy"`
+	APIKeys           []string `json:"api_keys"`
+	// AllowQueryAPIKey is an explicit compatibility escape hatch for clients
+	// that cannot send an authentication header. It is false by default because
+	// URL credentials can leak through history, logs, referrers, and proxies.
+	AllowQueryAPIKey bool `json:"allow_query_api_key,omitempty"`
+	// GeminiAPIKey is a single, opt-in Developer API credential. It is loaded
+	// only from the process environment and deliberately excluded from JSON so
+	// config saves/exported diagnostics cannot persist it.
+	GeminiAPIKey   string                        `json:"-"`
+	AllowedOrigins []string                      `json:"allowed_origins,omitempty"`
+	Impersonate    string                        `json:"impersonate"`
+	Version        string                        `json:"version,omitempty"`
+	CustomModels   map[string]models.Model       `json:"custom_models,omitempty"`
+	CustomPricing  map[string]models.PricingInfo `json:"custom_pricing,omitempty"`
 }
+
+const (
+	DefaultRequestTimeoutSec = 180
+	MaxRetryAttempts         = 10
+	MaxRetryDelaySec         = 60
+	MaxRequestTimeoutSec     = 3600
+	// MaxConfigFileBytes keeps a malformed or hostile local configuration from
+	// consuming unbounded memory before JSON validation can reject it.
+	MaxConfigFileBytes int64 = 1 << 20
+)
 
 func Default() Config {
 	return Config{
@@ -38,7 +58,7 @@ func Default() Config {
 		Host:              "127.0.0.1",
 		RetryAttempts:     3,
 		RetryDelaySec:     2,
-		RequestTimeoutSec: 180,
+		RequestTimeoutSec: DefaultRequestTimeoutSec,
 		GeminiBL:          "boq_assistant-bard-web-server_20260716.08_p0",
 		AuthUser:          "",
 		XSRFToken:         "",
@@ -48,40 +68,60 @@ func Default() Config {
 		CookiePool:        []string{},
 		Proxy:             "",
 		APIKeys:           []string{},
+		AllowQueryAPIKey:  false,
 		AllowedOrigins:    []string{},
 		Impersonate:       "",
 	}
 }
 
 func Normalize(cfg *Config) {
+	if cfg == nil {
+		return
+	}
 	if cfg.RetryAttempts < 1 {
 		cfg.RetryAttempts = 1
+	}
+	if cfg.RetryAttempts > MaxRetryAttempts {
+		cfg.RetryAttempts = MaxRetryAttempts
+	}
+	if cfg.RetryDelaySec < 0 {
+		cfg.RetryDelaySec = 0
+	}
+	if cfg.RetryDelaySec > MaxRetryDelaySec {
+		cfg.RetryDelaySec = MaxRetryDelaySec
+	}
+	if cfg.RequestTimeoutSec <= 0 {
+		cfg.RequestTimeoutSec = DefaultRequestTimeoutSec
+	}
+	if cfg.RequestTimeoutSec > MaxRequestTimeoutSec {
+		cfg.RequestTimeoutSec = MaxRequestTimeoutSec
 	}
 }
 
 func Load(path string) (Config, error) {
 	cfg := Default()
 	if path != "" {
-		data, err := os.ReadFile(path)
+		data, err := readConfigFile(path)
 		if err != nil {
 			return cfg, err
 		}
 
 		var aux struct {
-			Port              *int      `json:"port"`
-			Host              *string   `json:"host"`
-			RetryAttempts     *int      `json:"retry_attempts"`
-			RetryDelaySec     *int      `json:"retry_delay_sec"`
-			RequestTimeoutSec *int      `json:"request_timeout_sec"`
-			GeminiBL          *string   `json:"gemini_bl"`
-			AuthUser          *string   `json:"auth_user"`
-			XSRFToken         *string   `json:"xsrf_token"`
-			DefaultModel      *string   `json:"default_model"`
-			LogRequests       *bool     `json:"log_requests"`
-			CookieFile        *string   `json:"cookie_file"`
-			CookiePool        *[]string `json:"cookie_pool"`
-			Proxy             *string   `json:"proxy"`
-			APIKeys           *[]string `json:"api_keys"`
+			Port              *int                           `json:"port"`
+			Host              *string                        `json:"host"`
+			RetryAttempts     *int                           `json:"retry_attempts"`
+			RetryDelaySec     *int                           `json:"retry_delay_sec"`
+			RequestTimeoutSec *int                           `json:"request_timeout_sec"`
+			GeminiBL          *string                        `json:"gemini_bl"`
+			AuthUser          *string                        `json:"auth_user"`
+			XSRFToken         *string                        `json:"xsrf_token"`
+			DefaultModel      *string                        `json:"default_model"`
+			LogRequests       *bool                          `json:"log_requests"`
+			CookieFile        *string                        `json:"cookie_file"`
+			CookiePool        *[]string                      `json:"cookie_pool"`
+			Proxy             *string                        `json:"proxy"`
+			APIKeys           *[]string                      `json:"api_keys"`
+			AllowQueryAPIKey  *bool                          `json:"allow_query_api_key"`
 			AllowedOrigins    *[]string                      `json:"allowed_origins"`
 			Impersonate       *string                        `json:"impersonate"`
 			CustomModels      *map[string]models.Model       `json:"custom_models"`
@@ -133,6 +173,9 @@ func Load(path string) (Config, error) {
 		}
 		if aux.APIKeys != nil {
 			cfg.APIKeys = *aux.APIKeys
+		}
+		if aux.AllowQueryAPIKey != nil {
+			cfg.AllowQueryAPIKey = *aux.AllowQueryAPIKey
 		}
 		if aux.AllowedOrigins != nil {
 			cfg.AllowedOrigins = *aux.AllowedOrigins
@@ -205,6 +248,14 @@ func Load(path string) (Config, error) {
 			cfg.APIKeys = keys
 		}
 	}
+	if envQueryKey := os.Getenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY"); envQueryKey != "" {
+		cfg.AllowQueryAPIKey = envQueryKey == "true" || envQueryKey == "1" || envQueryKey == "yes"
+	}
+	if envGeminiAPIKey := os.Getenv("BOB_GEMINI_FREE_GEMINI_API_KEY"); envGeminiAPIKey != "" {
+		// Keep this a single key. Never parse a comma-separated list: key
+		// rotation would evade provider quotas and make student usage opaque.
+		cfg.GeminiAPIKey = strings.TrimSpace(envGeminiAPIKey)
+	}
 	if envOrigins := os.Getenv("BOB_GEMINI_FREE_ALLOWED_ORIGINS"); envOrigins != "" {
 		var origins []string
 		for _, origin := range strings.Split(envOrigins, ",") {
@@ -243,6 +294,29 @@ func Load(path string) (Config, error) {
 
 	Normalize(&cfg)
 	return cfg, nil
+}
+
+func readConfigFile(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	if info, err := file.Stat(); err != nil {
+		return nil, err
+	} else if info.Size() > MaxConfigFileBytes {
+		return nil, fmt.Errorf("config file exceeds %d-byte limit", MaxConfigFileBytes)
+	}
+
+	data, err := io.ReadAll(io.LimitReader(file, MaxConfigFileBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > MaxConfigFileBytes {
+		return nil, fmt.Errorf("config file exceeds %d-byte limit", MaxConfigFileBytes)
+	}
+	return data, nil
 }
 
 func Find() string {

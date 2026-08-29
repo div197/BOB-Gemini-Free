@@ -2,6 +2,7 @@ package multimodal
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"image"
 	"image/color"
@@ -10,12 +11,30 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/gemini"
 )
+
+type contextCheckingRequester struct{}
+
+type tokenRoundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f tokenRoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
+func (contextCheckingRequester) Do(req *http.Request) (*http.Response, error) {
+	if err := req.Context().Err(); err != nil {
+		return nil, err
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Content-Type": []string{"image/png"}},
+		Body:       io.NopCloser(bytes.NewReader(createTestImage(2, 2))),
+	}, nil
+}
 
 func createTestImage(width, height int) []byte {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -63,8 +82,8 @@ func TestCompressImageBytesIfNeeded(t *testing.T) {
 }
 
 func TestCompressImageBytesGIF(t *testing.T) {
-	gifImg := createTestImage(80, 80)
-	outBytes, mime, err := CompressImageBytesIfNeeded(gifImg, "image/gif", 50)
+	gifImg := createTestImage(2000, 1500)
+	outBytes, mime, err := CompressImageBytesIfNeeded(gifImg, "image/gif", 1000)
 	if err != nil {
 		t.Fatalf("Failed to compress GIF image: %v", err)
 	}
@@ -73,6 +92,28 @@ func TestCompressImageBytesGIF(t *testing.T) {
 	}
 	if len(outBytes) == 0 {
 		t.Errorf("Expected non-empty output bytes")
+	}
+}
+
+func TestCompressionHonorsRequestedByteLimit(t *testing.T) {
+	input := createTestImage(2000, 1500)
+	const maxBytes = 5000
+	out, mime, err := CompressImageBytesIfNeeded(input, "image/png", maxBytes)
+	if err != nil {
+		t.Fatalf("compression error: %v", err)
+	}
+	if mime != "image/jpeg" {
+		t.Fatalf("mime = %q, want image/jpeg", mime)
+	}
+	if len(out) > maxBytes {
+		t.Fatalf("compressed image length = %d, want <= %d", len(out), maxBytes)
+	}
+}
+
+func TestCompressionReportsImpossibleByteLimit(t *testing.T) {
+	_, _, err := CompressImageBytesIfNeeded(createTestImage(2, 2), "image/png", 1)
+	if err == nil || !strings.Contains(err.Error(), "cannot fit") {
+		t.Fatalf("impossible compression error = %v", err)
 	}
 }
 
@@ -98,6 +139,15 @@ func TestCompressIfNeededBase64(t *testing.T) {
 	}
 }
 
+func TestImageInputBounds(t *testing.T) {
+	if _, _, err := CompressImageBytesIfNeeded([]byte("not-an-image"), "image/png", MaxImageByteSize); err == nil {
+		t.Fatal("invalid image bytes were accepted")
+	}
+	if _, _, err := CompressImageBytesIfNeeded(make([]byte, MaxImageInputBytes+1), "image/png", MaxImageByteSize); err == nil {
+		t.Fatal("oversized image input was accepted")
+	}
+}
+
 func TestFetchImageBytes(t *testing.T) {
 	_, err := FetchImageBytes(nil, "file:///etc/passwd")
 	if err == nil {
@@ -116,6 +166,33 @@ func TestFetchImageBytes(t *testing.T) {
 		t.Fatalf("Expected non-empty image bytes")
 	}
 }
+
+func TestFetchImageBytesRejectsNilClientAndResponse(t *testing.T) {
+	_, err := fetchImageBytes(nil, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "HTTP client") {
+		t.Fatalf("nil client error = %v", err)
+	}
+
+	_, err = fetchImageBytes(emptyResponseRequester{}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "empty response") {
+		t.Fatalf("nil response error = %v", err)
+	}
+}
+
+func TestFetchImageBytesRejectsUnguardedRequester(t *testing.T) {
+	_, err := FetchImageBytes(imageFixtureRequester{body: createTestImage(2, 2)}, "https://images.example.test/image.png")
+	if err == nil || !strings.Contains(err.Error(), "guardable HTTP client") {
+		t.Fatalf("unguarded requester error = %v", err)
+	}
+}
+
+type emptyResponseRequester struct{}
+
+func (emptyResponseRequester) Do(*http.Request) (*http.Response, error) { return nil, nil }
 
 type imageFixtureRequester struct {
 	body []byte
@@ -141,6 +218,17 @@ func TestFetchImageBytesRejectsHTTPError(t *testing.T) {
 	}
 }
 
+func TestFetchImageBytesContextHonorsCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := fetchImageBytesContext(ctx, contextCheckingRequester{}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "context canceled") {
+		t.Fatalf("fetch error = %v, want context cancellation", err)
+	}
+}
+
 func TestFetchImageBytesRejectsPrivateAndLocalHosts(t *testing.T) {
 	for _, imageURL := range []string{
 		"http://127.0.0.1/image.png",
@@ -159,6 +247,29 @@ func TestFetchImageBytesRejectsPrivateDNSResolution(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("private DNS result was accepted")
+	}
+}
+
+func TestFetchImageBytesRevalidatesDNSBeforeDial(t *testing.T) {
+	calls := 0
+	client := &http.Client{Transport: &http.Transport{
+		DialContext: func(context.Context, string, string) (net.Conn, error) {
+			t.Fatal("guarded image dial should reject the private second DNS answer before opening a socket")
+			return nil, nil
+		},
+	}}
+	_, err := fetchImageBytes(client, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		calls++
+		if calls == 1 {
+			return []net.IP{net.ParseIP("203.0.113.10")}, nil
+		}
+		return []net.IP{net.ParseIP("10.0.0.7")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "private or local") {
+		t.Fatalf("DNS rebinding result = %v, want private-address rejection", err)
+	}
+	if calls != 2 {
+		t.Fatalf("resolver calls = %d, want validation plus final dial lookup", calls)
 	}
 }
 
@@ -224,6 +335,70 @@ func TestTokenCache(t *testing.T) {
 	tokens := tc.Get()
 	if tokens.PushID == "" || tokens.Pctx == "" {
 		t.Errorf("Expected valid PushID and Pctx tokens, got: %+v", tokens)
+	}
+}
+
+func TestTokenCacheRefreshesValidPageAndKeepsItAfterOversizedFailure(t *testing.T) {
+	responses := []*http.Response{
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"qKIAYe":"fresh-push","Ylro7b":"fresh-pctx","SNlM0e":"fresh-at","cfb2h":"fresh-bl"}`)),
+		},
+		{
+			StatusCode:    http.StatusOK,
+			Header:        make(http.Header),
+			ContentLength: MaxPageTokenResponseBytes + 1,
+			Body:          io.NopCloser(strings.NewReader("too large")),
+		},
+	}
+	client := &http.Client{Transport: tokenRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		response := responses[0]
+		responses = responses[1:]
+		return response, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.mu.Unlock()
+	first := cache.GetContext(context.Background())
+	if first.PushID != "fresh-push" || first.Pctx != "fresh-pctx" || first.At != "fresh-at" || first.BL != "fresh-bl" {
+		t.Fatalf("fresh tokens = %+v", first)
+	}
+
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.mu.Unlock()
+	second := cache.GetContext(context.Background())
+	if second != first {
+		t.Fatalf("failed refresh replaced last good tokens: got %+v, want %+v", second, first)
+	}
+}
+
+func TestTokenCacheRejectsRedirectWithoutFollowingIt(t *testing.T) {
+	var calls int
+	client := &http.Client{Transport: tokenRoundTripFunc(func(req *http.Request) (*http.Response, error) {
+		calls++
+		return &http.Response{
+			StatusCode: http.StatusFound,
+			Header:     http.Header{"Location": []string{"https://accounts.example.test/login"}},
+			Body:       io.NopCloser(strings.NewReader("redirect")),
+			Request:    req,
+		}, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.tokens = PageTokens{PushID: "old-push", Pctx: "old-pctx", At: "old-at", BL: "old-bl"}
+	cache.mu.Unlock()
+
+	got := cache.GetContext(context.Background())
+	if calls != 1 {
+		t.Fatalf("token refresh followed redirect or retried: %d transport calls", calls)
+	}
+	if got.PushID != "old-push" || got.Pctx != "old-pctx" || got.At != "old-at" || got.BL != "old-bl" {
+		t.Fatalf("redirect failure replaced last good tokens: %+v", got)
 	}
 }
 

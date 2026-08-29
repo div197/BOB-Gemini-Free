@@ -1717,10 +1717,10 @@ input[type="range"] {
   gap: 4px;
 }
 
-/* Subtle Unobtrusive Bottom-Right Scroll Floating Action Button */
-.scroll-bottom-fab {
+/* Subtle Unobtrusive Chat Scroll Floating Action Buttons */
+.scroll-bottom-fab,
+.scroll-top-fab {
   position: absolute;
-  bottom: 84px;
   right: 28px;
   background: var(--bg-card);
   color: var(--text-main);
@@ -1739,7 +1739,16 @@ input[type="range"] {
   z-index: 35;
   backdrop-filter: blur(8px);
 }
-.scroll-bottom-fab:hover {
+.scroll-bottom-fab {
+  bottom: 84px;
+}
+.scroll-top-fab {
+  bottom: 130px;
+}
+.scroll-bottom-fab:hover,
+.scroll-top-fab:hover,
+.scroll-bottom-fab:focus-visible,
+.scroll-top-fab:focus-visible {
   border-color: var(--accent-primary);
   color: var(--accent-primary);
   transform: translateY(-2px);
@@ -2215,6 +2224,7 @@ input[type="range"] {
   display: none;
   width: 100%;
   height: 100%;
+  position: relative;
 }
 .artifact-pane.active {
   display: block;
@@ -2224,6 +2234,74 @@ input[type="range"] {
   height: 100%;
   border: none;
   background: #ffffff;
+}
+.artifact-runtime-error {
+  position: absolute;
+  inset: 18px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(3, 7, 18, 0.92);
+  color: #f8fafc;
+  text-align: center;
+}
+.artifact-runtime-error[hidden] {
+  display: none;
+}
+.artifact-runtime-error-card {
+  width: min(520px, 100%);
+  padding: 22px;
+  border: 1px solid rgba(248, 113, 113, 0.45);
+  border-radius: 14px;
+  background: #0f172a;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+}
+.artifact-runtime-error-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+.artifact-runtime-error-detail {
+  margin: 10px 0 16px;
+  color: #cbd5e1;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+.artifact-runtime-error-actions {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.artifact-source-limit {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-card);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+.history-status-banner {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+  color: #fecaca;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.history-status-banner.stopped {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.08);
+  color: #fde68a;
 }
 #art-pane-code {
   background: var(--bg-app);
@@ -3720,7 +3798,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
 /* Print View Stylesheet */
 @media print {
-  header, .studio-input-area, .sidebar-panel, .scroll-bottom-fab, .toast-stack, .story-header-actions, .btn-user-action, .btn-pill-subtle {
+  header, .studio-input-area, .sidebar-panel, .scroll-bottom-fab, .scroll-top-fab, .toast-stack, .story-header-actions, .btn-user-action, .btn-pill-subtle {
     display: none !important;
   }
   body, main, .messages-viewport, .messages-content {
@@ -4054,6 +4132,29 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
       </div>
 
+      <div class="control-card" style="margin-top:10px; border-color:rgba(250,204,21,0.45);">
+        <label style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
+          <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gemini Developer API (optional)</span>
+          <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); text-transform:none; letter-spacing:0; cursor:pointer;">
+            <input type="checkbox" id="gemini-provider-toggle" onchange="toggleGeminiProviderRoute(this.checked)" style="accent-color:var(--accent-primary);">
+            <span id="gemini-provider-session-label">Use for this session</span>
+          </label>
+        </label>
+        <div style="display:flex; gap:8px;">
+          <input type="password" id="gemini-provider-key-input" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <button class="btn-pill-subtle" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
+        </div>
+        <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">
+          <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
+          <a id="gemini-provider-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">Create or manage a key in Google AI Studio ↗</a>
+          <a id="gemini-provider-limits-link" href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700; margin-left:6px;">View current limits ↗</a>
+          <a id="gemini-provider-models-link" href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700; margin-left:6px;">View current models ↗</a>
+        </div>
+        <div style="font-size:0.7rem; color:var(--text-muted); line-height:1.4; margin-top:5px;">
+          <span id="gemini-provider-route-note">Use the default web-session route when this is off. BOB does not rotate keys or automatically retry a request through a second provider.</span>
+        </div>
+      </div>
+
       <div id="modal-gateway-stats-card" class="control-card" style="margin-top:10px; display:none; background:rgba(0,0,0,0.15);">
         <div style="font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--accent-primary); margin-bottom:6px;">⚡ Live Engine Telemetry & Pool</div>
         <div id="modal-gateway-stats-content" style="font-size:0.78rem; font-family:var(--font-mono); line-height:1.6; color:var(--text-main);">
@@ -4068,17 +4169,18 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           a native package is explicitly listed there.
         </div>
         <div style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</span>
-          <button class="btn-pill-subtle" onclick="copyLaunchCommand('curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</span>
+          <button class="btn-pill-subtle" onclick="copyLaunchCommand(&quot;curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh&quot;)" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
         </div>
         <div style="margin-top:6px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">irm https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1 | iex</span>
-          <button class="btn-pill-subtle" onclick="copyLaunchCommand('irm https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1 | iex')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
+          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1</span>
+          <button class="btn-pill-subtle" onclick="copyLaunchCommand('curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
         </div>
+        <div style="margin-top:6px; color:var(--text-muted);">Inspect the downloaded file, then run <code>bash install.sh</code> on macOS/Linux or <code>.\install.ps1</code> on Windows.</div>
       </div>
 
       <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.45; margin-top:8px;">
-        🔒 <b>Zero Cloud Tracking</b>: All chats, prompts, and thinking tokens stream directly between your browser and your local BOB binary. No telemetry or conversations ever touch intermediate servers.
+        🔒 <b>No BOB analytics relay</b>: Chat prompts and thinking tokens go between your browser and the configured BOB gateway. BOB does not send conversation telemetry to an intermediate BOB service; your selected Google route, CDN assets, and browser/network policies remain separate.
       </div>
     </div>
 
@@ -4138,6 +4240,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <!-- Live Preview IFrame -->
       <div class="artifact-pane active" id="art-pane-preview">
         <iframe id="art-sandbox-iframe" sandbox="allow-scripts allow-modals allow-forms" title="Interactive Artifact Sandbox"></iframe>
+        <div class="artifact-runtime-error" id="art-runtime-error" role="alert" hidden>
+          <div class="artifact-runtime-error-card">
+            <div class="artifact-runtime-error-title">⚠️ This artifact could not start</div>
+            <div class="artifact-runtime-error-detail" id="art-runtime-error-detail">The generated application reported a runtime error.</div>
+            <div class="artifact-runtime-error-actions">
+              <button class="btn-pill-action" type="button" onclick="reloadArtifactSandbox()">↻ Retry</button>
+              <button class="btn-pill-subtle" type="button" onclick="switchArtifactTab('code')">⟨/⟩ View code</button>
+            </div>
+          </div>
+        </div>
       </div>
       <!-- Source Code & Interactive Editor Pane -->
       <div class="artifact-pane" id="art-pane-code">
@@ -4162,7 +4274,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
         <div class="art-editor-wrapper">
           <div class="art-line-numbers" id="art-line-numbers">1</div>
-          <textarea class="art-code-textarea" id="art-code-editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Edit artifact source code here..."></textarea>
+          <textarea class="art-code-textarea" id="art-code-editor" aria-label="Artifact source code editor" spellcheck="false" autocomplete="off" autocorrect="off" autocapitalize="off" placeholder="Edit artifact source code here..."></textarea>
         </div>
       </div>
     </div>
@@ -4746,7 +4858,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <div class="cmd-item-left">
           <span class="cmd-item-icon">🧠</span>
           <div class="cmd-item-info">
-            <span class="cmd-item-title">Deep Invariant Refiner (4-Stage Reasoning)</span>
+            <span class="cmd-item-title">Deep Invariant Refiner (3-Stage Reasoning)</span>
             <span class="cmd-item-desc">Recursive requirement decomposition, self-audit & synthesis</span>
           </div>
         </div>
@@ -5080,8 +5192,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </div>
     </div>
 
-    <!-- Subtle Unobtrusive Bottom-Right Floating Action Button -->
-    <button class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom" aria-label="Jump to bottom">↓</button>
+    <!-- Subtle Unobtrusive Chat Scroll Floating Action Buttons -->
+    <button type="button" class="scroll-top-fab" id="scroll-top-btn" onclick="scrollToTop()" title="Jump to top" aria-label="Jump to top" aria-hidden="true">↑</button>
+    <button type="button" class="scroll-bottom-fab" id="scroll-bottom-btn" onclick="scrollToBottom()" title="Jump to bottom" aria-label="Jump to bottom" aria-hidden="true">↓</button>
 
     <!-- Floating Audio Speech Controller Bar (Play, Pause, Speed, Progress) -->
     <div class="floating-audio-bar" id="floating-audio-bar" style="display:none;">
@@ -5200,6 +5313,10 @@ let pendingRetry = false;
 const MAX_MANUAL_RETRIES = 2;
 const MANUAL_RETRY_COOLDOWN_MS = 4000;
 let currentAttachedImage = null; // Base64 data URL
+// Provider credentials are intentionally session-memory only. The separate
+// toggle prevents an accidentally pasted key from changing the route.
+let geminiProviderKey = "";
+let useGeminiProvider = false;
 
 // Native Wails WebViews do not reliably navigate target=_blank links. Route
 // real HTTP(S) links through the host's default browser when the Wails runtime
@@ -5247,6 +5364,16 @@ const PANEL_LEFT_KEY = "bob_gemini_panel_left";
 const PANEL_RIGHT_KEY = "bob_gemini_panel_right";
 const LANG_KEY = "bob_gemini_free_lang";
 const TRANSLIT_KEY = "bob_gemini_free_translit";
+const MAX_LOCAL_ATTACHMENT_BYTES = 32 * 1024 * 1024;
+const MAX_HISTORY_IMAGE_DATA_URL_CHARS = 750000;
+const MAX_HISTORY_ATTACHMENT_TEXT_CHARS = 200000;
+const MAX_HISTORY_ATTACHMENTS = 12;
+const MAX_HISTORY_ERROR_CHARS = 1200;
+const MAX_HISTORY_CONTENT_CHARS = 300000;
+const MAX_HISTORY_THOUGHT_CHARS = 300000;
+const MAX_HISTORY_MESSAGES = 200;
+const MAX_HISTORY_TOTAL_CHARS = 4000000;
+const MAX_HISTORY_SERIALIZED_CHARS = MAX_HISTORY_TOTAL_CHARS + 500000;
 
 let currentLang = "en";
 let isTransliterationActive = false;
@@ -5322,10 +5449,18 @@ const I18N = {
       copy: "Copy", export: "Export", clear: "Clear", newline: "Newline", send: "Send", about: "ⓘ About",
       dropIn: "Drop-in Integration", pythonSDK: "Python SDK", claudeCLI: "Claude Code CLI", curlStream: "cURL Stream",
       response: "BOB AI RESPONSE", streaming: "Streaming...", listen: "Listen", retry: "Retry", think: "Think", flash: "Flash",
+      generationFailed: "Generation failed; this is not a successful answer.", generationStopped: "Generation stopped before completion; retry to continue.",
       copyMessage: "Copy", reasoning: "Step-by-Step Reasoning", save: "Save", reset: "Reset", testPing: "⚡ Test Ping",
       close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
       artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Pop Out",
       gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
+      geminiProviderTitle: "Gemini Developer API (optional)", geminiProviderSession: "Use for this session",
+      geminiProviderPlaceholder: "Paste your own Google AI Studio key",
+      geminiProviderHelp: "Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.",
+      geminiProviderLink: "Create or manage a key in Google AI Studio ↗",
+      geminiProviderLimitsLink: "View current limits ↗",
+      geminiProviderModelsLink: "View current models ↗",
+      geminiProviderRouteNote: "Use the default web-session route when this is off. BOB does not rotate keys or automatically retry a request through a second provider.",
       endpoint: "Gateway Endpoint URL", modelDefault: "Model Default", deepThinking: "Deep Thinking (@think=0)",
       mediumThinking: "Medium Thinking (@think=2)", fastThinking: "Fast / Zero Thinking (@think=4)",
       systemPromptPlaceholder: "Set custom instructions for the model...", ttsAuto: "🌟 Auto Best Natural HD Voice (Recommended)",
@@ -5486,10 +5621,18 @@ const I18N = {
       copy: "कॉपी", export: "एक्सपोर्ट", clear: "हटाएं", newline: "नई पंक्ति", send: "भेजें", about: "ⓘ विवरण",
       dropIn: "ड्रॉप-इन इंटीग्रेशन", pythonSDK: "Python SDK", claudeCLI: "Claude Code CLI", curlStream: "cURL स्ट्रीम",
       response: "BOB AI उत्तर", streaming: "स्ट्रीमिंग...", listen: "सुनें", retry: "पुनः प्रयास", think: "सोचें", flash: "फ़ास्ट",
+      generationFailed: "जनरेशन विफल हुई; इसे सफल उत्तर के रूप में सहेजा नहीं गया है।", generationStopped: "जनरेशन पूरा होने से पहले रोक दी गई; जारी रखने के लिए पुनः प्रयास करें।",
       copyMessage: "कॉपी", reasoning: "चरण-दर-चरण तर्क", save: "सहेजें", reset: "रीसेट", testPing: "⚡ टेस्ट पिंग",
       close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
       artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "नई विंडो",
       gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
+      geminiProviderTitle: "Gemini Developer API (वैकल्पिक)", geminiProviderSession: "इस सत्र के लिए उपयोग करें",
+      geminiProviderPlaceholder: "अपनी Google AI Studio key paste करें",
+      geminiProviderHelp: "आपके अपने Google AI Studio project के लिए वैकल्पिक direct route। Key इसी page की memory में रहती है, session toggle चालू होने पर ही भेजी जाती है और BOB में save नहीं होती। Google project quota, free-tier limits और billing settings लागू रहती हैं।",
+      geminiProviderLink: "Google AI Studio में key बनाएं या प्रबंधित करें ↗",
+      geminiProviderLimitsLink: "वर्तमान सीमाएं देखें ↗",
+      geminiProviderModelsLink: "वर्तमान मॉडल देखें ↗",
+      geminiProviderRouteNote: "यह बंद होने पर default web-session route उपयोग होगा। BOB keys rotate नहीं करता और दूसरे provider पर automatic retry नहीं करता।",
       endpoint: "गेटवे एंडपॉइंट URL", modelDefault: "मॉडल डिफ़ॉल्ट", deepThinking: "गहन तर्क (@think=0)",
       mediumThinking: "मध्यम तर्क (@think=2)", fastThinking: "तेज़ / शून्य तर्क (@think=4)",
       systemPromptPlaceholder: "मॉडल के लिए कस्टम निर्देश सेट करें...", ttsAuto: "🌟 सर्वोत्तम प्राकृतिक HD आवाज़ स्वतः (अनुशंसित)",
@@ -5836,6 +5979,13 @@ function applyLanguageUI(dict) {
     "about-close-btn": ui.close,
     "gateway-modal-title": ui.gatewayTitle,
     "gateway-modal-subtitle": ui.gatewaySubtitle,
+    "gemini-provider-title": ui.geminiProviderTitle,
+    "gemini-provider-session-label": ui.geminiProviderSession,
+    "gemini-provider-help": ui.geminiProviderHelp,
+    "gemini-provider-link": ui.geminiProviderLink,
+    "gemini-provider-limits-link": ui.geminiProviderLimitsLink,
+    "gemini-provider-models-link": ui.geminiProviderModelsLink,
+    "gemini-provider-route-note": ui.geminiProviderRouteNote,
     "gateway-endpoint-label": ui.endpoint,
     "gateway-save-btn": ui.save,
     "gateway-reset-btn": ui.reset,
@@ -5911,6 +6061,8 @@ function applyLanguageUI(dict) {
   if (inputEl) inputEl.placeholder = dict.inputPlaceholder;
   const systemPrompt = document.getElementById("system-prompt");
   if (systemPrompt) systemPrompt.placeholder = ui.systemPromptPlaceholder;
+  const providerKeyInput = document.getElementById("gemini-provider-key-input");
+  if (providerKeyInput) providerKeyInput.placeholder = ui.geminiProviderPlaceholder;
   const sendLabel = document.getElementById("send-btn-label");
   if (sendLabel && !isGenerating) sendLabel.innerText = dict.btnSend;
 
@@ -6040,7 +6192,18 @@ function handleImageFileSelect(e) {
   attachImageFile(file);
 }
 
+function validateLocalAttachment(file) {
+  if (!file) return false;
+  const size = Number(file.size);
+  if (Number.isFinite(size) && size > MAX_LOCAL_ATTACHMENT_BYTES) {
+    showToast(`Attachment is too large. Maximum size is ${Math.floor(MAX_LOCAL_ATTACHMENT_BYTES / (1024 * 1024))} MB.`, "⚠️");
+    return false;
+  }
+  return true;
+}
+
 function attachImageFile(file) {
+  if (!validateLocalAttachment(file)) return;
   if (!file.type.startsWith("image/")) {
     const isDoc = file.type.startsWith("text/") || 
                   /\.(txt|md|markdown|json|csv|py|js|ts|tsx|jsx|go|rs|cpp|c|h|hpp|java|html|css|scss|sh|yaml|yml|xml|sql|pdf)$/i.test(file.name);
@@ -6181,12 +6344,41 @@ function getGatewayBaseUrl() {
   return DEFAULT_GATEWAY_URL;
 }
 
+function isNativeDesktopStudio() {
+  return Boolean(window.runtime && typeof window.runtime.BrowserOpenURL === "function");
+}
+
+function canSendGeminiProviderKey() {
+  // A hosted page must not send a student's provider credential to its own
+  // public origin or probe an unselected local gateway. Native Wails, a
+  // loopback-served Studio, or an endpoint explicitly saved by the user are
+  // the only allowed destinations for this opt-in header.
+  if (isNativeDesktopStudio() || (isLoopbackPage() && isLoopbackGatewayURL(getGatewayBaseUrl()))) {
+    return true;
+  }
+  return hasExplicitGatewayEndpoint();
+}
+
+function isLoopbackGatewayURL(rawURL) {
+  try {
+    const parsed = new URL(rawURL, window.location.href);
+    const host = (parsed.hostname || "").toLowerCase();
+    return LOOPBACK_HOSTS.includes(host) || host === "::1";
+  } catch (e) {
+    return false;
+  }
+}
+
 function openGatewayModal() {
   const modal = document.getElementById("gateway-modal");
   const input = document.getElementById("gateway-url-input");
   const keyInput = document.getElementById("gateway-api-key-input");
+  const providerKeyInput = document.getElementById("gemini-provider-key-input");
+  const providerToggle = document.getElementById("gemini-provider-toggle");
   if (input) input.value = getGatewayBaseUrl();
   if (keyInput) keyInput.value = localStorage.getItem('bob_api_key') || '';
+  if (providerKeyInput) providerKeyInput.value = geminiProviderKey;
+  if (providerToggle) providerToggle.checked = useGeminiProvider;
   if (modal) modal.classList.add("open");
 }
 
@@ -6213,6 +6405,40 @@ function toggleApiKeyVisibility() {
   if (!input) return;
   const isDisc = input.style.webkitTextSecurity === "disc" || getComputedStyle(input).webkitTextSecurity === "disc";
   input.style.webkitTextSecurity = isDisc ? "none" : "disc";
+}
+
+function saveGeminiProviderKey(val) {
+  geminiProviderKey = (val || "").trim();
+}
+
+function toggleGeminiProviderRoute(enabled) {
+  if (enabled && !canSendGeminiProviderKey()) {
+    useGeminiProvider = false;
+    const toggle = document.getElementById("gemini-provider-toggle");
+    if (toggle) toggle.checked = false;
+    showToast("For safety, configure a local or explicitly trusted gateway endpoint first", "🔒");
+    return;
+  }
+  useGeminiProvider = Boolean(enabled);
+  if (!useGeminiProvider) {
+    const input = document.getElementById("gemini-provider-key-input");
+    if (input) input.value = geminiProviderKey;
+    showToast("Using the default web-session route", "🌐");
+    return;
+  }
+  if (!geminiProviderKey) {
+    showToast("Paste your own Google AI Studio key first", "🔑");
+    const input = document.getElementById("gemini-provider-key-input");
+    if (input) input.focus();
+    return;
+  }
+  showToast("Using your Gemini Developer API project for this session", "⚡");
+}
+
+function toggleGeminiProviderKeyVisibility() {
+  const input = document.getElementById("gemini-provider-key-input");
+  if (!input) return;
+  input.type = input.type === "password" ? "text" : "password";
 }
 
 function saveGatewayEndpoint() {
@@ -6702,6 +6928,7 @@ function renderAllMermaid(targetEl) {
 
 const msgListEl = document.getElementById("messages-list");
 const CHAT_BOTTOM_THRESHOLD = 120;
+const CHAT_TOP_THRESHOLD = 24;
 
 function isMessagesNearBottom() {
   if (!msgListEl) return true;
@@ -6709,10 +6936,43 @@ function isMessagesNearBottom() {
   return remaining <= CHAT_BOTTOM_THRESHOLD;
 }
 
+function isMessagesNearTop() {
+  return !msgListEl || msgListEl.scrollTop <= CHAT_TOP_THRESHOLD;
+}
+
+function setScrollButtonVisibility(button, visible) {
+  if (!button) return;
+  button.style.display = visible ? "flex" : "none";
+  button.setAttribute("aria-hidden", visible ? "false" : "true");
+}
+
+function updateScrollButtons() {
+  const topButton = document.getElementById("scroll-top-btn");
+  const bottomButton = document.getElementById("scroll-bottom-btn");
+  if (!msgListEl) {
+    setScrollButtonVisibility(topButton, false);
+    setScrollButtonVisibility(bottomButton, false);
+    return;
+  }
+
+  const hasScrollableMessages = msgListEl.scrollHeight > msgListEl.clientHeight + 1;
+  // Use actual scroll geometry as the source of truth. During a streamed
+  // render chatHistory may still be one tick behind the DOM, which used to
+  // hide both controls even though the viewport was already scrollable.
+  const canNavigate = hasScrollableMessages;
+  setScrollButtonVisibility(topButton, canNavigate && !isMessagesNearTop());
+  setScrollButtonVisibility(bottomButton, canNavigate && !isMessagesNearBottom());
+}
+
+function scheduleScrollButtonUpdate() {
+  updateScrollButtons();
+  if (typeof requestAnimationFrame === "function") requestAnimationFrame(updateScrollButtons);
+}
+
 function updateScrollBottomButton() {
-  const btn = document.getElementById("scroll-bottom-btn");
-  if (!btn) return;
-  btn.style.display = (!userIsAtBottom && chatHistory.length > 0) ? "flex" : "none";
+  // Keep the existing function name for callers that update the chat after a
+  // render, while keeping both directional controls in sync.
+  scheduleScrollButtonUpdate();
 }
 
 function keepMessagesAtBottom() {
@@ -6720,16 +6980,29 @@ function keepMessagesAtBottom() {
   const bottom = Math.max(0, msgListEl.scrollHeight - msgListEl.clientHeight);
   msgListEl.scrollTo({ top: bottom, behavior: "auto" });
   userIsAtBottom = true;
-  updateScrollBottomButton();
+  updateScrollButtons();
 }
 
-msgListEl.addEventListener("scroll", () => {
-  userIsAtBottom = isMessagesNearBottom();
-  updateScrollBottomButton();
-});
+if (msgListEl) {
+  msgListEl.addEventListener("scroll", () => {
+    userIsAtBottom = isMessagesNearBottom();
+    updateScrollButtons();
+  }, { passive: true });
+}
+
+function scrollToTop() {
+  if (!msgListEl) return;
+  msgListEl.scrollTo({ top: 0, behavior: "smooth" });
+  userIsAtBottom = false;
+  updateScrollButtons();
+}
 
 function scrollToBottom() {
-  keepMessagesAtBottom();
+  if (!msgListEl) return;
+  const bottom = Math.max(0, msgListEl.scrollHeight - msgListEl.clientHeight);
+  msgListEl.scrollTo({ top: bottom, behavior: "smooth" });
+  userIsAtBottom = true;
+  updateScrollButtons();
 }
 
 function syncComposerOffset() {
@@ -6745,6 +7018,7 @@ function syncComposerOffset() {
 const messagesContentEl = document.getElementById("messages-content");
 if (window.ResizeObserver && messagesContentEl) {
   new ResizeObserver(() => {
+    updateScrollButtons();
     if (userIsAtBottom) keepMessagesAtBottom();
   }).observe(messagesContentEl);
 }
@@ -6760,7 +7034,13 @@ syncComposerOffset();
 
 window.addEventListener("resize", () => {
   syncComposerOffset();
+  updateScrollButtons();
   if (userIsAtBottom) requestAnimationFrame(keepMessagesAtBottom);
+});
+
+window.addEventListener("beforeunload", () => {
+  geminiProviderKey = "";
+  useGeminiProvider = false;
 });
 
 function updatePromptTokenEstimate(text) {
@@ -7314,7 +7594,10 @@ function showLocalOnboardingModal() {
         
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
-          <code style="color: #10b981; user-select: all;">curl -sSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash</code>
+          <code style="color: #10b981; user-select: all;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</code>
+          <br><br>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Inspect, then run the local installer</span>
+          <code style="color: #10b981; user-select: all;">less install.sh &amp;&amp; bash install.sh</code>
           <br><br>
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the installed CLI engine</span>
           <code style="color: #3b82f6; user-select: all;">bob-gemini-free --port 9610</code>
@@ -7474,7 +7757,9 @@ function downloadCode(btn, lang) {
   a.href = url;
   a.download = `bob_code_${Date.now()}.${ext}`;
   a.click();
-  URL.revokeObjectURL(url);
+  // Allow the browser's download hand-off to finish before releasing the
+  // object URL. Immediate revocation is racy in some native WebViews.
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
   showToast(`Downloaded as bob_code.${ext}`, "💾");
 }
 
@@ -7501,6 +7786,175 @@ function handleImageError(img, altText) {
 /* Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas) */
 const artifactsRegistry = new Map();
 let currentActiveArtifact = null;
+let artifactEditorListenersBound = false;
+let artifactEditorWrapEnabled = true;
+const MAX_ARTIFACT_SOURCE_CHARS = 2 * 1024 * 1024;
+const MAX_ARTIFACT_REGISTRY_ITEMS = 128;
+const MAX_ARTIFACT_REGISTRY_CHARS = 8 * 1024 * 1024;
+let artifactRegistrySourceChars = 0;
+let artifactRenderCounter = 0;
+let activeArtifactRender = null;
+
+function artifactRenderScopeKey(scopeKey) {
+  const raw = typeof scopeKey === 'string' && scopeKey.trim()
+    ? scopeKey.trim()
+    : `render-${++artifactRenderCounter}`;
+  return raw.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80) || `render-${++artifactRenderCounter}`;
+}
+
+function nextArtifactID() {
+  if (!activeArtifactRender) {
+    activeArtifactRender = { key: artifactRenderScopeKey(), ordinal: 0 };
+  }
+  const id = `art_${activeArtifactRender.key}_${activeArtifactRender.ordinal}`;
+  activeArtifactRender.ordinal += 1;
+  return id;
+}
+
+function ensureArtifactRegistryCapacity(id, nextSourceLength) {
+  const previous = artifactsRegistry.get(id);
+  const previousLength = previous && typeof previous.code === 'string' ? previous.code.length : 0;
+  let nextItemCount = previous ? artifactsRegistry.size : artifactsRegistry.size + 1;
+  let nextSourceChars = artifactRegistrySourceChars - previousLength + nextSourceLength;
+
+  while (nextItemCount > MAX_ARTIFACT_REGISTRY_ITEMS || nextSourceChars > MAX_ARTIFACT_REGISTRY_CHARS) {
+    let evicted = false;
+    for (const candidateID of artifactsRegistry.keys()) {
+      if (candidateID === id || (currentActiveArtifact && candidateID === currentActiveArtifact.id)) continue;
+      const candidate = artifactsRegistry.get(candidateID);
+      artifactsRegistry.delete(candidateID);
+      artifactRegistrySourceChars -= candidate && typeof candidate.code === 'string' ? candidate.code.length : 0;
+      nextItemCount -= 1;
+      nextSourceChars -= candidate && typeof candidate.code === 'string' ? candidate.code.length : 0;
+      evicted = true;
+      break;
+    }
+    if (!evicted) return false;
+  }
+  return true;
+}
+
+function registerArtifact(artifact) {
+  if (!artifact || typeof artifact.id !== 'string' || typeof artifact.code !== 'string') return false;
+  if (artifact.code.length > MAX_ARTIFACT_SOURCE_CHARS) return false;
+  if (!ensureArtifactRegistryCapacity(artifact.id, artifact.code.length)) return false;
+
+  const previous = artifactsRegistry.get(artifact.id);
+  if (previous) {
+    artifactRegistrySourceChars -= typeof previous.code === 'string' ? previous.code.length : 0;
+    Object.assign(previous, artifact);
+  } else {
+    artifactsRegistry.set(artifact.id, artifact);
+  }
+  artifactRegistrySourceChars += artifact.code.length;
+  return true;
+}
+
+function artifactSizeLimitNotice(language, sourceLength) {
+  const label = escapeHtml(language || 'code');
+  const size = Number(sourceLength || 0).toLocaleString();
+  const limit = Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString();
+  return `<div class="artifact-source-limit" role="alert"><strong>Artifact preview not started.</strong> The ${label} source is ${size} characters; interactive previews are limited to ${limit} characters. Use the provider's smaller output or download the source in a separate response.</div>`;
+}
+
+function normalizeArtifactToken(token, fallbackLanguage) {
+  let rawCode = token;
+  let rawLang = fallbackLanguage;
+  if (token && typeof token === 'object') {
+    rawCode = token.text ?? token.code ?? token.raw ?? token.value ?? '';
+    rawLang = token.lang ?? token.language ?? token.infostring ?? fallbackLanguage;
+  }
+  if (typeof rawCode !== 'string') rawCode = rawCode == null ? '' : String(rawCode);
+  if (typeof rawLang !== 'string') rawLang = rawLang == null ? '' : String(rawLang);
+  // Marked versions have passed both strings and token objects to renderer
+  // hooks. Normalize once so artifact registration, preview, and editor all
+  // consume the exact same source text.
+  return { code: rawCode, lang: rawLang.trim().split(/\s+/)[0] || '' };
+}
+
+function getArtifactSource(artifact) {
+  if (!artifact) return '';
+  return normalizeArtifactToken(artifact.code, artifact.lang).code;
+}
+
+function updateArtifactEditorStats() {
+  const editor = document.getElementById('art-code-editor');
+  const stats = document.getElementById('art-code-stats');
+  const lineNumbers = document.getElementById('art-line-numbers');
+  if (!editor) return;
+
+  const source = editor.value || '';
+  const lineCount = source ? source.split('\n').length : 0;
+  const artifactType = currentActiveArtifact && (currentActiveArtifact.lang || currentActiveArtifact.type)
+    ? (currentActiveArtifact.type === 'html' ? 'HTML5' : (currentActiveArtifact.lang || currentActiveArtifact.type).toUpperCase())
+    : 'CODE';
+
+  if (stats) stats.innerText = `${artifactType} • ${lineCount} lines • ${source.length} chars`;
+  if (lineNumbers) {
+    lineNumbers.innerText = lineCount > 0
+      ? Array.from({ length: lineCount }, (_, index) => index + 1).join('\n')
+      : '1';
+    lineNumbers.scrollTop = editor.scrollTop;
+  }
+}
+
+function bindArtifactEditor() {
+  const editor = document.getElementById('art-code-editor');
+  if (!editor || artifactEditorListenersBound) return;
+
+  editor.addEventListener('input', () => {
+    if (!currentActiveArtifact || editor.dataset.artifactId !== currentActiveArtifact.id) return;
+    currentActiveArtifact.editorCode = editor.value;
+    updateArtifactEditorStats();
+  });
+  editor.addEventListener('scroll', () => {
+    const lineNumbers = document.getElementById('art-line-numbers');
+    if (lineNumbers) lineNumbers.scrollTop = editor.scrollTop;
+  });
+  editor.addEventListener('keydown', (event) => {
+    if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+      event.preventDefault();
+      runArtifactEditorCode();
+      return;
+    }
+    if (event.key === 'Tab') {
+      event.preventDefault();
+      const start = editor.selectionStart;
+      const end = editor.selectionEnd;
+      editor.setRangeText('  ', start, end, 'end');
+      editor.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  });
+  artifactEditorListenersBound = true;
+}
+
+function prepareArtifactEditor(artifact) {
+  const editor = document.getElementById('art-code-editor');
+  if (!editor || !artifact) return;
+  bindArtifactEditor();
+
+  const source = getArtifactSource(artifact);
+  if (typeof artifact.originalCode !== 'string') artifact.originalCode = source;
+  if (typeof artifact.editorCode !== 'string') artifact.editorCode = source;
+
+  // Hydrate when switching artifacts. Also recover from an empty editor that
+  // can occur when the preview is opened before the textarea's first layout
+  // pass; never overwrite a deliberate edit because editorCode is updated on
+  // every input event.
+  const needsInitialHydration = editor.dataset.artifactId !== artifact.id;
+  const needsEmptyEditorRecovery = !editor.value && !!artifact.editorCode;
+  if (needsInitialHydration || needsEmptyEditorRecovery) {
+    editor.dataset.artifactId = artifact.id;
+    editor.value = artifact.editorCode;
+  }
+  updateArtifactEditorStats();
+}
+
+function persistArtifactEditorDraft() {
+  const editor = document.getElementById('art-code-editor');
+  if (!editor || !currentActiveArtifact || editor.dataset.artifactId !== currentActiveArtifact.id) return;
+  currentActiveArtifact.editorCode = editor.value;
+}
 
 function extractArtifactMeta(code, lang) {
   const cleanLang = (lang || '').toLowerCase().trim();
@@ -7565,10 +8019,94 @@ function sanitizePythonCode(code) {
   return cleaned.trim();
 }
 
+// HTML artifacts stay in an opaque-origin sandbox on purpose. That prevents
+// generated code from reaching the host page, but browser storage access then
+// throws instead of returning a Storage object. A per-artifact in-memory shim
+// keeps common games and demos functional without weakening the sandbox or
+// pretending that state persists across reloads.
+function artifactRuntimeBootstrap() {
+  return `<script>(function(){
+    function createMemoryStorage(){
+      const data = Object.create(null);
+      return {
+        get length(){ return Object.keys(data).length; },
+        key: function(index){ return Object.keys(data)[index] || null; },
+        getItem: function(key){ key = String(key); return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : null; },
+        setItem: function(key, value){ data[String(key)] = String(value); },
+        removeItem: function(key){ delete data[String(key)]; },
+        clear: function(){ Object.keys(data).forEach(function(key){ delete data[key]; }); }
+      };
+    }
+    function installStorage(name){
+      try {
+        if (window[name]) return;
+      } catch (_) {}
+      try {
+        Object.defineProperty(window, name, { configurable: true, value: createMemoryStorage() });
+      } catch (_) {}
+    }
+    function report(message){
+      try {
+        window.parent.postMessage({ type: 'BOB_ARTIFACT_RUNTIME_ERROR', message: String(message || 'Unknown artifact runtime error').slice(0, 500) }, '*');
+      } catch (_) {}
+    }
+    installStorage('localStorage');
+    installStorage('sessionStorage');
+    window.addEventListener('error', function(event){
+      report((event.error && event.error.message) || event.message || 'Artifact script error');
+    });
+    window.addEventListener('unhandledrejection', function(event){
+      const reason = event.reason;
+      report((reason && reason.message) || reason || 'Unhandled artifact promise rejection');
+    });
+  })();<\/script>`;
+}
+
+function prepareHTMLArtifactSource(source) {
+  const bootstrap = artifactRuntimeBootstrap();
+  const headPattern = /<head\b[^>]*>/i;
+  if (headPattern.test(source)) {
+    return source.replace(headPattern, function(head){ return head + bootstrap; });
+  }
+  const htmlPattern = /<html\b[^>]*>/i;
+  if (htmlPattern.test(source)) {
+    return source.replace(htmlPattern, function(html){ return html + bootstrap; });
+  }
+  return bootstrap + source;
+}
+
+function hideArtifactRuntimeError() {
+  const error = document.getElementById('art-runtime-error');
+  if (error) error.hidden = true;
+}
+
+function showArtifactRuntimeError(message) {
+  const error = document.getElementById('art-runtime-error');
+  const detail = document.getElementById('art-runtime-error-detail');
+  if (!error) return;
+  const cleanMessage = String(message || 'The generated application reported an unknown runtime error.')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 500);
+  if (detail) detail.textContent = cleanMessage;
+  error.hidden = false;
+}
+
 function openArtifactCanvas(artId) {
   const art = artifactsRegistry.get(artId);
   if (!art) return;
+  persistArtifactEditorDraft();
+  const code = getArtifactSource(art);
   currentActiveArtifact = art;
+  prepareArtifactEditor(art);
+
+  if (typeof code !== 'string' || code.length > MAX_ARTIFACT_SOURCE_CHARS) {
+    showArtifactRuntimeError(`Artifact source exceeds the ${Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString()} character preview limit.`);
+    const modal = document.getElementById("artifact-modal");
+    if (modal) modal.classList.add("open");
+    switchArtifactTab('preview');
+    return;
+  }
 
   const orb = document.getElementById("art-type-orb");
   if (orb) orb.innerText = art.icon;
@@ -7576,31 +8114,33 @@ function openArtifactCanvas(artId) {
   if (titleEl) titleEl.innerText = art.title;
   const badgeEl = document.getElementById("art-modal-badge");
   if (badgeEl) badgeEl.innerText = art.type.toUpperCase() + " • " + (art.isInteractive ? "Interactive Live Canvas" : "Source Artifact");
+  hideArtifactRuntimeError();
 
   // Load Iframe Sandbox
   const iframe = document.getElementById("art-sandbox-iframe");
   if (iframe) {
     if (art.type === 'html') {
       const escapeListenerSnippet = `<script>(function(){window.addEventListener('keydown',function(e){if(e.key==='Escape'){try{window.parent.postMessage({type:'BOB_CLOSE_ARTIFACT'},'*');}catch(err){}}});})();<\/script>`;
-      let injected = art.code;
-      if (injected.includes('</body>')) {
-        injected = injected.replace('</body>', escapeListenerSnippet + '</body>');
+      let injected = prepareHTMLArtifactSource(code);
+      if (/<\/body\s*>/i.test(injected)) {
+        injected = injected.replace(/<\/body\s*>/i, function(body){ return escapeListenerSnippet + body; });
       } else {
         injected += escapeListenerSnippet;
       }
       iframe.srcdoc = injected;
     } else if (art.type === 'svg') {
-      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto;} svg{max-width:90vw; max-height:85vh; filter:drop-shadow(0 10px 25px rgba(0,0,0,0.5));}</style></head><body>${art.code}</body></html>`;
+      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto;} svg{max-width:90vw; max-height:85vh; filter:drop-shadow(0 10px 25px rgba(0,0,0,0.5));}</style></head><body>${code}</body></html>`;
     } else if (art.type === 'mermaid') {
-      iframe.srcdoc = `<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(art.code)}</div><script>mermaid.initialize({startOnLoad:true, theme:'dark'});<\/script></body></html>`;
+      iframe.srcdoc = `<!DOCTYPE html><html><head><script>(function(){window.__bobMermaidFailure=function(message){try{window.parent.postMessage({type:'BOB_ARTIFACT_RUNTIME_ERROR',message:String(message||'Mermaid library could not be loaded').slice(0,500)},'*');}catch(_){}};window.setTimeout(function(){if(!window.mermaid)window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.');},10000);})();<\/script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" onerror="window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.')"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(code)}</div><script>if(!window.mermaid){window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.');}else{try{mermaid.initialize({startOnLoad:true, theme:'dark'});}catch(err){window.__bobMermaidFailure('Mermaid preview failed to initialize.');}}<\/script></body></html>`;
     } else if (art.type === 'python') {
-      const cleanPyCode = sanitizePythonCode(art.code);
+      const cleanPyCode = sanitizePythonCode(code);
       iframe.srcdoc = `<!DOCTYPE html>
 <html>
 <head>
   <meta charset="utf-8">
   <title>Python WASM Runner</title>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"><\/script>
+  <script>window.__bobPyodideLoadError='';window.__bobReportPyodideFailure=function(message){try{window.parent.postMessage({type:'BOB_ARTIFACT_RUNTIME_ERROR',message:String(message||'Pyodide could not be loaded').slice(0,500)},'*');}catch(_){}};<\/script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js" onerror="window.__bobPyodideLoadError='Pyodide WebAssembly library could not be loaded';window.__bobReportPyodideFailure('Pyodide WebAssembly library could not be loaded. Check the network connection and try again.')"><\/script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -7724,6 +8264,9 @@ function openArtifactCanvas(artId) {
 
     async function initPyodide() {
       try {
+        if (window.__bobPyodideLoadError || typeof loadPyodide !== 'function') {
+          throw new Error(window.__bobPyodideLoadError || 'Pyodide WebAssembly library could not be loaded');
+        }
         pyodideInstance = await loadPyodide({
           stdout: (text) => appendTerm(text, 'term-out'),
           stderr: (text) => appendTerm(text, 'term-err')
@@ -7739,7 +8282,9 @@ function openArtifactCanvas(artId) {
       } catch (err) {
         document.getElementById('py-dot').className = 'py-dot error';
         document.getElementById('py-status-text').textContent = 'Pyodide Load Failed';
-        appendTerm('Failed to load Pyodide WebAssembly: ' + err.message, 'term-err');
+        const message = (err && err.message) || 'Pyodide WebAssembly library could not be loaded';
+        appendTerm('Failed to load Pyodide WebAssembly: ' + message, 'term-err');
+        window.__bobReportPyodideFailure(message);
       }
     }
 
@@ -7784,17 +8329,17 @@ function openArtifactCanvas(artId) {
 </body>
 </html>`;
     } else {
-      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; padding:24px; background:#0f172a; color:#e2e8f0; font-family:monospace; font-size:14px; white-space:pre-wrap;}</style></head><body>${escapeHtml(art.code)}</body></html>`;
+      iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; padding:24px; background:#0f172a; color:#e2e8f0; font-family:monospace; font-size:14px; white-space:pre-wrap;}</style></head><body>${escapeHtml(code)}</body></html>`;
     }
   }
 
   // Load Code Display
   const codeEl = document.getElementById("art-code-display");
   if (codeEl) {
-    let highlighted = escapeHtml(art.code);
+    let highlighted = escapeHtml(code);
     if (window.Prism && Prism.languages && Prism.languages[art.lang]) {
       try {
-        highlighted = Prism.highlight(art.code, Prism.languages[art.lang], art.lang);
+        highlighted = Prism.highlight(code, Prism.languages[art.lang], art.lang);
       } catch(e) {}
     }
     codeEl.innerHTML = highlighted;
@@ -7817,6 +8362,7 @@ function openArtifactCanvas(artId) {
 function closeArtifactCanvas() {
   const modal = document.getElementById("artifact-modal");
   if (modal) modal.classList.remove("open");
+  hideArtifactRuntimeError();
   const iframe = document.getElementById("art-sandbox-iframe");
   if (iframe) iframe.srcdoc = "";
 }
@@ -7824,6 +8370,13 @@ function closeArtifactCanvas() {
 window.addEventListener('message', function(e) {
   if (e.data && e.data.type === 'BOB_CLOSE_ARTIFACT') {
     closeArtifactCanvas();
+    return;
+  }
+  if (e.data && e.data.type === 'BOB_ARTIFACT_RUNTIME_ERROR') {
+    const iframe = document.getElementById('art-sandbox-iframe');
+    if (iframe && e.source === iframe.contentWindow) {
+      showArtifactRuntimeError(e.data.message);
+    }
   }
 });
 
@@ -7839,11 +8392,76 @@ function switchArtifactTab(tab) {
     if (previewPane) previewPane.classList.add("active");
     if (codePane) codePane.classList.remove("active");
   } else {
+    prepareArtifactEditor(currentActiveArtifact);
     if (previewTab) previewTab.classList.remove("active");
     if (codeTab) codeTab.classList.add("active");
     if (previewPane) previewPane.classList.remove("active");
     if (codePane) codePane.classList.add("active");
   }
+}
+
+function runArtifactEditorCode() {
+  if (!currentActiveArtifact) return;
+  const editor = document.getElementById('art-code-editor');
+  if (!editor) return;
+  prepareArtifactEditor(currentActiveArtifact);
+
+  const source = editor.value || '';
+  if (!source.trim()) {
+    showToast('Cannot run an empty artifact source.', '⚠️');
+    return;
+  }
+  if (source.length > MAX_ARTIFACT_SOURCE_CHARS) {
+    showToast(`Artifact source is limited to ${Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString()} characters.`, '⚠️');
+    return;
+  }
+
+  currentActiveArtifact.code = source;
+  currentActiveArtifact.editorCode = source;
+  openArtifactCanvas(currentActiveArtifact.id);
+  showToast('Artifact changes applied.', '▶️');
+}
+
+function resetArtifactEditorCode() {
+  if (!currentActiveArtifact) return;
+  const originalCode = typeof currentActiveArtifact.originalCode === 'string'
+    ? currentActiveArtifact.originalCode
+    : getArtifactSource(currentActiveArtifact);
+
+  const editor = document.getElementById('art-code-editor');
+  if (editor && editor.dataset.artifactId === currentActiveArtifact.id) editor.value = originalCode;
+  currentActiveArtifact.code = originalCode;
+  currentActiveArtifact.editorCode = originalCode;
+  openArtifactCanvas(currentActiveArtifact.id);
+  switchArtifactTab('code');
+  showToast('Artifact source reset.', '↺');
+}
+
+function copyArtifactEditorCode() {
+  if (!currentActiveArtifact) return;
+  const editor = document.getElementById('art-code-editor');
+  if (!editor) return;
+  prepareArtifactEditor(currentActiveArtifact);
+  const source = editor.value || '';
+  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
+    showToast('Clipboard access is unavailable.', '⚠️');
+    return;
+  }
+  navigator.clipboard.writeText(source)
+    .then(() => showToast('Editor source copied to clipboard!', '📋'))
+    .catch(() => showToast('Could not copy editor source.', '⚠️'));
+}
+
+function toggleArtifactEditorWrap() {
+  const editor = document.getElementById('art-code-editor');
+  const label = document.getElementById('art-wrap-label');
+  if (!editor) return;
+
+  artifactEditorWrapEnabled = !artifactEditorWrapEnabled;
+  editor.style.whiteSpace = artifactEditorWrapEnabled ? 'pre-wrap' : 'pre';
+  editor.style.overflowX = artifactEditorWrapEnabled ? 'hidden' : 'auto';
+  editor.style.wordWrap = artifactEditorWrapEnabled ? 'break-word' : 'normal';
+  if (label) label.innerText = artifactEditorWrapEnabled ? 'Wrap: ON' : 'Wrap: OFF';
 }
 
 function reloadArtifactSandbox() {
@@ -7854,7 +8472,7 @@ function reloadArtifactSandbox() {
 
 function copyArtifactCode() {
   if (!currentActiveArtifact) return;
-  navigator.clipboard.writeText(currentActiveArtifact.code);
+  navigator.clipboard.writeText(getArtifactSource(currentActiveArtifact));
   showToast("Artifact code copied to clipboard!", "📋");
 }
 
@@ -7870,7 +8488,7 @@ function downloadArtifactFile() {
   else if (currentActiveArtifact.type === 'mermaid') { ext = "mmd"; mime = "text/plain"; }
 
   const filename = (currentActiveArtifact.title || "artifact").toLowerCase().replace(/[^a-z0-9_-]/g, '_') + "." + ext;
-  const blob = new Blob([currentActiveArtifact.code], { type: mime });
+  const blob = new Blob([getArtifactSource(currentActiveArtifact)], { type: mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -7878,21 +8496,39 @@ function downloadArtifactFile() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
   showToast("Saved: " + filename, "💾");
 }
 
 function popOutArtifact() {
   if (!currentActiveArtifact) return;
   let mime = currentActiveArtifact.type === 'svg' ? 'image/svg+xml' : 'text/html';
-  let content = currentActiveArtifact.code;
+  let content = getArtifactSource(currentActiveArtifact);
   if (currentActiveArtifact.type === 'svg') {
     content = `<!DOCTYPE html><html><head><title>${escapeHtml(currentActiveArtifact.title)}</title><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a;} svg{max-width:95vw; max-height:90vh;}</style></head><body>${content}</body></html>`;
     mime = 'text/html';
   }
-  const blob = new Blob([content], { type: mime });
+  // Keep the same opaque-origin sandbox in a pop-out window. Opening the raw
+  // generated HTML would turn an explicit preview action into an unsandboxed
+  // document that can retain an opener reference or make privileged requests.
+  // Escape '<' before embedding JSON so an artifact cannot close the wrapper's
+  // script element with a literal closing-script sequence.
+  const frameSource = JSON.stringify(content)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+  const wrapper = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>BOB Artifact Preview</title><style>html,body{margin:0;width:100%;height:100%;background:#0f172a;}iframe{display:block;width:100%;height:100%;border:0;}</style></head><body><iframe sandbox="allow-scripts allow-modals allow-forms" title="Sandboxed BOB artifact preview"></iframe><script>document.querySelector('iframe').srcdoc=${frameSource};<\/script></body></html>`;
+  const blob = new Blob([wrapper], { type: mime });
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  if (!opened) {
+    URL.revokeObjectURL(url);
+    showToast("The artifact window was blocked by the browser", "⚠️");
+    return;
+  }
   showToast("Launched artifact in standalone window", "⛶");
 }
 
@@ -7901,17 +8537,22 @@ if (window.marked) {
   const customRenderer = new marked.Renderer();
 
   customRenderer.code = function(code, lang) {
-    let rawCode = typeof code === 'object' && code !== null ? (code.text || '') : (code || '');
-    let rawLang = typeof code === 'object' && code !== null ? (code.lang || '') : (lang || '');
+    const normalized = normalizeArtifactToken(code, lang);
+    const rawCode = normalized.code;
+    const rawLang = normalized.lang;
     const cleanLang = (rawLang || '').toLowerCase().trim();
+    if (rawCode.length > MAX_ARTIFACT_SOURCE_CHARS) {
+      return artifactSizeLimitNotice(rawLang, rawCode.length);
+    }
     if (cleanLang === 'mermaid') {
       return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${escapeHtml(rawCode)}</div></div>`;
     }
     
     // Register Artifact
     const meta = extractArtifactMeta(rawCode, cleanLang);
-    const artId = 'art_' + Math.random().toString(36).substr(2, 9);
-    artifactsRegistry.set(artId, { id: artId, lang: cleanLang, type: meta.type, title: meta.title, icon: meta.icon, isInteractive: meta.isInteractive, code: rawCode });
+    const artId = nextArtifactID();
+    const registered = registerArtifact({ id: artId, lang: cleanLang, type: meta.type, title: meta.title, icon: meta.icon, isInteractive: meta.isInteractive, code: rawCode });
+    const interactive = meta.isInteractive && registered;
 
     const safeCode = escapeHtml(rawCode);
     const langLabel = rawLang || 'code';
@@ -7923,10 +8564,10 @@ if (window.marked) {
     }
     const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
     
-    const canvasBtn = meta.isInteractive ? `<button class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
+    const canvasBtn = interactive ? `<button class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
 
     let artifactChip = '';
-    if (meta.isInteractive) {
+    if (interactive) {
       if (meta.type === 'python') {
         artifactChip = `<div class="artifact-card-chip" data-action="launch-art" data-art-id="${artId}">
           <div class="artifact-chip-left">
@@ -7993,7 +8634,7 @@ if (window.marked) {
   });
 }
 
-function renderMarkdown(text) {
+function renderMarkdown(text, scopeKey) {
   if (text === null || text === undefined) return "";
   if (typeof text !== 'string') text = String(text);
   if (!text) return "";
@@ -8053,10 +8694,14 @@ function renderMarkdown(text) {
   // 6. Universal Marked.js standard parsing
   let html = "";
   if (window.marked && typeof marked.parse === 'function') {
+    const previousArtifactRender = activeArtifactRender;
+    activeArtifactRender = { key: artifactRenderScopeKey(scopeKey), ordinal: 0 };
     try {
       html = marked.parse(processed);
     } catch(e) {
       html = escapeHtml(processed);
+    } finally {
+      activeArtifactRender = previousArtifactRender;
     }
   } else {
     html = escapeHtml(processed);
@@ -8513,8 +9158,8 @@ const GLOSSARY_ENTRIES = [
     catLabelHi: "सिस्टम्स व नेटवर्क",
     titleEn: "Web RPC Protocol Bridge & Batchexecute",
     titleHi: "वेब RPC प्रोटोकॉल ब्रिज और Batchexecute",
-    descEn: "Translating standard OpenAI/Anthropic HTTP REST endpoints into Google's internal web RPC protocol (streamGenerateContent), enabling 100% free local access.",
-    descHi: "मानक OpenAI/Anthropic HTTP REST एंडपॉइंट्स को Google के आंतरिक वेब RPC में अनुवादित करना, जिससे 100% मुफ़्त स्थानीय उपयोग संभव होता है।",
+    descEn: "Translating selected OpenAI/Anthropic HTTP REST endpoints into Google's internal web RPC protocol (streamGenerateContent); BOB adds no gateway billing, while provider/session limits still apply.",
+    descHi: "चयनित OpenAI/Anthropic HTTP REST एंडपॉइंट्स को Google के आंतरिक वेब RPC में अनुवादित करता है; BOB gateway billing नहीं जोड़ता, लेकिन provider/session limits लागू रहती हैं।",
     formula: "OpenAI REST -> BOB Gateway Engine -> Google Web RPC (StreamGenerate)",
     promptEn: "Explain how BOB Gemini Free translates standard OpenAI and Anthropic API protocols into Google Web RPC in Go.",
     promptHi: "BOB Gemini Free कैसे मानक OpenAI और Anthropic API प्रोटोकॉल को Google Web RPC में अनुवादित करता है, समझाएं।"
@@ -8692,6 +9337,7 @@ function getFileCategory(filename, mimeType) {
 
 async function extractDocumentToMarkdown(file) {
   if (!file) return;
+  if (!validateLocalAttachment(file)) return;
   const fileName = file.name || 'document_' + Date.now();
   const meta = getFileCategory(fileName, file.type);
   const fileId = 'att_' + Math.random().toString(36).substr(2, 9);
@@ -8810,7 +9456,9 @@ async function extractDocumentToMarkdown(file) {
             const extracted = (result && result.data && result.data.text) ? result.data.text.trim() : '';
             if (extracted) {
               fileEntry.ocrText = extracted;
-              currentAttachedImage.ocrText = extracted;
+              if (currentAttachedImage && currentAttachedImage.id === fileId) {
+                currentAttachedImage.ocrText = extracted;
+              }
               fileEntry.markdown = `### Extracted Visual OCR Text (${fileName}):\n\`\`\`\n${extracted}\n\`\`\``;
               const words = extracted.trim().split(/\s+/).filter(w => w).length;
               fileEntry.estTokens = estimateTokensJS(extracted);
@@ -9527,6 +10175,7 @@ function clearChat() {
 
 async function enhanceCurrentPrompt() {
   const inputEl = document.getElementById("user-input");
+  if (!inputEl) return;
   const raw = inputEl.value.trim();
   if (!raw) {
     showToast("Type a rough thought or idea first, then click 🪄 to polish it!", "🪄");
@@ -9540,14 +10189,21 @@ async function enhanceCurrentPrompt() {
   }
 
   const useLiveGateway = !isHostedStudio() || hasExplicitGatewayEndpoint();
-  showToast(useLiveGateway ? "🪄 Crafting precision master prompt with Gemini..." : "🪄 Using offline prompt polish in browser mode...", "✨");
+  if (!useLiveGateway) {
+    showToast("Connect a local gateway to use AI prompt polish; original prompt kept", "⚠️");
+    if (btn) btn.classList.remove("wand-sparkle");
+    return;
+  }
 
-  // 1. Live AI Prompt Metaprompting Engine (via local BOB Gateway)
-  if (useLiveGateway) {
+  showToast("🪄 Crafting precision master prompt with Gemini...", "✨");
+
+  // Live AI Prompt Metaprompting Engine (via local BOB Gateway). A failed
+  // request must never replace the user's prompt with a hard-coded template.
+  let timeoutId = null;
   try {
     const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash";
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6500);
+    timeoutId = setTimeout(() => controller.abort(), 6500);
 
     const res = await fetch(getGatewayBaseUrl() + "/v1/chat/completions", {
       method: "POST",
@@ -9572,80 +10228,31 @@ async function enhanceCurrentPrompt() {
       }),
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      const aiOptimized = data?.choices?.[0]?.message?.content?.trim();
-      if (aiOptimized && aiOptimized.length > 10) {
-        inputEl.value = aiOptimized;
-        autoResize(inputEl);
-        inputEl.focus();
-        showToast("Prompt expanded with AI master-prompt precision!", "🪄");
-        if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
-        return;
-      }
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      showToast("AI prompt polish failed; original prompt kept", "⚠️");
+      return;
     }
+    const aiOptimized = data?.choices?.[0]?.message?.content?.trim();
+    if (!aiOptimized || aiOptimized.length <= 10) {
+      showToast("AI prompt polish returned no usable output; original prompt kept", "⚠️");
+      return;
+    }
+
+    inputEl.value = aiOptimized;
+    autoResize(inputEl);
+    inputEl.focus();
+    showToast("Prompt expanded with AI master-prompt precision!", "🪄");
   } catch (err) {
-    console.warn("AI prompt enhancement offline fallback:", err);
+    const message = err && err.name === "AbortError"
+      ? "AI prompt polish timed out; original prompt kept"
+      : "AI prompt polish failed; original prompt kept";
+    showToast(message, "⚠️");
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
   }
-  }
-
-  // 2. Intelligent Offline Fallback Engine
-  const lower = raw.toLowerCase();
-  let enhanced = "";
-
-  // Case 1: Game / Interactive Simulation / Artifact Canvas
-  if (lower.includes("game") || lower.includes("html") || lower.includes("app") || lower.includes("canvas") || lower.includes("simulation") || lower.includes("calculator") || lower.includes("visualizer") || lower.includes("dashboard")) {
-    enhanced = `Build a complete, standalone, production-grade interactive single-file HTML5 application for: ${raw}.
-
-### Technical & Aesthetic Specifications:
-1. **Self-Contained Architecture**: Include all semantic HTML5 markup, embedded modern CSS3 styling, and JavaScript logic inside a single runnable file.
-2. **Visual Aesthetics & UI**:
-   - Dark theme palette with sleek cyberpunk/glassmorphic accents, clean typography, responsive layout, and smooth transitions.
-   - Fluid 60fps animations, keyboard and pointer touch controls, visual HUD with score/metrics, and particle effects.
-3. **Robust Engineering**:
-   - Clean state management, restart/pause states, zero runtime console errors, and high frame-rate performance.
-   - Avoid external heavy frameworks unless using standard CDN scripts (like Chart.js, Three.js, or Mermaid) when necessary.
-4. Output the complete runnable source code inside a single \`\`\`html\`\`\` code block.`;
-  }
-  // Case 2: Math / Physics / First-Principles Proofs
-  else if (lower.includes("proof") || lower.includes("math") || lower.includes("physics") || lower.includes("equation") || lower.includes("theorem") || lower.includes("derivation") || lower.includes("quantum")) {
-    enhanced = `Provide a rigorous, first-principles mathematical and theoretical deconstruction of: ${raw}.
-
-### Required Structure:
-1. **Core Axioms & Definitions**: Define all mathematical variables, state vectors, operators, and physical constants with standard LaTeX notation.
-2. **Step-by-Step Derivation**: Formulate the full derivation without skipping intermediate steps using clean display math ($$...$$) and inline math ($...$).
-3. **Intuitive Grounded Analogies**: Provide physical intuition and real-world natural analogies (flowing fluids, wave dynamics, mechanical systems) without cliché toy metaphors.
-4. **Edge Cases & Asymptotic Limits**: Evaluate the boundary conditions and asymptotic behavior.
-5. If visual representations aid comprehension, include structured ASCII schematics or valid Mermaid flowcharts.`;
-  }
-  // Case 3: Code / Backend / Microservices / Architecture
-  else if (lower.includes("code") || lower.includes("go") || lower.includes("python") || lower.includes("api") || lower.includes("backend") || lower.includes("microservice") || lower.includes("database") || lower.includes("refactor")) {
-    enhanced = `Design a high-performance, production-ready implementation and architecture for: ${raw}.
-
-### Technical Constraints:
-1. **Idiomatic Standards**: Clean, robust, production-quality code following best design patterns and concurrency safety.
-2. **Performance & Memory**: Zero unnecessary allocations, optimal algorithmic time/space complexity, and clean error propagation.
-3. **Complete Implementation**: Provide complete, fully runnable code with comments on non-obvious architecture decisions (no placeholders or stubbed logic).
-4. **Unit Verification**: Include realistic test cases or curl examples to verify correctness.`;
-  }
-  // Case 4: General Thought / Explanatory Inquiry
-  else {
-    enhanced = `Provide a comprehensive, first-principles deconstruction of: ${raw}.
-
-### Structure your response with:
-- **Executive Summary**: Core insights distilled into 2-3 precise paragraphs.
-- **Deep Axiomatic Breakdown**: Foundational concepts, mechanisms, and causal chains.
-- **Real-World Applications & Edge Cases**: Practical implications and common pitfalls.
-- **Key Takeaways**: Actionable conclusions formatted with clear bullet points.`;
-  }
-
-  inputEl.value = enhanced;
-  autoResize(inputEl);
-  inputEl.focus();
-  showToast("Prompt expanded with temple-grade specifications!", "🪄");
-  if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
 }
 
 async function refineCurrentPromptDeep() {
@@ -9657,11 +10264,12 @@ async function refineCurrentPromptDeep() {
     return;
   }
 
-  showToast("🧠 Running 4-Stage Deep Invariant Refinement...", "✨");
+  showToast("🧠 Running 3-Stage Deep Invariant Refinement...", "✨");
+  let timeoutId = null;
   try {
     const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash-thinking";
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const res = await fetch(getGatewayBaseUrl() + "/v1/refine", {
       method: "POST",
@@ -9675,22 +10283,29 @@ async function refineCurrentPromptDeep() {
       }),
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.final_output) {
-        inputEl.value = data.final_output;
-        autoResize(inputEl);
-        inputEl.focus();
-        showToast("🧠 Deep 4-Stage Invariant Refinement Complete!", "✨");
-        return;
-      }
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      showToast("Deep refiner unavailable; original prompt kept", "⚠️");
+      return;
     }
+    if (!data || typeof data.final_output !== "string" || !data.final_output.trim()) {
+      showToast("Deep refiner returned no usable output; original prompt kept", "⚠️");
+      return;
+    }
+
+    inputEl.value = data.final_output;
+    autoResize(inputEl);
+    inputEl.focus();
+    showToast("🧠 Deep 3-Stage Invariant Refinement Complete!", "✨");
   } catch (err) {
-    console.warn("Deep refiner fallback:", err);
+    const message = err && err.name === "AbortError"
+      ? "Deep refiner timed out; original prompt kept"
+      : "Deep refiner failed; original prompt kept";
+    showToast(message, "⚠️");
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
-  enhanceCurrentPrompt();
 }
 
 function printConversation() {
@@ -9801,13 +10416,23 @@ function retryWithModel(mode = 'default', userIndex = -1) {
   }
   inputEl.value = retryText;
   removeAttachedAttachment();
-  if (lastUserMsg.attachedImage) {
-    currentAttachedImage = lastUserMsg.attachedImage;
-    updateAttachmentPreviewBar();
-  }
-  if (lastUserMsg.attachedDoc) {
-    currentAttachedDoc = lastUserMsg.attachedDoc;
-    updateAttachmentPreviewBar();
+  if (Array.isArray(lastUserMsg.attachedFiles) && lastUserMsg.attachedFiles.length > 0) {
+    attachedFilesList = lastUserMsg.attachedFiles
+      .slice(0, MAX_HISTORY_ATTACHMENTS)
+      .map(file => sanitizeAttachmentForStorage(file))
+      .filter(Boolean);
+    currentAttachedImage = attachedFilesList.find(file => file.isImage) || null;
+    currentAttachedDoc = attachedFilesList.find(file => !file.isImage) || null;
+    renderAttachmentsShelf();
+  } else {
+    if (lastUserMsg.attachedImage) {
+      currentAttachedImage = lastUserMsg.attachedImage;
+      updateAttachmentPreviewBar();
+    }
+    if (lastUserMsg.attachedDoc) {
+      currentAttachedDoc = lastUserMsg.attachedDoc;
+      updateAttachmentPreviewBar();
+    }
   }
   sendMessage();
 }
@@ -9836,34 +10461,138 @@ function getSafeMessageContent(content) {
   return String(content);
 }
 
+function clipHistoryText(value, limit) {
+  if (typeof value !== 'string' || !value) return { value: '', truncated: false };
+  if (value.length <= limit) return { value, truncated: false };
+  return { value: value.slice(0, limit), truncated: true };
+}
+
+function trimHistoryPairs(history, maxMessages = MAX_HISTORY_MESSAGES) {
+  if (!Array.isArray(history)) return [];
+  const bounded = history.slice();
+  while (bounded.length > maxMessages) {
+    bounded.shift();
+    // Normal chat history is user/assistant pairs. Remove a leading assistant
+    // with its preceding user when the cap cuts through a pair, so an old
+    // answer is never replayed without the prompt that produced it.
+    if (bounded[0] && bounded[0].role === 'assistant') bounded.shift();
+  }
+  return bounded;
+}
+
+function trimStoredHistory(history) {
+  let bounded = trimHistoryPairs(history);
+  const serializedSize = () => {
+    try { return JSON.stringify(bounded).length; } catch (_) { return MAX_HISTORY_SERIALIZED_CHARS + 1; }
+  };
+
+  while (bounded.length > 1 && serializedSize() > MAX_HISTORY_TOTAL_CHARS) {
+    bounded.shift();
+    if (bounded[0] && bounded[0].role === 'assistant') bounded.shift();
+  }
+
+  // A single oversized current turn must not make every later localStorage
+  // write fail. Keep its useful text prefix and metadata, but omit heavy
+  // attachment payloads from persisted history when the budget is exhausted.
+  if (bounded.length > 0 && serializedSize() > MAX_HISTORY_TOTAL_CHARS) {
+    const last = bounded[bounded.length - 1];
+    const content = clipHistoryText(getSafeMessageContent(last.content), 100000);
+    last.content = content.value;
+    if (content.truncated) last.contentTruncated = true;
+    if (last.thought) last.thought = clipHistoryText(String(last.thought), 100000).value;
+    if (Array.isArray(last.attachedFiles)) {
+      last.attachedFiles = last.attachedFiles.map(file => sanitizeAttachmentForStorage(file, false)).filter(Boolean);
+    }
+    if (last.attachedImage) last.attachedImage = sanitizeAttachmentForStorage(last.attachedImage, false);
+  }
+  return bounded;
+}
+
+function sanitizeAttachmentForStorage(attachment, includeImageData = true) {
+  if (!attachment || typeof attachment !== 'object') return null;
+  const clean = {
+    id: typeof attachment.id === 'string' ? attachment.id.slice(0, 80) : undefined,
+    name: String(attachment.name || 'attachment').slice(0, 240),
+    type: String(attachment.type || 'application/octet-stream').slice(0, 120),
+    size: Number.isFinite(Number(attachment.size)) ? Math.max(0, Number(attachment.size)) : 0,
+    category: typeof attachment.category === 'string' ? attachment.category.slice(0, 40) : undefined,
+    icon: typeof attachment.icon === 'string' ? attachment.icon.slice(0, 12) : undefined,
+    ext: typeof attachment.ext === 'string' ? attachment.ext.slice(0, 16) : undefined,
+    isImage: attachment.isImage === true || typeof attachment.dataUrl === 'string',
+    pageCount: Number.isFinite(Number(attachment.pageCount)) ? Math.max(0, Number(attachment.pageCount)) : 0,
+    estTokens: Number.isFinite(Number(attachment.estTokens)) ? Math.max(0, Number(attachment.estTokens)) : 0,
+    status: typeof attachment.status === 'string' ? attachment.status.slice(0, 24) : undefined,
+    statusText: typeof attachment.statusText === 'string' ? attachment.statusText.slice(0, 160) : undefined
+  };
+
+  if (includeImageData && clean.isImage && typeof attachment.dataUrl === 'string') {
+    const dataUrl = attachment.dataUrl;
+    if (/^data:image\/[a-z0-9.+-]+[;,]/i.test(dataUrl) && !/[\u0000-\u001f]/.test(dataUrl) && dataUrl.length <= MAX_HISTORY_IMAGE_DATA_URL_CHARS) {
+      clean.dataUrl = dataUrl;
+    } else if (dataUrl) {
+      clean.dataOmitted = true;
+    }
+  }
+
+  let remaining = MAX_HISTORY_ATTACHMENT_TEXT_CHARS;
+  for (const field of ['markdown', 'rawText', 'ocrText']) {
+    const clipped = clipHistoryText(attachment[field], remaining);
+    if (!clipped.value) continue;
+    clean[field] = clipped.value;
+    remaining -= clipped.value.length;
+    if (clipped.truncated || remaining === 0) clean.contentTruncated = true;
+    if (remaining === 0) break;
+  }
+
+  return clean;
+}
+
 function sanitizeHistoryForStorage(history) {
   if (!Array.isArray(history)) return [];
-  return history.map(item => {
+  const cleanHistory = history.map(item => {
     if (!item || typeof item !== 'object') return null;
+    const content = clipHistoryText(getSafeMessageContent(item.content), MAX_HISTORY_CONTENT_CHARS);
     const clean = {
       role: item.role === 'user' ? 'user' : 'assistant',
-      content: typeof item.content === 'string' ? item.content : getSafeMessageContent(item.content)
+      content: content.value
     };
-    if (item.thought) clean.thought = String(item.thought);
-    if (item.attachedDoc) clean.attachedDoc = item.attachedDoc;
-    // For images: sanitize payload to avoid Safari 5MB localStorage quota crash
+    if (content.truncated) clean.contentTruncated = true;
+    if (item.status === 'complete' || item.status === 'stopped' || item.status === 'error') {
+      clean.status = item.status;
+    }
+    if (item.error) {
+      clean.error = String(item.error).slice(0, MAX_HISTORY_ERROR_CHARS);
+    }
+    if (item.thought) {
+      const thought = clipHistoryText(String(item.thought), MAX_HISTORY_THOUGHT_CHARS);
+      clean.thought = thought.value;
+      if (thought.truncated) clean.thoughtTruncated = true;
+    }
+    if (item.attachedDoc) {
+      const documentAttachment = sanitizeAttachmentForStorage({
+        ...item.attachedDoc,
+        rawText: item.attachedDoc.rawText || item.attachedDoc.content
+      });
+      if (documentAttachment) clean.attachedDoc = documentAttachment;
+    }
+    if (Array.isArray(item.attachedFiles)) {
+      clean.attachedFiles = item.attachedFiles
+        .slice(0, MAX_HISTORY_ATTACHMENTS)
+        .map(file => sanitizeAttachmentForStorage(file))
+        .filter(Boolean);
+    }
     if (item.attachedImage) {
-      if (item.attachedImage.dataUrl && item.attachedImage.dataUrl.length > 500000) {
-        clean.attachedImage = {
-          name: item.attachedImage.name,
-          type: item.attachedImage.type,
-          size: item.attachedImage.size,
-          dataUrl: item.attachedImage.dataUrl.slice(0, 100000)
-        };
-      } else {
-        clean.attachedImage = item.attachedImage;
-      }
+      const hasPersistedImage = clean.attachedFiles && clean.attachedFiles.some(file => file.isImage);
+      const imageAttachment = sanitizeAttachmentForStorage(item.attachedImage, !hasPersistedImage);
+      if (imageAttachment) clean.attachedImage = imageAttachment;
     }
     return clean;
   }).filter(Boolean);
+  return trimStoredHistory(cleanHistory);
 }
 
 function saveHistory() {
+  chatHistory = trimHistoryPairs(chatHistory);
   try {
     const cleanHistory = sanitizeHistoryForStorage(chatHistory);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanHistory));
@@ -9871,10 +10600,13 @@ function saveHistory() {
     console.warn("Storage quota exceeded or storage error, attempting compacted save:", e);
     try {
       // Fallback: strip heavy image dataUrls to guarantee text chat retention
-      const compacted = chatHistory.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: getSafeMessageContent(m.content),
-        thought: m.thought ? String(m.thought) : undefined
+      const compacted = trimStoredHistory(sanitizeHistoryForStorage(chatHistory).map(m => {
+        const compact = { ...m };
+        if (Array.isArray(compact.attachedFiles)) {
+          compact.attachedFiles = compact.attachedFiles.map(file => sanitizeAttachmentForStorage(file, false)).filter(Boolean);
+        }
+        if (compact.attachedImage) compact.attachedImage = sanitizeAttachmentForStorage(compact.attachedImage, false);
+        return compact;
       }));
       localStorage.setItem(STORAGE_KEY, JSON.stringify(compacted));
     } catch(e2) {
@@ -9887,17 +10619,34 @@ function loadHistory() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
+      if (raw.length > MAX_HISTORY_SERIALIZED_CHARS) {
+        console.warn("Stored chat history exceeded the safe size bound; starting a fresh history.");
+        chatHistory = [];
+        renderMessages();
+        return;
+      }
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        chatHistory = parsed
+        chatHistory = trimStoredHistory(trimHistoryPairs(parsed
           .filter(m => m && typeof m === 'object' && (m.role === 'user' || m.role === 'assistant'))
-          .map(m => ({
+          .map(m => {
+            const content = clipHistoryText(getSafeMessageContent(m.content), MAX_HISTORY_CONTENT_CHARS);
+            const thought = m.thought ? clipHistoryText(String(m.thought), MAX_HISTORY_THOUGHT_CHARS) : { value: '', truncated: false };
+            return {
             role: m.role,
-            content: getSafeMessageContent(m.content),
-            thought: m.thought ? String(m.thought) : undefined,
-            attachedImage: m.attachedImage || null,
-            attachedDoc: m.attachedDoc || null
-          }));
+            content: content.value,
+            contentTruncated: content.truncated || undefined,
+            thought: thought.value || undefined,
+            thoughtTruncated: thought.truncated || undefined,
+            status: m.status === 'complete' || m.status === 'stopped' || m.status === 'error' ? m.status : undefined,
+            error: m.error ? String(m.error).slice(0, MAX_HISTORY_ERROR_CHARS) : undefined,
+            attachedImage: m.attachedImage ? sanitizeAttachmentForStorage(m.attachedImage) : null,
+            attachedDoc: m.attachedDoc ? sanitizeAttachmentForStorage(m.attachedDoc) : null,
+            attachedFiles: Array.isArray(m.attachedFiles)
+              ? m.attachedFiles.slice(0, MAX_HISTORY_ATTACHMENTS).map(file => sanitizeAttachmentForStorage(file)).filter(Boolean)
+              : []
+            };
+          })));
       } else {
         chatHistory = [];
       }
@@ -9983,7 +10732,7 @@ function renderMessages() {
       </div>
     `;
     content.appendChild(welcome);
-    updateScrollBottomButton();
+    scheduleScrollButtonUpdate();
     if (userIsAtBottom) keepMessagesAtBottom();
     return;
   }
@@ -10074,13 +10823,24 @@ function renderMessages() {
         const thoughtTokens = estimateTokensJS(m.thought);
         const tb = document.createElement("div");
         tb.className = "thought-card active";
-        tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought)}</div>`;
+        tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought, `history-${i}-thought`)}</div>`;
         storyDiv.appendChild(tb);
       }
 
       const contentDiv = document.createElement("div");
-      contentDiv.innerHTML = renderMarkdown(asstText);
+      contentDiv.innerHTML = renderMarkdown(asstText, `history-${i}-content`);
       storyDiv.appendChild(contentDiv);
+
+      if (m.status === 'error' || m.status === 'stopped') {
+        const statusBanner = document.createElement("div");
+        statusBanner.className = `history-status-banner${m.status === 'stopped' ? ' stopped' : ''}`;
+        const statusText = m.status === 'stopped'
+          ? (ui.generationStopped || "Generation stopped before completion; retry to continue.")
+          : (ui.generationFailed || "Generation failed; this is not a successful answer.");
+        const detail = m.error ? ` ${escapeHtml(String(m.error).slice(0, MAX_HISTORY_ERROR_CHARS))}` : '';
+        statusBanner.innerHTML = `<strong>${escapeHtml(statusText)}</strong>${detail ? `<br><span>${detail}</span>` : ''}`;
+        storyDiv.appendChild(statusBanner);
+      }
 
       const footer = document.createElement("div");
       footer.className = "story-card-footer";
@@ -10104,6 +10864,7 @@ function renderMessages() {
   renderAllMath(content);
   highlightAllCode(content);
   renderAllMermaid(content);
+  scheduleScrollButtonUpdate();
   if (userIsAtBottom) keepMessagesAtBottom();
 }
 
@@ -10335,6 +11096,10 @@ async function sendMessage() {
     reqMessages.push({role: "system", content: sysPrompt});
   }
   for (const m of chatHistory) {
+    // Failed/stopped assistant turns are visible history, not valid model
+    // context. Retrying the preceding user turn must not send a partial
+    // answer or an error transcript back upstream as if it were complete.
+    if (m.role === "assistant" && m.status && m.status !== "complete") continue;
     reqMessages.push({role: m.role, content: m.content});
   }
 
@@ -10344,12 +11109,21 @@ async function sendMessage() {
 
     const baseUrl = getGatewayBaseUrl();
     const apiKey = localStorage.getItem('bob_api_key') || '';
+    if (useGeminiProvider && !geminiProviderKey) {
+      throw new Error("Gemini Developer API is selected, but no session key has been entered. Open Config and paste your own Google AI Studio key.");
+    }
+    if (useGeminiProvider && !canSendGeminiProviderKey()) {
+      throw new Error("For safety, configure a local or explicitly trusted gateway endpoint before sending a Gemini Developer API key.");
+    }
     const headers = {
       "Content-Type": "application/json",
       "X-Client-Request-Id": "studio-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8)
     };
     if (apiKey) {
       headers["Authorization"] = "Bearer " + apiKey;
+    }
+    if (useGeminiProvider && geminiProviderKey) {
+      headers["X-BOB-Gemini-API-Key"] = geminiProviderKey;
     }
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
@@ -10406,10 +11180,10 @@ async function sendMessage() {
         const thoughtTokens = estimateTokensJS(thoughtFullText);
         const titleSpan = thoughtBox.querySelector(".thought-title-span");
         if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (~${thoughtTokens} tokens)`;
-        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText, `live-${msgIdx}-thought`);
       }
       if (asstFullText) {
-        contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
+        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + '<span class="streaming-cursor"></span>';
       } else if (thoughtFullText) {
         contentSpan.innerHTML = `<div class="typing-indicator"><span>🧠</span> <span>${ui.reasoning} • Formulating solution...</span></div>`;
       }
@@ -10456,9 +11230,14 @@ async function sendMessage() {
         const trimmed = line.trim();
         if (trimmed === "data: [DONE]") { streamDone = true; break; }
         if (trimmed.startsWith("data: ")) {
-          try {
-            const data = JSON.parse(trimmed.slice(6));
-            const choice = data.choices && data.choices[0];
+	          try {
+	            const data = JSON.parse(trimmed.slice(6));
+	            if (data && data.error && data.error.message) {
+	              streamProtocolError = String(data.error.message).slice(0, MAX_HISTORY_ERROR_CHARS);
+	              streamDone = true;
+	              break;
+	            }
+	            const choice = data.choices && data.choices[0];
             if (!choice) continue;
             // The gateway reports provider failures inside SSE after headers
             // have already been sent. Turn that terminal frame into a real UI
@@ -10484,7 +11263,11 @@ async function sendMessage() {
                 scheduleSmoothRenderTracked();
               }
             }
-          } catch(e) {}
+          } catch(e) {
+            streamProtocolError = "Stream contained an invalid SSE event";
+            streamDone = true;
+            break;
+          }
         }
       }
       return remaining;
@@ -10534,6 +11317,9 @@ async function sendMessage() {
     if (streamProtocolError) {
       throw new Error(streamProtocolError);
     }
+    if (!asstFullText.trim() && !thoughtFullText.trim()) {
+      throw new Error("Stream completed without usable model output");
+    }
 
     // Clear throttles and do a synchronous final render
     streamRenderActive = false;
@@ -10545,9 +11331,9 @@ async function sendMessage() {
       const thoughtTokens = estimateTokensJS(thoughtFullText);
       const titleSpan = thoughtBox.querySelector(".thought-title-span");
       if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (${thoughtTokens} tokens)`;
-      thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+      thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText, `live-${msgIdx}-thought`);
     }
-    contentSpan.innerHTML = renderMarkdown(asstFullText);
+    contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
     renderAllMath(storyDiv);
     highlightAllCode(storyDiv);
     renderAllMermaid(storyDiv);
@@ -10575,6 +11361,7 @@ async function sendMessage() {
       role: "assistant",
       content: asstFullText,
       thought: thoughtFullText,
+      status: "complete",
       tokens: finalTokens,
       inputTokens: inputPromptTokens,
       tps: parseFloat(finalSpeed)
@@ -10582,7 +11369,7 @@ async function sendMessage() {
     saveHistory();
   } catch(err) {
     if (err.name === 'AbortError') {
-      contentSpan.innerHTML = renderMarkdown(asstFullText);
+      contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
       renderAllMath(storyDiv);
       highlightAllCode(storyDiv);
       renderAllMermaid(storyDiv);
@@ -10609,55 +11396,17 @@ async function sendMessage() {
         role: "assistant",
         content: asstFullText,
         thought: thoughtFullText,
+        status: "stopped",
         tokens: stopTokens,
         inputTokens: inputPromptTokens
       });
       saveHistory();
     } else {
-      // Auto-Healing for Multimodal BardErrorInfo [1003] via Client-Side Local OCR
-      const isMultimodal1003 = err.message && (err.message.includes("1003") || err.message.includes("image attachment") || err.message.includes("BardErrorInfo"));
-      const lastUserEntry = chatHistory[chatHistory.length - 1];
-      const hasImageWithOCR = lastUserEntry && lastUserEntry.role === 'user' && (
-        (lastUserEntry.attachedImage && lastUserEntry.attachedImage.ocrText) ||
-        (lastUserEntry.attachedFiles && lastUserEntry.attachedFiles.some(f => f.isImage && f.ocrText))
-      );
-
-      if (isMultimodal1003 && hasImageWithOCR) {
-        let extractedText = (lastUserEntry.attachedImage && lastUserEntry.attachedImage.ocrText) || '';
-        let imgName = (lastUserEntry.attachedImage && lastUserEntry.attachedImage.name) || 'image.png';
-        if (!extractedText && lastUserEntry.attachedFiles) {
-          const imgF = lastUserEntry.attachedFiles.find(f => f.isImage && f.ocrText);
-          if (imgF) {
-            extractedText = imgF.ocrText;
-            imgName = imgF.name;
-          }
-        }
-
-        if (extractedText) {
-          showToast("⚡ Auto-recovering via Client-Side Local OCR...", "🔍");
-          storyDiv.remove();
-          
-          let origPrompt = text || "Please analyze this image.";
-          if (Array.isArray(lastUserEntry.content) && lastUserEntry.content[0] && lastUserEntry.content[0].text) {
-            origPrompt = lastUserEntry.content[0].text;
-          }
-          lastUserEntry.content = `[Attached Image: ${imgName} (Extracted via Client-Side Local OCR)]:\n\`\`\`\n${extractedText}\n\`\`\`\n\n${origPrompt}`;
-          saveHistory();
-
-          // Reset UI state for retry
-          isGenerating = false;
-          setGenerationControlsDisabled(false);
-          sendBtn.classList.remove("stop-mode");
-          sendLabel.innerText = dict.btnSend;
-          sendIcon.innerText = "➤";
-          inputEl.disabled = false;
-          
-          // Trigger seamless replay
-          pendingRetry = true;
-          return retryWithModel('default', chatHistory.length - 1);
-        }
-      }
-
+      // Do not silently convert an image request into an OCR-only text request
+      // after a provider upload failure. OCR is useful evidence, but it is not
+      // equivalent to vision and an automatic replay can spend another quota
+      // unit while changing the user's requested semantics. Keep the failed
+      // turn visible and let an explicit user retry decide what happens next.
       updateGatewayStatusIndicator(false, null);
       let mixedContentHint = "";
       if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
@@ -10668,8 +11417,13 @@ async function sendMessage() {
         `;
       }
 
+      const safeErrorMessage = String((err && err.message) || "Generation failed")
+        .replace(/(?:AIzaSy|ghp_)[A-Za-z0-9_\-]+/g, "[redacted]")
+        .replace(/(authorization|cookie|x-goog-api-key)\s*[:=]\s*[^\s,;]+/ig, "$1: [redacted]")
+        .replace(/https?:\/\/[^\s<>"']+/gi, "[redacted-url]")
+        .slice(0, MAX_HISTORY_ERROR_CHARS);
       let errorHtml = "";
-      if (err.message && err.message.includes("401")) {
+      if (safeErrorMessage.includes("401")) {
         errorHtml = `
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">🔒 API Key Authentication Required (HTTP 401)</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
@@ -10678,18 +11432,18 @@ async function sendMessage() {
           </div>
         `;
       } else {
-        const isProviderIssue = /upstream|barderrorinfo|provider|rate limit/i.test(err.message || "");
+        const isProviderIssue = /upstream|barderrorinfo|provider|rate limit/i.test(safeErrorMessage);
         if (isProviderIssue) {
           errorHtml = `
             <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Provider / Session Issue</div>
             <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
-              The local gateway reached Google's web service, but this request was not accepted: <strong>${escapeHtml(err.message)}</strong>.<br>
+              The local gateway reached Google's web service, but this request was not accepted: <strong>${escapeHtml(safeErrorMessage)}</strong>.<br>
               Wait for the provider cooldown or verify the user's own authorized session. Cookie pools do not bypass quotas or provider policy.
             </div>
           `;
         } else {
           errorHtml = `
-            <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(err.message)}</div>
+            <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(safeErrorMessage)}</div>
             <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
               Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
               Ensure the CLI engine is running (<code>bob-gemini-free</code>), or use a native package only when one is listed on the <a href="https://github.com/div197/BOB-Gemini-Free/releases" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">official release page</a>. You can also <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
@@ -10702,21 +11456,30 @@ async function sendMessage() {
       let errorWrapper = `<div style="padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
       if (asstFullText.trim() !== "" || thoughtFullText.trim() !== "") {
         errorWrapper = `<div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
-        contentSpan.innerHTML = renderMarkdown(asstFullText) + errorWrapper;
+        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + errorWrapper;
         renderAllMath(storyDiv);
         highlightAllCode(storyDiv);
         renderAllMermaid(storyDiv);
-        storyDiv.setAttribute('data-raw', asstFullText + `\n\n> ⚠️ **Error**: ${err.message}`);
+        storyDiv.setAttribute('data-raw', asstFullText);
         if (userIsAtBottom) keepMessagesAtBottom();
         
         chatHistory.push({
           role: "assistant", 
-          content: asstFullText + `\n\n> ⚠️ **Stream Interrupted**: ${err.message}`, 
-          thought: thoughtFullText
+          content: asstFullText,
+          thought: thoughtFullText,
+          status: "error",
+          error: safeErrorMessage
         });
         saveHistory();
       } else {
         contentSpan.innerHTML = errorWrapper;
+        chatHistory.push({
+          role: "assistant",
+          content: "",
+          status: "error",
+          error: safeErrorMessage
+        });
+        saveHistory();
       }
     }
   } finally {

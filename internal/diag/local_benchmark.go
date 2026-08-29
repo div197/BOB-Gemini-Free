@@ -11,6 +11,7 @@ import (
 	"net/http/httptest"
 	"runtime"
 	"sort"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -47,6 +48,27 @@ type LocalBenchmarkReport struct {
 }
 
 type localBenchmarkRequester struct{}
+
+const (
+	maxLocalBenchmarkConcurrency = 128
+	maxLocalBenchmarkRequests    = 10000
+)
+
+func normalizeLocalBenchmarkSettings(concurrency, totalRequests int) (int, int) {
+	if concurrency <= 0 {
+		concurrency = 1
+	}
+	if totalRequests <= 0 {
+		totalRequests = 100
+	}
+	if concurrency > maxLocalBenchmarkConcurrency {
+		concurrency = maxLocalBenchmarkConcurrency
+	}
+	if totalRequests > maxLocalBenchmarkRequests {
+		totalRequests = maxLocalBenchmarkRequests
+	}
+	return concurrency, totalRequests
+}
 
 func (localBenchmarkRequester) Do(req *http.Request) (*http.Response, error) {
 	if req.Method == http.MethodGet {
@@ -100,17 +122,13 @@ func (c *trackedConn) Close() error {
 }
 
 func RunLocalBenchmark(concurrency, totalRequests int) LocalBenchmarkReport {
-	if concurrency <= 0 {
-		concurrency = 1
-	}
-	if totalRequests <= 0 {
-		totalRequests = 100
-	}
+	concurrency, totalRequests = normalizeLocalBenchmarkSettings(concurrency, totalRequests)
 
 	cfg := config.Default()
 	cfg.LogRequests = false
 	cfg.RetryAttempts = 1
 	app := server.New(cfg, "local-benchmark")
+	defer app.Close()
 	app.Gem.HTTP = localBenchmarkRequester{}
 	serverInstance := httptest.NewServer(app.Handler())
 	defer serverInstance.Close()
@@ -157,8 +175,30 @@ func RunLocalBenchmark(concurrency, totalRequests int) LocalBenchmarkReport {
 					}
 					continue
 				}
-				_, _ = io.Copy(io.Discard, resp.Body)
+				responseBody, readErr := readDiagnosticBody(resp)
 				resp.Body.Close()
+				if readErr != nil {
+					failed.Add(1)
+					continue
+				}
+				var response struct {
+					Choices []struct {
+						Message struct {
+							Content   string            `json:"content"`
+							Reasoning string            `json:"reasoning_content"`
+							ToolCalls []json.RawMessage `json:"tool_calls"`
+						} `json:"message"`
+					} `json:"choices"`
+				}
+				if !json.Valid(responseBody) || json.Unmarshal(responseBody, &response) != nil || len(response.Choices) == 0 {
+					failed.Add(1)
+					continue
+				}
+				message := response.Choices[0].Message
+				if strings.TrimSpace(message.Content) == "" && strings.TrimSpace(message.Reasoning) == "" && len(message.ToolCalls) == 0 {
+					failed.Add(1)
+					continue
+				}
 				successful.Add(1)
 			}
 		}()

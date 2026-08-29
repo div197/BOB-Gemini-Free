@@ -3,8 +3,8 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,7 +29,7 @@ func (a *App) handleHealthz(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (a *App) handleMetrics(w http.ResponseWriter, _ *http.Request) {
-	if a.Metrics != nil {
+	if a.Metrics != nil && a.Gem != nil && a.Gem.Pool != nil {
 		a.Metrics.SessionPoolTotal.Store(int64(a.Gem.Pool.Count()))
 		a.Metrics.SessionPoolHealthy.Store(int64(a.Gem.Pool.CountHealthy()))
 	}
@@ -42,10 +42,12 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	modelNames := make([]string, 0, len(models.MODELS))
-	for k := range models.MODELS {
+	modelCatalog := models.GetAllModels()
+	modelNames := make([]string, 0, len(modelCatalog))
+	for k := range modelCatalog {
 		modelNames = append(modelNames, k)
 	}
+	sort.Strings(modelNames)
 
 	reqs := a.RequestsServed.Load()
 	tokens := a.TokensProcessed.Load()
@@ -58,11 +60,18 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 	} else {
 		savingsUSD = fmt.Sprintf("$%.2f", savingsVal)
 	}
-	poolTotal := a.Gem.Pool.Count()
-	poolHealthy := a.Gem.Pool.CountHealthy()
+	poolTotal, poolHealthy := 0, 0
+	if a.Gem != nil && a.Gem.Pool != nil {
+		poolTotal = a.Gem.Pool.Count()
+		poolHealthy = a.Gem.Pool.CountHealthy()
+	}
 	if a.Metrics != nil {
 		a.Metrics.SessionPoolTotal.Store(int64(poolTotal))
 		a.Metrics.SessionPoolHealthy.Store(int64(poolHealthy))
+	}
+	uptimeSeconds := 0
+	if !a.StartTime.IsZero() {
+		uptimeSeconds = int(time.Since(a.StartTime).Seconds())
 	}
 
 	writeJSON(w, http.StatusOK, map[string]any{
@@ -75,7 +84,7 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 		"requests_served":       reqs,
 		"tokens_processed":      tokens,
 		"estimated_savings_usd": savingsUSD,
-		"uptime_seconds":        int(time.Since(a.StartTime).Seconds()),
+		"uptime_seconds":        uptimeSeconds,
 		"pool_sessions_total":   poolTotal,
 		"pool_sessions_healthy": poolHealthy,
 		"metrics":               a.Metrics.Snapshot(),
@@ -84,7 +93,14 @@ func (a *App) handleHealth(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleModels(w http.ResponseWriter, r *http.Request) {
 	var data []map[string]any
-	for name, m := range models.MODELS {
+	modelCatalog := models.GetAllModels()
+	modelNames := make([]string, 0, len(modelCatalog))
+	for name := range modelCatalog {
+		modelNames = append(modelNames, name)
+	}
+	sort.Strings(modelNames)
+	for _, name := range modelNames {
+		m := modelCatalog[name]
 		pricing := models.GetModelPricing(name)
 		data = append(data, map[string]any{
 			"id":          name,
@@ -110,7 +126,7 @@ func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 	if idx := strings.LastIndex(lookupName, "@think="); idx != -1 {
 		lookupName = lookupName[:idx]
 	}
-	if _, exists := models.MODELS[lookupName]; !exists {
+	if _, exists := models.GetModel(lookupName); !exists {
 		writeJSON(w, http.StatusNotFound, map[string]any{
 			"error": map[string]any{
 				"message": "The model '" + modelName + "' does not exist",
@@ -137,7 +153,7 @@ func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Look up description from the canonical resolved model
-	m := models.MODELS[resolved.Name]
+	m, _ := models.GetModel(resolved.Name)
 
 	writeJSON(w, http.StatusOK, map[string]any{
 		"id":          modelName,
@@ -166,7 +182,14 @@ func (a *App) handleSingleModel(w http.ResponseWriter, r *http.Request) {
 
 func (a *App) handleGoogleModels(w http.ResponseWriter, r *http.Request) {
 	var modelList []map[string]any
-	for name, m := range models.MODELS {
+	modelCatalog := models.GetAllModels()
+	modelNames := make([]string, 0, len(modelCatalog))
+	for name := range modelCatalog {
+		modelNames = append(modelNames, name)
+	}
+	sort.Strings(modelNames)
+	for _, name := range modelNames {
+		m := modelCatalog[name]
 		modelList = append(modelList, map[string]any{
 			"name":                       "models/" + name,
 			"displayName":                name,
@@ -181,7 +204,7 @@ func (a *App) handleGoogleModels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON body"}})
 		return
@@ -210,7 +233,7 @@ func (a *App) handleUpdateCheck(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"current_version": a.Version,
 			"has_update":      false,
-			"error":           err.Error(),
+			"error":           publicUpdateCheckErrorMessage(err),
 		})
 		return
 	}

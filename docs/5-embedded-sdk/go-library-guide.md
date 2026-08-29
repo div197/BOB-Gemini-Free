@@ -32,6 +32,11 @@ func main() {
 		gateway.WithLogRequests(true),
 		gateway.WithAPIKeys("sk-internal-secret"),
 	)
+	defer func() {
+		if closeable, ok := handler.(gateway.CloseableHandler); ok {
+			_ = closeable.Close()
+		}
+	}()
 
 	// Mount into your existing HTTP server
 	http.Handle("/v1/", handler)
@@ -55,7 +60,7 @@ func main() {
 | `WithCookiePool(paths ...string)` | `...string` | Configure round-robin pool of multiple account cookie files |
 | `WithCookiePoolDir(dir string)` | `string` | Auto-discover all `*.txt` cookie files from a directory |
 | `WithAuthUser(index string)` | `string` | Multi-account Google profile index (`"0"`, `"1"`) |
-| `WithDefaultModel(model string)` | `string` | Fallback model if omitted by client |
+| `WithDefaultModel(model string)` | `string` | Default model when omitted by client; unknown explicit model names fail closed |
 | `WithAPIKeys(keys ...string)` | `...string` | Enforce API key authorization |
 | `WithProxy(proxyURL string)` | `string` | Outbound HTTP/SOCKS5 proxy |
 | `WithImpersonate(profile string)` | `string` | Browser TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
@@ -85,6 +90,7 @@ func main() {
 		gateway.WithDefaultModel("gemini-3.7-flash"),
 		gateway.WithCookieFile("./cookie.txt"),
 	)
+	defer engine.Close()
 
 	ctx := context.Background()
 
@@ -128,3 +134,9 @@ defer cancel()
 req, _ := http.NewRequestWithContext(ctx, "POST", "/v1/chat/completions", body)
 handler.ServeHTTP(rec, req)
 ```
+
+`NewEngine` owns the gateway's session-reload worker and should be closed when
+the embedding process shuts down. `NewHandler` returns an ordinary
+`http.Handler` that also implements `gateway.CloseableHandler`; close that
+value when cookie files or a cookie pool are configured. Guest-only engines do
+not start an idle session-reload worker.

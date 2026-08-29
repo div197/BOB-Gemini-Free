@@ -20,6 +20,14 @@ CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
+if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
+	echo "preview packages require a semantic -preview.N version: $VERSION" >&2
+	exit 1
+fi
+if [[ "$CHANNEL" != "preview" ]]; then
+	echo "preview packages require the preview update channel: $CHANNEL" >&2
+	exit 1
+fi
 if [[ -z "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
 	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required for updater-capable preview packages" >&2
 	exit 1
@@ -37,6 +45,9 @@ if [[ "$PLATFORM" != darwin/universal && "$PLATFORM" != darwin/arm64 && "$PLATFO
 	echo "unsupported macOS desktop platform: $PLATFORM" >&2
 	exit 1
 fi
+
+bash "$ROOT_DIR/scripts/verify-release-source.sh" "$VERSION"
+
 if [[ -e "$OUTPUT_DIR" ]]; then
 	echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
 	exit 1

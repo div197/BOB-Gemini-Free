@@ -23,16 +23,31 @@ Markdown, tool choices, tool results, and semantic adapter conversion.
 | Nested object/array/enum/nullable schemas | EMULATED_RELIABLY for serialization | Deterministic prompt and JSON-parser fixtures pass; upstream model compliance remains unknown |
 | Unicode and large JSON arguments | EMULATED_RELIABLY for parser fixtures | Parser preserves valid JSON in tested bounds; no provider maximum has been measured |
 | Multiple or parallel tool requests | EMULATED_PARTIALLY | Multiple fenced blocks parse; execution/parallel scheduling is outside this gateway |
-| `none` choice | EMULATED_RELIABLY as an instruction | The model receives a prohibition; native enforcement is absent |
-| `auto`, `required`, and specific tool choice | EMULATED_PARTIALLY | Prompt constraints exist, but model obedience and exact selection are not enforced by an upstream schema |
+| `none` choice | EMULATED_RELIABLY as an instruction | The model receives a normalized prohibition; malformed values are rejected, but native enforcement is absent |
+| `auto`, `required`, and specific tool choice | EMULATED_PARTIALLY | Choices are normalized and named tools must be declared; prompt constraints still do not enforce model obedience or exact selection through an upstream schema |
 | Tool-result continuation | EMULATED_PARTIALLY | Results are represented in subsequent prompt text; no live multi-turn tool executor exists in the gateway |
 | Tool-call streaming | EMULATED_PARTIALLY | `internal/server/chat.go:74-208` buffers tool requests and replays a response instead of streaming native tool deltas |
 | Native function calling through Google web RPC | UNKNOWN / not evidenced | Requires a captured accepted native request/response pair and a live differential test |
 
 ## Decision
 
-Do not rewrite tool calling in Phase II. The lab now makes the actual
-behavior executable and prevents accidental “native/full” wording. A future
-native implementation requires source or live evidence of the upstream schema,
+Request-side tool-choice validation is now shared by the prompt adapter and the
+direct Developer API route. Invalid modes, malformed named choices, and names
+not present in the request's declarations fail before an upstream call. The
+Anthropic adapter normalizes `auto`, `none`, `any`, and named `tool` choices to
+the shared representation; `disable_parallel_tool_use: true` remains an
+explicitly unsupported semantic rather than being silently ignored. This
+reduces false-success behavior. The Google-shaped adapter likewise normalizes
+`AUTO`/`NONE`/`ANY` and rejects unknown modes or incompatible allowed names, but
+these controls still do not make model selection native.
+
+Assistant tool-call prompt blocks are JSON-encoded rather than assembled by
+interpolating names. This keeps bounded quotes, backslashes, and newlines from
+corrupting the adapter's own control document; it is a serialization safeguard,
+not a trust boundary for model-generated tool requests.
+
+Do not rewrite tool calling in Phase II. The lab now makes the actual behavior
+executable and prevents accidental “native/full” wording. A future native
+implementation requires source or live evidence of the upstream schema,
 fixture parity across all three adapters, and an explicit execution/security
 contract for returned tools.

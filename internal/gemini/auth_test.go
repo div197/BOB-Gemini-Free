@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 )
@@ -62,6 +63,82 @@ func TestCookieCacheLoadJSON(t *testing.T) {
 	}
 }
 
+func TestCookieCacheReloadsContentWhenMtimeAndSizeAreUnchanged(t *testing.T) {
+	cookieFile := filepath.Join(t.TempDir(), "cookie.txt")
+	first := "SID=first_sid; SAPISID=first_sapisid"
+	second := "SID=other_sid; SAPISID=other_sapisid"
+	if len(first) != len(second) {
+		t.Fatalf("fixture sizes differ: %d and %d", len(first), len(second))
+	}
+	if err := os.WriteFile(cookieFile, []byte(first), 0600); err != nil {
+		t.Fatalf("write first cookie: %v", err)
+	}
+	stat, err := os.Stat(cookieFile)
+	if err != nil {
+		t.Fatalf("stat first cookie: %v", err)
+	}
+	cache := NewCookieCache(cookieFile)
+	if _, err := cache.Load(); err != nil {
+		t.Fatalf("load first cookie: %v", err)
+	}
+	if err := os.WriteFile(cookieFile, []byte(second), 0600); err != nil {
+		t.Fatalf("write second cookie: %v", err)
+	}
+	if err := os.Chtimes(cookieFile, stat.ModTime(), stat.ModTime()); err != nil {
+		t.Fatalf("restore cookie mtime: %v", err)
+	}
+	info, err := cache.Load()
+	if err != nil {
+		t.Fatalf("reload changed cookie: %v", err)
+	}
+	if info.SAPISID != "other_sapisid" {
+		t.Fatalf("cached SAPISID = %q, want other_sapisid", info.SAPISID)
+	}
+}
+
+func TestCookieCacheClearsCredentialsWhenFileDisappears(t *testing.T) {
+	cookieFile := filepath.Join(t.TempDir(), "cookie.txt")
+	if err := os.WriteFile(cookieFile, []byte("SID=sid; SAPISID=sapisid"), 0600); err != nil {
+		t.Fatalf("write cookie: %v", err)
+	}
+	cache := NewCookieCache(cookieFile)
+	if _, err := cache.Load(); err != nil {
+		t.Fatalf("load cookie: %v", err)
+	}
+	if err := os.Remove(cookieFile); err != nil {
+		t.Fatalf("remove cookie: %v", err)
+	}
+	info, err := cache.Load()
+	if err == nil {
+		t.Fatal("missing cookie file unexpectedly loaded")
+	}
+	if info.Cookie != "" || info.SAPISID != "" || info.At != "" {
+		t.Fatalf("deleted cookie left authenticated state: %+v", info)
+	}
+}
+
+func TestCookieCacheRejectsOversizedBootstrapDocument(t *testing.T) {
+	cache := NewCookieCache("")
+	requester := &mockSessionRequester{body: strings.Repeat("x", int(maxSessionHTMLBytes)+1)}
+	at, bl, cookie, sapi := cache.GetSessionInfo(t.Context(), requester, "")
+	if at != "" || bl != "" || cookie != "" || sapi != "" {
+		t.Fatalf("oversized bootstrap returned session data: %q %q %q %q", at, bl, cookie, sapi)
+	}
+}
+
+func TestReadSecureCookieFileRejectsBroadPermissions(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("POSIX permission bits are not authoritative on Windows")
+	}
+	cookieFile := filepath.Join(t.TempDir(), "cookie.txt")
+	if err := os.WriteFile(cookieFile, []byte("SID=sid; SAPISID=sapisid"), 0644); err != nil {
+		t.Fatalf("write cookie: %v", err)
+	}
+	if _, _, err := readSecureCookieFile(cookieFile); err == nil || !strings.Contains(err.Error(), "permissions") {
+		t.Fatalf("broad cookie permissions were accepted: %v", err)
+	}
+}
+
 func TestSAPISIDHash(t *testing.T) {
 	// Empty SAPISID should return empty hash
 	if hash := SAPISIDHash(""); hash != "" {
@@ -114,6 +191,23 @@ func TestExtractCookies(t *testing.T) {
 	}
 }
 
+func TestExtractCookiesRejectsOversizedInput(t *testing.T) {
+	raw := strings.Repeat("x", int(MaxCookieFileBytes)+1)
+	if _, err := ExtractCookies(raw); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized cookie input was accepted: %v", err)
+	}
+}
+
+func TestReadSecureCookieFileRejectsOversizedContent(t *testing.T) {
+	cookieFile := filepath.Join(t.TempDir(), "cookie.txt")
+	if err := os.WriteFile(cookieFile, []byte(strings.Repeat("x", int(MaxCookieFileBytes)+1)), 0600); err != nil {
+		t.Fatalf("write oversized cookie: %v", err)
+	}
+	if _, _, err := readSecureCookieFile(cookieFile); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized cookie file was accepted: %v", err)
+	}
+}
+
 func TestSaveCookieFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	targetPath := filepath.Join(tmpDir, "sub", "cookie.txt")
@@ -142,7 +236,7 @@ func TestSaveCookieFile(t *testing.T) {
 }
 
 type mockSessionRequester struct {
-	body string
+	body        string
 	respCookies []string
 }
 
@@ -162,7 +256,7 @@ func TestGetSessionInfoGuestAndCookie(t *testing.T) {
 	// 1. Guest anonymous mode
 	cache := NewCookieCache("")
 	mockReq := &mockSessionRequester{
-		body: `"SNlM0e":"guest-at-token","cfb2h":"guest-bl-build"`,
+		body:        `"SNlM0e":"guest-at-token","cfb2h":"guest-bl-build"`,
 		respCookies: []string{"__Secure-BUCKET=b1; Path=/", "NID=nid1; Path=/"},
 	}
 
