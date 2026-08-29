@@ -15,6 +15,58 @@ type Image struct {
 	URL  string
 }
 
+// GoogleFunctionCallingMode normalizes the public Google function-calling
+// mode and rejects values that the prompt adapter cannot honor. An invalid
+// mode must not silently become AUTO.
+func GoogleFunctionCallingMode(req models.GoogleGenerateRequest) (string, error) {
+	mode := "AUTO"
+	var allowed []string
+	if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil {
+		config := req.ToolConfig.FunctionCallingConfig
+		if strings.TrimSpace(config.Mode) != "" {
+			mode = strings.ToUpper(strings.TrimSpace(config.Mode))
+		}
+		allowed = config.AllowedFunctionNames
+	}
+	switch mode {
+	case "AUTO", "NONE", "ANY":
+	default:
+		return "", fmt.Errorf("unsupported Google function-calling mode %q", mode)
+	}
+	if len(allowed) > MaxToolDefinitions {
+		return "", fmt.Errorf("allowed function name count exceeds %d", MaxToolDefinitions)
+	}
+	if len(allowed) == 0 {
+		return mode, nil
+	}
+	if mode != "ANY" {
+		return "", fmt.Errorf("allowed function names require Google function-calling mode ANY")
+	}
+	declared := make(map[string]struct{})
+	for _, group := range req.Tools {
+		for _, declaration := range group.FunctionDeclarations {
+			declared[declaration.Name] = struct{}{}
+		}
+	}
+	seen := make(map[string]struct{}, len(allowed))
+	for _, name := range allowed {
+		if strings.TrimSpace(name) == "" {
+			return "", fmt.Errorf("allowed function name is empty")
+		}
+		if len(name) > MaxToolNameBytes {
+			return "", fmt.Errorf("allowed function name exceeds %d bytes", MaxToolNameBytes)
+		}
+		if _, duplicate := seen[name]; duplicate {
+			return "", fmt.Errorf("allowed function name %q is duplicated", name)
+		}
+		seen[name] = struct{}{}
+		if _, ok := declared[name]; !ok {
+			return "", fmt.Errorf("allowed function name %q is not declared", name)
+		}
+	}
+	return mode, nil
+}
+
 func BuildToolPrompt(defs []models.GoogleFunctionDeclaration) string {
 	specBytes, _ := json.Marshal(defs)
 	return fmt.Sprintf(
@@ -35,11 +87,9 @@ func BuildToolPrompt(defs []models.GoogleFunctionDeclaration) string {
 }
 
 func GoogleToolChoiceInstruction(req models.GoogleGenerateRequest) string {
-	mode := "AUTO"
-	if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil {
-		if req.ToolConfig.FunctionCallingConfig.Mode != "" {
-			mode = req.ToolConfig.FunctionCallingConfig.Mode
-		}
+	mode, err := GoogleFunctionCallingMode(req)
+	if err != nil {
+		return ""
 	}
 
 	if mode == "NONE" {
@@ -49,7 +99,8 @@ func GoogleToolChoiceInstruction(req models.GoogleGenerateRequest) string {
 		if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil && len(req.ToolConfig.FunctionCallingConfig.AllowedFunctionNames) > 0 {
 			var names []string
 			for _, s := range req.ToolConfig.FunctionCallingConfig.AllowedFunctionNames {
-				names = append(names, fmt.Sprintf("\"%s\"", s))
+				encoded, _ := json.Marshal(s)
+				names = append(names, string(encoded))
 			}
 			if len(names) > 0 {
 				return fmt.Sprintf("\n\nIMPORTANT: You MUST call one of these tools: %s. Do not respond with text only.", strings.Join(names, ", "))
@@ -61,13 +112,12 @@ func GoogleToolChoiceInstruction(req models.GoogleGenerateRequest) string {
 }
 
 func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, error) {
+	fcMode, err := GoogleFunctionCallingMode(req)
+	if err != nil {
+		return "", nil, err
+	}
 	var parts []string
 	var images []Image
-
-	fcMode := "AUTO"
-	if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil && req.ToolConfig.FunctionCallingConfig.Mode != "" {
-		fcMode = req.ToolConfig.FunctionCallingConfig.Mode
-	}
 
 	var toolDefs []models.GoogleFunctionDeclaration
 	if fcMode != "NONE" {

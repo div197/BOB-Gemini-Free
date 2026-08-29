@@ -82,9 +82,10 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fcMode := "AUTO"
-	if req.ToolConfig != nil && req.ToolConfig.FunctionCallingConfig != nil && req.ToolConfig.FunctionCallingConfig.Mode != "" {
-		fcMode = req.ToolConfig.FunctionCallingConfig.Mode
+	fcMode, err := format.GoogleFunctionCallingMode(req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
 	}
 
 	hasTools := len(req.Tools) > 0 && fcMode != "NONE"

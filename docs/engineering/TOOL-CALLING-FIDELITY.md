@@ -37,7 +37,9 @@ not present in the request's declarations fail before an upstream call. The
 Anthropic adapter normalizes `auto`, `none`, `any`, and named `tool` choices to
 the shared representation; `disable_parallel_tool_use: true` remains an
 explicitly unsupported semantic rather than being silently ignored. This
-reduces false-success behavior but does not make model selection native.
+reduces false-success behavior. The Google-shaped adapter likewise normalizes
+`AUTO`/`NONE`/`ANY` and rejects unknown modes or incompatible allowed names, but
+these controls still do not make model selection native.
 
 Do not rewrite tool calling in Phase II. The lab now makes the actual behavior
 executable and prevents accidental “native/full” wording. A future native

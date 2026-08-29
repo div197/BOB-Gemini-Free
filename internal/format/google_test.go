@@ -45,6 +45,7 @@ func TestGoogleFormatting(t *testing.T) {
 	}
 
 	reqAny := models.GoogleGenerateRequest{
+		Tools: []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{{Name: "search_web"}}}},
 		ToolConfig: &models.GoogleToolConfig{
 			FunctionCallingConfig: &models.GoogleFunctionCallingConfig{
 				Mode:                 "ANY",
@@ -165,6 +166,60 @@ func TestGoogleContentsToPromptRejectsInvalidInlineImages(t *testing.T) {
 			_, _, err := GoogleContentsToPrompt(models.GoogleGenerateRequest{Contents: []models.GoogleContent{{Parts: []models.GooglePart{test.part}}}})
 			if err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("error = %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestGoogleFunctionCallingModeFailsClosedAndNormalizes(t *testing.T) {
+	declaration := models.GoogleFunctionDeclaration{Name: "lookup", Parameters: map[string]any{"type": "object"}}
+	base := models.GoogleGenerateRequest{
+		Contents: []models.GoogleContent{{Role: "user", Parts: []models.GooglePart{{Text: "lookup"}}}},
+		Tools:    []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{declaration}}},
+	}
+
+	base.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{Mode: " none "}}
+	mode, err := GoogleFunctionCallingMode(base)
+	if err != nil || mode != "NONE" {
+		t.Fatalf("normalized mode = %q, error = %v; want NONE", mode, err)
+	}
+	prompt, _, err := GoogleContentsToPrompt(base)
+	if err != nil || strings.Contains(prompt, "# Tool Use") {
+		t.Fatalf("NONE prompt = %q, error = %v", prompt, err)
+	}
+
+	base.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{
+		Mode:                 "any",
+		AllowedFunctionNames: []string{"lookup"},
+	}}
+	mode, err = GoogleFunctionCallingMode(base)
+	if err != nil || mode != "ANY" {
+		t.Fatalf("normalized ANY mode = %q, error = %v", mode, err)
+	}
+	if !strings.Contains(GoogleToolChoiceInstruction(base), "lookup") {
+		t.Fatalf("ANY instruction lost allowed function: %q", GoogleToolChoiceInstruction(base))
+	}
+
+	invalid := []struct {
+		name string
+		mode string
+		want string
+	}{
+		{name: "unknown mode", mode: "maybe", want: "unsupported Google function-calling mode"},
+		{name: "undeclared name", mode: "ANY", want: "is not declared"},
+		{name: "allowed name with auto", mode: "AUTO", want: "require Google function-calling mode ANY"},
+	}
+	for _, test := range invalid {
+		t.Run(test.name, func(t *testing.T) {
+			request := base
+			request.ToolConfig = &models.GoogleToolConfig{FunctionCallingConfig: &models.GoogleFunctionCallingConfig{Mode: test.mode}}
+			if test.name == "undeclared name" {
+				request.ToolConfig.FunctionCallingConfig.AllowedFunctionNames = []string{"delete_all"}
+			} else if test.name == "allowed name with auto" {
+				request.ToolConfig.FunctionCallingConfig.AllowedFunctionNames = []string{"lookup"}
+			}
+			if _, _, err := GoogleContentsToPrompt(request); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
 			}
 		})
 	}
