@@ -2276,6 +2276,17 @@ input[type="range"] {
   gap: 8px;
   flex-wrap: wrap;
 }
+.artifact-source-limit {
+  margin: 14px 0;
+  padding: 14px 16px;
+  border: 1px solid rgba(245, 158, 11, 0.5);
+  border-left: 3px solid #f59e0b;
+  border-radius: var(--radius-card);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
 .history-status-banner {
   margin-top: 12px;
   padding: 10px 12px;
@@ -7775,6 +7786,74 @@ const artifactsRegistry = new Map();
 let currentActiveArtifact = null;
 let artifactEditorListenersBound = false;
 let artifactEditorWrapEnabled = true;
+const MAX_ARTIFACT_SOURCE_CHARS = 2 * 1024 * 1024;
+const MAX_ARTIFACT_REGISTRY_ITEMS = 128;
+const MAX_ARTIFACT_REGISTRY_CHARS = 8 * 1024 * 1024;
+let artifactRegistrySourceChars = 0;
+let artifactRenderCounter = 0;
+let activeArtifactRender = null;
+
+function artifactRenderScopeKey(scopeKey) {
+  const raw = typeof scopeKey === 'string' && scopeKey.trim()
+    ? scopeKey.trim()
+    : `render-${++artifactRenderCounter}`;
+  return raw.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 80) || `render-${++artifactRenderCounter}`;
+}
+
+function nextArtifactID() {
+  if (!activeArtifactRender) {
+    activeArtifactRender = { key: artifactRenderScopeKey(), ordinal: 0 };
+  }
+  const id = `art_${activeArtifactRender.key}_${activeArtifactRender.ordinal}`;
+  activeArtifactRender.ordinal += 1;
+  return id;
+}
+
+function ensureArtifactRegistryCapacity(id, nextSourceLength) {
+  const previous = artifactsRegistry.get(id);
+  const previousLength = previous && typeof previous.code === 'string' ? previous.code.length : 0;
+  let nextItemCount = previous ? artifactsRegistry.size : artifactsRegistry.size + 1;
+  let nextSourceChars = artifactRegistrySourceChars - previousLength + nextSourceLength;
+
+  while (nextItemCount > MAX_ARTIFACT_REGISTRY_ITEMS || nextSourceChars > MAX_ARTIFACT_REGISTRY_CHARS) {
+    let evicted = false;
+    for (const candidateID of artifactsRegistry.keys()) {
+      if (candidateID === id || (currentActiveArtifact && candidateID === currentActiveArtifact.id)) continue;
+      const candidate = artifactsRegistry.get(candidateID);
+      artifactsRegistry.delete(candidateID);
+      artifactRegistrySourceChars -= candidate && typeof candidate.code === 'string' ? candidate.code.length : 0;
+      nextItemCount -= 1;
+      nextSourceChars -= candidate && typeof candidate.code === 'string' ? candidate.code.length : 0;
+      evicted = true;
+      break;
+    }
+    if (!evicted) return false;
+  }
+  return true;
+}
+
+function registerArtifact(artifact) {
+  if (!artifact || typeof artifact.id !== 'string' || typeof artifact.code !== 'string') return false;
+  if (artifact.code.length > MAX_ARTIFACT_SOURCE_CHARS) return false;
+  if (!ensureArtifactRegistryCapacity(artifact.id, artifact.code.length)) return false;
+
+  const previous = artifactsRegistry.get(artifact.id);
+  if (previous) {
+    artifactRegistrySourceChars -= typeof previous.code === 'string' ? previous.code.length : 0;
+    Object.assign(previous, artifact);
+  } else {
+    artifactsRegistry.set(artifact.id, artifact);
+  }
+  artifactRegistrySourceChars += artifact.code.length;
+  return true;
+}
+
+function artifactSizeLimitNotice(language, sourceLength) {
+  const label = escapeHtml(language || 'code');
+  const size = Number(sourceLength || 0).toLocaleString();
+  const limit = Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString();
+  return `<div class="artifact-source-limit" role="alert"><strong>Artifact preview not started.</strong> The ${label} source is ${size} characters; interactive previews are limited to ${limit} characters. Use the provider's smaller output or download the source in a separate response.</div>`;
+}
 
 function normalizeArtifactToken(token, fallbackLanguage) {
   let rawCode = token;
@@ -8018,6 +8097,14 @@ function openArtifactCanvas(artId) {
   const code = getArtifactSource(art);
   currentActiveArtifact = art;
   prepareArtifactEditor(art);
+
+  if (typeof code !== 'string' || code.length > MAX_ARTIFACT_SOURCE_CHARS) {
+    showArtifactRuntimeError(`Artifact source exceeds the ${Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString()} character preview limit.`);
+    const modal = document.getElementById("artifact-modal");
+    if (modal) modal.classList.add("open");
+    switchArtifactTab('preview');
+    return;
+  }
 
   const orb = document.getElementById("art-type-orb");
   if (orb) orb.innerText = art.icon;
@@ -8316,6 +8403,10 @@ function runArtifactEditorCode() {
     showToast('Cannot run an empty artifact source.', '⚠️');
     return;
   }
+  if (source.length > MAX_ARTIFACT_SOURCE_CHARS) {
+    showToast(`Artifact source is limited to ${Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString()} characters.`, '⚠️');
+    return;
+  }
 
   currentActiveArtifact.code = source;
   currentActiveArtifact.editorCode = source;
@@ -8424,14 +8515,18 @@ if (window.marked) {
     const rawCode = normalized.code;
     const rawLang = normalized.lang;
     const cleanLang = (rawLang || '').toLowerCase().trim();
+    if (rawCode.length > MAX_ARTIFACT_SOURCE_CHARS) {
+      return artifactSizeLimitNotice(rawLang, rawCode.length);
+    }
     if (cleanLang === 'mermaid') {
       return `<div class="mermaid-container" style="margin:14px 0; padding:16px; background:var(--bg-card); border:1px solid var(--border-color); border-radius:var(--radius-card); text-align:center; overflow-x:auto;"><div class="mermaid">${escapeHtml(rawCode)}</div></div>`;
     }
     
     // Register Artifact
     const meta = extractArtifactMeta(rawCode, cleanLang);
-    const artId = 'art_' + Math.random().toString(36).substr(2, 9);
-    artifactsRegistry.set(artId, { id: artId, lang: cleanLang, type: meta.type, title: meta.title, icon: meta.icon, isInteractive: meta.isInteractive, code: rawCode });
+    const artId = nextArtifactID();
+    const registered = registerArtifact({ id: artId, lang: cleanLang, type: meta.type, title: meta.title, icon: meta.icon, isInteractive: meta.isInteractive, code: rawCode });
+    const interactive = meta.isInteractive && registered;
 
     const safeCode = escapeHtml(rawCode);
     const langLabel = rawLang || 'code';
@@ -8443,10 +8538,10 @@ if (window.marked) {
     }
     const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
     
-    const canvasBtn = meta.isInteractive ? `<button class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
+    const canvasBtn = interactive ? `<button class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
 
     let artifactChip = '';
-    if (meta.isInteractive) {
+    if (interactive) {
       if (meta.type === 'python') {
         artifactChip = `<div class="artifact-card-chip" data-action="launch-art" data-art-id="${artId}">
           <div class="artifact-chip-left">
@@ -8513,7 +8608,7 @@ if (window.marked) {
   });
 }
 
-function renderMarkdown(text) {
+function renderMarkdown(text, scopeKey) {
   if (text === null || text === undefined) return "";
   if (typeof text !== 'string') text = String(text);
   if (!text) return "";
@@ -8573,10 +8668,14 @@ function renderMarkdown(text) {
   // 6. Universal Marked.js standard parsing
   let html = "";
   if (window.marked && typeof marked.parse === 'function') {
+    const previousArtifactRender = activeArtifactRender;
+    activeArtifactRender = { key: artifactRenderScopeKey(scopeKey), ordinal: 0 };
     try {
       html = marked.parse(processed);
     } catch(e) {
       html = escapeHtml(processed);
+    } finally {
+      activeArtifactRender = previousArtifactRender;
     }
   } else {
     html = escapeHtml(processed);
@@ -10731,12 +10830,12 @@ function renderMessages() {
         const thoughtTokens = estimateTokensJS(m.thought);
         const tb = document.createElement("div");
         tb.className = "thought-card active";
-        tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought)}</div>`;
+        tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought, `history-${i}-thought`)}</div>`;
         storyDiv.appendChild(tb);
       }
 
       const contentDiv = document.createElement("div");
-      contentDiv.innerHTML = renderMarkdown(asstText);
+      contentDiv.innerHTML = renderMarkdown(asstText, `history-${i}-content`);
       storyDiv.appendChild(contentDiv);
 
       if (m.status === 'error' || m.status === 'stopped') {
@@ -11088,10 +11187,10 @@ async function sendMessage() {
         const thoughtTokens = estimateTokensJS(thoughtFullText);
         const titleSpan = thoughtBox.querySelector(".thought-title-span");
         if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (~${thoughtTokens} tokens)`;
-        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+        thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText, `live-${msgIdx}-thought`);
       }
       if (asstFullText) {
-        contentSpan.innerHTML = renderMarkdown(asstFullText) + '<span class="streaming-cursor"></span>';
+        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + '<span class="streaming-cursor"></span>';
       } else if (thoughtFullText) {
         contentSpan.innerHTML = `<div class="typing-indicator"><span>🧠</span> <span>${ui.reasoning} • Formulating solution...</span></div>`;
       }
@@ -11232,9 +11331,9 @@ async function sendMessage() {
       const thoughtTokens = estimateTokensJS(thoughtFullText);
       const titleSpan = thoughtBox.querySelector(".thought-title-span");
       if (titleSpan) titleSpan.innerText = `🧠 ${ui.reasoning} (${thoughtTokens} tokens)`;
-      thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText);
+      thoughtBox.querySelector(".thought-content").innerHTML = renderMarkdown(thoughtFullText, `live-${msgIdx}-thought`);
     }
-    contentSpan.innerHTML = renderMarkdown(asstFullText);
+    contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
     renderAllMath(storyDiv);
     highlightAllCode(storyDiv);
     renderAllMermaid(storyDiv);
@@ -11270,7 +11369,7 @@ async function sendMessage() {
     saveHistory();
   } catch(err) {
     if (err.name === 'AbortError') {
-      contentSpan.innerHTML = renderMarkdown(asstFullText);
+      contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
       renderAllMath(storyDiv);
       highlightAllCode(storyDiv);
       renderAllMermaid(storyDiv);
@@ -11395,7 +11494,7 @@ async function sendMessage() {
       let errorWrapper = `<div style="padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
       if (asstFullText.trim() !== "" || thoughtFullText.trim() !== "") {
         errorWrapper = `<div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
-        contentSpan.innerHTML = renderMarkdown(asstFullText) + errorWrapper;
+        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + errorWrapper;
         renderAllMath(storyDiv);
         highlightAllCode(storyDiv);
         renderAllMermaid(storyDiv);

@@ -162,6 +162,33 @@ func TestArtifactEditorPreservesGeneratedSource(t *testing.T) {
 	}
 }
 
+func TestArtifactRenderingHasBoundedSourceAndRegistryState(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const MAX_ARTIFACT_SOURCE_CHARS = 2 * 1024 * 1024;`,
+		`const MAX_ARTIFACT_REGISTRY_ITEMS = 128;`,
+		`const MAX_ARTIFACT_REGISTRY_CHARS = 8 * 1024 * 1024;`,
+		`function ensureArtifactRegistryCapacity(id, nextSourceLength)`,
+		`function registerArtifact(artifact)`,
+		`function artifactSizeLimitNotice(language, sourceLength)`,
+		`if (rawCode.length > MAX_ARTIFACT_SOURCE_CHARS)`,
+		`interactive previews are limited to`,
+		`activeArtifactRender = { key: artifactRenderScopeKey(scopeKey), ordinal: 0 };`,
+		`function nextArtifactID()`,
+		"renderMarkdown(asstFullText, `live-${msgIdx}-content`)",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing bounded artifact marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `artifactsRegistry.set(artId,`) {
+		t.Fatal("artifact renderer still writes directly to an unbounded registry")
+	}
+	if strings.Contains(html, `const artId = 'art_' + Math.random()`) {
+		t.Fatal("artifact IDs must be stable across repeated streaming renders")
+	}
+}
+
 func TestHistoryStorageBoundsAttachmentsWithoutCorruptingPayloads(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

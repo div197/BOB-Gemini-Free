@@ -397,6 +397,15 @@ risks as complete. The local implementation continuation added:
 - bounded browser history retention: 200 runtime messages, clipped persisted
   content/reasoning, a 4-million-character serialized budget, and a safe guard
   for oversized legacy localStorage payloads.
+- structured, credential-safe upstream failures across web-RPC, direct
+  Developer API, and native Google-shaped streams; native Google SSE now emits
+  a top-level error rather than assistant-authored Markdown, while OpenAI-style
+  streams retain their `[DONE]` terminal sentinel.
+- bounded artifact rendering: source is capped at 2 million characters before syntax
+  highlighting or iframe construction, render-scoped IDs prevent repeated
+  streaming renders from accumulating duplicate registry entries, and the
+  in-memory registry is capped at 128 entries/8 million characters with interactive execution
+  disabled when capacity cannot be established.
 
 The focused server, Gemini, multimodal, updater, and desktop tests passed
 after these changes, as did inline JavaScript syntax validation. The rebuilt
