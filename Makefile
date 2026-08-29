@@ -65,17 +65,17 @@ desktop-key-check:
 desktop-release-mac: web desktop-key-check
 	BOB_RELEASE_VERSION="$(VERSION)" BOB_RELEASE_CHANNEL=stable BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-release.sh
 
-desktop-preview-mac: web
+desktop-preview-mac: web desktop-key-check
 	@echo "Building the free, ad-hoc-signed BOB Gemini Free macOS beta package..."
-	scripts/package-wails-preview.sh
+	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-preview.sh
 
-desktop-preview-windows: web
+desktop-preview-windows: web desktop-key-check
 	@echo "Building the free, unsigned BOB Gemini Free Windows beta executable..."
-	scripts/package-wails-windows-preview.sh
+	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-windows-preview.sh
 
-desktop-preview-linux: web
+desktop-preview-linux: web desktop-key-check
 	@echo "Building the free BOB Gemini Free Linux beta package on a native Linux host..."
-	scripts/package-wails-linux-preview.sh
+	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-linux-preview.sh
 
 desktop-mac: web desktop-key-check
 	@echo "Building the BOB Gemini Free macOS app (run on macOS; universal target)..."

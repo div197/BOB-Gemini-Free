@@ -453,6 +453,9 @@ risks as complete. The local implementation continuation added:
   and updater plan paths are constrained to updater-owned names.
 - browser fallback and Wails bootstrap failures now return or display an error
   instead of logging a successful open when no browser or gateway is available;
+- all three preview desktop Make targets now forward the checked-in public
+  updater key to their packagers, and each preview packager rejects a stable
+  version or non-preview channel before invoking Wails;
 - the 15-check diagnostic runner now fails closed on malformed/empty response
   objects, incomplete Anthropic lifecycles, oversized streams, and unavailable
   provider-dependent image generation rather than reporting a transport-only

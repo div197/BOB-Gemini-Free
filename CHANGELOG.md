@@ -44,6 +44,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 #### Added
 - Added an opt-in public Gemini Developer API transport with native REST and
   SSE handling, isolated from the reverse-engineered web-RPC client.
+- Made every `desktop-preview-*` Make target pass the checked-in public updater
+  key to its packager and require a semantic `-preview.N` version with the
+  preview channel, so a preview build cannot fail late or be labelled as a
+  different release channel by accident.
 - Added OpenAI-shaped chat translation for system instructions, data-URL
   images, generation settings, JSON-object output, native function declarations,
   and `auto`/`none`/`required`/specific-tool choice mapping.
