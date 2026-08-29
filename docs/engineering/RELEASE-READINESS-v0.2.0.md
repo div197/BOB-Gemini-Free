@@ -39,12 +39,11 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes are on the reviewed branch `codex/release-readiness-v0.2.0`,
-which is not merged into `main` in this checkout. The native package evidence
-below was produced from clean source commit `d318b4f`; subsequent commits only
-refresh the evidence documents and release wiring. `origin/main` is at
-`a3e65ea`. The branch relationship must be reconciled through review before
-any publication. The signed `v0.2.0-preview.1` migration bridge is publicly
+These changes were reviewed through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
+and are published on `main` at merge commit `c5fa74f`. The native package
+evidence below was produced from clean source commit `d318b4f`, an ancestor of
+that published source; subsequent commits refreshed the evidence documents and
+release wiring. The signed `v0.2.0-preview.1` migration bridge is publicly
 published. Stable `v0.2.0` remains unpublished until the clean-device and pilot
 gates pass.
 
@@ -72,11 +71,13 @@ cross-builds in an isolated
 temporary directory, and the public-key presence gate. Coverage remains a
 measured limitation.
 
-The working tree is currently clean. The complete post-Preview-7 branch delta
-is 134 files relative to `origin/main`, so this remains a release-candidate
-audit of a large feature milestone, not a routine patch release. Repository-wide
-weighted statement coverage measured 63.6% in the current local run; the project
-must not claim blanket 80% coverage. The current local-only 1/10/20/30-concurrency baseline is recorded in
+The working tree is currently clean. At the time of this readiness review, the
+complete post-Preview-7 branch delta was 134 files relative to the then-current
+`origin/main`; the reviewed source is now published on `main` as PR #31. This
+remains a release-candidate audit of a large feature milestone, not a routine
+patch release. Repository-wide weighted statement coverage measured 63.6% in
+the current local run; the project must not claim blanket 80% coverage. The
+current local-only 1/10/20/30-concurrency baseline is recorded in
 [`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
 Google capacity or latency result.
 
@@ -96,8 +97,19 @@ The public GitHub state was also checked:
   migration bridge;
 - its macOS universal DMG/ZIP, release notice, checksum manifest, and detached
   signature are present and were re-downloaded and verified;
+- the reviewed source hardening was published to `main` through PR #31 as
+  merge commit `c5fa74f`;
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
+
+## Publication follow-up — 2026-08-29
+
+Protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31) was merged
+through the normal repository workflow at `c5fa74f`. The local checkout was
+fast-forwarded to that commit and the reviewed branch was not force-pushed.
+This closes source publication/provenance for the audited hardening work; it
+does not close the separate signed-artifact, platform-trust, clean-device,
+provider, or 30-device rollout gates below.
 
 ## Signing and trust gates
 

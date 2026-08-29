@@ -283,12 +283,12 @@ The following later evidence is now available:
 ## Current v0.2.0 release-readiness update (2026-08-29)
 
 The earlier release-readiness snapshot referenced source commit `e019cf8`.
-In the current checkout, the reviewed hardening work is on
-`codex/release-readiness-v0.2.0` and is **not** merged into `main`.
-`origin/main` is at `a3e65ea`; the fresh native package evidence in this
-section was produced from clean source commit `d318b4f`. The signed
-`v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has not been
-tagged or published. The separate
+The reviewed hardening work was merged through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
+and is published on `main` at `c5fa74f`; the local checkout is fast-forwarded
+to that commit. The fresh native package evidence in this section was produced
+from clean source commit `d318b4f`, an ancestor of the published source. The
+signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has
+not been tagged or published. The separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
 
