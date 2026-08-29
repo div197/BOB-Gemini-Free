@@ -2,6 +2,7 @@ package format
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -133,6 +134,10 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) (models.O
 	if err != nil {
 		return models.OpenAIChatRequest{}, err
 	}
+	toolChoice, err := anthropicToolChoice(req.ToolChoice, openAITools)
+	if err != nil {
+		return models.OpenAIChatRequest{}, err
+	}
 
 	reasoningEffort := ""
 	modelName := req.Model
@@ -153,7 +158,7 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) (models.O
 		Model:           modelName,
 		Messages:        openAIMessages,
 		Tools:           openAITools,
-		ToolChoice:      req.ToolChoice,
+		ToolChoice:      toolChoice,
 		ReasoningEffort: reasoningEffort,
 		Stream:          req.Stream,
 	}, nil
@@ -384,6 +389,74 @@ func anthropicTools(tools []models.AnthropicTool) ([]models.OpenAITool, error) {
 		return nil, fmt.Errorf("tool definitions exceed %d bytes", MaxToolDefinitionBytes)
 	}
 	return openAITools, nil
+}
+
+func anthropicToolChoice(choice any, tools []models.OpenAITool) (any, error) {
+	if choice == nil {
+		return nil, nil
+	}
+	switch value := choice.(type) {
+	case string:
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "", "auto":
+			return "auto", nil
+		case "none":
+			return "none", nil
+		case "any", "required":
+			return "required", nil
+		default:
+			return nil, fmt.Errorf("unsupported Anthropic tool_choice %q", value)
+		}
+	case map[string]any:
+		typeName, err := anthropicOptionalString(value, "type", MaxToolNameBytes)
+		if err != nil {
+			return nil, err
+		}
+		if rawDisabled, ok := value["disable_parallel_tool_use"]; ok {
+			disabled, ok := rawDisabled.(bool)
+			if !ok {
+				return nil, errors.New("Anthropic tool_choice disable_parallel_tool_use must be a boolean")
+			}
+			if disabled {
+				return nil, errors.New("Anthropic tool_choice disable_parallel_tool_use is not supported by the emulated tool route")
+			}
+		}
+		switch strings.ToLower(strings.TrimSpace(typeName)) {
+		case "", "function":
+			if typeName == "" {
+				return nil, errors.New("Anthropic tool_choice type is missing")
+			}
+			if err := ValidateToolChoice(value, tools); err != nil {
+				return nil, err
+			}
+			return value, nil
+		case "auto":
+			return "auto", nil
+		case "none":
+			return "none", nil
+		case "any":
+			return "required", nil
+		case "tool":
+			name, err := anthropicRequiredString(value, "name", true, MaxToolNameBytes)
+			if err != nil {
+				return nil, err
+			}
+			converted := map[string]any{
+				"type": "function",
+				"function": map[string]any{
+					"name": name,
+				},
+			}
+			if err := ValidateToolChoice(converted, tools); err != nil {
+				return nil, err
+			}
+			return converted, nil
+		default:
+			return nil, fmt.Errorf("unsupported Anthropic tool_choice type %q", typeName)
+		}
+	default:
+		return nil, fmt.Errorf("unsupported Anthropic tool_choice type %T", choice)
+	}
 }
 
 // ConvertToolCallsToAnthropicBlocks transforms parsed OpenAI tool calls and thinking into Anthropic content blocks.

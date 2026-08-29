@@ -20,6 +20,9 @@ const (
 // request schema. It preserves system instructions, multimodal data URLs,
 // native function declarations, and tool-choice semantics.
 func FromOpenAI(req models.OpenAIChatRequest) (GenerateContentRequest, error) {
+	if err := format.ValidateToolChoice(req.ToolChoice, req.Tools); err != nil {
+		return GenerateContentRequest{}, err
+	}
 	if err := format.ValidateToolResultReferences(req.Messages); err != nil {
 		return GenerateContentRequest{}, err
 	}

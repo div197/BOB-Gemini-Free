@@ -1070,7 +1070,7 @@ Yes. BOB Gemini Free is a single Go binary with official multi-arch Docker suppo
 <details>
 <summary><strong>7. Does this support Tool / Function Calling and Structured JSON Outputs?</strong></summary>
 
-Partially. BOB Gemini Free injects tool schemas into prompts and parses Markdown ` ```tool_call ` outputs into standard objects. This is emulated tool calling, not native Google function calling, and model compliance is not strictly enforced. `response_format` adds a JSON instruction; it is not a provider-side guarantee.
+Partially. BOB Gemini Free injects tool schemas into prompts and parses Markdown ` ```tool_call ` outputs into standard objects. This is emulated tool calling, not native Google function calling, and model compliance is not strictly enforced. Request-side tool choices are validated, normalized, and named choices must reference a declared tool; unsupported semantics fail with an explicit error. `response_format` adds a JSON instruction; it is not a provider-side guarantee.
 </details>
 
 <details>

@@ -44,6 +44,66 @@ func ValidateToolCall(name, arguments string) error {
 	return nil
 }
 
+// ValidateToolChoice rejects values that would otherwise silently fall back to
+// automatic tool selection. A named choice must reference a declared tool so
+// prompt and direct-provider adapters cannot claim to honor a tool that does
+// not exist in the request.
+func ValidateToolChoice(choice any, tools []models.OpenAITool) error {
+	switch value := choice.(type) {
+	case nil:
+		return nil
+	case string:
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "", "auto", "none", "required", "any":
+			return nil
+		default:
+			return fmt.Errorf("unsupported tool_choice %q", value)
+		}
+	case map[string]any:
+		rawType, typePresent := value["type"]
+		if typePresent {
+			typeName, ok := rawType.(string)
+			if !ok {
+				return errors.New("tool_choice type must be a string")
+			}
+			if typeName != "" && !strings.EqualFold(typeName, "function") {
+				return fmt.Errorf("unsupported tool_choice type %q", typeName)
+			}
+		}
+		rawFunction, functionPresent := value["function"]
+		if !functionPresent {
+			return errors.New("tool_choice function is missing")
+		}
+		function, ok := rawFunction.(map[string]any)
+		if !ok {
+			return errors.New("tool_choice function must be an object")
+		}
+		rawName, namePresent := function["name"]
+		if !namePresent {
+			return errors.New("tool_choice function name is missing")
+		}
+		name, ok := rawName.(string)
+		if !ok || strings.TrimSpace(name) == "" {
+			return errors.New("tool_choice function name is empty")
+		}
+		if len(name) > MaxToolNameBytes {
+			return fmt.Errorf("tool_choice function name exceeds %d bytes", MaxToolNameBytes)
+		}
+		for _, tool := range tools {
+			fn := tool.Function
+			if fn.Name == "" {
+				fn.Name = tool.Name
+			}
+			if fn.Name == name {
+				return nil
+			}
+		}
+		return fmt.Errorf("tool_choice references undeclared tool %q", name)
+	default:
+		return fmt.Errorf("unsupported tool_choice type %T", choice)
+	}
+}
+
 func RandHex(n int) string {
 	if n <= 0 {
 		return ""
@@ -61,10 +121,10 @@ func RandHex(n int) string {
 
 func BuildToolChoiceInstruction(toolChoice any) string {
 	if strChoice, ok := toolChoice.(string); ok {
-		if strChoice == "none" {
+		switch strings.ToLower(strings.TrimSpace(strChoice)) {
+		case "none":
 			return "\n\nIMPORTANT: Do NOT call any tools. Respond with text only."
-		}
-		if strChoice == "required" {
+		case "required", "any":
 			return "\n\nIMPORTANT: You MUST call at least one tool. Do not respond with text only."
 		}
 	} else if mapChoice, ok := toolChoice.(map[string]any); ok {
@@ -129,6 +189,9 @@ func ValidateToolResultReferences(messages []models.OpenAIMessage) error {
 }
 
 func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, error) {
+	if err := ValidateToolChoice(req.ToolChoice, req.Tools); err != nil {
+		return "", nil, err
+	}
 	if err := ValidateToolResultReferences(req.Messages); err != nil {
 		return "", nil, err
 	}
@@ -136,7 +199,7 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 	var images []Image
 
 	strChoice, isStr := req.ToolChoice.(string)
-	if !(isStr && strChoice == "none") && len(req.Tools) > 0 {
+	if !(isStr && strings.EqualFold(strings.TrimSpace(strChoice), "none")) && len(req.Tools) > 0 {
 		if len(req.Tools) > MaxToolDefinitions {
 			return "", nil, fmt.Errorf("tool definition count exceeds %d", MaxToolDefinitions)
 		}

@@ -333,6 +333,68 @@ func TestBuildToolChoiceInstruction(t *testing.T) {
 	if !strings.Contains(BuildToolChoiceInstruction(specificChoice), "lookup_user") {
 		t.Errorf("Expected specific choice to mention 'lookup_user'")
 	}
+	if !strings.Contains(BuildToolChoiceInstruction(" ANY "), "MUST call") {
+		t.Errorf("Expected normalized 'any' choice to require a tool")
+	}
+	if !strings.Contains(BuildToolChoiceInstruction(" NONE "), "Do NOT call") {
+		t.Errorf("Expected normalized 'none' choice to forbid tools")
+	}
+}
+
+func TestValidateToolChoiceRejectsUnsupportedOrUndeclaredChoices(t *testing.T) {
+	tools := []models.OpenAITool{{
+		Type:     "function",
+		Function: models.OpenAIFunction{Name: "lookup_user"},
+	}}
+	valid := []any{
+		nil,
+		"",
+		"auto",
+		"none",
+		"required",
+		"any",
+		map[string]any{
+			"type":     "function",
+			"function": map[string]any{"name": "lookup_user"},
+		},
+		map[string]any{
+			"function": map[string]any{"name": "lookup_user"},
+		},
+	}
+	for _, choice := range valid {
+		if err := ValidateToolChoice(choice, tools); err != nil {
+			t.Errorf("valid tool choice %#v rejected: %v", choice, err)
+		}
+	}
+
+	invalid := []struct {
+		name   string
+		choice any
+		want   string
+	}{
+		{name: "unknown mode", choice: "maybe", want: "unsupported tool_choice"},
+		{name: "wrong type", choice: 1, want: "unsupported tool_choice type"},
+		{name: "missing function", choice: map[string]any{"type": "function"}, want: "function is missing"},
+		{name: "wrong function shape", choice: map[string]any{"type": "function", "function": "lookup_user"}, want: "function must be an object"},
+		{name: "missing function name", choice: map[string]any{"type": "function", "function": map[string]any{}}, want: "function name is missing"},
+		{name: "undeclared function", choice: map[string]any{"type": "function", "function": map[string]any{"name": "delete_all"}}, want: "undeclared tool"},
+		{name: "unsupported type", choice: map[string]any{"type": "computer", "function": map[string]any{"name": "lookup_user"}}, want: "unsupported tool_choice type"},
+	}
+	for _, test := range invalid {
+		t.Run(test.name, func(t *testing.T) {
+			if err := ValidateToolChoice(test.choice, tools); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+
+	if _, _, err := MessagesToPromptAndImages(models.OpenAIChatRequest{
+		Messages:   []models.OpenAIMessage{{Role: "user", Content: "use the requested tool"}},
+		Tools:      tools,
+		ToolChoice: map[string]any{"type": "function", "function": map[string]any{"name": "delete_all"}},
+	}); err == nil || !strings.Contains(err.Error(), "undeclared tool") {
+		t.Fatalf("shared prompt path error = %v, want undeclared tool failure", err)
+	}
 }
 
 func TestToolPromptBudgetsRejectOversizedDeclarationsAndArguments(t *testing.T) {

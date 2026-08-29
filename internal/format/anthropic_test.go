@@ -282,3 +282,57 @@ func TestAnthropicConversionValidatesTools(t *testing.T) {
 		t.Fatalf("error = %v, want empty tool name validation", err)
 	}
 }
+
+func TestAnthropicConversionNormalizesToolChoice(t *testing.T) {
+	tool := models.AnthropicTool{
+		Name:        "lookup_user",
+		Description: "Look up a user.",
+		InputSchema: map[string]any{"type": "object"},
+	}
+	base := models.AnthropicMessagesRequest{
+		Messages: []models.AnthropicMessage{{Role: "user", Content: "find the user"}},
+		Tools:    []models.AnthropicTool{tool},
+	}
+
+	base.ToolChoice = map[string]any{"type": "any", "disable_parallel_tool_use": false}
+	chatReq, err := AnthropicToOpenAIChatRequest(base)
+	if err != nil || chatReq.ToolChoice != "required" {
+		t.Fatalf("any tool choice = %#v, error = %v; want required", chatReq.ToolChoice, err)
+	}
+
+	base.ToolChoice = map[string]any{
+		"type": "tool",
+		"name": "lookup_user",
+	}
+	chatReq, err = AnthropicToOpenAIChatRequest(base)
+	if err != nil {
+		t.Fatalf("named tool choice error = %v", err)
+	}
+	choice, ok := chatReq.ToolChoice.(map[string]any)
+	if !ok {
+		t.Fatalf("named tool choice type = %T, want object", chatReq.ToolChoice)
+	}
+	function, ok := choice["function"].(map[string]any)
+	if !ok || function["name"] != "lookup_user" {
+		t.Fatalf("named tool choice = %#v", chatReq.ToolChoice)
+	}
+
+	invalid := []struct {
+		name   string
+		choice any
+		want   string
+	}{
+		{name: "unknown type", choice: map[string]any{"type": "server_tool"}, want: "unsupported Anthropic tool_choice type"},
+		{name: "undeclared tool", choice: map[string]any{"type": "tool", "name": "delete_all"}, want: "undeclared tool"},
+		{name: "parallel disabled", choice: map[string]any{"type": "any", "disable_parallel_tool_use": true}, want: "disable_parallel_tool_use"},
+		{name: "wrong parallel flag", choice: map[string]any{"type": "any", "disable_parallel_tool_use": "yes"}, want: "must be a boolean"},
+	}
+	for _, test := range invalid {
+		t.Run(test.name, func(t *testing.T) {
+			base.ToolChoice = test.choice
+			if _, err := AnthropicToOpenAIChatRequest(base); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+}

@@ -265,6 +265,11 @@ func TestFromOpenAIRejectsUnsupportedStructuredOutputAndToolChoice(t *testing.T)
 	if _, err := FromOpenAI(base); err == nil || !strings.Contains(err.Error(), "tool_choice type") {
 		t.Fatalf("tool_choice type error = %v", err)
 	}
+
+	base.ToolChoice = map[string]any{"type": "function", "function": map[string]any{"name": "delete_all"}}
+	if _, err := FromOpenAI(base); err == nil || !strings.Contains(err.Error(), "undeclared tool") {
+		t.Fatalf("undeclared tool choice error = %v", err)
+	}
 }
 
 func TestFromOpenAIEnforcesToolBudgets(t *testing.T) {
