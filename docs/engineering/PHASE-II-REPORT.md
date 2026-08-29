@@ -530,3 +530,15 @@ version or non-preview channel before invoking Wails. This is local package
 evidence only; the manifest was not signed or uploaded, and no Apple
 Developer ID/notarization, clean-device update, Windows, Linux, or provider
 acceptance claim follows from it.
+
+### Release-coherence follow-up — 2026-08-29
+
+Protected PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33) merged the
+release-source preflight into `main` at `2f5d498`. The gate now extracts the
+canonical Ed25519 public key from its explicit document block and compares it
+with the standalone installers, native package inputs, Docker version, and
+preview version/channel defaults. A controlled installer-key mismatch failed
+closed, while stable and preview fixtures passed. This closes source-input
+drift as a locally testable failure path; it does not establish private-key
+custody, a signed public release, Apple trust, or installed-device update
+acceptance.
