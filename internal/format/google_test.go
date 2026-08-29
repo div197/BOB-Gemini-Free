@@ -224,3 +224,76 @@ func TestGoogleFunctionCallingModeFailsClosedAndNormalizes(t *testing.T) {
 		})
 	}
 }
+
+func TestGoogleContentsToPromptRejectsSilentLossBoundaries(t *testing.T) {
+	base := models.GoogleGenerateRequest{
+		Contents: []models.GoogleContent{{Role: "user", Parts: []models.GooglePart{{Text: "hello"}}}},
+	}
+	tests := []struct {
+		name   string
+		mutate func(*models.GoogleGenerateRequest)
+		want   string
+	}{
+		{
+			name: "empty part",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{{}}
+			},
+			want: "no supported value",
+		},
+		{
+			name: "ambiguous part",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{
+					{Text: "hello", FunctionCall: &models.GoogleFunctionCall{Name: "lookup"}},
+				}
+			},
+			want: "multiple values",
+		},
+		{
+			name: "unknown role",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Role = "assistant"
+			},
+			want: "unsupported Google content role",
+		},
+		{
+			name: "malformed function call",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Contents[0].Parts = []models.GooglePart{{FunctionCall: &models.GoogleFunctionCall{Name: "  "}}}
+			},
+			want: "function call name is empty",
+		},
+		{
+			name: "duplicate declarations",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.Tools = []models.GoogleTool{{FunctionDeclarations: []models.GoogleFunctionDeclaration{
+					{Name: "lookup"}, {Name: "lookup"},
+				}}}
+			},
+			want: "declared more than once",
+		},
+		{
+			name: "non-text system instruction",
+			mutate: func(req *models.GoogleGenerateRequest) {
+				req.SystemInstruction = &models.GoogleContent{Parts: []models.GooglePart{{InlineData: &models.GoogleInlineData{MIMEType: "image/png", Data: "aGk="}}}}
+			},
+			want: "only text is supported",
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			request := models.GoogleGenerateRequest{
+				Contents: []models.GoogleContent{{
+					Role:  base.Contents[0].Role,
+					Parts: append([]models.GooglePart(nil), base.Contents[0].Parts...),
+				}},
+			}
+			test.mutate(&request)
+			if _, _, err := GoogleContentsToPrompt(request); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+}

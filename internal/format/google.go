@@ -128,8 +128,12 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 			return "", nil, fmt.Errorf("tool definition count exceeds %d", MaxToolDefinitions)
 		}
 		for _, tool := range toolDefs {
-			if strings.TrimSpace(tool.Name) == "" {
+			name := strings.TrimSpace(tool.Name)
+			if name == "" {
 				return "", nil, fmt.Errorf("tool name is empty")
+			}
+			if name != tool.Name {
+				return "", nil, fmt.Errorf("tool %q name has surrounding whitespace", tool.Name)
 			}
 			if len(tool.Name) > MaxToolNameBytes {
 				return "", nil, fmt.Errorf("tool %q name exceeds %d bytes", tool.Name[:MaxToolNameBytes], MaxToolNameBytes)
@@ -140,6 +144,13 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 			if err := ValidateToolSchema(tool.Parameters); err != nil {
 				return "", nil, fmt.Errorf("tool %q schema: %w", tool.Name, err)
 			}
+		}
+		seenTools := make(map[string]struct{}, len(toolDefs))
+		for _, tool := range toolDefs {
+			if _, exists := seenTools[tool.Name]; exists {
+				return "", nil, fmt.Errorf("tool %q is declared more than once", tool.Name)
+			}
+			seenTools[tool.Name] = struct{}{}
 		}
 		encoded, err := json.Marshal(toolDefs)
 		if err != nil {
@@ -153,10 +164,15 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 	var sysText string
 	if req.SystemInstruction != nil {
 		var tParts []string
-		for _, p := range req.SystemInstruction.Parts {
-			if p.Text != "" {
-				tParts = append(tParts, p.Text)
+		for index, p := range req.SystemInstruction.Parts {
+			kind, partErr := googlePartKind(p)
+			if partErr != nil {
+				return "", nil, fmt.Errorf("system instruction part %d: %w", index, partErr)
 			}
+			if kind != "text" {
+				return "", nil, fmt.Errorf("system instruction part %d is %s; only text is supported", index, kind)
+			}
+			tParts = append(tParts, p.Text)
 		}
 		sysText = strings.Join(tParts, " ")
 	}
@@ -174,22 +190,35 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 	}
 
 	for _, content := range req.Contents {
-		role := content.Role
+		role := strings.ToLower(strings.TrimSpace(content.Role))
 		if role == "" {
 			role = "user"
 		}
+		switch role {
+		case "user", "model", "function", "tool":
+		default:
+			return "", nil, fmt.Errorf("unsupported Google content role %q", content.Role)
+		}
 
 		var msgParts []string
-		for _, p := range content.Parts {
-			if p.Text != "" {
+		for index, p := range content.Parts {
+			kind, partErr := googlePartKind(p)
+			if partErr != nil {
+				return "", nil, fmt.Errorf("content role %q part %d: %w", role, index, partErr)
+			}
+			switch kind {
+			case "text":
 				msgParts = append(msgParts, p.Text)
-			} else if p.InlineData != nil {
+			case "inlineData":
 				dec, mimeType, err := decodeInlineImageData(p.InlineData.Data, p.InlineData.MIMEType)
 				if err != nil {
 					return "", nil, fmt.Errorf("invalid inline image: %w", err)
 				}
 				images = append(images, Image{Data: dec, MIME: mimeType})
-			} else if p.FunctionCall != nil {
+			case "functionCall":
+				if err := validateGoogleFunctionCall(p.FunctionCall); err != nil {
+					return "", nil, fmt.Errorf("content role %q part %d: %w", role, index, err)
+				}
 				args := p.FunctionCall.Args
 				if args == nil {
 					args = map[string]any{}
@@ -199,7 +228,10 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 					return "", nil, fmt.Errorf("encode function call %q: %w", p.FunctionCall.Name, err)
 				}
 				msgParts = append(msgParts, fmt.Sprintf("```function_call\n%s\n```", string(payload)))
-			} else if p.FunctionResponse != nil {
+			case "functionResponse":
+				if err := validateGoogleFunctionResponse(p.FunctionResponse); err != nil {
+					return "", nil, fmt.Errorf("content role %q part %d: %w", role, index, err)
+				}
 				resp := p.FunctionResponse.Response
 				if resp == nil {
 					resp = map[string]any{}
@@ -221,6 +253,88 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 	}
 
 	return strings.Join(parts, "\n\n"), images, nil
+}
+
+func googlePartKind(part models.GooglePart) (string, error) {
+	count := 0
+	kind := ""
+	if part.Text != "" {
+		count++
+		kind = "text"
+	}
+	if part.InlineData != nil {
+		count++
+		kind = "inlineData"
+	}
+	if part.FunctionCall != nil {
+		count++
+		kind = "functionCall"
+	}
+	if part.FunctionResponse != nil {
+		count++
+		kind = "functionResponse"
+	}
+	if count == 0 {
+		return "", fmt.Errorf("part has no supported value")
+	}
+	if count > 1 {
+		return "", fmt.Errorf("part has multiple values")
+	}
+	return kind, nil
+}
+
+func validateGoogleFunctionCall(call *models.GoogleFunctionCall) error {
+	if call == nil {
+		return fmt.Errorf("function call is missing")
+	}
+	if strings.TrimSpace(call.Name) == "" {
+		return fmt.Errorf("function call name is empty")
+	}
+	if strings.TrimSpace(call.Name) != call.Name {
+		return fmt.Errorf("function call name has surrounding whitespace")
+	}
+	if len(call.Name) > MaxToolNameBytes {
+		return fmt.Errorf("function call name exceeds %d bytes", MaxToolNameBytes)
+	}
+	args := call.Args
+	if args == nil {
+		args = map[string]any{}
+	}
+	encoded, err := json.Marshal(args)
+	if err != nil {
+		return fmt.Errorf("encode function call %q: %w", call.Name, err)
+	}
+	if len(encoded) > MaxToolArgumentBytes {
+		return fmt.Errorf("function call %q arguments exceed %d bytes", call.Name, MaxToolArgumentBytes)
+	}
+	return nil
+}
+
+func validateGoogleFunctionResponse(response *models.GoogleFunctionCallResp) error {
+	if response == nil {
+		return fmt.Errorf("function response is missing")
+	}
+	if strings.TrimSpace(response.Name) == "" {
+		return fmt.Errorf("function response name is empty")
+	}
+	if strings.TrimSpace(response.Name) != response.Name {
+		return fmt.Errorf("function response name has surrounding whitespace")
+	}
+	if len(response.Name) > MaxToolNameBytes {
+		return fmt.Errorf("function response name exceeds %d bytes", MaxToolNameBytes)
+	}
+	result := response.Response
+	if result == nil {
+		result = map[string]any{}
+	}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		return fmt.Errorf("encode function response %q: %w", response.Name, err)
+	}
+	if len(encoded) > MaxToolArgumentBytes {
+		return fmt.Errorf("function response %q exceeds %d bytes", response.Name, MaxToolArgumentBytes)
+	}
+	return nil
 }
 
 var (
