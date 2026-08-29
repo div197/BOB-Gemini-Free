@@ -97,6 +97,27 @@ func TestMalformedStreamEventFailsClosed(t *testing.T) {
 	}
 }
 
+func TestEmptyStreamFailsClosed(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "empty body", body: ""},
+		{name: "done only", body: ": keepalive\n\ndata: [DONE]\n\n"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client := NewClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusOK, "text/event-stream", test.body), nil
+			})})
+			err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil })
+			if err == nil || !strings.Contains(err.Error(), "empty stream") {
+				t.Fatalf("error = %v, want empty stream failure", err)
+			}
+		})
+	}
+}
+
 func TestProviderEmptyResponseFailsClosed(t *testing.T) {
 	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
 		return nil, nil

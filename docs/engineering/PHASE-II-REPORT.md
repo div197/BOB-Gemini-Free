@@ -379,6 +379,9 @@ risks as complete. The local implementation continuation added:
   images, invalid tool-use fields, and missing tool-result correlation data now
   fail closed; mixed text/tool-result blocks retain their order before shared
   prompt translation.
+- the direct Gemini Developer API SSE parser now rejects an empty or
+  `[DONE]`-only stream instead of allowing the server to fabricate a normal
+  stop; standard comments and multi-line data fixtures remain supported.
 - a shared 32 MiB request-body reader at every JSON handler seam, so direct
   handler or embedding calls retain the same memory bound as normal HTTP
   middleware.

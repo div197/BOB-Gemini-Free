@@ -364,6 +364,7 @@ func parseSSE(reader io.Reader, maxBody int64, emit func(json.RawMessage) error)
 	var dataLines []string
 	var eventBytes int64
 	var streamBytes int64
+	emitted := false
 	flush := func() error {
 		if len(dataLines) == 0 {
 			return nil
@@ -374,6 +375,7 @@ func parseSSE(reader io.Reader, maxBody int64, emit func(json.RawMessage) error)
 		if data == "" || data == "[DONE]" {
 			return nil
 		}
+		emitted = true
 		return emit(json.RawMessage(data))
 	}
 	for scanner.Scan() {
@@ -405,5 +407,11 @@ func parseSSE(reader io.Reader, maxBody int64, emit func(json.RawMessage) error)
 	if err := scanner.Err(); err != nil {
 		return &APIError{Kind: "transport", Message: "could not read Gemini Developer API stream", Err: err}
 	}
-	return flush()
+	if err := flush(); err != nil {
+		return err
+	}
+	if !emitted {
+		return &APIError{Kind: "protocol", Message: "Gemini Developer API returned an empty stream"}
+	}
+	return nil
 }
