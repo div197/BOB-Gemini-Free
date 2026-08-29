@@ -122,6 +122,9 @@ func (c *Client) Stream(ctx context.Context, model, apiKey string, req GenerateC
 		if err := json.Unmarshal(data, &response); err != nil {
 			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid stream JSON", Err: err}
 		}
+		if len(response.Candidates) == 0 && response.PromptFeedback == nil && response.UsageMetadata == nil {
+			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned an empty stream event"}
+		}
 		return emit(response)
 	})
 }

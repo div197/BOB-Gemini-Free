@@ -97,6 +97,21 @@ func TestMalformedStreamEventFailsClosed(t *testing.T) {
 	}
 }
 
+func TestEmptyStreamEventFailsClosed(t *testing.T) {
+	for _, body := range []string{
+		"data: {}\n\n",
+		"data: {\"candidates\":[]}\n\n",
+	} {
+		client := NewClient(&http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return response(http.StatusOK, "text/event-stream", body), nil
+		})})
+		err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil })
+		if err == nil || !strings.Contains(err.Error(), "empty stream event") {
+			t.Fatalf("body %q error = %v, want empty stream event failure", body, err)
+		}
+	}
+}
+
 func TestEmptyStreamFailsClosed(t *testing.T) {
 	tests := []struct {
 		name string
@@ -149,7 +164,7 @@ func TestClientNormalizesNilContext(t *testing.T) {
 	}
 
 	client.HTTP = roundTripFunc(func(*http.Request) (*http.Response, error) {
-		return response(http.StatusOK, "text/event-stream", "data: {\"candidates\":[]}\n\ndata: [DONE]\n\n"), nil
+		return response(http.StatusOK, "text/event-stream", "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"ok\"}]}}]}\n\ndata: [DONE]\n\n"), nil
 	})
 	if err := client.Stream(nil, "gemini-3.7-flash", "context-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil }); err != nil {
 		t.Fatalf("Stream(nil context) error = %v", err)
@@ -158,7 +173,7 @@ func TestClientNormalizesNilContext(t *testing.T) {
 
 func TestStreamRejectsAggregateSSEBodyLimit(t *testing.T) {
 	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
-		return response(http.StatusOK, "text/event-stream", strings.Repeat("data: {}\n\n", 10)), nil
+		return response(http.StatusOK, "text/event-stream", strings.Repeat("data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"x\"}]}}]}\n\n", 10)), nil
 	}))
 	client.MaxResponseBody = 32
 	err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil })
