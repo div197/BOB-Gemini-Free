@@ -39,13 +39,14 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes are on the reviewed branch `codex/release-readiness-v0.2.0` at
-`d318b4f`; the current branch is not merged into `main` in this checkout.
-`origin/main` is at `a3e65ea` (two commits not present on this branch), while
-the reviewed branch contains 24 commits not present on `origin/main`. Their
-relationship must be reconciled through review before any publication. The
-signed `v0.2.0-preview.1` migration bridge is publicly published. Stable
-`v0.2.0` remains unpublished until the clean-device and pilot gates pass.
+These changes are on the reviewed branch `codex/release-readiness-v0.2.0`,
+which is not merged into `main` in this checkout. The native package evidence
+below was produced from clean source commit `d318b4f`; subsequent commits only
+refresh the evidence documents and release wiring. `origin/main` is at
+`a3e65ea`. The branch relationship must be reconciled through review before
+any publication. The signed `v0.2.0-preview.1` migration bridge is publicly
+published. Stable `v0.2.0` remains unpublished until the clean-device and pilot
+gates pass.
 
 ## Evidence already available
 

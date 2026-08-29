@@ -284,9 +284,9 @@ The following later evidence is now available:
 
 The earlier release-readiness snapshot referenced source commit `e019cf8`.
 In the current checkout, the reviewed hardening work is on
-`codex/release-readiness-v0.2.0` at `d318b4f` and is **not** merged into
-`main`: `origin/main` is at `a3e65ea`, with two commits not present on this
-branch and 24 reviewed commits not present on `origin/main`. The signed
+`codex/release-readiness-v0.2.0` and is **not** merged into `main`.
+`origin/main` is at `a3e65ea`; the fresh native package evidence in this
+section was produced from clean source commit `d318b4f`. The signed
 `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has not been
 tagged or published. The separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
