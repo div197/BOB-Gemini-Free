@@ -231,6 +231,25 @@ func TestFromOpenAIRejectsRemoteImagesAndInvalidToolArguments(t *testing.T) {
 	}
 }
 
+func TestFromOpenAIRejectsDroppedContentParts(t *testing.T) {
+	tests := []struct {
+		name    string
+		content any
+		want    string
+	}{
+		{name: "missing type", content: []any{map[string]any{"text": "hello"}}, want: "missing type"},
+		{name: "wrong text type", content: []any{map[string]any{"type": "text", "text": 42}}, want: "text must be a string"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := FromOpenAI(models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{Role: "user", Content: test.content}}})
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+}
+
 func TestFromOpenAIRejectsUnsafeInlineImages(t *testing.T) {
 	for _, imageURL := range []string{
 		"data:text/plain;base64,aGk=",

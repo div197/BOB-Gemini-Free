@@ -293,6 +293,53 @@ func TestMessagesToPromptAndImagesRemoteURL(t *testing.T) {
 	}
 }
 
+func TestMessagesToPromptAndImagesRejectsDroppedContent(t *testing.T) {
+	tests := []struct {
+		name string
+		req  models.OpenAIChatRequest
+		want string
+	}{
+		{
+			name: "scalar message content",
+			req:  models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{Role: "user", Content: 42}}},
+			want: "message content must be a string",
+		},
+		{
+			name: "missing text field",
+			req: models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{
+				Role: "user", Content: []any{map[string]any{"type": "text"}},
+			}}},
+			want: "text is missing",
+		},
+		{
+			name: "wrong text field type",
+			req: models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{
+				Role: "user", Content: []any{map[string]any{"type": "text", "text": 42}},
+			}}},
+			want: "text must be a string",
+		},
+		{
+			name: "unknown role",
+			req:  models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{Role: "reviewer", Content: "ignored"}}},
+			want: "unsupported OpenAI message role",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if _, _, err := MessagesToPromptAndImages(test.req); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+
+	prompt, _, err := MessagesToPromptAndImages(models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{{Role: " USER ", Content: "normalized role"}},
+	})
+	if err != nil || !strings.Contains(prompt, "normalized role") {
+		t.Fatalf("normalized valid role prompt = %q, error = %v", prompt, err)
+	}
+}
+
 func TestExtractThinking(t *testing.T) {
 	raw := "```thought\n1. Analyze input\n2. Compute step\n```\nHere is the final answer."
 	thinking, clean := ExtractThinking(raw)

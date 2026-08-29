@@ -256,27 +256,46 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 	}
 
 	for _, msg := range req.Messages {
-		role := msg.Role
+		role := strings.ToLower(strings.TrimSpace(msg.Role))
 		if role == "" {
 			role = "user"
 		}
 
 		var contentStr string
-		if strContent, ok := msg.Content.(string); ok {
-			contentStr = strContent
-		} else if contentList, ok := msg.Content.([]any); ok {
+		switch value := msg.Content.(type) {
+		case nil:
+			// Empty content is valid for assistant tool-call turns and is
+			// represented as an empty prompt segment for other roles.
+		case string:
+			contentStr = value
+		case []any:
+			contentList := value
 			var textParts []string
-			for _, item := range contentList {
+			for itemIndex, item := range contentList {
 				mapItem, ok := item.(map[string]any)
 				if !ok {
-					return "", nil, fmt.Errorf("unsupported multimodal content item type %T", item)
+					return "", nil, fmt.Errorf("unsupported multimodal content item %d type %T", itemIndex, item)
 				}
-				iType, _ := mapItem["type"].(string)
-				if iType == "text" || iType == "input_text" {
-					if t, ok := mapItem["text"].(string); ok {
-						textParts = append(textParts, t)
+				rawType, exists := mapItem["type"]
+				if !exists {
+					return "", nil, fmt.Errorf("multimodal content item %d is missing type", itemIndex)
+				}
+				iType, ok := rawType.(string)
+				if !ok || strings.TrimSpace(iType) == "" {
+					return "", nil, fmt.Errorf("multimodal content item %d type must be a non-empty string", itemIndex)
+				}
+				switch iType {
+				case "text", "input_text":
+					rawText, exists := mapItem["text"]
+					if !exists {
+						return "", nil, fmt.Errorf("multimodal content item %d text is missing", itemIndex)
 					}
-				} else if iType == "image_url" || iType == "image" {
+					text, ok := rawText.(string)
+					if !ok {
+						return "", nil, fmt.Errorf("multimodal content item %d text must be a string", itemIndex)
+					}
+					textParts = append(textParts, text)
+				case "image_url", "image":
 					var urlStr string
 					if imgURLMap, ok := mapItem["image_url"].(map[string]any); ok {
 						urlStr, _ = imgURLMap["url"].(string)
@@ -287,7 +306,7 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 					}
 
 					if urlStr == "" {
-						return "", nil, fmt.Errorf("image content item has no image URL")
+						return "", nil, fmt.Errorf("image content item %d has no image URL", itemIndex)
 					}
 					if strings.HasPrefix(strings.ToLower(urlStr), "data:") {
 						commaIdx := strings.Index(urlStr, ",")
@@ -316,11 +335,13 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 						}
 						images = append(images, Image{Data: dec, MIME: mimeType})
 					}
-				} else {
+				default:
 					return "", nil, fmt.Errorf("unsupported multimodal content type %q", iType)
 				}
 			}
 			contentStr = strings.Join(textParts, " ")
+		default:
+			return "", nil, fmt.Errorf("message content must be a string, array, or null; got %T", msg.Content)
 		}
 
 		switch role {
@@ -343,6 +364,8 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 			} else {
 				parts = append(parts, fmt.Sprintf("[Assistant]: %s", contentStr))
 			}
+		case "user":
+			parts = append(parts, contentStr)
 		case "tool":
 			identifier := msg.Name
 			if identifier == "" {
@@ -353,9 +376,7 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 			}
 			parts = append(parts, fmt.Sprintf("[Tool result for %s]: %s", identifier, contentStr))
 		default:
-			if contentStr != "" {
-				parts = append(parts, contentStr)
-			}
+			return "", nil, fmt.Errorf("unsupported OpenAI message role %q", msg.Role)
 		}
 	}
 

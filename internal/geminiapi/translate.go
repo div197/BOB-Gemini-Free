@@ -193,10 +193,24 @@ func partsFromContent(content any) ([]Part, error) {
 }
 
 func contentPart(obj map[string]any) (Part, error) {
-	typeName, _ := obj["type"].(string)
+	rawType, ok := obj["type"]
+	if !ok {
+		return Part{}, errors.New("OpenAI content part is missing type")
+	}
+	typeName, ok := rawType.(string)
+	if !ok || strings.TrimSpace(typeName) == "" {
+		return Part{}, errors.New("OpenAI content part type must be a non-empty string")
+	}
 	switch typeName {
 	case "text", "input_text":
-		text, _ := obj["text"].(string)
+		rawText, ok := obj["text"]
+		if !ok {
+			return Part{}, errors.New("OpenAI text content part is missing text")
+		}
+		text, ok := rawText.(string)
+		if !ok {
+			return Part{}, errors.New("OpenAI text content part text must be a string")
+		}
 		return Part{Text: text}, nil
 	case "image_url", "input_image":
 		var rawURL string
