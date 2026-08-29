@@ -284,10 +284,12 @@ The following later evidence is now available:
 
 The earlier release-readiness snapshot referenced source commit `e019cf8`.
 The reviewed hardening work was merged through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
-and is published on `main` at `c5fa74f`; the local checkout is fast-forwarded
-to that commit. The fresh native package evidence in this section was produced
-from clean source commit `d318b4f`, an ancestor of the published source. The
-signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has
+and is preserved in the current `main` history. The current public `main` tip
+is merge commit `2f5d498`; the release-coherence follow-up was merged through
+protected PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33) and is
+included in that tip. The fresh native package evidence in this section was
+produced from clean source commit `d318b4f`, an ancestor of the reviewed source.
+The signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has
 not been tagged or published. The separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
@@ -295,6 +297,7 @@ publication gate for this milestone.
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The stable build path embeds the repository's updater public key | VERIFIED_BY_INTEGRATION_TEST | `make build`, `make dist`, `make desktop-key-check`, and binary string inspection passed for the six CLI targets and the macOS Wails candidate | This proves the embedded trust anchor, not a signed release manifest or Apple/Windows publisher trust. |
+| The release source gate rejects updater-key and version/channel drift before packaging | VERIFIED_BY_INTEGRATION_TEST | `scripts/verify-release-source.sh` passed for stable and preview fixtures and failed closed when a standalone installer key was changed; PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33) merged this guard on `main` | This validates source/package inputs only; it does not sign, upload, or verify the public release assets. |
 | The macOS v0.2.0 candidate is package-valid | VERIFIED_BY_INTEGRATION_TEST | Fresh `make desktop-preview-mac` on clean commit `d318b4f` produced a Wails universal app, ZIP, DMG, Applications shortcut, ad-hoc code signature, SHA-256 checks, bundle metadata, local PWA routes, and native GUI quit/shutdown proof; the public `v0.2.0-preview.1` bridge was separately re-downloaded with checksum/signature verification | `spctl` rejection is expected without Apple notarization; the local candidate has no signed release manifest and this proves neither a stable upload nor student rollout. |
 | Update metadata URLs are pinned to the official repository or GitHub release CDN | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` and `internal/updater/updater_test.go` reject other GitHub owners/repositories, non-HTTPS URLs, lookalike hosts, and unexpected ports | GitHub release metadata is still external state; the signed manifest remains the artifact authenticity boundary. |
 | Existing public Preview 7 installations can update directly to v0.2.0 stable | STALE_OR_INCORRECT | The published Preview 7 binary predates stable-first discovery; the published same-key `v0.2.0-preview.1` bridge is now available, while current source tests prove stable-first only for newly built packages | Install the bridge first, then bridge → stable after stable acceptance, or perform one manual stable installation. Preview 6 and older need manual current-key migration. |

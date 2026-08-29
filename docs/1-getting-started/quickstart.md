@@ -197,8 +197,10 @@ check:
 
 The CLI refuses an unsigned update. The public `v0.2.0-preview.1` migration
 bridge carries the current native project key. Existing Preview 7 installations
-can install that bridge first, then use its stable-first updater after stable
-`v0.2.0` is published and accepted.
+can install that bridge first. Once stable `v0.2.0` is published and accepted,
+the bridge's stable-first updater can complete that migration. As of this
+quickstart revision, stable `v0.2.0` is not published; publication remains
+gated on clean-device and pilot acceptance.
 
 ---
 
