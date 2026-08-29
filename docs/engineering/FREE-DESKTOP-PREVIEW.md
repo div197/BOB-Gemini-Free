@@ -1,6 +1,7 @@
 # Free Native Desktop Beta
 
-**Status:** branded public experimental preview published as `v0.1.7-preview.7`.
+**Status:** branded public experimental migration bridge published as
+`v0.2.0-preview.1`; `v0.1.7-preview.7` remains the existing fleet baseline.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -35,7 +36,12 @@ Preview 3 and other builds without the current embedded desktop trust key still
 require a manual migration. This project-level signature does not create Apple
 Developer ID or notarization trust.
 
-## Public preview release
+## Public preview releases
+
+The current [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
+contains the same universal macOS package shape and current-key signed
+manifest. Existing Preview 7 users should use this release first when they
+want updater-based migration to a future stable release.
 
 The manually published [v0.1.7-preview.7 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
 contains:

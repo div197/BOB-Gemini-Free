@@ -12,7 +12,28 @@ preview/release boundaries below.
 
 ---
 
-## [Unreleased] — v0.2.0 source milestone (not yet published)
+## [0.2.0-preview.1] - 2026-08-29
+
+### Preview 7 migration bridge
+
+#### Added
+- Published a same-key macOS universal migration bridge for existing
+  `v0.1.7-preview.7` installations.
+- Existing Preview 7 binaries can discover this preview through the fixed
+  preview channel and update with the signed manifest, after explicit user
+  consent.
+- The bridge contains the stable-first updater path, so it can later move to
+  stable `v0.2.0` after that release passes the clean-device and pilot gates.
+- Added the public
+  [`Preview 7 to v0.2.0 Migration Runbook`](docs/engineering/PREVIEW-7-TO-V0.2.0-MIGRATION.md)
+  for staged 30-Mac rollout.
+
+This remains an ad-hoc-signed, non-notarized controlled preview. Stable
+`v0.2.0` is not published yet.
+
+---
+
+## [Unreleased] — v0.2.0 stable rollout (not yet published)
 
 ### The Sovereign World Gateway source milestone
 
@@ -35,7 +56,7 @@ preview/release boundaries below.
 - **Global Classroom & Hackathon Lab Deployment Guide ([`docs/1-getting-started/school-and-offline-lab-guide.md`](docs/1-getting-started/school-and-offline-lab-guide.md))**:
   - Added an operational guide for a possible LAN hub; real capacity, provider acceptance, and operating cost remain deployment-specific.
 
-#### Release-engineering changes not yet published
+#### Additional stable-release engineering not yet published
 
 ##### Native preview packaging
 

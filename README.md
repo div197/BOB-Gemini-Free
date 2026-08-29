@@ -38,7 +38,7 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 | Status | Current meaning |
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
-| **Native updater status** | Preview 7 embeds the current public key and publishes a signed preview manifest; the current source adds explicit Preview → Stable migration for newly built previews. The already-published Preview 7 binary needs a same-key bridge preview or one manual stable install. Older builds with the unrecoverable key still require one manual migration |
+| **Native updater status** | The signed `v0.2.0-preview.1` migration bridge is public for existing Preview 7 Macs; it adds explicit Preview → Stable migration for newly built previews. Stable `v0.2.0` remains gated on pilot acceptance. Older builds with the unrecoverable key still require one manual migration |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md), [`LOCAL-BENCHMARK-2026-08-25.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-25.md), and the current [`LOCAL-BENCHMARK-2026-08-29.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-29.md); they are not Google latency or rate-limit measurements |
@@ -185,7 +185,7 @@ adapter route it uses before classroom or production adoption:
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The latest stable GitHub release contains CLI binaries. The public [v0.1.7-preview.7 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7) contains the corrected branded macOS universal package, signed project update manifest, native maximize behavior, default-browser link routing, expanded English/Hindi studio UI, bounded provider retries, and visible failure handling; it is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. The current `v0.2.0` source milestone is not yet a published release; see [`RELEASE-READINESS-v0.2.0.md`](docs/engineering/RELEASE-READINESS-v0.2.0.md).
+* The latest stable GitHub release contains CLI binaries. The public [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) is the current macOS universal preview for existing Preview 7 installations and contains the corrected branded package, signed project update manifest, native maximize behavior, default-browser link routing, expanded English/Hindi studio UI, bounded provider retries, and visible failure handling. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; see [`RELEASE-READINESS-v0.2.0.md`](docs/engineering/RELEASE-READINESS-v0.2.0.md).
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
@@ -193,9 +193,9 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   discover a newer signed stable release for an explicit Preview → Stable
   migration, or a newer signed preview when stable has no update, verify it,
   and install it after explicit user consent with rollback protection. The
-  already-published Preview 7 binary predates stable-first discovery, so it
-  needs a same-key bridge preview before updater-based migration to stable, or
-  one manual stable install. Preview 3 still needs one manual migration because
+  already-published Preview 7 binary predates stable-first discovery, so it can
+  first install the published same-key bridge preview before updater-based
+  migration to stable, or use one manual stable install. Preview 3 still needs one manual migration because
   it predates the embedded trust key. Preview 6 also needs one manual migration
   to Preview 7 because the original Preview 6 signing key was not recoverable.
   The one-clean-Mac, pilot, and 20–30-device gates are documented in
@@ -314,9 +314,9 @@ manifest and the matching Ed25519 public key is configured as
 [`docs/engineering/UPDATE-VERIFICATION.md`](docs/engineering/UPDATE-VERIFICATION.md).
 
 This CLI environment-key path is not the native desktop trust boundary.
-Production native builds must embed their public key at build time. Preview 7
-is the current public native preview channel with that embedded key; it still
-requires explicit user consent and does not silently replace the app. See
+Production native builds must embed their public key at build time. The public
+`v0.2.0-preview.1` bridge carries that key; it still requires explicit user
+consent and does not silently replace the app. See
 [`docs/engineering/DESKTOP-UPDATE-OPERATIONS.md`](docs/engineering/DESKTOP-UPDATE-OPERATIONS.md).
 
 ---

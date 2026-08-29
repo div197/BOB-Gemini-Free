@@ -18,6 +18,9 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
+- The public [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
+  is the current same-key updater step for existing Preview 7 Macs. Stable
+  `v0.2.0` remains gated on clean-device and pilot acceptance.
 
 ## Student artifact matrix
 
@@ -99,8 +102,8 @@ update channel. A newly built current-key preview can discover a newer stable
 release from the Help menu and migrate after user consent; when stable has no
 update, a newer signed preview can be discovered, verified, staged, and rolled
 back. The already-published Preview 7 binary predates the stable-first change,
-so it must first receive a same-key bridge preview to reach stable through the
-updater, or be manually replaced with stable. Preview 3 still requires one
+so it must first receive the published same-key bridge preview to reach stable
+through the updater, or be manually replaced with stable. Preview 3 still requires one
 manual migration because it has no embedded desktop trust key. Preview 6
 installations also require one manual migration to Preview 7 because the
 original project signing key was not recoverable.
@@ -167,7 +170,7 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.1.7-preview.7` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7):
+[`v0.2.0-preview.1` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1):
 macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
 one-time manual migration described in the release notes. Windows Preview 3
 remains available separately; Linux is not included in Preview 7.

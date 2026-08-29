@@ -216,10 +216,10 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public Preview 7 में project update key embedded है। उसका released updater
-stable-first bridge logic से पहले का है, इसलिए मौजूदा Preview 7 installations
-को updater से stable पर जाने से पहले same-key bridge preview चाहिए, या stable
-को manually install करना होगा।
+Public `v0.2.0-preview.1` migration bridge में project update key embedded है।
+मौजूदा Preview 7 installations पहले इसी bridge को explicit consent के साथ
+अपडेट कर सकती हैं; उसके बाद stable `v0.2.0` उपलब्ध होने पर stable-first updater
+का उपयोग होगा। Stable release अभी pilot testing के बाद प्रकाशित होगी।
 
 ---
 

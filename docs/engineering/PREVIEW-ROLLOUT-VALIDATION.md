@@ -1,7 +1,7 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current target:** public prerelease `v0.1.7-preview.7`, based on the public
-`v0.1.7-preview.6` release
+**Current target:** public migration bridge `v0.2.0-preview.1`, for the
+existing public `v0.1.7-preview.7` fleet
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -141,7 +141,7 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-Preview 7 is published. The remaining rollout gates are:
+The `v0.2.0-preview.1` bridge is published. The remaining rollout gates are:
 
 1. the full local test/race/vet/build gate passes;
 2. the generated `web/index.html` is regenerated from

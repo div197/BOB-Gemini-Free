@@ -42,13 +42,15 @@ replace a running native bundle.
 Preview 4 was the first public native build with a build-embedded desktop trust
 key and a signed preview manifest. It performs an explicit metadata check, and
 a user can approve a verified staged update with health confirmation and
-rollback. Preview 6 was the previous signed preview; Preview 7 is the current
-published preview. Preview 3 remains manual-update-only because it has no
+rollback. Preview 6 was the previous signed preview; `v0.2.0-preview.1` is the
+current published migration bridge for the existing Preview 7 fleet. Preview 3 remains manual-update-only because it has no
 embedded desktop trust key. Stable builds never move into preview; current-key
 preview builds may migrate into a newer stable release only after explicit
 user consent.
 
-The source now enables that user-consented path for the signed macOS preview.
+The source now enables that user-consented path for the signed macOS preview,
+and the same-key `v0.2.0-preview.1` migration bridge is publicly available
+for the existing Preview 7 fleet.
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the
@@ -65,10 +67,10 @@ The implementation sequence is:
 5. keep any future background metadata check opt-in, while retaining a visible
   “Check for Updates” action and a manual release fallback.
 
-This removes repeated delete/download/install work after a current-source
-preview is installed and the user approves the update. For the existing public
-Preview 7 fleet, publish and sign a same-key bridge preview first if avoiding a
-manual stable install is important. No silent install is enabled by the
+This removes repeated delete/download/install work after the migration bridge
+is installed and the user approves the update. For the existing public Preview
+7 fleet, install the published same-key bridge first, then use its stable-first
+path after stable acceptance is complete. No silent install is enabled by the
 current preview.
 
 The non-technical rollout risks and operator checklist are recorded in

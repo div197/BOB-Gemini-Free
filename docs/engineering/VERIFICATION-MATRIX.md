@@ -251,15 +251,16 @@ The following later evidence is now available:
 
 ## Current v0.2.0 release-readiness update (2026-08-29)
 
-The current working branch is based on merged source commit `59a0d22` and has
-not been tagged, pushed, or published as `v0.2.0`. The separate
+The current working branch was merged into `main` at source commit `e019cf8`.
+The signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0`
+has not been tagged or published. The separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
 
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The stable build path embeds the repository's updater public key | VERIFIED_BY_INTEGRATION_TEST | `make build`, `make dist`, `make desktop-key-check`, and binary string inspection passed for the six CLI targets and the macOS Wails candidate | This proves the embedded trust anchor, not a signed release manifest or Apple/Windows publisher trust. |
-| The macOS v0.2.0 candidate is package-valid | VERIFIED_BY_INTEGRATION_TEST | Local Wails universal app, ZIP, DMG, DMG Applications shortcut, ad-hoc code signature, SHA-256 checks, bundle metadata, and `/healthz` smoke test passed | The candidate is unsigned at the project manifest layer until the owner performs the separate local Ed25519 signing step; `spctl` rejection is expected without Apple notarization. |
+| The macOS v0.2.0 candidate is package-valid | VERIFIED_BY_INTEGRATION_TEST | Local Wails universal app, ZIP, DMG, DMG Applications shortcut, ad-hoc code signature, SHA-256 checks, bundle metadata, and `/healthz` smoke test passed; the `v0.2.0-preview.1` bridge was then signed and publicly re-downloaded with checksum/signature verification | `spctl` rejection is expected without Apple notarization; this proves the controlled preview bridge, not a stable student release. |
 | Update metadata URLs are pinned to the official repository or GitHub release CDN | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` and `internal/updater/updater_test.go` reject other GitHub owners/repositories, non-HTTPS URLs, lookalike hosts, and unexpected ports | GitHub release metadata is still external state; the signed manifest remains the artifact authenticity boundary. |
-| Existing public Preview 7 installations can update directly to v0.2.0 stable | STALE_OR_INCORRECT | The published Preview 7 binary predates stable-first discovery; current source tests prove stable-first only for newly built packages | Use a same-key bridge preview first, then bridge → stable, or perform one manual stable installation. Preview 6 and older need manual current-key migration. |
+| Existing public Preview 7 installations can update directly to v0.2.0 stable | STALE_OR_INCORRECT | The published Preview 7 binary predates stable-first discovery; the published same-key `v0.2.0-preview.1` bridge is now available, while current source tests prove stable-first only for newly built packages | Install the bridge first, then bridge → stable after stable acceptance, or perform one manual stable installation. Preview 6 and older need manual current-key migration. |
 | The source is ready for a student-facing signed stable publication | UNKNOWN | Local source, package, and mocked updater gates are green, but no exact signed/uploaded v0.2.0 assets, clean-device acceptance, platform publisher trust, or 30-device migration run exists | Do not publish or announce stable until the owner completes the release sequence and Gates A–C in `RELEASE-READINESS-v0.2.0.md`. |
