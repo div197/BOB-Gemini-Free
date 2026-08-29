@@ -382,6 +382,11 @@ risks as complete. The local implementation continuation added:
 - the direct Gemini Developer API SSE parser now rejects an empty or
   `[DONE]`-only stream instead of allowing the server to fabricate a normal
   stop; standard comments and multi-line data fixtures remain supported.
+- native updater recovery now repairs validated interrupted transactions at
+  the next startup: healthy candidates are finalized, unconfirmed candidates
+  are rolled back, and ambiguous states fail visibly; isolated fixtures cover
+  missing-target, unconfirmed, confirmed, candidate-start, and ambiguous
+  states, while real power-loss and clean-device proof remain external gates.
 - a shared 32 MiB request-body reader at every JSON handler seam, so direct
   handler or embedding calls retain the same memory bound as normal HTTP
   middleware.

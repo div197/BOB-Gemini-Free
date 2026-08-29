@@ -398,6 +398,10 @@ func validateConfirmationPath(path string) error {
 	if base != ".bob-gemini-update-confirm" {
 		return fmt.Errorf("desktop update confirmation path has an unexpected name")
 	}
+	parent := filepath.Base(filepath.Dir(filepath.Clean(path)))
+	if !strings.HasPrefix(parent, desktopStagingPrefix) {
+		return fmt.Errorf("desktop update confirmation path is outside updater staging")
+	}
 	return nil
 }
 

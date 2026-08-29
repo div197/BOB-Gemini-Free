@@ -35,6 +35,11 @@ func main() {
 		}
 		return
 	}
+	updateConfirmationPath := updater.DesktopUpdateConfirmationPath(os.Args[1:])
+	var recoveryErr error
+	if updateConfirmationPath == "" {
+		recoveryErr = updater.RecoverDesktopUpdate("")
+	}
 
 	// 1. Run the local Gateway engine in the background
 	cfg := loadDesktopConfig()
@@ -42,7 +47,13 @@ func main() {
 	srv := server.New(cfg, desktopVersion)
 	defer srv.Close()
 	app := NewApp()
-	app.updateConfirmationPath = updater.DesktopUpdateConfirmationPath(os.Args[1:])
+	app.updateConfirmationPath = updateConfirmationPath
+	if recoveryErr != nil {
+		if windowErr := wails.Run(desktopOptions(app, nil, recoveryErr, srv)); windowErr != nil {
+			fmt.Printf("Desktop recovery error window failed: %v\n", windowErr)
+		}
+		return
+	}
 	gateway, err := startDesktopGateway(cfg.Port, srv.Handler())
 	if err != nil {
 		fmt.Printf("Gateway startup failed: %v\n", err)

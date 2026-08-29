@@ -20,6 +20,14 @@ per 24 hours; this background path only discovers and presents an update, and
 never installs without the same explicit user confirmation. Existing binaries
 keep the behavior compiled into their release.
 
+If the helper or machine is interrupted after the transaction starts, the next
+native launch inspects only a validated plan belonging to that exact install.
+A healthy confirmation finalizes the candidate and removes the rollback copy; a
+missing confirmation restores the previous app. If the filesystem presents an
+ambiguous state, BOB refuses to guess and shows a visible startup error for
+manual recovery. The recovery path is fixture-tested but is not a substitute
+for a clean-device interrupted-update acceptance run.
+
 The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The
@@ -110,8 +118,9 @@ same filesystem, takes an atomic per-install lock before replacement,
 revalidates the install target and candidate after locking, keeps a rollback
 path until healthy confirmation, and writes only a local, mode-0600
 failure/warning record. Old committed staging plans are cleaned conservatively
-on a later staging attempt; incomplete pre-plan directories are left for
-manual inspection. It sends no telemetry.
+on a later staging attempt; interrupted committed plans are repaired on native
+startup; incomplete pre-plan directories are left for manual inspection. It
+sends no telemetry.
 
 ### No-Actions operating model
 

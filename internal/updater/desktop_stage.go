@@ -30,6 +30,7 @@ const (
 	MaxDesktopArchiveBytes int64 = 512 << 20
 
 	desktopStagingStaleAfter = 24 * time.Hour
+	desktopStagingPrefix     = ".bob-gemini-free-update-"
 )
 
 // DesktopUpdatePlan describes a verified candidate which has not yet replaced
@@ -189,7 +190,7 @@ func cleanupStaleDesktopStaging(targetPath string) {
 	}
 	now := time.Now()
 	for _, entry := range entries {
-		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !strings.HasPrefix(entry.Name(), ".bob-gemini-free-update-") {
+		if !entry.IsDir() || entry.Type()&os.ModeSymlink != 0 || !strings.HasPrefix(entry.Name(), desktopStagingPrefix) {
 			continue
 		}
 		stagePath := filepath.Join(parent, entry.Name())
