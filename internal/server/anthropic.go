@@ -344,7 +344,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			"type": "error",
 			"error": map[string]any{
 				"type":    "api_error",
-				"message": fmt.Sprintf("upstream error: %v", err),
+				"message": publicUpstreamErrorMessage(err),
 			},
 		})
 		return

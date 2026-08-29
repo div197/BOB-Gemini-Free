@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"sync"
 	"time"
 
@@ -166,6 +167,61 @@ func writeSSEComment(w http.ResponseWriter, comment string) error {
 		flusher.Flush()
 	}
 	return nil
+}
+
+// publicUpstreamErrorMessage deliberately exposes only an operator-useful,
+// credential-safe summary. Some net/http errors include the complete request
+// URL; the reverse-engineered web-RPC URL can contain the short-lived `bl`
+// token, so returning err.Error() from a response would turn an internal
+// transport detail into a client-visible credential leak.
+func publicUpstreamErrorMessage(err error) string {
+	if err == nil {
+		return "upstream request failed"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "request canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "upstream request timed out"
+	}
+
+	var apiErr *geminiapi.APIError
+	if errors.As(err, &apiErr) && apiErr != nil {
+		if message := strings.TrimSpace(apiErr.Message); message != "" {
+			return message
+		}
+		return "Gemini Developer API request failed"
+	}
+
+	var upstreamErr *gemini.UpstreamError
+	if errors.As(err, &upstreamErr) && upstreamErr != nil {
+		switch upstreamErr.Kind {
+		case "http", "bard", "session":
+			if message := strings.TrimSpace(upstreamErr.Msg); message != "" {
+				return message
+			}
+		case "protocol":
+			return "Google upstream returned an invalid or oversized response"
+		case "transport":
+			return "Could not reach Google Gemini upstream"
+		}
+	}
+
+	return "upstream request failed"
+}
+
+func writeSSEError(w http.ResponseWriter, err error) error {
+	typeName := "api_error"
+	var apiErr *geminiapi.APIError
+	if errors.As(err, &apiErr) && apiErr != nil && apiErr.Kind == "request" {
+		typeName = "invalid_request_error"
+	}
+	return writeSSEData(w, map[string]any{
+		"error": map[string]any{
+			"message": publicUpstreamErrorMessage(err),
+			"type":    typeName,
+		},
+	})
 }
 
 // StreamWithKeepAlive periodically flushes standard SSE comment heartbeats (`: keepalive\n\n`)

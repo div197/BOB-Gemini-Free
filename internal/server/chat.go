@@ -209,12 +209,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 			// assistant-authored Markdown. The browser and standard SSE
 			// consumers can classify this structured error without storing it as
 			// successful model output.
-			_ = writeSSEData(w, map[string]any{
-				"error": map[string]any{
-					"message": fmt.Sprintf("upstream error: %v", emitErr),
-					"type":    "api_error",
-				},
-			})
+			_ = writeSSEError(w, emitErr)
 			_ = writeSSEDone(w)
 		}
 		return
@@ -222,7 +217,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
 		return
 	}
 

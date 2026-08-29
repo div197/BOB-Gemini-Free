@@ -2,7 +2,6 @@ package server
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -167,29 +166,18 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			_ = writeSSEData(w, finalChunk)
 		} else {
 			a.Logf("Google stream error: %v", emitErr)
-			errChunk := models.GoogleGenerateResponse{
-				Candidates: []models.GoogleCandidate{
-					{
-						Content: &models.GoogleContent{
-							Role: "model",
-							Parts: []models.GooglePart{
-								{Text: fmt.Sprintf("\n\n> ⚠️ **Upstream Error**: %v\n", emitErr)},
-							},
-						},
-						Index:        0,
-						FinishReason: "ERROR",
-					},
-				},
-				ModelVersion: resolved.Name,
-			}
-			_ = writeSSEData(w, errChunk)
+			// Headers have already been sent. A top-level error preserves the
+			// native Google-shaped stream contract without pretending that a
+			// provider failure is model-authored Markdown. Native Google SSE
+			// streams terminate with HTTP EOF rather than OpenAI's [DONE].
+			_ = writeSSEError(w, emitErr)
 		}
 		return
 	}
 
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
-		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": fmt.Sprintf("upstream error: %v", err)}})
+		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
 		return
 	}
 

@@ -213,7 +213,7 @@ func (a *App) handleDirectGoogleGenerate(w http.ResponseWriter, r *http.Request,
 		})
 		if err != nil {
 			a.Logf("Gemini Developer API Google stream error: %v", err)
-			_ = writeSSEData(w, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+			_ = writeSSEError(w, err)
 		}
 	default:
 		writeGeminiAPIError(w, fmt.Errorf("unsupported Gemini Developer API action %q", action))
@@ -458,12 +458,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 		// OpenAI stream consumers can classify the structured error after any
 		// already-received partial deltas, and the browser can keep it out of
 		// successful conversation history.
-		_ = writeSSEData(w, map[string]any{
-			"error": map[string]any{
-				"message": err.Error(),
-				"type":    "api_error",
-			},
-		})
+		_ = writeSSEError(w, err)
 		streamFailed = true
 	}
 	if !streamFailed && toolAssembler.Len() > 0 {

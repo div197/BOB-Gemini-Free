@@ -13,6 +13,7 @@ import (
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/format"
+	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/geminiapi"
 )
 
@@ -681,6 +682,37 @@ func TestChatStreamEmitsStructuredErrorWithoutAssistantMarkdown(t *testing.T) {
 	}
 	if !strings.Contains(body, "[DONE]") {
 		t.Fatalf("stream error did not terminate with [DONE]: %s", body)
+	}
+}
+
+func TestGoogleStreamEmitsStructuredErrorWithoutAssistantMarkdown(t *testing.T) {
+	app := New(config.Default(), "google-stream-error-test")
+	app.Gem.HTTP = streamFailureRequester{}
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash:streamGenerateContent", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK {
+		t.Fatalf("stream status = %d body=%s", rec.Code, body)
+	}
+	if !strings.Contains(body, `"error"`) || !strings.Contains(body, `"type":"api_error"`) {
+		t.Fatalf("Google stream error was not structured: %s", body)
+	}
+	if strings.Contains(body, "Upstream Error") || strings.Contains(body, `"finishReason":"ERROR"`) {
+		t.Fatalf("Google stream error was serialized as assistant/error-choice content: %s", body)
+	}
+}
+
+func TestPublicUpstreamErrorMessageDoesNotExposeWebRPCURL(t *testing.T) {
+	secretURL := "https://gemini.google.com/StreamGenerate?bl=short-lived-token"
+	err := &gemini.UpstreamError{Kind: "transport", Msg: "Post " + secretURL + ": connection reset"}
+	message := publicUpstreamErrorMessage(err)
+	if strings.Contains(message, "short-lived-token") || strings.Contains(message, "StreamGenerate") {
+		t.Fatalf("transport detail leaked through public error: %q", message)
+	}
+	if message != "Could not reach Google Gemini upstream" {
+		t.Fatalf("public transport message = %q", message)
 	}
 }
 
