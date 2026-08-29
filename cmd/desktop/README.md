@@ -68,13 +68,16 @@ are recorded in
 [`docs/engineering/STUDENT-DISTRIBUTION.md`](../../docs/engineering/STUDENT-DISTRIBUTION.md).
 
 The native Help menu provides an explicit update check against the official
-GitHub release metadata. The public Preview 7 binary checks its preview
-channel; newly built current-source previews check stable first and can use a
-same-key bridge for existing Preview 7 installations. The source also contains
-a signed-manifest staging/helper path,
-but it is enabled only in a build with the embedded release key and a
-platform-appropriate signed manifest; it never silently replaces the running
-app.
+GitHub release metadata. A desktop build produced from the current source also
+performs a low-frequency background metadata check after startup and at most
+once per day while it remains open. The check can present the same update
+dialog, but it never silently downloads, replaces, or restarts the running app.
+Already-published binaries keep the behavior compiled into that release. The public
+Preview 7 binary checks its preview channel; newly built current-source
+previews check stable first and can use a same-key bridge for existing Preview
+7 installations. The source also contains a signed-manifest staging/helper
+path, but it is enabled only in a build with the embedded release key and a
+platform-appropriate signed manifest.
 
 The app starts an embedded loopback gateway, reuses only an identified
 compatible existing BOB gateway, or selects a safe free port. The actual

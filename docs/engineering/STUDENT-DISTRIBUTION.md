@@ -60,6 +60,14 @@ The project can keep its no-Actions policy. The maintainer release operator
 builds on the native macOS, Windows, and Linux hosts, runs the acceptance
 matrix below, then uploads the exact artifacts manually to a GitHub Release.
 
+For the CLI path, students should download `install.sh` or `install.ps1` as a
+local file, inspect it, and run it locally. The default installer verifies the
+signed release manifest and exact asset digest; it does not pipe an unpinned
+repository script into a shell, build arbitrary current-directory source, or
+fall back to an unsigned binary. Hosts without an Ed25519-capable verifier
+fail closed and must use a reviewed alternative or a developer-only source
+build.
+
 The `v0.1.7-preview.1` release is an explicit exception to the production
 artifact contract below: it contains only macOS and Windows preview packages,
 an unsigned checksum manifest, and a warning notice. It must not be presented

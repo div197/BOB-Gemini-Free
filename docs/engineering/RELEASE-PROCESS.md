@@ -27,15 +27,36 @@ it is not a credential. The corresponding private value is used only by the
 local manifest-signing step and must never be placed in the repository or a
 student command.
 
-The native Help menu's update action is intentionally user-initiated. Stable
+All CLI and native preview/release packagers run
+`scripts/verify-release-source.sh` before copying or signing source. After the
+manifest-signing step, run
+`BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... scripts/verify-release-assets.sh
+/path/to/release-assets`. That read-only check verifies the detached signature,
+hashes every regular asset, and rejects any extra, missing, duplicate, or
+symlinked file before the directory is uploaded.
+
+The native Help menu's install action is intentionally user-initiated. Stable
 builds check the fixed official stable channel. Newly built current-key preview
 builds check stable first for a one-way Preview → Stable migration, then check
-the fixed official preview channel when no stable update exists. Both paths
-verify a signed manifest and offer a consented staged replacement with
-rollback. The already-published Preview 7 binary predates stable-first
-discovery, so it needs a same-key bridge preview or a manual stable install
-before updater-based migration to stable. The updater does not silently
-replace a running native bundle.
+the fixed official preview channel when no stable update exists. A published
+desktop build may also perform one delayed startup metadata check and then one
+per day while running. Both paths verify a signed manifest and offer a
+consented staged replacement with rollback. The already-published Preview 7
+binary predates stable-first discovery, so it needs a same-key bridge preview
+or a manual stable install before updater-based migration to stable. The
+updater never silently downloads, replaces, or restarts a running native
+bundle.
+
+The standalone installers use the same fixed public key and fail closed unless
+they can verify the detached Ed25519 signature and exact SHA-256 entry. The
+default path never compiles the current directory and never installs an
+unsigned binary. The macOS system OpenSSL shipped as LibreSSL on some hosts
+does not provide Ed25519 verification; those hosts must use a separately
+installed verifier or the explicitly opt-in source-build path. Windows needs
+`curl.exe` plus OpenSSL or a runtime exposing Ed25519. This is deliberate:
+missing verification is an installation failure, not permission to continue.
+The installer script itself should be downloaded, inspected, and run as a
+local file; do not pipe an unpinned branch directly into a shell.
 
 ## Native automatic-update status
 
@@ -64,8 +85,8 @@ The implementation sequence is:
 3. add a platform-specific post-exit helper with atomic replacement, rollback,
    permission failure reporting, and restart behavior;
 4. add mocked download/tamper/rollback tests and clean-device acceptance;
-5. keep any future background metadata check opt-in, while retaining a visible
-  “Check for Updates” action and a manual release fallback.
+5. keep the background metadata check low-frequency and non-installing, while
+  retaining a visible “Check for Updates” action and a manual release fallback.
 
 This removes repeated delete/download/install work after the migration bridge
 is installed and the user approves the update. For the existing public Preview
@@ -102,10 +123,13 @@ commit it, put it in a shell command, or print it in a terminal transcript.
 
 1. Run the default validation loop locally: tests, race tests, vet, host build,
    and `git diff --check`.
-2. Confirm the release version in the tag, `CHANGELOG.md`, `Makefile`, and
+2. Run `bash scripts/verify-release-source.sh v0.2.0` (or the exact release
+   version). It fails closed on a non-Git, dirty, or untracked source tree and
+   on a stale generated `web/index.html`.
+3. Confirm the release version in the tag, `CHANGELOG.md`, `Makefile`, and
    release notes. Do not use a tag as evidence that Google upstream behavior was
    live-tested.
-3. Run `scripts/release-local.sh` from the checkout. It runs six CLI
+4. Run `scripts/release-local.sh` from the checkout. It runs six CLI
    cross-builds and signs the resulting directory. For the macOS native
    candidate, use `make desktop-release-mac`; it embeds the public updater key
    and creates a stable-channel app, ZIP, DMG, notice, and unsigned local
@@ -113,9 +137,16 @@ commit it, put it in a shell command, or print it in a terminal transcript.
    `scripts/build-wails-local.sh` for an explicitly development-only macOS
    bundle when the checkout is under File Provider and in-place codesigning is
    affected by resource-fork metadata.
-4. Upload the resulting files through the operator's chosen release channel,
+5. After the exact release directory is signed and locally verified, run
+   `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... scripts/record-release-evidence.sh
+   /path/to/release-assets v0.2.0`. Keep the resulting 0600 receipt outside
+   the worktree and release directory.
+6. Upload the resulting files through the operator's chosen release channel,
    then publish the binaries plus `SHA256SUMS` and `SHA256SUMS.sig`.
-5. Verify the published asset names and manifest entries from a clean machine
+7. Download the exact published assets into a fresh directory and rerun
+   `scripts/verify-release-assets.sh` with the embedded public key. Compare the
+   release tag, app version, channel, and release notice manually.
+8. Verify the published asset names and manifest entries from a clean machine
    before announcing the release. Never replace the developer's running
    executable as a test.
 

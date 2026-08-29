@@ -16,14 +16,16 @@ provider check; it cannot be certified by a local benchmark.
 
 ## What the current desktop updater actually does
 
-The current source has a build-pinned update policy and a signed manifest
-verifier. A newly built preview first checks the fixed official stable endpoint
+The current source has a build-pinned update policy, a signed manifest
+verifier, and a low-frequency background metadata check for newly built
+published desktop packages. A newly built preview first checks the fixed official stable endpoint
 so it can migrate to a newer stable release; when stable has no update, it
 checks the preview listing. The already-published Preview 7 binary predates
 that stable-first behavior and checks only the preview listing. The updater:
 
-- contacts the fixed official GitHub release API only after the user selects
-  **Help → Check for Updates**;
+- contacts the fixed official GitHub release API after the user selects
+  **Help → Check for Updates**, or through one delayed and once-daily
+  background metadata check while a published desktop build is running;
 - selects the newer stable package, or the highest published `preview.N`
   package when no stable update exists, for the current platform;
 - verifies the embedded Ed25519 public key, `SHA256SUMS`, signature, asset name,
@@ -40,10 +42,11 @@ release after the stable candidate is published with the same project key. An
 existing public Preview 7 installation must first update to a same-key bridge
 preview, or be manually replaced with stable.
 
-It does **not** silently check on startup, silently replace the application, or
-push a release to 30 machines. A new signed preview can therefore reduce the
-per-device reinstall work, but each installed app still needs a user-initiated
-check/install unless an owner-controlled fleet/MDM system is added separately.
+It does **not** silently download, replace, or restart the application, and it
+does not push a release to 30 machines. A new signed preview can therefore
+reduce the per-device reinstall work: each running app can discover the update,
+but the user still approves the verified install unless an owner-controlled
+fleet/MDM system is added separately.
 GitHub Actions are not required for this process.
 
 An installed app must be copied out of a mounted DMG/App Translocation location

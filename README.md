@@ -13,7 +13,7 @@
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
   <img src="https://img.shields.io/github/v/release/div197/BOB-Gemini-Free?style=flat-square&label=Release" alt="Latest GitHub Release">
-  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
+  <img src="https://img.shields.io/badge/Go-1.26.6-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
 </p>
@@ -38,6 +38,7 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 | Status | Current meaning |
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
+| **Optional provider route** | Web Studio can explicitly use one student-owned Gemini Developer API key for `/v1/chat/completions` and native `/v1beta` generation; this is a separate Google project/quota path, not a quota bypass or key pool |
 | **Native updater status** | The signed `v0.2.0-preview.1` migration bridge is public for existing Preview 7 Macs; it adds explicit Preview → Stable migration for newly built previews. Stable `v0.2.0` remains gated on pilot acceptance. Older builds with the unrecoverable key still require one manual migration |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
@@ -58,6 +59,8 @@ expiry, entitlements, and network behavior.
 The exact boundary between anonymous web access, optional Google web cookies,
 shared school-network egress, local health, and provider limits is documented
 in [`UPSTREAM-AUTHENTICATION-BOUNDARY.md`](docs/engineering/UPSTREAM-AUTHENTICATION-BOUNDARY.md).
+The optional key route, the student setup link, and the current free-tier/rate-limit
+truth are documented in [`GEMINI-API-ROUTING.md`](docs/engineering/GEMINI-API-ROUTING.md).
 
 ---
 
@@ -71,7 +74,7 @@ In the modern AI landscape, learners, independent creators, and developers const
 
 **BOB is designed to address all three**:
 - 🧭 **Session-Dependent Access**: The available model, reasoning, image, quota, and context behavior follows the configured Google web session.
-- 🔓 **The "API-Less AI" Architecture**: No gateway billing account is required, but a Google session and Google's current entitlements still govern upstream access.
+- 🔓 **The "API-Less AI" Architecture**: No BOB billing account is required for the default web route; an optional Developer API route uses the student's own Google project and key.
 - 🌉 **Multiple Adapter Surfaces**: One local gateway exposes OpenAI-shaped, Anthropic-shaped, Google Gemini-shaped, and embedded Go interfaces. Compatibility is endpoint-specific and tool calling is emulated in some paths.
 - ⚡ **Packaged runtime simplicity**: A packaged CLI or desktop release carries
   its runtime and does not require users to install Go, Python, Node, SQLite,
@@ -87,9 +90,9 @@ Traditional developer tools force you through a maze of cloud billing setups, cr
 
 | Traditional Cloud API Model | The BOB API-Less Architecture |
 | :--- | :--- |
-| 💳 Requires credit card & billing account | **$0.00 / Zero credit cards needed** |
+| 💳 May require provider billing setup | **No BOB billing account; the optional provider route follows Google's project/billing settings** |
 | 💸 Pay per million tokens & reasoning steps | **No gateway billing; upstream quotas still apply** |
-| 🔑 Fragile API keys prone to leaks & theft | **Secure local session locked with `0600` permissions** |
+| 🔑 Fragile shared API keys prone to leaks & theft | **Optional student-owned key held in Studio memory only; default web route needs no Developer API key** |
 | 🔒 Locked to single vendor CLI or protocol | **Multiple adapter surfaces (OpenAI, Anthropic, Google, Go)** |
 | 📊 Blind monthly invoices | **Local estimated usage and savings counters (`GET /`)** |
 
@@ -193,13 +196,51 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   discover a newer signed stable release for an explicit Preview → Stable
   migration, or a newer signed preview when stable has no update, verify it,
   and install it after explicit user consent with rollback protection. The
-  already-published Preview 7 binary predates stable-first discovery, so it can
+  desktop builds produced from the current source also perform a delayed
+  startup metadata check and then check at most once per day while running;
+  they only present the same consent dialog and never silently download or
+  replace the app. Already-published binaries keep the behavior compiled into
+  that release. The already-published Preview 7 binary predates stable-first
+  discovery, so it can
   first install the published same-key bridge preview before updater-based
   migration to stable, or use one manual stable install. Preview 3 still needs one manual migration because
   it predates the embedded trust key. Preview 6 also needs one manual migration
   to Preview 7 because the original Preview 6 signing key was not recoverable.
   The one-clean-Mac, pilot, and 20–30-device gates are documented in
   [`PREVIEW-ROLLOUT-VALIDATION.md`](docs/engineering/PREVIEW-ROLLOUT-VALIDATION.md).
+
+### Optional: use a student's own Gemini Developer API key
+
+The normal BOB route uses Google's web experience and does not require a Google
+AI Studio key. When that route is unavailable or a student explicitly wants to
+use their own project, open **Config → Gemini Developer API**, follow the
+[Google AI Studio key page](https://aistudio.google.com/app/apikey), review the
+[current model list](https://ai.google.dev/gemini-api/docs/models) and
+[rate limits](https://ai.google.dev/gemini-api/docs/rate-limits), paste the
+student's own key, and enable **Use for this session**.
+
+This is an explicit second route, not an automatic bypass. The key remains in
+the current browser page's memory, is sent only on generation requests, and is
+never stored by BOB in `localStorage`, `config.json`, logs, metrics, or release
+assets. BOB accepts one key at a time and never rotates a list of keys. Google
+project ownership, free-tier limits, billing settings, model access, and data
+use policies remain the student's responsibility. See the full
+[`Gemini API routing and student limits`](docs/engineering/GEMINI-API-ROUTING.md)
+guide before classroom use.
+
+If the Studio is hosted on a public origin, it will not send the key until the
+student explicitly saves a local or trusted gateway endpoint. Do not enter a
+provider key into a public demo whose gateway ownership and transport are not
+known.
+
+The direct route forwards provider-shaped `gemini-*` model IDs (including
+future IDs) for native Google `generateContent` and streaming routes. The two
+documented local aliases `gemini-3.5-flash` and `gemini-flash` map to
+`gemini-3.6-flash`; Google's response remains authoritative for availability.
+BOB's OpenAI/Anthropic aliases are web-RPC routing aliases, not proof that
+those named vendor models are available through the Developer API. Unsupported
+direct surfaces fail clearly; they are not silently sent to a different
+provider.
 
 ---
 
@@ -209,15 +250,26 @@ These scripts install the standalone CLI gateway and open the browser studio.
 They are the currently published, same-day path; they do **not** install the
 native desktop application. Native desktop packages are only available
 when the corresponding artifact is listed in the GitHub Release assets.
+Download each script as a local file, inspect it, and then run it. The default
+installer verifies the signed release manifest, refuses an unsigned binary,
+and never compiles an arbitrary current directory.
 
 #### macOS & Linux
 ```bash
+curl --fail --location --proto '=https' --proto-redir '=https' \
+  --output install.sh \
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh
+less install.sh
 chmod +x install.sh
 ./install.sh
 ```
 
 #### Windows (PowerShell)
 ```powershell
+curl.exe --fail --location --proto "=https" --proto-redir "=https" `
+  --output install.ps1 `
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1
+notepad .\install.ps1
 .\install.ps1
 ```
 
@@ -535,6 +587,12 @@ export GOOGLE_GEMINI_BASE_URL=http://127.0.0.1:9610
 gemini
 ```
 
+Here `GEMINI_API_KEY=none` is only the local client placeholder for BOB's
+web-session adapter; it is not a Google Developer API credential. The optional
+student-owned provider route uses the separate, deliberately named
+`BOB_GEMINI_FREE_GEMINI_API_KEY` environment variable or the session-only
+Studio Config field described above.
+
 ### Embedded Go Library / Package Import
 
 Embed BOB Gemini Free directly as an in-process module inside any Go application or agent runtime:
@@ -565,11 +623,9 @@ func main() {
 
 | Dimension / Metric | Google AI Studio (Free Tier) | **BOB Gemini Free (Local Gateway Engine)** |
 | :--- | :--- | :--- |
-| **Flash Daily Limit (RPD)** | **1,500 Requests / Day** (provider limit) | **Not established; depends on the Google web session** |
-| **Flash Rate Limits (RPM)** | **15 Requests / Minute** (`429 RESOURCE_EXHAUSTED`) | **Not established; do not infer a gateway quota** |
-| **Flash Token Rate (TPM)** | 1,000,000 Tokens / Minute | Stream-buffered interactive throughput |
-| **Pro Daily Limit (RPD)** | **50 Requests / Day** (Punishing hard cap) | **Not established; depends on the Google web session** |
-| **Pro Rate Limits (RPM)** | **2 Requests / Minute** (Severe throttling) | **Standard interactive web concurrency** |
+| **Requests and token quotas** | Dynamic by model, project, tier, region, account, and current Google policy; check the live [AI Studio limits](https://ai.google.dev/gemini-api/docs/rate-limits) | **Not established; depends on the Google web session** |
+| **Free-tier model availability** | Selected models may be marked free on the current [pricing page](https://ai.google.dev/gemini-api/docs/pricing); the list and conditions can change | **Not established; depends on the Google web session** |
+| **Paid billing** | A linked paid project/key can incur charges; check [billing](https://ai.google.dev/gemini-api/docs/billing) | **No BOB gateway billing; provider/session rules still apply** |
 | **Thinking Reasoning Depth** | Restricted / suppressed on free keys | **Upstream-dependent; no fixed character guarantee** |
 | **OpenAI Protocol Support** | ❌ None (Requires custom SDK / glue code) | **✅ Implemented adapter routes; compatibility is fixture-tested, not universal/full** |
 | **Developer Role Support** | ❌ None | **✅ Adapter parsing with prompt transformation; not native role semantics** |
@@ -578,10 +634,11 @@ func main() {
 | **Setup Friction** | Cloud console, project creation, API key rotation | **Single binary; Google session/configuration may still be required** |
 | **Total Financial Cost** | $0 (until throttled) or paid per-token bill | **No gateway billing; Google account/session entitlements still apply** |
 
-The Pro, thinking-depth, and concurrency values sometimes shown in older material are
-not verified release guarantees. Model access, quotas, context limits, and output depth
-remain dependent on Google's current web session and should be measured in the target
-environment.
+The exact quota numbers sometimes shown in older material are not verified release
+guarantees. Google changes limits by model and tier and directs users to AI Studio for
+the current project values. Model access, quotas, context limits, and output depth on
+the web route remain dependent on Google's current session. BOB does not promise free
+or unlimited access.
 
 ---
 
@@ -960,34 +1017,40 @@ Create `config.json` or place it in `~/.config/bob-gemini-free/config.json`:
 <summary><strong>1. How does BOB Gemini Free avoid a gateway API key and billing account?</strong></summary>
 
 **BOB Gemini Free** does not require its own paid gateway account or provider
-API key for local development. It translates selected OpenAI-shaped and
-Google-shaped requests into Google's internal web RPC; actual model access,
-quota, authentication and cost are controlled by the current Google web
-session and provider policy.
+API key for the default local web-session route. It translates selected
+OpenAI-shaped and Google-shaped requests into Google's internal web RPC; actual
+model access, quota, authentication and cost are controlled by the current
+Google web session and provider policy. An optional explicit Developer API
+route accepts one student-owned Google AI Studio key and uses that project's
+own quota instead.
 </details>
 
 <details>
 <summary><strong>2. Is my Google Account safe? What about rate limits or bans?</strong></summary>
 
 * **Without a configured cookie**: BOB does not load a user-provided Google session file; upstream access and identity behavior are still provider-controlled and must not be described as anonymous or guaranteed.
-* **In Gemini Advanced ($20/mo) Mode**: BOB Gemini Free uses authentic browser TLS fingerprints (`tls-client` impersonating Chrome 133) and standard web RPC payloads. It behaves identically to a user typing in a web browser tab.
-* **Operational Best Practices**: Keep concurrency between 3 to 5 simultaneous requests. Do not blast 100 queries/second from a single IP to avoid temporary upstream rate limiting.
+* **Google account/session safety**: A cookie, if configured, is the user's own local session. It can expire and its access remains subject to Google's policy; BOB must not be described as identical to or endorsed by Google's browser service.
+* **Operational Best Practices**: Use small classroom waves, avoid burst traffic, and treat 401/403/429 responses as provider conditions. Do not use proxy rotation, fingerprint changes, or shared cookies to evade limits.
 </details>
 
 <details>
 <summary><strong>3. How does this compare to Google AI Studio Free Tier or Paid OpenAI / Anthropic APIs?</strong></summary>
 
-* **Google AI Studio Free Tier**: Enforces a strict 15 RPM (Requests Per Minute) and a hard daily token quota. Once you hit the quota, your app stops working until midnight UTC.
-* **BOB Gemini Free**: Operates on Google's interactive web backend; daily limits, cost, and reasoning length remain Google-session-dependent and are not guaranteed by the gateway.
+* **Google AI Studio Free Tier**: Google publishes free-tier availability and project limits, but the exact quotas vary by model and usage tier. Check the current [pricing](https://ai.google.dev/gemini-api/docs/pricing) and [rate-limit](https://ai.google.dev/gemini-api/docs/rate-limits) pages or the project view in AI Studio; do not rely on old fixed RPM/RPD numbers.
+* **BOB Gemini Free web route**: Operates on Google's interactive web backend; daily limits, cost, and reasoning length remain Google-session-dependent and are not guaranteed by the gateway.
+* **BOB Gemini Free Developer API route**: Uses the student's selected project/key, so that project's current quota and billing settings apply.
 </details>
 
 <details>
-<summary><strong>4. How do I unlock Google's flagship Pro models (`gemini-3.1-pro` / `gemini-pro`) and Imagen 3?</strong></summary>
+<summary><strong>4. How do I unlock Google's Pro models and Imagen routes?</strong></summary>
 
-Out of the box, Free tier accounts access Flash 3.7, Flash 3.6, Flash Thinking, and Flash Lite. If you have an active Gemini Advanced ($20/mo) subscription (or 18 months free via Reliance Jio / college partnership offers):
-1. Run `./bob-gemini-free --login` (Recommended 1-click native interactive sign-in).
-2. Or run `./bob-gemini-free --setup-cookie` and paste your session cookie string.
-3. The helper automatically extracts required tokens (`SID`, `HSID`, `SSID`, `APISID`, `SAPISID`, `__Secure-1PSID`, `__Secure-1PSIDTS`), computes dynamic `SAPISIDHASH` per request, and unlocks `gemini-3.1-pro` / `gemini-pro` and `imagen-3`.
+The model selector contains BOB web-RPC routing aliases, not a guarantee of
+Google model entitlement. A user's current Google web account/session may
+permit additional models or image features, but this must be checked with a
+controlled live test and can change. Do not share cookies. For the official
+Developer API path, use the student's own AI Studio project/key and the
+canonical models documented in
+[`GEMINI-API-ROUTING.md`](docs/engineering/GEMINI-API-ROUTING.md).
 </details>
 
 <details>

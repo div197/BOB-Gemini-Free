@@ -37,6 +37,9 @@ if [[ "$PLATFORM" != darwin/universal && "$PLATFORM" != darwin/arm64 && "$PLATFO
 	echo "unsupported macOS desktop platform: $PLATFORM" >&2
 	exit 1
 fi
+
+bash "$ROOT_DIR/scripts/verify-release-source.sh" "$VERSION"
+
 if [[ -e "$OUTPUT_DIR" ]]; then
 	echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
 	exit 1

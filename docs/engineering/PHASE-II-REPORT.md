@@ -103,10 +103,12 @@ The pre-change wildcard-CORS/no-key behavior was reproduced with a local
 - `/v1/metrics` remains API-key protected.
 
 Remote image fetching also rejects private/local IP and DNS results,
-nonstandard ports, and cross-host redirects. This is defense in depth, not a
-claim of complete protection against every proxy, DNS-rebinding, or custom
-transport topology. Query-string API keys remain a compatibility risk and
-should not be used for sensitive deployments.
+nonstandard ports, and cross-host redirects. The exported fetch seam now
+requires a guardable HTTP client whose direct transport re-resolves the host
+immediately before dialing and connects only to an approved literal public IP;
+configured proxies are not used for remote-image fetches. Live egress policy
+and network topology remain separate acceptance gates. Query-string API keys
+remain a compatibility risk and should not be used for sensitive deployments.
 
 ### Mission 3 — Supply-chain updater hardening
 
@@ -221,10 +223,10 @@ go build ./...
 go run ./cmd/benchmark-local -requests 100
 ```
 
-Latest package coverage is not uniformly 80%: `internal/gemini` 53.2%,
-`internal/server` 36.6%, `internal/updater` 28.4%, and `internal/service`
-0.0% are examples. Stronger deterministic core coverage is not being confused
-with whole-package coverage.
+The earlier Phase-II baseline package coverage was not uniformly 80%:
+`internal/gemini` 53.2%, `internal/server` 36.6%, `internal/updater` 28.4%,
+and `internal/service` 0.0% were examples. This historical measurement is kept
+for provenance; the 2026-08-29 addendum records the later coverage run.
 
 ## 4. Remaining fragility and unresolved assumptions
 
@@ -237,9 +239,10 @@ with whole-package coverage.
    Pro routing, browser login, and Wails GUI acceptance remain unrun.
 4. Native Google function calling has not been evidenced; prompt extraction
    remains vulnerable to model noncompliance and hostile tool-like text.
-5. Remote image SSRF controls are application-level checks. A release
-   deployment should additionally constrain egress at the network/transport
-   layer and test DNS rebinding behavior.
+5. Remote image SSRF controls now include a guarded final DNS lookup and
+   literal-IP dial in the production HTTP-client path. A release deployment
+   should additionally constrain egress at the network layer and test the
+   deployed DNS/proxy topology.
 6. API keys in query parameters can leak through URLs, logs, and referrers;
    header-based credentials should be required for exposed deployments.
 7. Legacy diagnostic tests still contain best-effort upstream-aware paths and
@@ -277,10 +280,119 @@ with whole-package coverage.
 5. Only revisit native tool calling or an upstream interface after capturing
    evidence of the Google schema and a measurable reduction in coupling.
 
-## Final success criterion
+## Historical Phase II success criterion
 
 BOB Gemini Free is now safer to evolve: fragile behavior is executable as
 deterministic tests, security and supply-chain boundaries are explicit, and
 unsupported performance/compatibility claims are identified. The remaining
 work is intentionally live/provider and release-operation work, not speculative
 architecture rewriting.
+
+## 7. 2026-08-29 addendum — student-owned Gemini Developer API route
+
+The dated report above remains the historical Phase II snapshot. The current
+working branch adds an explicit, opt-in Gemini Developer API path without
+changing the default web-session route:
+
+- Web Studio students can open **Config → Gemini Developer API**, use the
+  official Google AI Studio key page, review the current model, rate-limit, and
+  pricing pages, and choose **Use for this session**.
+- The provider key is held in page memory, sent only on generation requests,
+  and never stored in `localStorage`, `config.json`, logs, metrics, update
+  checks, or release assets. There is no key pool, rotation, or silent
+  cross-provider fallback.
+- The isolated route supports OpenAI-shaped chat plus native Google
+  `generateContent`, streaming, and `countTokens` forwarding. Provider-shaped
+  `gemini-*` IDs are passed to Google for acceptance; the local model list is
+  not presented as a live entitlement catalogue.
+- Explicit provider-key use is rejected on adapters that have not been
+  translated to the Developer API contract. This is intentional fail-closed
+  behavior, not missing fallback logic.
+- Google controls free-tier availability, rate limits, billing, model access,
+  and policy. The current student procedure and official links are maintained
+  in [`GEMINI-API-ROUTING.md`](GEMINI-API-ROUTING.md); no fixed RPM/RPD or
+  unlimited-access promise is made.
+
+The current local validation also passed `make web`, JavaScript syntax
+validation, `go test -count=1 ./...`, `go test -race -count=1 ./...`,
+`go vet ./...`, `go build ./...`, `go mod verify`, `git diff --check`, and a
+repository secret-pattern scan. No live Google key or account was used, so
+provider acceptance and real quota behavior remain unverified external gates.
+
+The continuation also tightened the student bootstrap and provider-stream
+boundaries: installers now verify a fixed Ed25519-signed manifest and exact
+asset digest with no unsigned default path; release operators can record a
+non-secret local receipt tying the asset set to a clean source commit and
+toolchain; generation POST retries are limited to known pre-connection
+transport failures; direct Developer API tool calls are assembled and emitted
+only after a successful bounded stream; unknown candidate/finish ambiguity and
+tool-result correlation errors fail closed; and web-RPC/direct API stream
+failures are sent as structured errors rather than fabricated assistant text.
+These are local protections, not substitutes for clean Windows/macOS package
+acceptance, Apple/Windows publisher trust, public release reconciliation, or
+live Google behavior.
+
+## 8. 2026-08-29 addendum — 100-path reliability continuation
+
+The follow-up audit converted the remaining concerns into the numbered
+[`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md). It does not relabel open
+risks as complete. The local implementation continuation added:
+
+- local `/manifest.json` and `/sw.js` serving with versioned, API-excluding
+  service-worker behavior;
+- bounded StreamFlight subscribers/history with explicit slow-subscriber and
+  cancellation errors, plus session-safe request coalescing rules;
+- bounded upstream response bodies/stream lines and nil/status/timeout guards;
+- secure cookie-file hashing/reload and pool deduplication/cooldown behavior;
+- bounded image/upload input and strict Scotty URL/response validation;
+- final remote-image DNS revalidation with a direct literal-public-IP dial and
+  rejection of unguardable HTTP-client seams;
+- updater redirect, metadata, asset-size, exact-byte, and staged-package
+  guardrails;
+- artifact token normalization and empty-editor recovery; geometry-driven
+  top/bottom chat controls; generated public-bundle synchronization; and
+  bounded client attachment/history storage.
+- atomic per-install updater locking with conservative stale-lock recovery,
+  post-lock target revalidation, and conservative cleanup of old committed
+  staging plans;
+- ZIP extraction rejection for ambiguous paths, duplicates, symlinks, and
+  special files;
+- bounded, single-cookie-scoped Scotty reference caching with explicit
+  multi-account-pool disablement; provider reference expiry and upload
+  single-flight remain open.
+- bounded operational retry configuration plus capped exponential jitter and
+  `Retry-After` handling for transient upstream failures, while retaining
+  immediate failure for 429, policy, and provider rejection responses.
+- explicit browser failure-state handling for `finish_reason: error`, broken
+  transport, incomplete EOF, and user cancellation; failed/stopped assistant
+  turns are not replayed as successful conversation history;
+- shared reflection-safe tool-schema budgets for typed and JSON-decoded
+  schemas, plus fail-closed provider tool-output validation and explicit nil
+  callback/context guards at the stream boundaries.
+- a shared 32 MiB request-body reader at every JSON handler seam, so direct
+  handler or embedding calls retain the same memory bound as normal HTTP
+  middleware.
+- a clean-source release gate on every CLI/native packager and a read-only
+  signed-asset verifier that reconciles the detached manifest with every local
+  release file before upload or after public download.
+- bounded browser history retention: 200 runtime messages, clipped persisted
+  content/reasoning, a 4-million-character serialized budget, and a safe guard
+  for oversized legacy localStorage payloads.
+
+The focused server, Gemini, multimodal, updater, and desktop tests passed
+after these changes, as did inline JavaScript syntax validation. The rebuilt
+binary also passed local endpoint and hostile-origin checks, and the in-app
+browser rendered the branded studio with zero console errors. The empty-state
+browser smoke did not exercise provider generation, CDN-backed artifact
+execution, long-history performance, or a clean-device updater; those remain
+separate gates. The register records 100 failure paths with explicit
+`PROTECTED`, `PARTIAL`, `OPEN`, and `EXTERNAL` statuses and remains the honest
+boundary for future release decisions.
+
+## Current success criterion
+
+BOB is safer to evolve and easier for students to understand: the default
+web-session route remains intact, the optional provider route is explicit and
+quota-accountable, and local behavior is protected by deterministic tests.
+Student-facing release readiness still requires an authorized live provider
+sample, clean-device acceptance, and the separate signed desktop release gates.

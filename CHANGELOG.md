@@ -12,6 +12,70 @@ preview/release boundaries below.
 
 ---
 
+## [Unreleased] — 2026-08-29
+
+### Explicit Gemini Developer API route (local preview work)
+
+#### Added
+- Added an opt-in public Gemini Developer API transport with native REST and
+  SSE handling, isolated from the reverse-engineered web-RPC client.
+- Added OpenAI-shaped chat translation for system instructions, data-URL
+  images, generation settings, JSON-object output, native function declarations,
+  and `auto`/`none`/`required`/specific-tool choice mapping.
+- Added native Google-shaped forwarding for `generateContent`,
+  `streamGenerateContent`, and `countTokens` when a provider-shaped `gemini-*`
+  model ID and an explicit provider key are selected; future provider IDs are
+  forwarded for Google to accept or reject.
+- Added a student-facing Studio Config section linking to Google AI Studio's
+  key-management page, current model catalogue, and Google's current
+  rate-limit guidance. The browser keeps the provider key in memory for the
+  current page session only; it does not persist or include it in telemetry,
+  health checks, update checks, logs, or release assets.
+- Added deterministic transport, translation, SSE, routing, tool-call,
+  configuration, and secret-redaction tests without using a live Google account.
+
+#### Changed
+- Added `BOB_GEMINI_FREE_GEMINI_API_KEY` as a single process-environment
+  provider key option. Comma-separated key pools and automatic provider
+  rotation are intentionally unsupported.
+- Requests with an explicit provider key never silently fall back to the
+  cookie/web route. Unsupported `/v1/messages`, `/v1/responses`, and image
+  generation provider surfaces fail clearly until separately translated.
+- Replaced stale fixed Google AI Studio RPM/RPD claims in the current English
+  and Hindi documentation with links to Google's current pricing, rate-limit,
+  billing, and key documentation. Provider limits remain model/project/tier
+  dependent and must not be described as unlimited.
+- Clarified the roadmap's educational vision so “local-first” and “free” do not
+  imply a provider-free or unlimited-access guarantee.
+
+This work is local preview engineering. It has not published a release, used a
+live provider key, or enabled GitHub Actions.
+
+### Reliability and release hardening
+
+#### Added
+- Added bounded, fail-closed release-control verification and a local release
+  evidence receipt so the signed manifest, exact asset set, source revision,
+  toolchain, and host can be reconciled before publication.
+- Added regression coverage for pre-request-only generation retries, DNS
+  rebinding during remote-image fetches, cumulative direct-API tool calls,
+  tool-result correlation, ambiguous candidates/finish reasons, structured
+  stream errors, and invalid configured sessions.
+
+#### Changed
+- The default CLI installers now download a release, verify its signed
+  manifest and exact digest, and refuse unsigned or unverifiable binaries.
+  Source installation is an explicit opt-in for development use; the installer
+  commands are documented as download, inspect, and run rather than pipe-to-
+  shell shortcuts.
+- Native and browser streaming paths now preserve provider errors as structured
+  errors instead of fabricating assistant text, and generation retries do not
+  replay requests after an ambiguous or partially delivered upstream failure.
+
+These changes are local and tested on the development host; clean-device,
+published-asset, live-provider, and signed/notarized platform acceptance remain
+release gates.
+
 ## [0.2.0-preview.1] - 2026-08-29
 
 ### Preview 7 migration bridge
@@ -457,7 +521,9 @@ III and is not part of the current product contract.
 - **Zero-Download Cloudflare Pages Serverless Edge Studio**: Deployed native Cloudflare Pages Edge Functions (`/functions/v1/chat/completions.js`, `/functions/v1/models.js`, `/functions/health.js`) executing serverless Web RPC streaming directly in V8 isolates without requiring local binary downloads.
 - **BOB Builder Default Theme**: Established high-contrast **BOB Builder** dark developer theme as the primary default across all browsers and devices.
 - **Direct GitHub Navbar Integration**: Added top navbar GitHub repository link and icon pill directly in `playground.html` and `web/index.html` for 1-click open-source repository exploration.
-- **Public GitHub Raw Install Snippets**: Standardized 1-click terminal setup commands to point directly to raw public GitHub repository URLs (`curl -fsSL https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh | bash`).
+- **Public GitHub Raw Install Snippets** (historical): The earlier pipe-to-shell
+  bootstrap was later removed from the current distribution in favor of a
+  download, inspect, and run flow with signed-release verification.
 - **iOS Dynamic Viewport Height (`100dvh`)**: Replaced `100vh` with `100dvh` (Dynamic Viewport Height unit) on `body` — layout correctly adjusts when the iOS Safari keyboard appears or collapses without layout reflow.
 - **Compact 2×2 Starter Card Grid on Mobile**: Welcome screen starter cards now render as a 2×2 compact grid on screens ≤860px. Card descriptions are hidden; only icon badge + title shown. Hero section now uses ≤30% screen height (was ~60%).
 - **Instant-Access CLEAR Button**: Sub-bar restructured so 📋 Copy and 💾 Export show icon-only on mobile, while 🗑️ **CLEAR** is always visible as a bold red pill (`rgba(239,68,68,0.12)` background) — zero horizontal scrolling needed.

@@ -57,7 +57,7 @@
 | :--- | :--- |
 | 💳 क्रेडिट कार्ड और क्लाउड बिलिंग खाता अनिवार्य | **₹0.00 / शून्य क्रेडिट कार्ड की ज़रूरत** |
 | 💸 हर मिलियन टोकन और रीज़निंग स्टेप का महँगा बिल | **Gateway billing नहीं; upstream quotas और session rules लागू** |
-| 🔑 API Key लीक होने पर लाखों का नुकसान | **सुरक्षित लोकल सेशन (`0600` फ़ाइल परमिशन)** |
+| 🔑 API Key लीक होने पर लाखों का नुकसान | **वैकल्पिक student-owned key केवल Studio memory में; default route को Developer API key नहीं चाहिए** |
 | 🔒 किसी एक कंपनी के CLI या टूल में क़ैद | **यूनिवर्सल 4-इन-1 ट्रांसलेशन (OpenAI, Claude, Google, Go)** |
 | 📊 महीने के अंत में चौंकाने वाला इनवॉइस | **लोकल अनुमानित टोकन व बचत काउंटर (`GET /`); billing record नहीं** |
 
@@ -183,9 +183,17 @@ docker compose up -d
 ### विकल्प B: ऑटोमैटिक इंस्टॉलर स्क्रिप्ट (macOS / Linux)
 
 ```bash
+curl --fail --location --proto '=https' --proto-redir '=https' \
+  --output install.sh \
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh
+less install.sh
 chmod +x install.sh
 ./install.sh
 ```
+
+स्क्रिप्ट को पहले स्थानीय फ़ाइल के रूप में डाउनलोड करके पढ़ें। डिफ़ॉल्ट
+इंस्टॉलर signed manifest और SHA-256 की जाँच के बिना binary इंस्टॉल नहीं करता;
+यह अनजाने current directory को source से compile भी नहीं करता।
 
 ---
 
@@ -252,6 +260,25 @@ Public `v0.2.0-preview.1` migration bridge में project update key embedded
   अनुमानित savings दिख सकते हैं; यह external analytics या provider billing
   record नहीं है।
 * 📋 **मल्टी-प्रोटोकॉल स्निपेट जनरेटर**: Python, Claude Code CLI, और cURL कोड स्निपेट्स को तुरंत कॉपी करें।
+
+#### वैकल्पिक: छात्र की अपनी Gemini Developer API key
+
+सामान्य BOB web-session route के लिए Google AI Studio key की आवश्यकता नहीं है।
+यदि कोई छात्र अपने project का उपयोग करना चाहता है, तो **Config → Gemini
+Developer API** खोलें और [Google AI Studio key page](https://aistudio.google.com/app/apikey)
+पर अपनी key बनाएँ या प्रबंधित करें। [वर्तमान model list](https://ai.google.dev/gemini-api/docs/models) और
+[rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) देखें, फिर Key को
+BOB में केवल current session के लिए paste करें और **Use for this session** चालू करें।
+
+यह quota bypass नहीं है। Key page memory में रहती है, `localStorage`, config
+file, logs, metrics या release में save नहीं होती, और BOB keys की list rotate
+नहीं करता। हर छात्र केवल अपने authorized project/key का उपयोग करे। Google के
+current model, free-tier, rate-limit, billing और data-use नियम लागू रहते हैं।
+पूरी route और limit सीमा [`GEMINI-API-ROUTING.md`](docs/engineering/GEMINI-API-ROUTING.md)
+में है। Hosted public Studio में key भेजने से पहले local या explicitly trusted
+gateway endpoint save करना अनिवार्य है; public demo में अज्ञात gateway को key
+न दें। Direct route provider के `gemini-*` model IDs को forward करता है, इसलिए
+भविष्य के model IDs को BOB alias समझकर silently बदलता नहीं है।
 
 <p align="center">
   <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — BOB Builder Theme Default" width="100%">
@@ -437,11 +464,9 @@ func main() {
 
 | पैमाना / विशेषता | Google AI Studio (Free Tier) | **BOB Gemini Free (लोकल गेटवे)** |
 | :--- | :--- | :--- |
-| **Flash दैनिक सीमा (RPD)** | **1,500 अनुरोध / दिन** (दैनिक सीमा पार होते ही बंद) | **स्थापित नहीं; Google web session पर निर्भर** |
-| **Flash प्रति मिनट अनुरोध (RPM)** | **15 RPM** (`429 RESOURCE_EXHAUSTED`) | **स्थापित नहीं; gateway quota न मानें** |
-| **Flash टोकन दर (TPM)** | 1,000,000 टोकन / मिनट | बफ़र्ड हाई-स्पीड थ्रूपुट |
-| **Pro दैनिक सीमा (RPD)** | **50 अनुरोध / दिन** (अत्यंत सीमित) | **स्थापित नहीं; Google web session पर निर्भर** |
-| **Pro प्रति मिनट अनुरोध (RPM)** | **2 RPM** (भारी थ्रॉटलिंग) | **सामान्य इंटरैक्टिव वेब कंकरेंसी** |
+| **Requests और token quota** | Model, project, tier, region और provider policy के अनुसार बदलते हैं; current [AI Studio limits](https://ai.google.dev/gemini-api/docs/rate-limits) देखें | **स्थापित नहीं; Google web session पर निर्भर** |
+| **Free-tier model availability** | Current [pricing page](https://ai.google.dev/gemini-api/docs/pricing) पर selected models और शर्तें बदल सकती हैं | **स्थापित नहीं; Google web session पर निर्भर** |
+| **Paid billing** | Paid project/key से charges हो सकते हैं; [billing](https://ai.google.dev/gemini-api/docs/billing) जाँचें | **BOB gateway billing नहीं; provider/session rules लागू** |
 | **रीज़निंग / थिंकिंग गहराई** | मुफ़्त कुंजियों पर सीमित | **Upstream-dependent; fixed character guarantee नहीं** |
 | **OpenAI प्रोटोकॉल सपोर्ट** | ❌ शून्य (कस्टम SDK कोड चाहिए) | **✅ Adapter routes; fixture-tested, universal/full नहीं** |
 | **Developer रोल सपोर्ट** | ❌ नहीं | **✅ Prompt transformation; native role semantics नहीं** |
@@ -457,9 +482,7 @@ func main() {
 नीचे के पुराने आँकड़े release guarantee नहीं हैं। Quota, context, concurrency और output depth को target environment और current Google session में मापें:
 
 * **Output/context limits**: gateway द्वारा कोई fixed सीमा स्थापित नहीं है; Google web behavior upstream-dependent है।
-* **अनुकूलतम कंकरेंसी बैंडविड्थ**:
-  * **Flash 3.7 / 3.6 / Flash Lite**: **3 से 5 समवर्ती स्ट्रीम्स** प्रति IP/इंस्टेंस।
-  * **Deep Thinking और Pro 3.1**: **2 से 3 समवर्ती स्ट्रीम्स**।
+* **Concurrency**: repository के local benchmark numbers Google limits या safe live classroom capacity नहीं बताते। Burst से बचें और छोटे rollout waves में test करें।
 * **Retry strategy**: configurable attempts और fixed retry delay हैं; upstream errors/rate limits फिर भी आ सकते हैं।
 * **Images**: compression path oversized inputs को घटाने की कोशिश करता है; exact final byte size guarantee नहीं है।
 
@@ -790,22 +813,23 @@ docker logs bob-gemini-free
 <details>
 <summary><strong>1. BOB Gemini Free अपने gateway API key और billing account के बिना कैसे काम करता है?</strong></summary>
 
-**BOB Gemini Free** selected OpenAI-shaped और Google-shaped requests को Google के internal web RPC में translate करता है। वास्तविक model access, quota, authentication और cost current Google web session और provider policy पर निर्भर हैं।
+**BOB Gemini Free** selected OpenAI-shaped और Google-shaped requests को Google के internal web RPC में translate करता है। Default web route में model access, quota, authentication और cost current Google web session और provider policy पर निर्भर हैं। Optional Developer API route में छात्र के अपने project की key और quota लागू होती है।
 </details>
 
 <details>
 <summary><strong>2. क्या मेरा गूगल अकाउंट सुरक्षित है? रेट लिमिट्स या बैन का कोई ख़तरा?</strong></summary>
 
 * **बिना configured cookie**: BOB user-provided Google session file load नहीं करता; upstream access और identity behavior provider-controlled हैं, इसलिए इसे anonymous guarantee न समझें।
-* **Gemini Advanced ($20/माह) मोड**: BOB Gemini Free वास्तविक ब्राउज़र TLS फ़िंगरप्रिंट (`tls-client` Chrome 133) और सामान्य वेब ट्रैफ़िक पैटर्न का उपयोग करता है।
-* **ऑपरेशनल दिशानिर्देश**: एक समय में 3 से 5 समवर्ती अनुरोध चलाएँ। एक ही IP से प्रति सेकंड सैकड़ों अनुरोध भेजने से बचें।
+* **Google session safety**: Cookie उपयोगकर्ता की अपनी local session होनी चाहिए; expiry और provider policy लागू रहती है।
+* **ऑपरेशनल दिशानिर्देश**: छोटे classroom waves रखें, burst traffic से बचें, और 401/403/429 को provider conditions मानें। Proxy rotation, fingerprint changes या shared cookies से limits bypass न करें।
 </details>
 
 <details>
 <summary><strong>3. यह Google AI Studio Free Tier या Paid OpenAI APIs की तुलना में कैसा है?</strong></summary>
 
-* **Google AI Studio Free Tier**: 15 RPM और सख्त दैनिक कोटा सीमा लगाता है (दैनिक सीमा समाप्त होने पर मध्यरात्रि UTC तक सेवा बंद हो जाती है)।
-* **BOB Gemini Free**: Google के interactive web backend के लिए adapter है; दैनिक सीमा, token cost, model access और reasoning depth current session/provider rules पर निर्भर हैं।
+* **Google AI Studio Free Tier**: exact quota model और usage tier के अनुसार बदलता है। Current [pricing](https://ai.google.dev/gemini-api/docs/pricing) और [rate-limit](https://ai.google.dev/gemini-api/docs/rate-limits) pages तथा AI Studio project view देखें। पुराने fixed RPM/RPD numbers पर निर्भर न करें।
+* **BOB Gemini Free web route**: Google interactive web backend का adapter है; daily limit, token cost, model access और reasoning depth current session/provider rules पर निर्भर हैं।
+* **BOB Gemini Free Developer API route**: छात्र द्वारा चुने गए project/key की current quota और billing settings लागू होती हैं।
 </details>
 
 <details>

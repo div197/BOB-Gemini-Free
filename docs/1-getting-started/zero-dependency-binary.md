@@ -15,6 +15,12 @@ It requires:
 
 ## Direct Binary Downloads
 
+Students should use the reviewed local-file installer above. A direct binary
+download is not authenticated by its SHA-256 value alone: download
+`SHA256SUMS` and `SHA256SUMS.sig` from the same release and verify the complete
+directory with the repository's `cmd/release-verify` tool before execution.
+Never treat a checksum copied from an unrelated page as authenticity proof.
+
 | OS / Architecture | Target Hardware | Direct Binary Link |
 | :--- | :--- | :--- |
 | **macOS ARM64** | Apple Silicon (M1 / M2 / M3 / M4 / M5) | `bob-gemini-free-darwin-arm64` |
@@ -25,28 +31,21 @@ It requires:
 
 ---
 
-## ⚡ 10-Second Quick Execution
+## Direct execution (operator-verified release directory only)
 
-### macOS & Linux
-```bash
-# 1. Download binary (e.g. macOS Apple Silicon)
-curl -fsSL -o bob-gemini-free https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-darwin-arm64
+The links above are asset names, not proof that an arbitrary downloaded file is
+authentic. Before execution, download the matching `SHA256SUMS` and
+`SHA256SUMS.sig` into the same directory and run the repository's
+`cmd/release-verify` directory verifier with the embedded public key. If that
+verification cannot be performed, stop and use the authenticated installer or
+do not execute the file. Do not replace this check with a checksum copied from
+an unrelated page.
 
-# 2. Grant executable permission
-chmod +x bob-gemini-free
-
-# 3. Launch
-./bob-gemini-free
-```
-
-### Windows (PowerShell / CMD)
-```powershell
-# 1. Download
-Invoke-WebRequest -Uri "https://github.com/div197/bob-gemini-free/releases/latest/download/bob-gemini-free-windows-amd64.exe" -OutFile "bob-gemini-free.exe"
-
-# 2. Launch
-.\bob-gemini-free.exe
-```
+For student distribution, the reviewed `install.sh`/`install.ps1` flow is the
+supported path: download the script as a local file, inspect it, and run it.
+The installers fail closed when a signed release cannot be verified. They do
+not pipe a remote script into a shell, compile the current directory, or accept
+an unsigned binary by default.
 
 ---
 

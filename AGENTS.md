@@ -186,6 +186,7 @@ All configuration fields can be set without mounting a `config.json` file:
 | `BOB_GEMINI_FREE_DEFAULT_MODEL` | string | `gemini-3.6-flash` | Default model when none is specified in request |
 | `BOB_GEMINI_FREE_AUTH_USER` | string | `""` | Multi-account index (`"0"`, `"1"`, etc.) |
 | `BOB_GEMINI_FREE_API_KEYS` | string | `` | Comma-separated authorized API keys |
+| `BOB_GEMINI_FREE_GEMINI_API_KEY` | string | `` | One optional student/process-owned Google Gemini Developer API key; never use a comma-separated pool and never persist it |
 | `BOB_GEMINI_FREE_PROXY` | string | `` | HTTP/SOCKS5 proxy URL |
 | `BOB_GEMINI_FREE_IMPERSONATE` | string | `` | TLS fingerprint profile (`chrome`, `firefox`, `safari`) |
 | `BOB_GEMINI_FREE_LOG_REQUESTS` | bool | `false` | Enable request lifecycle logging (`true`/`1`/`yes`) |

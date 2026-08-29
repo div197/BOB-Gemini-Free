@@ -6,18 +6,38 @@ BOB Gemini Free is a high-performance, single-binary local AI gateway written in
 
 ---
 
-## ⚡ 30-Second Installation
+## ⚡ Installation
 
-### macOS & Linux (1-Line Universal Setup)
+The published installers download a platform-matching CLI and verify its
+detached Ed25519 release manifest before installing it. Download the script as
+a local file, inspect it, and then run it. Do not pipe an unpinned repository
+branch directly into a shell.
+
+### macOS & Linux
 ```bash
-curl -fsSL https://raw.githubusercontent.com/div197/bob-gemini-free/main/install.sh | bash
+curl --fail --location --proto '=https' --proto-redir '=https' \
+  --output install.sh \
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh
+less install.sh
+chmod +x install.sh
+./install.sh
 ```
-*(Auto-detects OS and architecture, compiles from source if Go is present, or downloads a standalone binary that needs no separately managed Go/Python/Node runtime.)*
+The default path does not build the current directory and does not accept an
+unsigned binary. It installs a standalone CLI that needs no separately managed
+Go/Python/Node runtime. An explicit source build is available only for a
+developer checkout with `BOB_GEMINI_FREE_INSTALL_FROM_SOURCE=1`.
 
 ### Windows (PowerShell)
 ```powershell
-irm https://raw.githubusercontent.com/div197/bob-gemini-free/main/install.ps1 | iex
+curl.exe --fail --location --proto "=https" --proto-redir "=https" `
+  --output install.ps1 `
+  https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1
+notepad .\install.ps1
+.\install.ps1
 ```
+The Windows bootstrap fails closed when `curl.exe` or an Ed25519 verifier is
+not available; it does not fall back to an unsigned download or an implicit
+source build.
 
 ### Docker & OrbStack (Instant Container)
 ```bash
