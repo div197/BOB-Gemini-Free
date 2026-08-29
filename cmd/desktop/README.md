@@ -68,8 +68,10 @@ are recorded in
 [`docs/engineering/STUDENT-DISTRIBUTION.md`](../../docs/engineering/STUDENT-DISTRIBUTION.md).
 
 The native Help menu provides an explicit update check against the official
-GitHub release metadata. The current Preview 3 opens the release page for user-controlled
-installation. The source also contains a signed-manifest staging/helper path,
+GitHub release metadata. The public Preview 7 binary checks its preview
+channel; newly built current-source previews check stable first and can use a
+same-key bridge for existing Preview 7 installations. The source also contains
+a signed-manifest staging/helper path,
 but it is enabled only in a build with the embedded release key and a
 platform-appropriate signed manifest; it never silently replaces the running
 app.

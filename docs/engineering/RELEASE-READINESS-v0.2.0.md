@@ -1,0 +1,242 @@
+# BOB Gemini Free v0.2.0 Release Readiness
+
+**Audit date:** 2026-08-29 (Asia/Kolkata)
+**Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
+**Previous public native release:** `v0.1.7-preview.7`
+**Decision:** **NOT READY for publication as a student-facing stable release**
+
+This is a release gate, not a claim that the source is unusable. The current
+branch is a large post-Preview-7 source milestone, but a signed artifact,
+platform trust, an update migration, and a 30-device acceptance run are four
+different proofs.
+
+## Executive decision
+
+The project-level release-signing mechanism is available: the matching Ed25519
+private key is held outside the repository in the owner's local macOS Keychain,
+and the public key is recorded in
+[`UPDATE-PUBLIC-KEY.txt`](UPDATE-PUBLIC-KEY.txt). The private key was not read,
+copied, printed, or added to this repository during this audit.
+
+That is not the same as Apple Developer ID signing or notarization. A macOS
+package can therefore be project-authenticated for the BOB updater and still
+show the normal first-launch Gatekeeper approval on an unnotarized Mac.
+
+The source preparation in this branch closes the main release-engineering
+gaps found after Preview 7:
+
+- stable Wails build targets require and embed the public updater key;
+- Wails product metadata, Docker version metadata, and the local CLI release
+  default are aligned to `v0.2.0`;
+- a dedicated macOS release packager distinguishes stable and preview builds;
+- newly built Preview builds first check the fixed official stable channel,
+  allowing a deliberate one-way Preview → Stable migration, and only then
+  check the fixed preview channel when no stable update exists;
+- updater metadata and asset URLs are pinned to the exact official repository
+  path or GitHub's release CDN, with regression tests for lookalike and
+  unrelated GitHub URLs;
+- regression tests prove stable migration, preview continuation, and the
+  legacy Preview 7 bridge/no-direct-stable boundary.
+
+These changes are prepared locally on the `codex/release-readiness-v0.2.0`
+branch. They have not been published as a tag or GitHub Release.
+
+## Evidence already available
+
+The following checks passed on the audit host (macOS 26.2, arm64, Go 1.26.6):
+
+```text
+go test -count=1 ./...
+go test -race -count=1 ./...
+go test -count=1 -cover ./...
+go vet ./...
+go build ./...
+go mod verify
+make desktop-key-check
+make dist
+git diff --check
+```
+
+The same final-source run also passed the release-script syntax checks (with
+`bash -n`) and `go test -count=1 -cover ./...` (the
+package-local results aggregate to approximately 53.6% statement coverage),
+`go mod verify`, the six CLI cross-builds in `make dist`, and the public-key
+presence gate. Coverage remains a measured limitation, not a blanket 80%
+claim.
+
+The post-Preview-7 source delta is 60 files, approximately 10,127 insertions,
+and 985 deletions. This is therefore a release-candidate audit of a large
+feature milestone, not a routine patch release. Repository-wide statement
+coverage measured 53.6% in the current local run; the project must not claim
+blanket 80% coverage. The current local-only 1/10/20/30-concurrency baseline
+is recorded in
+[`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
+Google capacity or latency result.
+
+A final-source macOS universal `v0.2.0` candidate and a same-key
+`v0.2.0-preview.1` migration-bridge candidate were built locally. For both,
+checksum verification, ZIP integrity, universal Mach-O inspection, bundle
+metadata, ad-hoc signature verification, DMG Applications layout, and a
+packaged `/healthz` smoke test passed. `spctl` rejected the stable candidate as
+expected for a package without Apple Developer ID trust. An intentionally
+missing Keychain item also caused the manifest signer to fail closed; the real
+private key was not read.
+
+The public GitHub state was also checked:
+
+- the newest release is `v0.1.7-preview.7`;
+- its macOS universal DMG/ZIP, release notice, checksum manifest, and detached
+  signature are present;
+- there is no `v0.2.0` tag or GitHub Release yet;
+- no GitHub Actions workflow is required or present in the current tree.
+
+## Signing and trust gates
+
+| Gate | Current truth | Release consequence |
+|---|---|---|
+| Project manifest authenticity | Ed25519 public key is in the repository; private key is local-only | Can be completed by the owner with a local signing operation |
+| Exact artifact integrity | Updater verifies the signed `SHA256SUMS` entry, size, package type, and platform magic | Must be regenerated and verified after the final upload bytes are known |
+| macOS platform trust | No Apple Developer ID certificate, hardened-runtime notarization, or stapled ticket is available in this workflow | The result must remain clearly labelled project-signed/ad-hoc and may require first-launch approval |
+| Windows publisher trust | No Windows publisher-signed installer has been accepted in this audit | Windows cannot be called production-ready from this branch |
+| Release channel | GitHub has no `v0.2.0` tag/release | Nothing can update until the exact release is manually published |
+| Private-key custody | Keychain presence was checked without reading the secret | Keep it out of Git, chat, screenshots, student machines, and shell transcripts |
+
+The stable Wails targets now fail closed when the public key file is absent.
+The macOS package script only needs the public key; the private key belongs only
+to the separate local manifest-signing step. No private key is needed in a
+student package.
+
+## Update behavior for existing installations
+
+The updater is user-consented, not a fleet push and not a silent background
+updater. The exact flow is:
+
+```text
+Help → Check for Updates
+  → query fixed official release metadata
+  → show the candidate
+  → user chooses Install Update
+  → download and verify signed manifest and exact asset
+  → stage beside the installed app
+  → restart through helper
+  → keep rollback copy until health confirmation
+```
+
+The new source behavior is intentionally one-way:
+
+- a stable build checks only the latest stable release;
+- a preview build checks stable first and can migrate to a newer stable
+  release;
+- if stable has no newer release, a preview build checks the bounded preview
+  listing for a newer `preview.N` release;
+- a stable build never downgrades or moves into preview;
+- a failed stable metadata check is not hidden by a preview result.
+
+For the 30 devices, the result depends on the installed version and location:
+
+| Existing device state | Can it update to a published signed `v0.2.0` stable package? | Required action |
+|---|---|---|
+| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | Not directly to stable: that released binary still queries only the preview channel | Publish and sign a same-key bridge preview such as `v0.2.0-preview.1`, update to it first, then use its stable-first updater; alternatively install stable manually |
+| A newly built current-source preview bridge, current key, writable directory | Yes, after a newer signed stable package is published | User performs the explicit bridge update, then selects Check for Updates again for Preview → Stable |
+| Preview 4–6 or another build with the old/unrecoverable project key | No, not cryptographically | One manual install of a package carrying the current public key, then later updates can be verified |
+| Preview 3 or older without an embedded updater key | No | Manual installation; do not use an environment variable as a production trust substitute |
+| App still running from a mounted DMG or App Translocation path | No | Copy it to `/Applications` or another writable application directory and relaunch |
+| A package with no signed manifest or wrong platform asset | No | Updater must refuse it; use the official release page for recovery |
+
+Therefore, if all 30 students truly have the public Preview 7 binary, the
+current source does **not** provide a direct one-step Preview 7 → stable
+migration. To avoid manually reinstalling stable on every device, publish a
+same-key bridge preview first, pilot the two explicit update steps, and only
+then publish/announce stable. This still does **not** prove that all 30
+machines will update: OS version, architecture, permissions, network access,
+release-asset availability, and provider usage are independent gates. If a
+device is on Preview 6 or earlier, it needs the manual one-time migration to
+the current key before either updater path can be trusted.
+
+## Required acceptance run before publication
+
+### Gate A — one clean Mac
+
+Use the exact final DMG/ZIP, not a developer build:
+
+1. copy the app to a writable application directory;
+2. approve the normal macOS first-launch warning without disabling Gatekeeper;
+3. confirm the displayed version and actual loopback gateway endpoint;
+4. run local `/healthz` and one bounded student-authentication smoke test if
+   that capability is in scope;
+5. install a controlled successor release signed by the same project key;
+6. for an already-installed public Preview 7, verify the bridge preview update
+   first and then verify bridge → Stable; for a newly built current preview,
+   verify the direct Preview → Stable path;
+7. interrupt or deliberately invalidate a candidate and confirm rollback;
+8. confirm cookies, config, preferences, and chat data are not replaced.
+
+### Gate B — two or three pilot Macs
+
+Record only:
+
+```text
+device label | macOS version | arm64/amd64 | installed version | healthz |
+generation class | update result | rollback result
+```
+
+Do not record cookies, Google account identifiers, full prompts, response
+bodies, or release private-key material.
+
+### Gate C — 30-device rollout
+
+Proceed only after Gates A and B pass. Roll out in waves of 5–10 devices and
+verify the local app version and `/healthz` after each wave. Each user still
+needs to approve the update; this updater cannot remotely push to 30 Macs.
+The shared school egress IP must not be disguised with rotating proxies,
+fingerprint changes, or shared cookies. The updater uses GitHub's unauthenticated
+release API; the audit host currently reported a 60-request hourly limit with
+57 remaining. Thirty devices checking two channels at the same moment can
+consume that budget, so use staggered rollout waves and treat API rate limiting
+as a recoverable update-check failure. A successful install is not proof of
+Google quota, model identity, unlimited access, or provider availability.
+
+## Feature claims that must remain bounded
+
+The large source milestone contains useful work, but the following are not
+release proofs and must not be advertised as shipped capabilities without new
+artifacts or measurements:
+
+- `pkg/mobile` is an experimental Go bridge. The repository does not contain a
+  native Android project, iOS project, AAR, or XCFramework; its current code
+  starts a local HTTP listener and is not a zero-socket mobile app.
+- `internal/refiner` runs three inference stages through the supplied inference
+  function. It is not a pure-local four-stage engine, and its token/duration
+  fields are estimates/serialization values rather than authoritative model
+  telemetry.
+- model aliases are routing aliases to the available Google web path, not proof
+  that BOB is running the named OpenAI or Anthropic model.
+- token counts, latency, RAM, concurrency, savings, free use, and unlimited use
+  require dated measurements or remain upstream-/environment-dependent.
+- StreamFlight, cookie-pool cooldown behavior, and live Google acceptance need
+  additional targeted tests before they are used as 30-device capacity claims.
+
+## Exact no-Actions release sequence
+
+1. Keep the version/tag immutable and confirm `CHANGELOG.md`, Makefile, Wails
+   metadata, Docker metadata, and release notes all say the same version.
+2. Run the full local test/race/vet/build/diff gate.
+3. Build the macOS candidate with `make desktop-release-mac` on macOS. This
+   creates an ad-hoc package and unsigned local `SHA256SUMS`.
+4. Inspect the app, ZIP, DMG layout, Wails version, endpoint behavior, and
+   release notice on a clean writable path.
+5. Run the separate local `scripts/sign-release-assets.sh` operation using the
+   owner-controlled key custody. Never put the private key in this repository
+   or a student command.
+6. Build and accept Windows/Linux artifacts on their native hosts if they are
+   included in the release. Do not list a platform whose artifact was not
+   tested.
+7. If preserving updates for already-installed public Preview 7 matters,
+   manually publish the signed same-key bridge preview before stable; then
+   create the immutable stable tag and manually upload its exact signed bytes.
+   GitHub Actions are neither required nor used.
+8. Re-download every public asset, compare bytes and checksums, verify the
+   detached signature, and rerun Gate A before announcing the release.
+
+Until those gates are complete, the truthful label is **release candidate under
+controlled validation**, not “fully ready” or “automatic rollout completed.”

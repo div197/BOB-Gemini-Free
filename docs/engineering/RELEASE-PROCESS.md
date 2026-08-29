@@ -27,20 +27,26 @@ it is not a credential. The corresponding private value is used only by the
 local manifest-signing step and must never be placed in the repository or a
 student command.
 
-The native Help menu's update action is intentionally user-initiated. Preview
-6 and Preview 7 check the fixed official preview channel, verify
-a signed manifest, and offer a consented staged replacement with rollback. It
-does not silently replace a running native bundle.
+The native Help menu's update action is intentionally user-initiated. Stable
+builds check the fixed official stable channel. Newly built current-key preview
+builds check stable first for a one-way Preview → Stable migration, then check
+the fixed official preview channel when no stable update exists. Both paths
+verify a signed manifest and offer a consented staged replacement with
+rollback. The already-published Preview 7 binary predates stable-first
+discovery, so it needs a same-key bridge preview or a manual stable install
+before updater-based migration to stable. The updater does not silently
+replace a running native bundle.
 
 ## Native automatic-update status
 
 Preview 4 was the first public native build with a build-embedded desktop trust
-key and a signed preview manifest. It performs an explicit preview-channel
-metadata check, and a user can approve a verified staged update with health
-confirmation and rollback. Preview 6 was the previous signed preview; Preview
-7 is the current published preview. Preview 3 remains manual-update-only because it
-has no embedded desktop trust key. Stable builds and preview builds never
-cross channels automatically.
+key and a signed preview manifest. It performs an explicit metadata check, and
+a user can approve a verified staged update with health confirmation and
+rollback. Preview 6 was the previous signed preview; Preview 7 is the current
+published preview. Preview 3 remains manual-update-only because it has no
+embedded desktop trust key. Stable builds never move into preview; current-key
+preview builds may migrate into a newer stable release only after explicit
+user consent.
 
 The source now enables that user-consented path for the signed macOS preview.
 Platform publisher signing and clean-device verification remain required for a
@@ -59,26 +65,36 @@ The implementation sequence is:
 5. keep any future background metadata check opt-in, while retaining a visible
   “Check for Updates” action and a manual release fallback.
 
-This removes repeated delete/download/install work for Preview 4 onward after
-the user approves the update. No silent install is enabled by the current
-preview.
+This removes repeated delete/download/install work after a current-source
+preview is installed and the user approves the update. For the existing public
+Preview 7 fleet, publish and sign a same-key bridge preview first if avoiding a
+manual stable install is important. No silent install is enabled by the
+current preview.
 
 The non-technical rollout risks and operator checklist are recorded in
 [`DESKTOP-UPDATE-OPERATIONS.md`](DESKTOP-UPDATE-OPERATIONS.md).
 
 ## Preconditions
 
-Set these values only in the local release environment:
+The public value is supplied to the local release command. On macOS, the
+signing wrapper prefers the owner-controlled Keychain item
+`BOB-Gemini-Free-Release-Ed25519` for the current account and streams the
+private value directly to the signer over stdin. The private-key environment
+variable remains an explicit fallback for a local secret manager on other
+systems; it is not required for the macOS Keychain path.
 
 | Name | Purpose |
 |---|---|
 | `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` | Ed25519 public key embedded in CLI binaries and checked at signing time |
-| `BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY` | Ed25519 private key used only by `cmd/release-manifest` |
+| `BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY` | Optional non-macOS/local-secret-manager fallback used only by `cmd/release-manifest` |
+| `BOB_GEMINI_FREE_UPDATE_KEYCHAIN_SERVICE` | Optional macOS Keychain service override; default is `BOB-Gemini-Free-Release-Ed25519` |
+| `BOB_GEMINI_FREE_UPDATE_KEYCHAIN_ACCOUNT` | Optional macOS Keychain account override; default is the current OS user |
 
-The two values must represent the same Ed25519 key pair. The private value is
-accepted as a raw 32-byte seed or 64-byte private key encoded as base64 or
-hexadecimal. Keep the private key in an offline/key-management process and
-the local environment; never commit it or print it in a terminal transcript.
+The public value and the Keychain/private value must represent the same
+Ed25519 key pair. The private value is accepted as a raw 32-byte seed or
+64-byte private key encoded as base64 or hexadecimal. Keep it in the
+owner-controlled Keychain or another offline/key-management process; never
+commit it, put it in a shell command, or print it in a terminal transcript.
 
 ## Local tag flow
 
@@ -88,9 +104,12 @@ the local environment; never commit it or print it in a terminal transcript.
    release notes. Do not use a tag as evidence that Google upstream behavior was
    live-tested.
 3. Run `scripts/release-local.sh` from the checkout. It runs six CLI
-   cross-builds and signs the resulting directory. Use `make desktop` for a
-   normal desktop developer build, or `scripts/build-wails-local.sh` on macOS
-   when the checkout is under File Provider and in-place codesigning is
+   cross-builds and signs the resulting directory. For the macOS native
+   candidate, use `make desktop-release-mac`; it embeds the public updater key
+   and creates a stable-channel app, ZIP, DMG, notice, and unsigned local
+   checksum manifest. Use `make desktop` for a normal stable desktop build, or
+   `scripts/build-wails-local.sh` for an explicitly development-only macOS
+   bundle when the checkout is under File Provider and in-place codesigning is
    affected by resource-fork metadata.
 4. Upload the resulting files through the operator's chosen release channel,
    then publish the binaries plus `SHA256SUMS` and `SHA256SUMS.sig`.
@@ -101,17 +120,19 @@ the local environment; never commit it or print it in a terminal transcript.
 The script refuses an existing output directory so stale artifacts cannot be
 silently included in the signed manifest. It does not delete files.
 
-For an already-built native artifact directory, use the no-Actions signing
-wrapper after inspecting its contents:
+For an already-built native artifact directory on macOS, use the no-Actions
+signing wrapper after inspecting its contents. It reads the default Keychain
+item without requiring the private key to be copied into the shell:
 
 ```bash
 BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... \
-BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY=... \
-  scripts/sign-release-assets.sh /path/to/release-assets
+	scripts/sign-release-assets.sh /path/to/release-assets
 ```
 
-The private value is read by the local process only; do not paste it into a
-repository file or a student-facing command.
+For a non-macOS secret-manager workflow, provide
+`BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY` only through that manager's protected
+process environment. The private value must never be pasted into a repository
+file or a student-facing command.
 
 ## Required external gates
 

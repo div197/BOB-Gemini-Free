@@ -16,12 +16,16 @@ provider check; it cannot be certified by a local benchmark.
 
 ## What the current desktop updater actually does
 
-Preview 7 has a build-pinned preview channel and a signed manifest verifier.
-The updater:
+The current source has a build-pinned update policy and a signed manifest
+verifier. A newly built preview first checks the fixed official stable endpoint
+so it can migrate to a newer stable release; when stable has no update, it
+checks the preview listing. The already-published Preview 7 binary predates
+that stable-first behavior and checks only the preview listing. The updater:
 
 - contacts the fixed official GitHub release API only after the user selects
   **Help → Check for Updates**;
-- selects the newer `preview.N` package for the current platform;
+- selects the newer stable package, or the highest published `preview.N`
+  package when no stable update exists, for the current platform;
 - verifies the embedded Ed25519 public key, `SHA256SUMS`, signature, asset name,
   size, and package contents;
 - stages beside the installed application and restarts through the tested
@@ -31,7 +35,10 @@ The updater:
 Preview 6 installations cannot verify Preview 7 because the original Preview
 6 project signing key was not recoverable. Install Preview 7 manually once on
 those devices; later releases signed with the Preview 7 key can then use this
-updater.
+updater. A newly built current-source preview can migrate to a newer stable
+release after the stable candidate is published with the same project key. An
+existing public Preview 7 installation must first update to a same-key bridge
+preview, or be manually replaced with stable.
 
 It does **not** silently check on startup, silently replace the application, or
 push a release to 30 machines. A new signed preview can therefore reduce the
@@ -84,8 +91,9 @@ Do not open 30 live generations at once. Use this order:
 - run a local `GET /healthz` check;
 - send one short text request using the student's own authorized path, if
   that capability is required;
-- check Help → Check for Updates against a later signed preview in a controlled
-  test release;
+- for the existing public Preview 7 path, check a signed same-key bridge
+  preview first, then check stable from the bridge (and separately verify a
+  later preview when no stable update exists);
 - verify that an intentionally failed candidate leaves the original app,
   cookies, preferences, and chat history usable.
 

@@ -13,12 +13,19 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7-preview.7}"
+# The default is a migration bridge candidate for the already-published
+# Preview 7 binary. Set BOB_RELEASE_VERSION explicitly for every publication.
+VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.1}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
+EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
 if [[ -z "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}" ]]; then
 	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required for updater-capable preview packages" >&2
+	exit 1
+fi
+if [[ -z "$EXPECTED_PUBLIC_KEY" || "${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY}" != "$EXPECTED_PUBLIC_KEY" ]]; then
+	echo "configured update public key does not match $ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt" >&2
 	exit 1
 fi
 
@@ -107,10 +114,10 @@ No Google session, cookie, API key, or private release key is included. A
 signed preview build may contain a public Ed25519 key for verifying future
 project release manifests; this does not provide Apple Developer ID signing
 or notarization.
-Existing Preview 6 installations carry an older project verification key and
-must be manually replaced with this Preview 7 package once. Later releases
-signed with the Preview 7 key can then be installed through the explicit
-Help -> Check for Updates flow.
+The already-published v0.1.7-preview.7 binary can discover this same-key
+bridge preview because it queries the preview channel. The bridge contains the
+new stable-first updater and can then discover a later stable v0.2.0 release.
+This is still an explicit two-step update, not a silent fleet update.
 NOTICE
 
 (

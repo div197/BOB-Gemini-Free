@@ -4,6 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/base64"
+	"strings"
 	"testing"
 )
 
@@ -43,5 +44,11 @@ func TestDecodePublicKeyAcceptsHexadecimal(t *testing.T) {
 	}
 	if string(decoded) != string(publicKey) {
 		t.Fatal("decoded hexadecimal public key differs")
+	}
+}
+
+func TestReadPrivateKeyStdinRejectsOversizedInput(t *testing.T) {
+	if _, err := readPrivateKey(strings.NewReader(strings.Repeat("a", 4097))); err == nil {
+		t.Fatal("oversized stdin private key was accepted")
 	}
 }

@@ -3,19 +3,23 @@ set -euo pipefail
 
 # Sign an already-built release directory locally. This is deliberately a
 # separate operator step: build/signing credentials never belong in source or
-# GitHub Actions. An existing unsigned SHA256SUMS is regenerated from the
-# exact directory contents; an existing signed manifest is never overwritten.
+# GitHub Actions. On macOS, when the private-key environment variable is not
+# set, the key is streamed from the owner-controlled Keychain directly into
+# the signer over stdin. An existing unsigned SHA256SUMS is regenerated from
+# the exact directory contents; an existing signed manifest is never overwritten.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 RELEASE_DIR="${1:-}"
 PUBLIC_KEY="${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}"
+KEYCHAIN_SERVICE="${BOB_GEMINI_FREE_UPDATE_KEYCHAIN_SERVICE:-BOB-Gemini-Free-Release-Ed25519}"
+KEYCHAIN_ACCOUNT="${BOB_GEMINI_FREE_UPDATE_KEYCHAIN_ACCOUNT:-$(id -un)}"
 
 if [[ -z "$RELEASE_DIR" || ! -d "$RELEASE_DIR" ]]; then
-	echo "usage: BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY=... $0 RELEASE_DIR" >&2
+	echo "usage: BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... $0 RELEASE_DIR" >&2
 	exit 1
 fi
-if [[ -z "$PUBLIC_KEY" || -z "${BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY:-}" ]]; then
-	echo "both update public and private keys are required in the local release environment" >&2
+if [[ -z "$PUBLIC_KEY" ]]; then
+	echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required" >&2
 	exit 1
 fi
 if [[ -e "$RELEASE_DIR/SHA256SUMS.sig" ]]; then
@@ -27,8 +31,16 @@ if [[ -e "$RELEASE_DIR/SHA256SUMS" ]]; then
 fi
 
 cd "$ROOT_DIR"
-BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY="$BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY" \
-	go run ./cmd/release-manifest -dir "$RELEASE_DIR" -public-key "$PUBLIC_KEY"
+if [[ -n "${BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY:-}" ]]; then
+	BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY="$BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY" \
+		go run ./cmd/release-manifest -dir "$RELEASE_DIR" -public-key "$PUBLIC_KEY"
+elif [[ "$(uname -s)" == "Darwin" ]] && command -v security >/dev/null; then
+	security find-generic-password -s "$KEYCHAIN_SERVICE" -a "$KEYCHAIN_ACCOUNT" -w |
+		go run ./cmd/release-manifest -private-key-stdin -dir "$RELEASE_DIR" -public-key "$PUBLIC_KEY"
+else
+	echo "private key is unavailable: set it through a local secret manager or use the macOS Keychain path" >&2
+	exit 1
+fi
 
 if command -v shasum >/dev/null; then
 	(

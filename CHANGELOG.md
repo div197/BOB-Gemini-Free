@@ -12,27 +12,77 @@ preview/release boundaries below.
 
 ---
 
-## [0.2.0] - 2026-08-29
+## [Unreleased] — v0.2.0 source milestone (not yet published)
 
-### The Sovereign World Gateway & Universal Mobile Expansion (Android & iOS)
+### The Sovereign World Gateway source milestone
 
 #### Added
 - **Mobile Engine & In-Process Gateway Bridge (`pkg/mobile`)**:
-  - Direct Go-to-Mobile compilation via `gomobile bind` producing standard Android `.aar` library and Apple `XCFramework` for Swift / SwiftUI.
-  - Zero socket overhead: In-process memory streaming delivering token deltas to Kotlin `StreamCallback` / Swift closures with 0ms loopback latency.
-  - 1-Tap In-App Google Sign-In via Android `CookieManager` and Apple `WKHTTPCookieStore` with hardware AES-256 Keystore encryption.
-  - Complete Mobile Developer Guide ([`docs/1-getting-started/android-and-mobile.md`](docs/1-getting-started/android-and-mobile.md)) for Android, Termux, Acode, and iOS.
-- **Pure-Local 4-Stage Reasoning Refiner Engine (`internal/refiner` & `POST /v1/refine`)**:
-  - Recursive requirement decomposition (Stage 1), self-critical invariant audit (Stage 2), and verified clean synthesis (Stage 3).
+  - Added an experimental Go bridge substrate for future mobile bindings; no native Android/iOS application, AAR, or XCFramework is shipped by this repository.
+  - The current bridge starts a local HTTP listener and uses the existing Google web upstream; it is not an in-process, zero-socket, zero-latency mobile runtime.
+  - Native `CookieManager`, `WKHTTPCookieStore`, and hardware-keystore integration remain future application work, not implemented release features.
+  - The mobile guide now records the actual bridge boundary and the missing native artifacts.
+- **Three-Stage Reasoning Refiner (`internal/refiner` & `POST /v1/refine`)**:
+  - Requirement decomposition (Stage 1), self-critical invariant audit (Stage 2), and final synthesis (Stage 3).
+  - The stages call the configured inference function and are therefore upstream-/session-dependent when used by the server; the refiner is not a pure-local inference engine.
   - Integrated into Web Studio Command Palette (`⌘ + Shift + R` / `K Menu → Deep Invariant Refiner`) and `POST /v1/refine` HTTP endpoint.
   - 100% test pass rate across unit and mock inference pipelines.
 - **Production-Grade Multi-Arch Docker & OrbStack Pipeline**:
-  - Ultra-compact **10.8 MB** single-binary Alpine container booting in **< 3ms** with negligible RAM footprint (< 15 MB).
-  - Integrated container `/healthz` monitoring with automatic self-healing.
+  - Added a multi-arch Alpine build path and an unauthenticated local `/healthz` container probe.
+  - Image size, boot latency, and RAM remain environment-specific measurements; no blanket performance number is claimed here.
 - **Universal BPE Token Estimator Correction**:
-  - Replaced whitespace-only parsing with subword and delimiter AST scanner (`estimateTokensJS`), fixing dense minified JSON and multi-lingual prompt calculation from ~16 tok $\rightarrow$ ~1,875 tok.
+  - Improved local estimation for dense JSON, delimiters, and multilingual text; counts remain estimates rather than provider-authoritative tokens.
 - **Global Classroom & Hackathon Lab Deployment Guide ([`docs/1-getting-started/school-and-offline-lab-guide.md`](docs/1-getting-started/school-and-offline-lab-guide.md))**:
-  - Complete operational runbook for 1-command Master LAN Hubs powering 100+ student workstations at ₹0 cost.
+  - Added an operational guide for a possible LAN hub; real capacity, provider acceptance, and operating cost remain deployment-specific.
+
+#### Release-engineering changes not yet published
+
+##### Native preview packaging
+
+- macOS preview DMGs now place `BOB Gemini Free.app` beside a conventional
+  `/Applications` shortcut for drag-to-install use.
+- Added a mounted-image layout verifier so the packager fails closed if the
+  final DMG loses the application drop target.
+
+##### Native updater engineering substrate
+
+- Added a native desktop updater path that discovers only fixed official stable
+  or preview GitHub channels, verifies an embedded Ed25519 trust anchor plus
+  the signed `SHA256SUMS` manifest, checks exact platform assets and sizes,
+  stages safely, and performs post-exit replacement with health confirmation
+  and rollback.
+- Newly built preview packages check stable first for an explicit one-way
+  Preview → Stable migration, then continue to the preview channel only when
+  stable has no newer release. Stable builds never move into preview.
+- Existing public Preview 7 binaries predate stable-first discovery; they need
+  a same-key bridge preview or a manual stable installation before updater-
+  based migration to stable.
+- Added semver prerelease comparison and `preview.N` selection so a signed
+  preview build can discover later signed preview releases.
+- Added mocked tests for signed archive staging, environment-key rejection,
+  declared-size mismatch, archive traversal, transactional replacement,
+  stable-first migration, legacy Preview 7 bridge discovery, direct-stable
+  rejection, and rollback. Tests never replace the developer's running
+  executable.
+- Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
+  documented release-key custody, platform signing, clean-device acceptance,
+  and the 30-device rollout gate.
+
+##### Documentation truth corrections
+
+- Replaced older unconditional session, context, Pro, Imagen, permanent-login,
+  and universal-client wording with session/provider-dependent boundaries.
+- Clarified that local aggregate counters are not external telemetry, that
+  there is no BOB signup or BOB cloud chat service, and that a packaged app's
+  no-Go/no-Node/no-SQLite runtime claim is different from source-build
+  prerequisites.
+- Documented the distinction between anonymous web access, optional Google web
+  cookies, shared school-network egress, local health, and provider limits.
+- Stopped automatic retries for explicit upstream policy/rejection responses;
+  transport retries and cumulative-stream deduplication remain protected by
+  fixtures.
+- Kept the New/model toolbar above responsive drawers and bounded manual UI
+  retries so a visible provider failure cannot be multiplied by rapid clicks.
 
 ---
 
@@ -126,50 +176,6 @@ preview/release boundaries below.
   - Verified 100% pass rate across all 14 Go packages.
 
 ---
-
-## [Unreleased]
-
-### Native preview packaging
-
-- macOS preview DMGs now place `BOB Gemini Free.app` beside a conventional
-  `/Applications` shortcut for drag-to-install use.
-- Added a mounted-image layout verifier so the packager fails closed if the
-  final DMG loses the application drop target.
-
-### Native updater engineering substrate
-
-- Added a native desktop updater path that discovers only fixed official stable
-  or preview GitHub channels, verifies an embedded Ed25519 trust anchor plus
-  the signed `SHA256SUMS` manifest, checks exact platform assets and sizes,
-  stages safely, and performs post-exit replacement with health confirmation
-  and rollback.
-- Added semver prerelease comparison and `preview.N` selection so a signed
-  Preview 4 build can discover later signed preview releases.
-- Added mocked tests for signed archive staging, environment-key rejection,
-  declared-size mismatch, archive traversal, transactional replacement, and
-  rollback. Tests never replace the developer's running executable.
-- Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
-  documented release-key custody, platform signing, clean-device acceptance,
-  and the 30-device rollout gate.
-- Preview 4 is the first public native preview with an embedded desktop
-  update key and signed project manifest. It remains ad-hoc signed,
-  user-consented, and not a notarized production release.
-
-### Documentation truth corrections
-
-- Replaced older unconditional session, context, Pro, Imagen, permanent-login,
-  and universal-client wording with session/provider-dependent boundaries.
-- Clarified that local aggregate counters are not external telemetry, that
-  there is no BOB signup or BOB cloud chat service, and that a packaged app's
-  no-Go/no-Node/no-SQLite runtime claim is different from source-build
-  prerequisites.
-- Documented the distinction between anonymous web access, optional Google web
-  cookies, shared school-network egress, local health, and provider limits.
-- Stopped automatic retries for explicit upstream policy/rejection responses;
-  transport retries and cumulative-stream deduplication remain protected by
-  fixtures.
-- Kept the New/model toolbar above responsive drawers and bounded manual UI
-  retries so a visible provider failure cannot be multiplied by rapid clicks.
 
 ## [0.1.7-preview.7] - 2026-08-25
 

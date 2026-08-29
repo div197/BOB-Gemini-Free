@@ -20,7 +20,9 @@ That does not prove the school network, the teacher's Mac, or the local binary i
 Run one BOB Gemini Free process on a teacher machine or local lab server:
 
 ```bash
-./bob-gemini-free --host 0.0.0.0 --port 9610 --cookie-pool-dir ./cookies
+export BOB_GEMINI_FREE_API_KEYS='choose-a-local-classroom-key'
+export BOB_GEMINI_FREE_COOKIE_POOL_DIR=./cookies
+./bob-gemini-free --host 0.0.0.0 --port 9610
 ```
 
 Students connect to that machine over the LAN:
@@ -47,11 +49,16 @@ This keeps classroom traffic inside the LAN until the single local gateway makes
 
 In a live computer lab, multiple students often submit similar or identical prompts (e.g. *"Build a 2D CyberSnake game in HTML5 Canvas"* or *"Derive the Schrödinger wave equation"*).
 
-In BOB Gemini Free v0.1.8:
-- **StreamFlight Multiplexer (`internal/gemini/flight.go`)**: Automatically detects concurrent in-flight requests with matching normalized prompts and multiplexes a single upstream Google connection across unlimited downstream students over non-blocking atomic channels.
-- **Thundering-Herd Protection (`internal/gemini/auth.go`)**: Guest session tokens are managed via Stale-While-Revalidate with a single background refresh lock, guaranteeing 0ms blocking when 500 students connect simultaneously.
-- **Dynamic Keep-Alive Heartbeat (`internal/server/helpers.go`)**: Periodic `: keepalive\n\n` comments keep student browser sockets open during deep thinking phases, permanently eliminating gateway timeouts.
-- **Auto-Guest Fallback on Cookie Cooldown**: If an account cookie in `./cookies/` expires or triggers a temporary cooldown, BOB automatically routes traffic to live anonymous guest mode, preventing HTTP 503 errors.
+In BOB Gemini Free v0.1.8 and later:
+- **StreamFlight Multiplexer (`internal/gemini/flight.go`)**: Identical concurrent requests may share one upstream Google connection. The local tests cover coalescing and race safety; they do not certify unlimited students, zero lag, or every slow-client pattern.
+- **Guest-session refresh guard (`internal/gemini/auth.go`)**: The stale-while-revalidate path reduces duplicate guest discovery work. It does not guarantee 0 ms latency or bypass Google's traffic limits.
+- **Dynamic Keep-Alive Heartbeat (`internal/server/helpers.go`)**: Periodic `: keepalive\\n\\n` comments help keep idle browser sockets open during long responses; they cannot prevent provider errors, client disconnects, or every timeout.
+- **Cookie cooldown handling**: A failing configured session can be cooled down and another eligible route may be tried. This is session routing, not a quota increase or a guaranteed anonymous fallback.
+
+If this gateway is bound to a LAN interface, configure a local API key and
+restrict the network to the intended classroom. CORS is not authentication.
+Do not expose an authenticated cookie pool from a teacher machine to students
+unless that sharing is explicitly authorized and understood.
 
 ## Cookie Pool Setup for Labs
 
@@ -68,10 +75,12 @@ For authenticated Pro or Vision workloads, prepare a small pool of browser sessi
 Then start:
 
 ```bash
-./bob-gemini-free --host 0.0.0.0 --port 9610 --cookie-pool-dir ./cookies
+BOB_GEMINI_FREE_API_KEYS='choose-a-local-classroom-key' \
+BOB_GEMINI_FREE_COOKIE_POOL_DIR=./cookies \
+  ./bob-gemini-free --host 0.0.0.0 --port 9610
 ```
 
-The pool rotates between sessions and applies a 60-second cooldown on transient anomalies. If all pool accounts are in cooldown, BOB automatically falls back to live guest mode.
+The pool rotates between sessions and applies a 60-second cooldown on transient anomalies. This is not a quota increase or a provider bypass; if all sessions fail, requests may still fail.
 
 Use only accounts and sessions you are authorized to use. Do not publish cookie files. Do not commit `cookie.txt` or `cookies/*.txt`.
 

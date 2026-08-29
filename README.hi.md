@@ -216,9 +216,10 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public Preview 3 का native updater enabled नहीं है; desktop build में
-embedded public key और release में signed manifest होने के बाद ही वह path
-उपलब्ध होगा।
+Public Preview 7 में project update key embedded है। उसका released updater
+stable-first bridge logic से पहले का है, इसलिए मौजूदा Preview 7 installations
+को updater से stable पर जाने से पहले same-key bridge preview चाहिए, या stable
+को manually install करना होगा।
 
 ---
 
