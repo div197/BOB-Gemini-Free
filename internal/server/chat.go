@@ -85,8 +85,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 	cid := fmt.Sprintf("chatcmpl-%s", format.RandHex(12))
 	a.RequestsServed.Add(1)
 
-	strChoice, isStr := req.ToolChoice.(string)
-	isToolNone := isStr && strChoice == "none"
+	isToolNone := format.IsToolChoiceNone(req.ToolChoice)
 
 	if req.Stream && (len(req.Tools) == 0 || isToolNone) {
 		if !startSSE(w) {

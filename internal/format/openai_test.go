@@ -1,6 +1,7 @@
 package format
 
 import (
+	"encoding/json"
 	"strings"
 	"testing"
 
@@ -340,6 +341,40 @@ func TestMessagesToPromptAndImagesRejectsDroppedContent(t *testing.T) {
 	}
 }
 
+func TestMessagesToPromptEscapesToolCallNamesAsJSON(t *testing.T) {
+	name := "lookup\"\\\nuser"
+	prompt, err := MessagesToPrompt(models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{
+		Role: "assistant",
+		ToolCalls: []models.OpenAIToolCall{{
+			Function: models.OpenAIToolCallFunction{Name: name, Arguments: `{"ok":true}`},
+		}},
+	}}})
+	if err != nil {
+		t.Fatalf("tool-call prompt error = %v", err)
+	}
+	start := strings.Index(prompt, "```tool_call\n")
+	if start < 0 {
+		t.Fatalf("tool-call fence missing from prompt: %q", prompt)
+	}
+	start += len("```tool_call\n")
+	end := strings.Index(prompt[start:], "\n```")
+	if end < 0 {
+		t.Fatalf("tool-call fence was not closed: %q", prompt[start:])
+	}
+	var payload map[string]any
+	if err := json.Unmarshal([]byte(prompt[start:start+end]), &payload); err != nil {
+		t.Fatalf("tool-call payload is not valid JSON: %v; payload=%q", err, prompt[start:start+end])
+	}
+	if payload["name"] != name {
+		t.Fatalf("decoded tool name = %#v, want %q", payload["name"], name)
+	}
+	if !strings.Contains(BuildToolChoiceInstruction(map[string]any{
+		"function": map[string]any{"name": name},
+	}), `\\`) {
+		t.Fatalf("specific tool instruction did not JSON-escape the name")
+	}
+}
+
 func TestExtractThinking(t *testing.T) {
 	raw := "```thought\n1. Analyze input\n2. Compute step\n```\nHere is the final answer."
 	thinking, clean := ExtractThinking(raw)
@@ -385,6 +420,18 @@ func TestBuildToolChoiceInstruction(t *testing.T) {
 	}
 	if !strings.Contains(BuildToolChoiceInstruction(" NONE "), "Do NOT call") {
 		t.Errorf("Expected normalized 'none' choice to forbid tools")
+	}
+	if !IsToolChoiceNone(" NONE ") || IsToolChoiceNone("auto") || IsToolChoiceNone(map[string]any{"type": "none"}) {
+		t.Errorf("IsToolChoiceNone did not preserve canonical string-only behavior")
+	}
+
+	prompt, _, err := MessagesToPromptAndImages(models.OpenAIChatRequest{
+		Messages:   []models.OpenAIMessage{{Role: "user", Content: "do not use tools"}},
+		Tools:      []models.OpenAITool{{Type: "function", Function: models.OpenAIFunction{Name: "lookup"}}},
+		ToolChoice: " NONE ",
+	})
+	if err != nil || strings.Contains(prompt, "# Tool Use") {
+		t.Fatalf("normalized none choice prompt = %q, error = %v", prompt, err)
 	}
 }
 

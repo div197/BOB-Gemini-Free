@@ -130,11 +130,20 @@ func BuildToolChoiceInstruction(toolChoice any) string {
 	} else if mapChoice, ok := toolChoice.(map[string]any); ok {
 		if fn, ok := mapChoice["function"].(map[string]any); ok {
 			if name, ok := fn["name"].(string); ok && name != "" {
-				return fmt.Sprintf("\n\nIMPORTANT: You MUST call the tool \"%s\". Do not call other tools.", name)
+				encodedName, _ := json.Marshal(name)
+				return fmt.Sprintf("\n\nIMPORTANT: You MUST call the tool %s. Do not call other tools.", string(encodedName))
 			}
 		}
 	}
 	return ""
+}
+
+// IsToolChoiceNone reports the canonical no-tools mode for adapters that need
+// to decide whether model output may be parsed as a tool call. It intentionally
+// accepts the same case/whitespace normalization as ValidateToolChoice.
+func IsToolChoiceNone(toolChoice any) bool {
+	value, ok := toolChoice.(string)
+	return ok && strings.EqualFold(strings.TrimSpace(value), "none")
 }
 
 // ValidateToolResultReferences makes tool continuations explicit before they
@@ -358,7 +367,14 @@ func MessagesToPromptAndImages(req models.OpenAIChatRequest) (string, []Image, e
 					if err := ValidateToolCall(tc.Function.Name, argsStr); err != nil {
 						return "", nil, err
 					}
-					tcStrs = append(tcStrs, fmt.Sprintf("```tool_call\n{\"name\": \"%s\", \"arguments\": %s}\n```", tc.Function.Name, argsStr))
+					payload, err := json.Marshal(struct {
+						Name      string          `json:"name"`
+						Arguments json.RawMessage `json:"arguments"`
+					}{Name: tc.Function.Name, Arguments: json.RawMessage(argsStr)})
+					if err != nil {
+						return "", nil, fmt.Errorf("encode tool call %q: %w", tc.Function.Name, err)
+					}
+					tcStrs = append(tcStrs, fmt.Sprintf("```tool_call\n%s\n```", string(payload)))
 				}
 				parts = append(parts, fmt.Sprintf("[Assistant]: %s\n%s", contentStr, strings.Join(tcStrs, "\n")))
 			} else {

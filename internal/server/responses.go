@@ -117,8 +117,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	strChoice, isStr := toolChoice.(string)
-	isToolNone := isStr && strChoice == "none"
+	isToolNone := format.IsToolChoiceNone(toolChoice)
 
 	rid := fmt.Sprintf("resp_%s", format.RandHex(16))
 	mid := fmt.Sprintf("msg_%s", format.RandHex(12))

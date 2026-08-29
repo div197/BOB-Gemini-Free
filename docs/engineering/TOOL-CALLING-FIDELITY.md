@@ -41,6 +41,11 @@ reduces false-success behavior. The Google-shaped adapter likewise normalizes
 `AUTO`/`NONE`/`ANY` and rejects unknown modes or incompatible allowed names, but
 these controls still do not make model selection native.
 
+Assistant tool-call prompt blocks are JSON-encoded rather than assembled by
+interpolating names. This keeps bounded quotes, backslashes, and newlines from
+corrupting the adapter's own control document; it is a serialization safeguard,
+not a trust boundary for model-generated tool requests.
+
 Do not rewrite tool calling in Phase II. The lab now makes the actual behavior
 executable and prevents accidental “native/full” wording. A future native
 implementation requires source or live evidence of the upstream schema,

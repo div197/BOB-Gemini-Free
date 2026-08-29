@@ -269,7 +269,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		fullContent := splitter.GetFullContent()
 
 		stopReason := "end_turn"
-		if len(chatReq.Tools) > 0 && fullContent != "" {
+		if len(chatReq.Tools) > 0 && fullContent != "" && !format.IsToolChoiceNone(chatReq.ToolChoice) {
 			_, toolCalls := format.ParseToolCalls(fullContent)
 			if len(toolCalls) > 0 {
 				stopReason = "tool_use"
@@ -351,7 +351,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var toolCalls []models.OpenAIToolCall
-	if len(chatReq.Tools) > 0 && text != "" {
+	if len(chatReq.Tools) > 0 && text != "" && !format.IsToolChoiceNone(chatReq.ToolChoice) {
 		text, toolCalls = format.ParseToolCalls(text)
 	}
 
