@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -22,6 +23,200 @@ type TestResult struct {
 
 // ProgressFn is called after each diagnostic test completes with real-time feedback.
 type ProgressFn func(idx, total int, res TestResult)
+
+const maxDiagnosticResponseBytes int64 = 4 << 20
+
+// newDiagnosticRequest is the single request-construction seam for the live
+// diagnostic suite. The old call sites ignored malformed target URLs and
+// could panic while applying headers to a nil request.
+func newDiagnosticRequest(method, endpoint string, body []byte) (*http.Request, error) {
+	if body == nil {
+		return http.NewRequest(method, endpoint, nil)
+	}
+	return http.NewRequest(method, endpoint, bytes.NewReader(body))
+}
+
+func diagnosticStatusError(resp *http.Response) error {
+	if resp == nil {
+		return errors.New("diagnostic server returned no response")
+	}
+	return fmt.Errorf("HTTP %d", resp.StatusCode)
+}
+
+func readDiagnosticBody(resp *http.Response) ([]byte, error) {
+	if resp == nil || resp.Body == nil {
+		return nil, errors.New("diagnostic server returned an empty response body")
+	}
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxDiagnosticResponseBytes+1))
+	if err != nil {
+		return nil, fmt.Errorf("read diagnostic response: %w", err)
+	}
+	if int64(len(data)) > maxDiagnosticResponseBytes {
+		return nil, errors.New("diagnostic response exceeds the safety limit")
+	}
+	return data, nil
+}
+
+func decodeDiagnosticJSON(resp *http.Response, destination any) error {
+	data, err := readDiagnosticBody(resp)
+	if err != nil {
+		return err
+	}
+	if len(bytes.TrimSpace(data)) == 0 {
+		return errors.New("diagnostic response is empty")
+	}
+	if !json.Valid(data) {
+		return errors.New("diagnostic response is not valid JSON")
+	}
+	if err := json.Unmarshal(data, destination); err != nil {
+		return fmt.Errorf("decode diagnostic response: %w", err)
+	}
+	return nil
+}
+
+func requireDiagnosticText(label, value string) error {
+	if strings.TrimSpace(value) == "" {
+		return fmt.Errorf("%s returned no usable output", label)
+	}
+	return nil
+}
+
+type diagnosticOpenAIResponse struct {
+	Choices []struct {
+		Message struct {
+			Content   string            `json:"content"`
+			Reasoning string            `json:"reasoning_content"`
+			ToolCalls []json.RawMessage `json:"tool_calls"`
+		} `json:"message"`
+	} `json:"choices"`
+}
+
+func decodeDiagnosticChat(resp *http.Response, label string) (diagnosticOpenAIResponse, error) {
+	var result diagnosticOpenAIResponse
+	if err := decodeDiagnosticJSON(resp, &result); err != nil {
+		return result, err
+	}
+	if len(result.Choices) == 0 {
+		return result, fmt.Errorf("%s returned no choices", label)
+	}
+	choice := result.Choices[0]
+	if strings.TrimSpace(choice.Message.Content) == "" && strings.TrimSpace(choice.Message.Reasoning) == "" && len(choice.Message.ToolCalls) == 0 {
+		return result, fmt.Errorf("%s returned no usable output", label)
+	}
+	return result, nil
+}
+
+func scanDiagnosticOpenAIStream(resp *http.Response) error {
+	if resp == nil || resp.Body == nil {
+		return errors.New("diagnostic stream has no response body")
+	}
+	limited := &io.LimitedReader{R: resp.Body, N: maxDiagnosticResponseBytes + 1}
+	scanner := bufio.NewScanner(limited)
+	scanner.Buffer(make([]byte, 0, 64*1024), 256*1024)
+	sawUsableContent := false
+	sawDone := false
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimSpace(strings.TrimPrefix(line, "data: "))
+		if data == "[DONE]" {
+			sawDone = true
+			continue
+		}
+		var event struct {
+			Error   json.RawMessage `json:"error"`
+			Choices []struct {
+				Delta struct {
+					Content   string            `json:"content"`
+					Reasoning string            `json:"reasoning_content"`
+					ToolCalls []json.RawMessage `json:"tool_calls"`
+				} `json:"delta"`
+				FinishReason string `json:"finish_reason"`
+			} `json:"choices"`
+		}
+		if err := json.Unmarshal([]byte(data), &event); err != nil {
+			return errors.New("diagnostic stream contained invalid JSON")
+		}
+		if len(event.Error) > 0 && string(event.Error) != "null" {
+			return errors.New("diagnostic stream returned a structured error")
+		}
+		for _, choice := range event.Choices {
+			if strings.TrimSpace(choice.Delta.Content) != "" || strings.TrimSpace(choice.Delta.Reasoning) != "" || len(choice.Delta.ToolCalls) > 0 {
+				sawUsableContent = true
+			}
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("read diagnostic stream: %w", err)
+	}
+	if limited.N == 0 {
+		return errors.New("diagnostic stream exceeds the safety limit")
+	}
+	if sawDone && !sawUsableContent {
+		return errors.New("diagnostic stream contained only [DONE]")
+	}
+	if !sawUsableContent {
+		return errors.New("diagnostic stream contained no usable event")
+	}
+	if !sawDone {
+		return errors.New("diagnostic stream ended without [DONE]")
+	}
+	return nil
+}
+
+func scanDiagnosticAnthropicStream(resp *http.Response) error {
+	if resp == nil || resp.Body == nil {
+		return errors.New("diagnostic Anthropic stream has no response body")
+	}
+	limited := &io.LimitedReader{R: resp.Body, N: maxDiagnosticResponseBytes + 1}
+	scanner := bufio.NewScanner(limited)
+	scanner.Buffer(make([]byte, 0, 64*1024), 256*1024)
+	currentEvent := ""
+	sawStart := false
+	sawContent := false
+	sawStop := false
+	for scanner.Scan() {
+		line := strings.TrimSpace(scanner.Text())
+		if line == "" {
+			currentEvent = ""
+			continue
+		}
+		if strings.HasPrefix(line, "event: ") {
+			currentEvent = strings.TrimSpace(strings.TrimPrefix(line, "event: "))
+			continue
+		}
+		if !strings.HasPrefix(line, "data: ") {
+			continue
+		}
+		data := strings.TrimSpace(strings.TrimPrefix(line, "data: "))
+		if data == "" || !json.Valid([]byte(data)) {
+			return errors.New("diagnostic Anthropic stream contained invalid JSON")
+		}
+		if currentEvent == "error" {
+			return errors.New("diagnostic Anthropic stream returned a structured error")
+		}
+		switch currentEvent {
+		case "message_start":
+			sawStart = true
+		case "content_block_start", "content_block_delta":
+			sawContent = true
+		case "message_stop":
+			sawStop = true
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return fmt.Errorf("read diagnostic Anthropic stream: %w", err)
+	}
+	if limited.N == 0 {
+		return errors.New("diagnostic Anthropic stream exceeds the safety limit")
+	}
+	if !sawStart || !sawContent || !sawStop {
+		return errors.New("diagnostic Anthropic stream is missing a complete message lifecycle")
+	}
+	return nil
+}
 
 // RunDiagnostics executes an automated end-to-end test suite against a running BOB Gemini Free instance.
 func RunDiagnostics(baseURL, apiKey string) []TestResult {
@@ -72,7 +267,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 
 	// 1. Health Endpoint
 	runTest("Gateway Engine Health (GET /)", func() (string, error) {
-		req, _ := http.NewRequest("GET", baseURL+"/", nil)
+		req, err := newDiagnosticRequest(http.MethodGet, baseURL+"/", nil)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -80,16 +278,27 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
 		}
 		var data map[string]any
-		_ = json.NewDecoder(resp.Body).Decode(&data)
+		if err := decodeDiagnosticJSON(resp, &data); err != nil {
+			return "", err
+		}
+		if data["status"] != "ok" {
+			return "", errors.New("gateway health response is not ok")
+		}
+		if _, ok := data["version"].(string); !ok {
+			return "", errors.New("gateway health response has no version")
+		}
 		return fmt.Sprintf("status=%v, version=%v", data["status"], data["version"]), nil
 	})
 
 	// 2. OpenAI Models Registry (GET /v1/models)
 	runTest("OpenAI Models Registry (GET /v1/models)", func() (string, error) {
-		req, _ := http.NewRequest("GET", baseURL+"/v1/models", nil)
+		req, err := newDiagnosticRequest(http.MethodGet, baseURL+"/v1/models", nil)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -97,18 +306,26 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
 		}
 		var data struct {
 			Data []any `json:"data"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&data)
+		if err := decodeDiagnosticJSON(resp, &data); err != nil {
+			return "", err
+		}
+		if len(data.Data) == 0 {
+			return "", errors.New("models response contained no models")
+		}
 		return fmt.Sprintf("%d models registered", len(data.Data)), nil
 	})
 
 	// 3. Single Model Lookup (GET /v1/models/gemini-3.7-flash)
 	runTest("Single Model Lookup (GET /v1/models/gemini-3.7-flash)", func() (string, error) {
-		req, _ := http.NewRequest("GET", baseURL+"/v1/models/gemini-3.7-flash", nil)
+		req, err := newDiagnosticRequest(http.MethodGet, baseURL+"/v1/models/gemini-3.7-flash", nil)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -116,7 +333,16 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
+		}
+		var data struct {
+			ID string `json:"id"`
+		}
+		if err := decodeDiagnosticJSON(resp, &data); err != nil {
+			return "", err
+		}
+		if data.ID != "gemini-3.7-flash" {
+			return "", fmt.Errorf("model lookup returned unexpected id %q", data.ID)
 		}
 		return "verified model permission metadata", nil
 	})
@@ -130,7 +356,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -138,8 +367,7 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", diagnosticStatusError(resp)
 		}
 		var chatRes struct {
 			Choices []struct {
@@ -148,9 +376,11 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 				} `json:"message"`
 			} `json:"choices"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&chatRes)
-		if len(chatRes.Choices) == 0 {
-			return "", fmt.Errorf("no choices returned")
+		if err := decodeDiagnosticJSON(resp, &chatRes); err != nil {
+			return "", err
+		}
+		if len(chatRes.Choices) == 0 || strings.TrimSpace(chatRes.Choices[0].Message.Content) == "" {
+			return "", fmt.Errorf("no usable choices returned")
 		}
 		return strings.TrimSpace(chatRes.Choices[0].Message.Content), nil
 	})
@@ -164,7 +394,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -172,8 +405,7 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", diagnosticStatusError(resp)
 		}
 		var chatRes struct {
 			Choices []struct {
@@ -182,9 +414,11 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 				} `json:"message"`
 			} `json:"choices"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&chatRes)
-		if len(chatRes.Choices) == 0 {
-			return "", fmt.Errorf("no choices returned")
+		if err := decodeDiagnosticJSON(resp, &chatRes); err != nil {
+			return "", err
+		}
+		if len(chatRes.Choices) == 0 || strings.TrimSpace(chatRes.Choices[0].Message.Content) == "" {
+			return "", fmt.Errorf("no usable reasoning choices returned")
 		}
 		return strings.TrimSpace(chatRes.Choices[0].Message.Content), nil
 	})
@@ -202,7 +436,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -210,21 +447,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
 		}
-		scanner := bufio.NewScanner(resp.Body)
-		foundChunk := false
-		for scanner.Scan() {
-			line := scanner.Text()
-			if strings.HasPrefix(line, "data: ") {
-				foundChunk = true
-				if strings.Contains(line, "[DONE]") {
-					break
-				}
-			}
-		}
-		if !foundChunk {
-			return "", fmt.Errorf("empty stream response")
+		if err := scanDiagnosticOpenAIStream(resp); err != nil {
+			return "", err
 		}
 		return "streaming chunks verified", nil
 	})
@@ -242,7 +468,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -250,7 +479,15 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
+		}
+		chatRes, err := decodeDiagnosticChat(resp, "JSON response")
+		if err != nil {
+			return "", err
+		}
+		content := strings.TrimSpace(chatRes.Choices[0].Message.Content)
+		if !json.Valid([]byte(content)) {
+			return "", errors.New("response_format JSON output was not valid JSON (web route provides instruction-only semantics)")
 		}
 		return "valid JSON response received", nil
 	})
@@ -263,7 +500,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1beta/models/gemini-3.7-flash:generateContent", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1beta/models/gemini-3.7-flash:generateContent", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -271,7 +511,34 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
+		}
+		var native struct {
+			Candidates []struct {
+				Content *struct {
+					Parts []struct {
+						Text string `json:"text"`
+					} `json:"parts"`
+				} `json:"content"`
+			} `json:"candidates"`
+		}
+		if err := decodeDiagnosticJSON(resp, &native); err != nil {
+			return "", err
+		}
+		if len(native.Candidates) == 0 {
+			return "", errors.New("Google response contained no candidates")
+		}
+		var text string
+		for _, candidate := range native.Candidates {
+			if candidate.Content == nil {
+				continue
+			}
+			for _, part := range candidate.Content.Parts {
+				text += part.Text
+			}
+		}
+		if err := requireDiagnosticText("Google response", text); err != nil {
+			return "", err
 		}
 		return "candidates generated", nil
 	})
@@ -283,7 +550,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			"input": "Write one line python hello",
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/responses", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/responses", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -291,7 +561,19 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			return "", fmt.Errorf("HTTP %d", resp.StatusCode)
+			return "", diagnosticStatusError(resp)
+		}
+		var response struct {
+			ID         string            `json:"id"`
+			Status     string            `json:"status"`
+			OutputText string            `json:"output_text"`
+			Output     []json.RawMessage `json:"output"`
+		}
+		if err := decodeDiagnosticJSON(resp, &response); err != nil {
+			return "", err
+		}
+		if response.ID == "" || response.Status != "completed" || (strings.TrimSpace(response.OutputText) == "" && len(response.Output) == 0) {
+			return "", errors.New("Responses API returned an incomplete response object")
 		}
 		return "response object generated", nil
 	})
@@ -306,7 +588,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			"max_tokens": 50,
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/messages", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/messages", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -314,8 +599,7 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", diagnosticStatusError(resp)
 		}
 		var msgRes struct {
 			Role    string `json:"role"`
@@ -324,9 +608,14 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 				Text string `json:"text"`
 			} `json:"content"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&msgRes)
-		if len(msgRes.Content) == 0 {
-			return "", fmt.Errorf("no content blocks returned")
+		if err := decodeDiagnosticJSON(resp, &msgRes); err != nil {
+			return "", err
+		}
+		if msgRes.Role != "assistant" || len(msgRes.Content) == 0 {
+			return "", fmt.Errorf("no assistant content blocks returned")
+		}
+		if err := requireDiagnosticText("Anthropic response", msgRes.Content[0].Text); err != nil {
+			return "", err
 		}
 		return strings.TrimSpace(msgRes.Content[0].Text), nil
 	})
@@ -356,7 +645,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -364,8 +656,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", diagnosticStatusError(resp)
+		}
+		if _, err := decodeDiagnosticChat(resp, "tool-call response"); err != nil {
+			return "", err
 		}
 		return "tool call pipeline verified", nil
 	})
@@ -377,29 +671,30 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			"model":  "gemini-nano-banana-2",
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/images/generations", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/images/generations", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
-			if strings.Contains(err.Error(), "timeout") || strings.Contains(err.Error(), "deadline") || strings.Contains(err.Error(), "connection") {
-				return "guest mode active (Imagen 3 requires --login authenticated session)", nil
-			}
-			return "", err
+			return "", fmt.Errorf("provider-dependent image generation check failed: %w", err)
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			if strings.Contains(string(b), "1003") || strings.Contains(string(b), "auth") || strings.Contains(string(b), "cookie") || strings.Contains(string(b), "upstream error") || resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden || resp.StatusCode == http.StatusBadGateway {
-				return "guest mode active (Imagen 3 requires --login authenticated session)", nil
-			}
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", fmt.Errorf("provider-dependent image generation check failed: %w", diagnosticStatusError(resp))
 		}
 		var imgRes struct {
-			Data []map[string]any `json:"data"`
+			Data []struct {
+				URL     string `json:"url"`
+				B64JSON string `json:"b64_json"`
+			} `json:"data"`
 		}
-		_ = json.NewDecoder(resp.Body).Decode(&imgRes)
-		if len(imgRes.Data) == 0 {
-			return "guest mode active (Imagen 3 requires --login authenticated session)", nil
+		if err := decodeDiagnosticJSON(resp, &imgRes); err != nil {
+			return "", err
+		}
+		if len(imgRes.Data) == 0 || (strings.TrimSpace(imgRes.Data[0].URL) == "" && strings.TrimSpace(imgRes.Data[0].B64JSON) == "") {
+			return "", errors.New("image generation returned no usable image data")
 		}
 		return "image generation pipeline verified", nil
 	})
@@ -418,7 +713,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		gBody, _ := json.Marshal(gPayload)
-		gReq, _ := http.NewRequest("POST", baseURL+"/v1beta/models/gemini-3.7-flash:countTokens", bytes.NewReader(gBody))
+		gReq, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1beta/models/gemini-3.7-flash:countTokens", gBody)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(gReq)
 		gResp, err := client.Do(gReq)
 		if err != nil {
@@ -426,8 +724,16 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer gResp.Body.Close()
 		if gResp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(gResp.Body)
-			return "", fmt.Errorf("Google countTokens HTTP %d: %s", gResp.StatusCode, string(b))
+			return "", diagnosticStatusError(gResp)
+		}
+		var googleCount struct {
+			TotalTokens int `json:"totalTokens"`
+		}
+		if err := decodeDiagnosticJSON(gResp, &googleCount); err != nil {
+			return "", err
+		}
+		if googleCount.TotalTokens <= 0 {
+			return "", errors.New("Google countTokens returned no positive token count")
 		}
 
 		// 2. OpenAI /v1/tokens/count
@@ -438,7 +744,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			},
 		}
 		oBody, _ := json.Marshal(oPayload)
-		oReq, _ := http.NewRequest("POST", baseURL+"/v1/tokens/count", bytes.NewReader(oBody))
+		oReq, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/tokens/count", oBody)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(oReq)
 		oResp, err := client.Do(oReq)
 		if err != nil {
@@ -446,8 +755,16 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer oResp.Body.Close()
 		if oResp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(oResp.Body)
-			return "", fmt.Errorf("OpenAI tokens/count HTTP %d: %s", oResp.StatusCode, string(b))
+			return "", diagnosticStatusError(oResp)
+		}
+		var openAICount struct {
+			TotalTokens int `json:"total_tokens"`
+		}
+		if err := decodeDiagnosticJSON(oResp, &openAICount); err != nil {
+			return "", err
+		}
+		if openAICount.TotalTokens <= 0 {
+			return "", errors.New("OpenAI tokens/count returned no positive token count")
 		}
 
 		return "token counting engine verified for Google and OpenAI protocols", nil
@@ -477,7 +794,10 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 			"max_tokens": 100,
 		}
 		body, _ := json.Marshal(payload)
-		req, _ := http.NewRequest("POST", baseURL+"/v1/messages", bytes.NewReader(body))
+		req, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/messages", body)
+		if err != nil {
+			return "", err
+		}
 		setHeaders(req)
 		resp, err := client.Do(req)
 		if err != nil {
@@ -485,21 +805,12 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 		}
 		defer resp.Body.Close()
 		if resp.StatusCode != http.StatusOK {
-			b, _ := io.ReadAll(resp.Body)
-			return "", fmt.Errorf("HTTP %d: %s", resp.StatusCode, string(b))
+			return "", diagnosticStatusError(resp)
 		}
-		scanner := bufio.NewScanner(resp.Body)
-		eventCount := 0
-		for scanner.Scan() {
-			line := scanner.Text()
-			if strings.HasPrefix(line, "event: ") {
-				eventCount++
-			}
+		if err := scanDiagnosticAnthropicStream(resp); err != nil {
+			return "", err
 		}
-		if eventCount == 0 {
-			return "", fmt.Errorf("no SSE events received")
-		}
-		return fmt.Sprintf("verified Anthropic SSE tool execution stream (%d events)", eventCount), nil
+		return "verified complete Anthropic SSE tool execution lifecycle", nil
 	})
 
 	// 15. StreamFlight Concurrency Multiplexing & Coalescing
@@ -524,7 +835,11 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 					"stream": true,
 				}
 				pBody, _ := json.Marshal(payload)
-				pReq, _ := http.NewRequest("POST", baseURL+"/v1/chat/completions", bytes.NewReader(pBody))
+				pReq, err := newDiagnosticRequest(http.MethodPost, baseURL+"/v1/chat/completions", pBody)
+				if err != nil {
+					resChan <- reqResult{index: idx, err: err, dur: time.Since(tStart)}
+					return
+				}
 				setHeaders(pReq)
 				pResp, pErr := client.Do(pReq)
 				if pErr != nil {
@@ -533,11 +848,13 @@ func RunDiagnosticsWithProgress(baseURL, apiKey string, onProgress ProgressFn) [
 				}
 				defer pResp.Body.Close()
 				if pResp.StatusCode != http.StatusOK {
-					b, _ := io.ReadAll(pResp.Body)
-					resChan <- reqResult{index: idx, err: fmt.Errorf("HTTP %d: %s", pResp.StatusCode, string(b)), dur: time.Since(tStart)}
+					resChan <- reqResult{index: idx, err: diagnosticStatusError(pResp), dur: time.Since(tStart)}
 					return
 				}
-				_, _ = io.Copy(io.Discard, pResp.Body)
+				if err := scanDiagnosticOpenAIStream(pResp); err != nil {
+					resChan <- reqResult{index: idx, err: err, dur: time.Since(tStart)}
+					return
+				}
 				resChan <- reqResult{index: idx, err: nil, dur: time.Since(tStart)}
 			}(i)
 		}
