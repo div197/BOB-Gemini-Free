@@ -78,8 +78,8 @@ func TestCompressImageBytesIfNeeded(t *testing.T) {
 }
 
 func TestCompressImageBytesGIF(t *testing.T) {
-	gifImg := createTestImage(80, 80)
-	outBytes, mime, err := CompressImageBytesIfNeeded(gifImg, "image/gif", 50)
+	gifImg := createTestImage(2000, 1500)
+	outBytes, mime, err := CompressImageBytesIfNeeded(gifImg, "image/gif", 1000)
 	if err != nil {
 		t.Fatalf("Failed to compress GIF image: %v", err)
 	}
@@ -88,6 +88,28 @@ func TestCompressImageBytesGIF(t *testing.T) {
 	}
 	if len(outBytes) == 0 {
 		t.Errorf("Expected non-empty output bytes")
+	}
+}
+
+func TestCompressionHonorsRequestedByteLimit(t *testing.T) {
+	input := createTestImage(2000, 1500)
+	const maxBytes = 5000
+	out, mime, err := CompressImageBytesIfNeeded(input, "image/png", maxBytes)
+	if err != nil {
+		t.Fatalf("compression error: %v", err)
+	}
+	if mime != "image/jpeg" {
+		t.Fatalf("mime = %q, want image/jpeg", mime)
+	}
+	if len(out) > maxBytes {
+		t.Fatalf("compressed image length = %d, want <= %d", len(out), maxBytes)
+	}
+}
+
+func TestCompressionReportsImpossibleByteLimit(t *testing.T) {
+	_, _, err := CompressImageBytesIfNeeded(createTestImage(2, 2), "image/png", 1)
+	if err == nil || !strings.Contains(err.Error(), "cannot fit") {
+		t.Fatalf("impossible compression error = %v", err)
 	}
 }
 

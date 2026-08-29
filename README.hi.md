@@ -484,7 +484,7 @@ func main() {
 * **Output/context limits**: gateway द्वारा कोई fixed सीमा स्थापित नहीं है; Google web behavior upstream-dependent है।
 * **Concurrency**: repository के local benchmark numbers Google limits या safe live classroom capacity नहीं बताते। Burst से बचें और छोटे rollout waves में test करें।
 * **Retry strategy**: configurable attempts और fixed retry delay हैं; upstream errors/rate limits फिर भी आ सकते हैं।
-* **Images**: compression path oversized inputs को घटाने की कोशिश करता है; exact final byte size guarantee नहीं है।
+* **Images**: compression path oversized input को validate करके dimensions सीमित करता है और requested byte budget तक JPEG quality/resolution घटाता है; budget असंभव होने पर over-budget image upload करने के बजाय request fail होती है।
 
 ---
 

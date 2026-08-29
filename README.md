@@ -650,7 +650,7 @@ network conditions, and model behavior must be measured in the target environmen
 * **Output/context limits**: Not established as fixed gateway values; Google web behavior is upstream-dependent.
 * **Concurrency**: The repository includes local benchmark profiles at 1, 10, 50, and 100 concurrent requests. Those results do not establish Google rate limits or safe live concurrency.
 * **Automatic retry strategy**: Configurable retry attempts and a fixed retry delay are implemented; upstream errors and rate limits can still surface.
-* **Images**: The compression path attempts to reduce oversized inputs and cap dimensions before upload; an exact final byte size is not guaranteed.
+* **Images**: The compression path validates oversized inputs, caps dimensions, and adaptively reduces JPEG quality/resolution until the requested byte budget is met; if that budget is physically impossible, the request fails instead of uploading an over-budget image.
 
 ---
 

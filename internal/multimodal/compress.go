@@ -44,24 +44,57 @@ func CompressImageBytesIfNeeded(imgData []byte, mime string, maxBytes int) ([]by
 	bounds := img.Bounds()
 	width := bounds.Dx()
 	height := bounds.Dy()
-
-	var dstImg image.Image = img
 	if width > MaxImageDimension || height > MaxImageDimension {
 		ratio := math.Min(float64(MaxImageDimension)/float64(width), float64(MaxImageDimension)/float64(height))
-		newWidth := int(float64(width) * ratio)
-		newHeight := int(float64(height) * ratio)
-		dst := image.NewRGBA(image.Rect(0, 0, newWidth, newHeight))
-		draw.CatmullRom.Scale(dst, dst.Bounds(), img, bounds, draw.Over, nil)
-		dstImg = dst
+		width = maxInt(1, int(float64(width)*ratio))
+		height = maxInt(1, int(float64(height)*ratio))
 	}
 
-	var buf bytes.Buffer
-	err = jpeg.Encode(&buf, dstImg, &jpeg.Options{Quality: DefaultJPEGQuality})
-	if err != nil {
-		return imgData, mime, fmt.Errorf("failed to encode jpeg: %w", err)
+	// A quality-only pass is not sufficient for screenshots and noisy camera
+	// images. Reduce quality first, then dimensions, until the actual encoded
+	// bytes fit the caller's budget. Never return an over-budget image.
+	dstImg := image.Image(img)
+	if dstImg.Bounds().Dx() != width || dstImg.Bounds().Dy() != height {
+		dstImg = resizeImage(dstImg, width, height)
 	}
+	for {
+		for _, quality := range []int{DefaultJPEGQuality, 60, 45, 30} {
+			var buf bytes.Buffer
+			if err := jpeg.Encode(&buf, dstImg, &jpeg.Options{Quality: quality}); err != nil {
+				return imgData, mime, fmt.Errorf("failed to encode jpeg: %w", err)
+			}
+			if buf.Len() <= maxBytes {
+				return append([]byte(nil), buf.Bytes()...), "image/jpeg", nil
+			}
+		}
 
-	return buf.Bytes(), "image/jpeg", nil
+		if width == 1 && height == 1 {
+			return imgData, mime, fmt.Errorf("encoded image cannot fit within %d bytes", maxBytes)
+		}
+		nextWidth := maxInt(1, int(float64(width)*0.75))
+		nextHeight := maxInt(1, int(float64(height)*0.75))
+		if nextWidth == width && width > 1 {
+			nextWidth = width - 1
+		}
+		if nextHeight == height && height > 1 {
+			nextHeight = height - 1
+		}
+		width, height = nextWidth, nextHeight
+		dstImg = resizeImage(dstImg, width, height)
+	}
+}
+
+func resizeImage(src image.Image, width, height int) image.Image {
+	dst := image.NewRGBA(image.Rect(0, 0, width, height))
+	draw.CatmullRom.Scale(dst, dst.Bounds(), src, src.Bounds(), draw.Over, nil)
+	return dst
+}
+
+func maxInt(a, b int) int {
+	if a > b {
+		return a
+	}
+	return b
 }
 
 func validateImageData(imgData []byte) error {
