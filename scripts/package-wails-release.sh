@@ -12,7 +12,11 @@ CHANNEL="${BOB_RELEASE_CHANNEL:-stable}"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-release}"
 PLATFORM="${BOB_WAILS_PLATFORM:-darwin/universal}"
 PUBLIC_KEY="${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}"
-EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
+EXPECTED_PUBLIC_KEY="$(awk '
+	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
+	in_key && /^[[:space:]]*$/ { in_key=0 }
+	in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }
+' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-release-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"

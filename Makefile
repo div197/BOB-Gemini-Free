@@ -7,7 +7,7 @@
 BINARY_NAME=bob-gemini-free
 VERSION=v0.2.0
 UPDATE_PUBLIC_KEY_FILE=docs/engineering/UPDATE-PUBLIC-KEY.txt
-UPDATE_PUBLIC_KEY=$(shell awk 'length($$0)==64 && $$0 !~ /[^0-9a-fA-F]/ { print; exit }' $(UPDATE_PUBLIC_KEY_FILE))
+UPDATE_PUBLIC_KEY=$(shell awk '/^Encoding: hexadecimal Ed25519 public key$$/ { in_key=1; next } in_key && /^[[:space:]]*$$/ { in_key=0 } in_key && length($$0)==64 && $$0 !~ /[^0-9a-fA-F]/ { print; exit }' $(UPDATE_PUBLIC_KEY_FILE))
 LDFLAGS=-s -w -X main.Version=$(VERSION) -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=$(UPDATE_PUBLIC_KEY)
 WAILS_LDFLAGS=-X main.desktopVersion=$(VERSION) -X main.desktopChannel=stable -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=$(UPDATE_PUBLIC_KEY)
 WAILS=go run github.com/wailsapp/wails/v2/cmd/wails@v2.15.0

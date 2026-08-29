@@ -124,8 +124,10 @@ commit it, put it in a shell command, or print it in a terminal transcript.
 1. Run the default validation loop locally: tests, race tests, vet, host build,
    and `git diff --check`.
 2. Run `bash scripts/verify-release-source.sh v0.2.0` (or the exact release
-   version). It fails closed on a non-Git, dirty, or untracked source tree and
-   on a stale generated `web/index.html`.
+   version). It fails closed on a non-Git, dirty, or untracked source tree, a
+   stale generated `web/index.html`, an invalid version matrix, or drift
+   between the canonical updater key and the Makefile, package scripts, Docker
+   metadata, or standalone installers.
 3. Confirm the release version in the tag, `CHANGELOG.md`, `Makefile`, and
    release notes. Do not use a tag as evidence that Google upstream behavior was
    live-tested.

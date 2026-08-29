@@ -8,7 +8,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${BOB_RELEASE_VERSION:-v0.2.0}"
 OUTPUT_DIR="${1:-release-assets}"
 PUBLIC_KEY="${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}"
-EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
+EXPECTED_PUBLIC_KEY="$(awk '
+  /^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
+  in_key && /^[[:space:]]*$/ { in_key=0 }
+  in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }
+' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 
 if [[ -z "$PUBLIC_KEY" ]]; then
   echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required" >&2

@@ -12,7 +12,11 @@ INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="bob-gemini-free"
 VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.1}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
-EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
+EXPECTED_PUBLIC_KEY="$(awk '
+	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
+	in_key && /^[[:space:]]*$/ { in_key=0 }
+	in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }
+' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 STAGE_DIR="$(mktemp -d "${TMPDIR:-/tmp}/bob-gemini-free-linux-stage.XXXXXX")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
