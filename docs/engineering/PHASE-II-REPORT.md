@@ -360,8 +360,8 @@ risks as complete. The local implementation continuation added:
 - ZIP extraction rejection for ambiguous paths, duplicates, symlinks, and
   special files;
 - bounded, single-cookie-scoped Scotty reference caching with explicit
-  multi-account-pool disablement; provider reference expiry and upload
-  single-flight remain open.
+  multi-account-pool disablement and concurrent upload single-flight; provider
+  reference expiry remains open and upstream-dependent.
 - bounded operational retry configuration plus capped exponential jitter and
   `Retry-After` handling for transient upstream failures, while retaining
   immediate failure for 429, policy, and provider rejection responses.

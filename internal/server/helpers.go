@@ -256,9 +256,6 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 	}
 
 	var fileRefs []string
-	var tokens multimodal.PageTokens
-	var haveTokens bool
-
 	var requester gemini.Requester = a.Gem.HTTP
 	if requester == nil {
 		if a.HTTPClient != nil {
@@ -284,26 +281,36 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 			continue
 		}
 
-		// Fast path: Check image cache to avoid redundant uploads to Scotty
+		// Fast path: use the session-scoped cache and share an identical upload
+		// already in progress. This prevents concurrent requests from creating
+		// multiple Scotty references for the same authenticated image.
 		hashStr := imageCacheKey(data, cacheScope)
 		if cacheEnabled {
-			if cachedRef, ok := a.ImageCache.Load(hashStr); ok {
+			ref, shared, err := a.ImageCache.Do(ctx, hashStr, func() (string, error) {
+				tokens := a.Tokens.Get()
+				ref, err := multimodal.UploadImageContext(ctx, requester, tokens, data, mime, a.Gem.Cookies, a.Cfg.AuthUser)
+				if err == nil && ref != "" && a.Metrics != nil {
+					a.Metrics.ImageUploads.Add(1)
+				}
+				return ref, err
+			})
+			if err != nil {
+				return nil, fmt.Errorf("image upload failed: %w", err)
+			}
+			if shared {
 				if a.Metrics != nil {
 					a.Metrics.ImageCacheHits.Add(1)
 				}
-				fileRefs = append(fileRefs, cachedRef)
-				continue
-			}
-			if a.Metrics != nil {
+			} else if a.Metrics != nil {
 				a.Metrics.ImageCacheMisses.Add(1)
 			}
+			if ref != "" {
+				fileRefs = append(fileRefs, ref)
+			}
+			continue
 		}
 
-		if !haveTokens {
-			tokens = a.Tokens.Get()
-			haveTokens = true
-		}
-
+		tokens := a.Tokens.Get()
 		ref, err := multimodal.UploadImageContext(ctx, requester, tokens, data, mime, a.Gem.Cookies, a.Cfg.AuthUser)
 		if err != nil {
 			return nil, fmt.Errorf("image upload failed: %w", err)
@@ -311,9 +318,6 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 		if ref != "" {
 			if a.Metrics != nil {
 				a.Metrics.ImageUploads.Add(1)
-			}
-			if cacheEnabled {
-				a.ImageCache.Store(hashStr, ref)
 			}
 			fileRefs = append(fileRefs, ref)
 		}

@@ -1,8 +1,11 @@
 package server
 
 import (
+	"context"
+	"errors"
 	"path/filepath"
 	"strconv"
+	"sync"
 	"testing"
 
 	"github.com/div197/bob-gemini-free/internal/config"
@@ -47,6 +50,81 @@ func TestImageRefCacheZeroValueAndClear(t *testing.T) {
 	cache.Clear()
 	if got := cache.Len(); got != 0 {
 		t.Fatalf("cache length after clear = %d, want 0", got)
+	}
+}
+
+func TestImageRefCacheSharesConcurrentLoader(t *testing.T) {
+	var cache imageRefCache
+	var mu sync.Mutex
+	loadCount := 0
+	loader := func() (string, error) {
+		mu.Lock()
+		loadCount++
+		mu.Unlock()
+		return "/shared-ref", nil
+	}
+
+	const callers = 32
+	results := make(chan string, callers)
+	start := make(chan struct{})
+	var wg sync.WaitGroup
+	for i := 0; i < callers; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			<-start
+			ref, _, err := cache.Do(context.Background(), "same-session-image", loader)
+			if err != nil {
+				t.Errorf("Do() error = %v", err)
+				return
+			}
+			results <- ref
+		}()
+	}
+	close(start)
+	wg.Wait()
+	close(results)
+
+	if loadCount != 1 {
+		t.Fatalf("loader call count = %d, want 1", loadCount)
+	}
+	for ref := range results {
+		if ref != "/shared-ref" {
+			t.Fatalf("shared reference = %q", ref)
+		}
+	}
+}
+
+func TestImageRefCacheWaiterCanCancelWithoutCancellingLeader(t *testing.T) {
+	var cache imageRefCache
+	started := make(chan struct{})
+	finish := make(chan struct{})
+	leaderDone := make(chan struct{})
+	go func() {
+		_, _, _ = cache.Do(context.Background(), "cancel-image", func() (string, error) {
+			close(started)
+			<-finish
+			close(leaderDone)
+			return "/ref", nil
+		})
+	}()
+	<-started
+
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if _, shared, err := cache.Do(ctx, "cancel-image", func() (string, error) {
+		t.Fatal("cancelled waiter became the leader")
+		return "", nil
+	}); !shared || !errors.Is(err, context.Canceled) {
+		t.Fatalf("cancelled waiter result = shared:%t err:%v", shared, err)
+	}
+	close(finish)
+	<-leaderDone
+	if ref, shared, err := cache.Do(context.Background(), "cancel-image", func() (string, error) {
+		t.Fatal("completed leader result was not cached")
+		return "", nil
+	}); !shared || ref != "/ref" || err != nil {
+		t.Fatalf("cached result = %q shared:%t err:%v", ref, shared, err)
 	}
 }
 
