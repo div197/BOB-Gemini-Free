@@ -41,7 +41,7 @@ gofmt -s -w .
   - `pkg/gateway` (Embeddable Go library)
 - **Zero-Config Cookie Auto-Discovery**: Automatically checks `./cookie.txt` and `~/.config/bob-gemini-free/cookie.txt` on startup.
 - **Multimodal Scotty Engine**: Automatic image compression (`internal/multimodal/compress.go`) and Google Scotty resumable upload.
-- **Observability Headers**: Injects standard OpenAI headers (`x-request-id`, `openai-processing-ms`, `openai-version`, `x-ratelimit-*`).
+- **Observability Headers**: Injects standard OpenAI processing headers (`x-request-id`, `openai-processing-ms`, `openai-version`); it does not advertise limits that are not enforced locally.
 
 ---
 
@@ -177,7 +177,7 @@ After CLI-mode checks, normal server startup resolves config from CLI flag, envi
 
 `internal/models` holds protocol schemas and model resolution. `models.go` defines `Model{Mode, Think, Desc, Extra}` and a large `MODELS` map. It includes Gemini models, developer convenience aliases, OpenAI aliases, Anthropic aliases, and image-generation aliases. The key runtime result is `Resolved{Name, Mode, Think, Extra}`.
 
-`Resolve(modelName, defaultName)` trims a leading `models/` prefix, supports model suffix overrides of the form `@think=N`, looks up the model in the registry, and falls back to the configured default model if unknown. It returns an error only for invalid `@think=` parsing. The tests verify direct Gemini aliases, thinking model aliases, `models/` prefix handling, unknown fallback behavior, OpenAI aliases such as `gpt-5.6`, reasoning aliases such as `o3`, Anthropic aliases such as `claude-code`, invalid thinking suffix errors, and enhanced Pro extra-index fields.
+`Resolve(modelName, defaultName)` trims whitespace and a leading `models/` prefix, supports model suffix overrides of the form `@think=N`, looks up the model in the registry, and retains legacy fallback behavior for adapter compatibility. `ResolveStrict` rejects unknown explicit models and is used by image, refinement, embedded, and experimental mobile paths where silent rerouting would violate the caller's contract. Both paths reject invalid `@think=` parsing; registry snapshots are lock-protected and clone sparse extras. The tests verify direct Gemini aliases, thinking model aliases, `models/` prefix handling, unknown fallback behavior, strict unknown-model rejection, OpenAI aliases such as `gpt-5.6`, reasoning aliases such as `o3`, Anthropic aliases such as `claude-code`, invalid thinking suffix errors, and enhanced Pro extra-index fields.
 
 `openai.go`, `anthropic.go`, and `google.go` define JSON request and response structs for the gateway's supported public protocols. These files are schema-focused and contain no transport behavior.
 
@@ -193,7 +193,7 @@ After CLI-mode checks, normal server startup resolves config from CLI flag, envi
 
 `pool.go` implements a multi-account cookie pool. It can add sessions, load from explicit files, load from directories, reload from registered sources, start a 30-second auto-reload goroutine, count total/healthy sessions, select the next healthy session with an atomic round-robin cursor, mark failures with a 60-second cooldown, and reset failure counts on success.
 
-`fingerprint.go` adapts `tls-client`/`fhttp` to the standard `http.Client`-like `Requester` interface. It supports named Chrome, Firefox, and Safari profiles and caches constructed clients by profile and timeout.
+`fingerprint.go` adapts `tls-client`/`fhttp` to the standard `http.Client`-like `Requester` interface. It supports documented Chrome, Firefox, and Safari profiles and caches constructed clients by profile and timeout. Unknown profile names are rejected rather than silently substituted; if the optional profile cannot be constructed, the client logs a safe message and uses the standard transport. Fingerprints are not a quota/WAF-evasion mechanism.
 
 ## 10. Protocol Formatting Layer
 
@@ -230,7 +230,7 @@ After CLI-mode checks, normal server startup resolves config from CLI flag, envi
 - `GET /v1beta/models`.
 - `POST /v1beta/models/{target}`.
 
-`middleware.go` provides API-key authorization, origin-aware CORS, body-size limiting, logging, observability headers, and OpenAI-like rate-limit headers. Authorization accepts configured keys through `Authorization: Bearer`, `x-api-key`, `x-goog-api-key`, or `?key=`. If no API keys are configured, non-browser/native requests remain allowed; browser origins are restricted to loopback defaults or explicit `allowed_origins`. The body limit is 32 MB.
+`middleware.go` provides API-key authorization, origin-aware CORS, body-size limiting, logging, and observability headers. It deliberately does not emit synthetic rate-limit headers because no local request limiter enforces those values. Authorization accepts configured keys through `Authorization: Bearer`, `x-api-key`, or `x-goog-api-key`; legacy `?key=` compatibility is disabled by default and requires explicit `allow_query_api_key`/`BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY=true`. If no API keys are configured, non-browser/native requests remain allowed; browser origins are restricted to loopback defaults or explicit `allowed_origins`. The body limit is 32 MB. A malformed discovered configuration now stops startup with a visible error rather than silently switching to defaults.
 
 `helpers.go` maps `gemini.UpstreamError` statuses to HTTP status codes, writes JSON, starts SSE, writes SSE data/events, writes `[DONE]`, and uploads images. `uploadImages` fetches or uses image bytes, hashes them for the `ImageCache`, compresses where needed, uploads through `multimodal.UploadImage`, and returns Gemini file refs.
 
@@ -252,11 +252,11 @@ After CLI-mode checks, normal server startup resolves config from CLI flag, envi
 
 `internal/multimodal/compress.go` compresses image bytes when they exceed configured limits or lack reliable MIME handling. It decodes PNG/GIF/WebP through registered image decoders, scales large images down to max dimension 1024 using Catmull-Rom sampling, and encodes JPEG at quality 75. `CompressIfNeeded` performs base64 decode/compress/re-encode for large base64 images.
 
-`tokens.go` in the multimodal package manages page-token discovery for Google Scotty upload. Defaults are `DefaultPushID` and `DefaultPctx`, with a 600-second token cache TTL. It fetches Gemini app HTML using cookie and SAPISID authorization when available, extracts Push ID, Pctx, AT token, and BL using regexes, and avoids concurrent dog-pile refresh by updating the timestamp before the network fetch.
+`tokens.go` in the multimodal package manages page-token discovery for Google Scotty upload. Defaults are `DefaultPushID` and `DefaultPctx`, with a 600-second token cache TTL. It fetches Gemini app HTML using cookie and SAPISID authorization when available, refuses redirects and non-success/oversized responses, bounds token values, extracts Push ID, Pctx, AT token, and BL using regexes, and avoids concurrent dog-pile refresh by updating the timestamp before the network fetch. A failed refresh preserves the last known-good token set, and request-scoped callers can cancel the fetch.
 
 `upload.go` implements Google Scotty resumable upload in two steps. It starts the upload with push id, tenant id, client pctx, content length, content type, origin, referer, user agent, cookie, authorization, and optional auth-user headers. It then uploads and finalizes the image bytes to the returned upload URL. A valid response must be a file ref starting with `/`. `FetchImageBytes` only allows HTTP and HTTPS image URLs, rejecting schemes such as `file://`.
 
-Tests cover image compression behavior, GIF re-encoding, base64 compression, fetch scheme rejection, token cache construction, and a live image upload test that is skipped when `cookie.txt` is unavailable.
+Tests cover image compression behavior, GIF re-encoding, base64 compression, fetch scheme rejection, bounded/redirect-safe token refresh with stale-token preservation, token cache construction, and a live image upload test that is skipped when `cookie.txt` is unavailable.
 
 ## 13. Browser Login Layer
 
@@ -272,15 +272,15 @@ Tests cover browser detection enough to tolerate missing browsers, free-port all
 
 ## 15. Diagnostics And Benchmarking
 
-`internal/diag/diag.go` defines a 13-check live diagnostic suite. It tests health, OpenAI model catalog, single model lookup, fast chat completion, thinking chat completion, streaming SSE, developer role plus JSON-format behavior, Google generateContent, Responses API, Anthropic Messages, function calling, image generation, and token counting. This suite is designed to run against an already running gateway and can involve upstream/provider calls.
+`internal/diag/diag.go` defines a 15-check live diagnostic suite. It tests health, OpenAI model catalog, single model lookup, fast chat completion, thinking chat completion, streaming SSE, developer role plus JSON-format behavior, Google generateContent, Responses API, Anthropic Messages, function calling, image generation, token counting, Anthropic SSE lifecycle, and StreamFlight concurrency. The checks fail closed on malformed/empty responses and are designed to run against an already running gateway; several can involve upstream/provider calls.
 
-`bench.go` implements a concurrent benchmark against `/v1/chat/completions`. It uses worker goroutines, records latencies, calculates average/P50/P90/P99, tracks success/failure counts, estimates or reads token counts, and calculates requests/sec and tokens/sec. Tests use local `httptest` servers and do not require live upstream access.
+`bench.go` implements a bounded concurrent benchmark against `/v1/chat/completions`. It uses worker goroutines, validates usable bounded JSON responses, records latencies, calculates average/P50/P90/P99, tracks success/failure counts, and calculates requests/sec. Worker count and request count are capped at 128 and 10,000. Token throughput is reported only when every successful response includes positive provider-reported usage; it never invents a token count. Tests use local `httptest` servers and do not require live upstream access.
 
 `agent_test.go` contains broader integration-style tests for agentic multi-turn tool workflows, Codex Responses API shape, model retrieval, Claude Code Anthropic workflow, and image generation workflow. Several paths accept either successful local response or `502 Bad Gateway` because the unit test environment may not have live upstream connectivity.
 
 ## 16. Embedded Go Library
 
-`pkg/gateway/gateway.go` exposes the gateway as an importable package. Functional options mirror config fields: host, port, cookie file, default model, API keys, proxy, cookie pool, auth user, impersonation profile, log requests, retry settings, timeout, cookie pool dir, and version override. `NewEngine` applies options over defaults, creates `server.App`, and returns an `Engine`. `Handler` exposes the HTTP handler. `Generate`, `GenerateWithMedia`, `GenerateStream`, and `GenerateStreamWithMedia` call into the underlying Gemini client after resolving the model. `NewHandler` is a convenience constructor.
+`pkg/gateway/gateway.go` exposes the gateway as an importable package. Functional options mirror config fields: host, port, cookie file, default model, API keys, proxy, cookie pool, auth user, impersonation profile, log requests, retry settings, timeout, cookie pool dir, and version override. `NewEngine` applies options over defaults, creates `server.App`, and returns an `Engine`; callers should call `Close` during shutdown. `Handler` exposes the HTTP handler. `Generate`, `GenerateWithMedia`, `GenerateStream`, and `GenerateStreamWithMedia` call into the underlying Gemini client after strict model resolution. `NewHandler` is a convenience constructor whose returned handler also implements `gateway.CloseableHandler` for explicit cleanup.
 
 Tests validate that `NewHandler` returns a handler, that options affect endpoint behavior, that API-key enforcement works in embedded mode, that an engine can be constructed with expected config, and that direct generate methods exist even though upstream behavior depends on live connectivity.
 
@@ -411,7 +411,7 @@ Implemented public-readiness fixes:
 - OpenAI `image_url` content now preserves `http://` and `https://` remote image URLs as `format.Image.URL` values instead of silently ignoring them.
 - Multimodal upload now fetches supported remote image URLs through the guarded multimodal fetch path, detects MIME from fetched bytes, and returns explicit errors on fetch/upload failure.
 - Image-only OpenAI, Anthropic, and Google requests are no longer rejected as empty prompt requests when valid image attachments are present; a neutral default analysis prompt is supplied for upstream Gemini.
-- Image upload errors now return protocol-compatible `502` API errors instead of silently degrading the request to text-only behavior.
+- Image upload errors now return protocol-compatible `502` API errors instead of silently degrading the request to text-only behavior; the browser does not automatically replay a failed vision turn through OCR.
 - OpenAI Responses API multipart `input_image` / `image_url` inputs are now preserved, uploaded, and passed to Gemini through the same file-ref path as Chat Completions.
 - OpenAI image generation no longer fabricates a placeholder success URL when upstream Gemini text contains no extractable generated image URL; it now returns a `502` API error with upstream text in `details`.
 - Remote image fetch now rejects unsupported URL schemes, non-2xx HTTP responses, oversized responses, non-image response bodies, and spoofed `image/*` headers whose body is not image-detected before upload.

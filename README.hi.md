@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.1.7-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.1-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -27,6 +27,16 @@
 ---
 
 **BOB Gemini Free** (बॉब जेमिनी फ्री), [**ABCsteps.com**](https://abcsteps.com/) — जोधपुर, राजस्थान (भारत) में **दिव्यांशु सिंह चौहान** ([@div197](https://github.com/div197)) द्वारा स्थापित ऑनलाइन एआई इंजीनियरिंग स्कूल — की **BOB सीरीज़** (*Break Ordinary Boundaries*) का एक प्रमुख उत्पाद है।
+
+## वर्तमान स्थिति और प्रमाण सीमा
+
+वर्तमान सार्वजनिक macOS migration preview `v0.2.0-preview.1` है; stable
+`v0.2.0` अभी प्रकाशित नहीं है। यह दस्तावेज़ सुविधा-सूची है, production या
+unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
+Google session और live compatibility provider पर निर्भर हैं; tool calling और
+token counts के कुछ हिस्से emulated/estimated हैं। अंग्रेज़ी
+[`VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md) में हर
+दावे का source/test/device boundary दिया गया है।
 
 ---
 
@@ -109,7 +119,9 @@ ABCsteps की **BOB सीरीज़** का उद्देश्य ड�
 * **Google वेब सेशन पर निर्भर रूटिंग**: मॉडल, कोटा, context, reasoning और image access वर्तमान Google session पर निर्भर हैं; कोई fixed free/unlimited guarantee नहीं है।
 * **Multi-Protocol Adapter**: OpenAI, Anthropic, Google और Go interfaces implement और fixture-tested हैं; हर client feature के लिए native/drop-in guarantee नहीं है।
 * **1-क्लिक नेटिव लॉगिन (`--login`)**: बिना DevTools या चाबी (Keychain) पॉपअप के एक क्लिक में गूगल अकाउंट जोड़ें।
-* **मल्टी-अकाउंट कुकी पूल (`cookie_pool`)**: कई गूगल खातों में लोड-बैलेंसिंग और 429 एरर पर ऑटोमैटिक फ़ेलओवर।
+* **मल्टी-अकाउंट कुकी पूल (`cookie_pool`)**: स्पष्ट रूप से दिए गए Google web
+  sessions के बीच स्थानीय चयन और failure cooldown; यह quota बढ़ाने, 429 को
+  bypass करने या साझा cookie बाँटने का तरीका नहीं है।
 * **Authenticated Pro/Image path**: सही session और upstream support होने पर Pro/Image aliases उपलब्ध हो सकते हैं; gateway इसे guarantee नहीं करता।
 * **Anthropic-shaped thinking**: Claude Code-shaped requests के लिए reasoning blocks मिलते हैं; यह native Claude inference नहीं है।
 * **मल्टीमॉडल विज़न (Vision)**: OpenAI फॉर्मेट में Base64 इमेज या इमेज लिंक्स भेजें — ऑटोमैटिक कम्प्रेशन के साथ।
@@ -147,7 +159,7 @@ BOB Gemini Free कई AI coding tools के लिए adapter endpoints दे
 
 ---
 
-### ऑटोमैटिक 13-पॉइंट टेस्ट किट (Diagnostic Test Kit)
+### ऑटोमैटिक 15-पॉइंट टेस्ट किट (Diagnostic Test Kit)
 
 सभी 13 मॉडल्स, स्ट्रीमिंग, टोकन काउंटिंग, और API फ़ॉर्मेट्स की लाइव जाँच के लिए:
 
@@ -243,8 +255,8 @@ Public `v0.2.0-preview.1` migration bridge में project update key embedded
 * 🧭 **कोई server database या memory service नहीं**: gateway stateless request handling, explicit session pool और safe aggregate counters तक सीमित है; studio SQLite या server-side database provision नहीं करता।
 * ⚡ **नेटिव क्लाइंट-साइड इंटरैक्टिव आर्टिफ़ैक्ट्स इंजन (Claude-Style Live Canvas)**: HTML5 वेब ऍप्लिकेशन्स, CSS3 एनिमेशन्स, Canvas 2D/WebGL गेम्स, SVG वेक्टर ग्राफिक्स और Mermaid डायग्राम्स को 1-क्लिक **`Launch ⚡`** चिप से सीधे सैंडबॉक्स्ड स्टूडियो मोडल (`[ ▶ Preview | ⟨/⟩ Code ]`) में चलाएँ।
 * 🪄 **Prompt assistant (`🪄`)**: local gateway उपलब्ध होने पर prompt सुधारने का
-  प्रयास करता है; unavailable होने पर स्पष्ट रूप से heuristic local template
-  देता है। यह provider response या latency guarantee नहीं है।
+  प्रयास करता है; unavailable होने पर स्पष्ट error देता है और मूल prompt को
+  जस का तस रखता है। यह नकली provider response या latency guarantee नहीं है।
 * 🔍 **नॉन-ब्रेकिंग रीडिंग टेक्स्ट ज़ूम कंट्रोलर (`🔍 100%`)**: सब-बार चिप, `⌘+`/`⌘-`/`⌘0` और कमांड पैलेट द्वारा पूरे लेआउट को बिना तोड़े पढ़ने के फॉन्ट साइज़ को बढ़ाएँ/घटाएँ।
 * 🏛️ **यूनिफ़ाइड सेक्रेड ज्योमेट्री स्टूडियो इनपुट कैप्सूल**: मोबाइल व डेस्कटॉप दोनों पर टेक्स्टएरिया, विज़न अटैचमेंट्स, टूल्स (`📎`, `अ`, `🎙️`, `🪄`) और स्वर्णिम `SEND ➤` बटन को समाहित करने वाला एकल कैप्सूल।
 * 🎙️ **नेचुरल HD स्पीच स्टूडियो व फ्लोटिंग ऑडियो बार**: NotebookLM-श्रेणी का न्यूरल वॉइस सिंथेसाइज़र (Play/Pause, `0.8x`–`1.5x` स्पीड, और 4-बार लाइव इक्वलाइज़र)।

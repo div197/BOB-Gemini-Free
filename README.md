@@ -303,24 +303,11 @@ Verify every endpoint, streaming chunk, reasoning model, and API format with the
 ./test-kit.sh
 ```
 
-```text
-[1/13]  [✔ PASS] Gateway Engine Health (GET /) (5ms)
-[2/13]  [✔ PASS] OpenAI Models Registry (GET /v1/models) (0s)
-[3/13]  [✔ PASS] Single Model Lookup (GET /v1/models/gemini-3.7-flash) (0s)
-[4/13]  [✔ PASS] Gemini 3.7 Flash Fast Completion (3.0s)
-[5/13]  [✔ PASS] Gemini 3.7 Flash Deep Reasoning (8.3s)
-[6/13]  [✔ PASS] Real-time SSE Delta Stream & Usage (1.5s)
-[7/13]  [✔ PASS] Developer Role & JSON Output Enforcement (3.9s)
-[8/13]  [✔ PASS] Google-shaped Gemini Adapter Format (3.5s)
-[9/13]  [✔ PASS] OpenAI Codex CLI Responses API Format (3.5s)
-[10/13] [✔ PASS] Anthropic Messages API Protocol (POST /v1/messages) (3.2s)
-[11/13] [✔ PASS] OpenAI Function Calling & Tool Invocation (4.1s)
-[12/13] [✔ PASS] Image Generation & Gemini Nano Banana Pipeline (3.8s)
-[13/13] [✔ PASS] Token Counting Engine (Google :countTokens & OpenAI /v1/tokens/count) (1ms)
-==================================================================
-    ALL 13 LOCAL DIAGNOSTIC CHECKS PASSED (example run)
-==================================================================
-```
+The runner reports every result and exits non-zero when any check fails. A
+failure is meaningful: strict JSON output is only instruction-level on the
+reverse-engineered web route, and image generation depends on provider/session
+capability. Do not replace a failed result with a “guest mode” success message
+or treat an example 15/15 run as a universal guarantee.
 
 ### Live Status & Telemetry CLI (`--status`)
 
@@ -385,9 +372,9 @@ Access the built-in visual studio directly in your web browser:
 * 🧭 **No server database or memory service**: The gateway is stateless between requests apart from its explicit session pool and safe aggregate counters; the studio does not provision SQLite or a server-side database.
 * ⚡ **Native Interactive Artifacts Canvas Studio (Claude-Class Live Sandbox)**: Automatically detects and compiles standalone HTML5 applications, CSS3 animations, Canvas 2D/WebGL simulations, SVG vector graphics, and Mermaid diagrams with 1-click **`Launch ⚡`** chips, a sandboxed `iframe` studio modal (`[ ▶ Preview | ⟨/⟩ Code ]`), sandbox reload (`⟳`), source copy, and standalone window pop-out (`⛶`).
 * 🪄 **Prompt assistant (`🪄`)**: Attempts prompt improvement through the local
-  gateway; when that request is unavailable it returns a clearly local,
-  heuristic template. The template is not a provider response or a guarantee
-  of AI inference.
+  gateway. If the gateway or provider is unavailable, it reports the failure
+  and leaves the original prompt unchanged; it does not invent a local
+  provider-like response.
 * 🔍 **Non-Breaking Reading Text Zoom Controller (`🔍 100%`)**: Targeted typography scaling (`calc(0.92rem * var(--reading-zoom))`) via sub-bar pill, `⌘+`/`⌘-`/`⌘0`, and Command Palette without breaking outer geometry, headers, or navigation.
 * 🏛️ **Unified Sacred Geometry Studio Input Capsule**: Single cohesive dark-glass input capsule seamlessly housing auto-expanding textarea, vision attachments, power tools (`📎`, `अ Indic`, `🎙️ Voice`, `🪄 AI Wand`), and the golden `SEND ➤` CTA across mobile and desktop.
 * 🎙️ **Natural HD Speech Studio & Floating Audio Controller Bar**: NotebookLM-class neural voice synthesis with Play/Pause (`⏸️`/`▶️`), speed cycling (`0.8x`–`1.5x`), 4-bar sound equalizer (`ılılı`), and sentence progress tracking.
@@ -610,6 +597,11 @@ func main() {
 		gateway.WithDefaultModel("gemini-3.7-flash"),
 		gateway.WithCookieFile("cookie.txt"), // optional
 	)
+	defer func() {
+		if closeable, ok := handler.(gateway.CloseableHandler); ok {
+			_ = closeable.Close()
+		}
+	}()
 
 	http.ListenAndServe("127.0.0.1:9610", handler)
 }

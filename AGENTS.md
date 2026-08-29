@@ -30,7 +30,7 @@ It translates three major protocol standards into Google's internal web RPC prot
 └── internal/
     ├── browser/                # 1-click native interactive login window (CDP WebSocket)
     ├── config/                 # Configuration loader & cookie auto-discovery
-    ├── diag/                   # 13-point diagnostic test kit, bench runner & e2e tests
+    ├── diag/                   # 15-point diagnostic test kit, bench runner & e2e tests
     ├── format/                 # Protocol translation (OpenAI, Anthropic, Google, Images, Citations, Tokens)
     ├── gemini/                 # Upstream client, auth, cookie pool load-balancer, parser
     ├── models/                 # Model registry & alias catalog (Imagen 3, Nano Banana 2/Pro)

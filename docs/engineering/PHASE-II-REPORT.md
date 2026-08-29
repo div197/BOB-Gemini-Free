@@ -108,7 +108,8 @@ requires a guardable HTTP client whose direct transport re-resolves the host
 immediately before dialing and connects only to an approved literal public IP;
 configured proxies are not used for remote-image fetches. Live egress policy
 and network topology remain separate acceptance gates. Query-string API keys
-remain a compatibility risk and should not be used for sensitive deployments.
+are disabled by default and remain only as an explicit legacy compatibility
+option; header credentials should be used for sensitive deployments.
 
 ### Mission 3 — Supply-chain updater hardening
 
@@ -379,10 +380,10 @@ risks as complete. The local implementation continuation added:
   images, invalid tool-use fields, and missing tool-result correlation data now
   fail closed; mixed text/tool-result blocks retain their order before shared
   prompt translation.
-- the direct Gemini Developer API SSE parser now rejects an empty or
-  `[DONE]`-only stream instead of allowing the server to fabricate a normal
-  stop, and rejects empty semantic events; standard comments and multi-line
-  data fixtures remain supported.
+- the direct Gemini Developer API SSE parser now rejects an empty,
+  `[DONE]`-only, or metadata-only stream instead of allowing the server to
+  fabricate a normal stop, and rejects empty semantic events; standard
+  comments and multi-line data fixtures remain supported.
 - native updater recovery now repairs validated interrupted transactions at
   the next startup: healthy candidates are finalized, unconfirmed candidates
   are rolled back, and ambiguous states fail visibly; isolated fixtures cover
@@ -401,11 +402,64 @@ risks as complete. The local implementation continuation added:
   Developer API, and native Google-shaped streams; native Google SSE now emits
   a top-level error rather than assistant-authored Markdown, while OpenAI-style
   streams retain their `[DONE]` terminal sentinel.
+- empty web-RPC generation streams and empty Google-shaped non-stream responses
+  now fail explicitly instead of fabricating an assistant apology or normal
+  stop; Responses and Anthropic stream errors use the same credential-safe
+  summaries.
+- page-token refresh is context-cancelable, redirect-resistant, bounded to an
+  8 MiB response and 4 KiB token values, and preserves the last known-good
+  token set after a failed refresh; focused tests cover valid refresh,
+  oversized response, and redirect behavior.
+- credential-safe image/update-check error envelopes and retry logs; signed
+  image URLs, Web RPC tokens, generated diagnostic output, and update-server
+  transport details are no longer echoed to API clients or optional retry logs.
 - bounded artifact rendering: source is capped at 2 million characters before syntax
   highlighting or iframe construction, render-scoped IDs prevent repeated
   streaming renders from accumulating duplicate registry entries, and the
   in-memory registry is capped at 128 entries/8 million characters with interactive execution
   disabled when capacity cannot be established.
+- Mermaid and Pyodide artifact dependency failures now report visibly to the
+  host preview, and a failed deep-refiner request leaves the user's original
+  prompt unchanged instead of silently applying a different local transformation.
+- A provider vision-upload failure no longer launches an automatic OCR-only
+  replay. OCR remains available as an explicit user action, preserving the
+  requested multimodal semantics and avoiding an unannounced second quota
+  request.
+- successful non-JSON Developer API bodies are rejected before raw passthrough,
+  public error truncation is UTF-8 safe, and metadata-only provider streams
+  cannot be reported as normal completions;
+- generated artifact pop-outs retain a sandboxed nested iframe, report blocked
+  browser popups, and defer object-URL revocation long enough for the browser to
+  consume the download;
+- the three-stage refiner now bounds the user prompt and every intermediate or
+  final stage, checks cancellation between calls, and fails closed on empty
+  stages; the UI now labels the actual three-stage pipeline rather than the old
+  four-stage description;
+- the model catalog is read through lock-protected snapshots in deterministic
+  order, while embedded and experimental mobile generation rejects invalid
+  explicit models instead of silently substituting a zero-valued route;
+- embedded engine lifecycle is explicit: guest-only handlers do not start an
+  idle cookie-reload worker, `Engine.Close` is idempotent, and `NewHandler`
+  returns a closeable handler for configured session state; partial health,
+  metrics, image-upload, and refinement construction paths fail with explicit
+  responses instead of panics.
+- documented TLS fingerprint names now resolve to their matching profiles;
+  unknown names no longer silently turn into a random Safari profile. This is
+  a correctness/error-reporting control only, not a method for avoiding Google
+  rate limits, WAF decisions, or shared-egress detection.
+- unenforced synthetic rate-limit headers were removed; malformed discovered
+  configuration now stops with a visible error instead of silently reverting to
+  defaults; status, CDP, and updater transaction metadata reads are bounded;
+  and updater plan paths are constrained to updater-owned names.
+- browser fallback and Wails bootstrap failures now return or display an error
+  instead of logging a successful open when no browser or gateway is available;
+- the 15-check diagnostic runner now fails closed on malformed/empty response
+  objects, incomplete Anthropic lifecycles, oversized streams, and unavailable
+  provider-dependent image generation rather than reporting a transport-only
+  success. On the current no-cookie audit gateway, a real run passed 13 checks
+  and failed strict web-route JSON output plus image generation (HTTP 502); this
+  is evidence of the capability boundary, not a reason to weaken the check.
+  nil embedded Developer API clients fail closed.
 
 The focused server, Gemini, multimodal, updater, and desktop tests passed
 after these changes, as did inline JavaScript syntax validation. The rebuilt
@@ -424,3 +478,39 @@ web-session route remains intact, the optional provider route is explicit and
 quota-accountable, and local behavior is protected by deterministic tests.
 Student-facing release readiness still requires an authorized live provider
 sample, clean-device acceptance, and the separate signed desktop release gates.
+
+## Latest local hardening addendum — 2026-08-29
+
+This addendum supersedes the host/toolchain and Git-state wording of the dated
+historical snapshot above for the current working tree. The current audit host
+is macOS `darwin/arm64`, Go `go1.26.6`, with `CGO_ENABLED=1`. The reviewed
+branch is `codex/release-readiness-v0.2.0`; its relationship to `main` and the
+public release is recorded separately from source tests and must not be
+inferred from the branch name.
+
+The latest local slice added and tested:
+
+- bounded status, desktop health-probe, CDP version, updater-plan, and
+  updater-confirmation reads;
+- strict updater-owned staging/plan/rollback/confirmation/helper path names;
+- visible Wails gateway/configuration startup errors and truthful system-browser
+  fallback errors;
+- fail-closed nil `geminiapi.Client` behavior;
+- removal of unenforced synthetic request-rate headers; and
+- semantic validation for native Google-shaped JSON/SSE generation so
+  metadata-only or finish-only provider responses cannot appear successful;
+- removal of the benchmark's invented token-count fallback, with token
+  throughput reported only when successful responses provide usage; and
+- the generated `web/index.html` synchronization after the UI changes.
+
+The following local commands passed after this slice: `make build`,
+`make desktop-key-check`, `make web`, `go test -count=1 ./...`,
+`go test -race -count=1 ./...`, `go vet ./...`, `go build ./...`,
+`go mod verify`, and `git diff --check`. Six CGO-disabled CLI targets also
+cross-compiled into an isolated temporary directory for Darwin arm64/amd64,
+Linux arm64/amd64, and Windows arm64/amd64; their Mach-O, ELF, and PE file
+types were inspected. Inline JavaScript parsing passed for the source bundle,
+generated web bundle, and Wails module. Release-directory publication,
+platform-native packaging, and real installed-bundle checks remain separate
+gates. No GitHub Actions were added or run, and no provider/API/release
+private key was used.

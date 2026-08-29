@@ -48,7 +48,7 @@ identify the trust gap.
 | API keys are optional | Source-verified | No-key installs have no credential check for API routes |
 | Public Web Studio needs cross-origin access | Intentional product requirement | A blanket CORS disable would break the hosted Studio use case |
 | Remote image fetch reaches attacker-controlled/private targets | Mitigated by application checks | `FetchImageBytes` now rejects private/local IP and DNS results, nonstandard ports, and cross-host redirects; residual DNS/proxy topology risk remains |
-| Query-string API key leaks through logs/history/referrers | Source-verified | Existing compatibility path makes accidental disclosure possible |
+| Query-string API key leaks through logs/history/referrers | Mitigated by default | Legacy query-key compatibility is disabled unless the operator explicitly enables `allow_query_api_key`; header credentials remain the supported path |
 
 ## Design options
 

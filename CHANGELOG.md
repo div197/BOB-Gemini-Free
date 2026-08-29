@@ -10,6 +10,31 @@ matrix. Older entries describe historical implementation snapshots; they do
 not override current evidence, upstream-dependent limits, or the explicit
 preview/release boundaries below.
 
+### Historical claim corrections
+
+Several older entries use release-note language that was aspirational or tied
+to an earlier implementation. The current contract supersedes those phrases:
+
+- “Auto-healing” OCR is not an automatic replay path. A failed vision upload is
+  reported; any OCR-only retry must be an explicit user action.
+- “Unlimited subscribers,” “permanently eliminates connection drops,”
+  “automatic guest fallback,” and “full drop-in/frontier support” are not
+  product guarantees. Buffers, retries, aliases, and adapters are bounded and
+  provider/session dependent.
+- Model names in the catalog are routing aliases unless a live provider check
+  proves identity and availability. Historical “zero breaking changes” and
+  “100%” wording is not a compatibility certification.
+- Historical fixed RPM/RPD, RAM, latency, free-tier, and classroom-capacity
+  numbers are not current measurements. See the verification matrix and dated
+  benchmark reports for the evidence boundary.
+- The live diagnostic runner now treats invalid JSON, empty or `[DONE]`-only
+  streams, incomplete response objects, and unavailable provider-dependent
+  image generation as failures. Earlier example output that accepted these
+  conditions is historical and not a current diagnostic guarantee.
+- The historical “100% pass rate” diagnostic wording is not a release claim;
+  the current runner can correctly report a partial live result when a provider
+  ignores instruction-only JSON formatting or image generation is unavailable.
+
 ---
 
 ## [Unreleased] — 2026-08-29
@@ -47,6 +72,9 @@ preview/release boundaries below.
   dependent and must not be described as unlimited.
 - Clarified the roadmap's educational vision so “local-first” and “free” do not
   imply a provider-free or unlimited-access guarantee.
+- Hardened the 15-point diagnostic runner so a green result requires observed
+  usable protocol output rather than only an HTTP 200, a terminal sentinel, or
+  a guest-mode explanation for unavailable image generation.
 
 This work is local preview engineering. It has not published a release, used a
 live provider key, or enabled GitHub Actions.
@@ -71,6 +99,11 @@ live provider key, or enabled GitHub Actions.
 - Native and browser streaming paths now preserve provider errors as structured
   errors instead of fabricating assistant text, and generation retries do not
   replay requests after an ambiguous or partially delivered upstream failure.
+- Removed unenforced synthetic rate-limit headers, made malformed discovered
+  configuration fail closed with a visible startup error, and bounded status,
+  CDP, updater-plan, and updater-confirmation metadata reads.
+- Browser fallback, Wails startup, nil embedded clients, and updater plan paths
+  now report errors explicitly instead of logging or accepting false success.
 
 These changes are local and tested on the development host; clean-device,
 published-asset, live-provider, and signed/notarized platform acceptance remain

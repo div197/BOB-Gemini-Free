@@ -11,7 +11,9 @@ Unlike server-side proxy architectures that incur cloud bandwidth bills, API req
 * 🚀 **Static Hosting**: The frontend is static HTML, CSS, and JavaScript and can be hosted on **Cloudflare Pages**, **GitHub Pages**, **Vercel**, **Netlify**, or AWS S3. Hosting scale does not establish unlimited gateway or Google capacity.
 * 🔒 **Local Gateway Privacy Boundary**: When configured to use a local gateway, prompts and attachments go from the browser to that gateway; the Go gateway sends no automatic telemetry. CDN assets and browser input tools remain separate network dependencies.
 * ⚡ **Origin-Gated Private Network Access**: A hosted HTTPS application must be explicitly listed in the gateway's `allowed_origins` configuration. PNA is a browser permission mechanism, not authentication; configure API keys for application-level access.
-* 📱 **PWA & Offline Ready**: Installable as a standalone native-feeling desktop app on macOS Dock, Windows Taskbar, iOS Home Screen, or Android.
+* 📱 **PWA shell**: Installable as a standalone native-feeling app on supported
+  browsers; offline caching covers the local shell only. Provider access and
+  CDN-backed document/artifact libraries still require network availability.
 
 ---
 

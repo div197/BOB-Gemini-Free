@@ -204,7 +204,7 @@ can install that bridge first, then use its stable-first updater after stable
 
 ## 🧪 Testing & Diagnostics
 
-Run the built-in 13-point automated diagnostic suite:
+Run the built-in 15-point automated diagnostic suite:
 
 ```bash
 ./bob-gemini-free --test --test-url http://127.0.0.1:9610
