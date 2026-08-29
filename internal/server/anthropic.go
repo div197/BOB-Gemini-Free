@@ -69,7 +69,17 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	chatReq := format.AnthropicToOpenAIChatRequest(req)
+	chatReq, err := format.AnthropicToOpenAIChatRequest(req)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{
+			"type": "error",
+			"error": map[string]any{
+				"type":    "invalid_request_error",
+				"message": err.Error(),
+			},
+		})
+		return
+	}
 	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
 	if err != nil {
 		writeJSON(w, http.StatusBadRequest, map[string]any{

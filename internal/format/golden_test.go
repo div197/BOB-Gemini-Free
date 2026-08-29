@@ -229,9 +229,13 @@ func TestGoldenAdaptersPreserveEquivalentSemanticFixture(t *testing.T) {
 	if err != nil {
 		t.Fatalf("OpenAI adapter: %v", err)
 	}
-	anthropicPrompt, err := MessagesToPrompt(AnthropicToOpenAIChatRequest(models.AnthropicMessagesRequest{
+	anthropicRequest, err := AnthropicToOpenAIChatRequest(models.AnthropicMessagesRequest{
 		Messages: []models.AnthropicMessage{{Role: "user", Content: semantic}},
-	}))
+	})
+	if err != nil {
+		t.Fatalf("Anthropic adapter conversion: %v", err)
+	}
+	anthropicPrompt, err := MessagesToPrompt(anthropicRequest)
 	if err != nil {
 		t.Fatalf("Anthropic adapter: %v", err)
 	}

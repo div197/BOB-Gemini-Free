@@ -375,6 +375,10 @@ risks as complete. The local implementation continuation added:
   blocks now return client-visible validation errors, malformed function calls
   and results fail closed, and `call_id`, `name`, and `tool_calls` survive the
   server conversion into the shared OpenAI message model.
+- strict Anthropic input normalization: unsupported content blocks, malformed
+  images, invalid tool-use fields, and missing tool-result correlation data now
+  fail closed; mixed text/tool-result blocks retain their order before shared
+  prompt translation.
 - a shared 32 MiB request-body reader at every JSON handler seam, so direct
   handler or embedding calls retain the same memory bound as normal HTTP
   middleware.

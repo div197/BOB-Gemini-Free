@@ -100,7 +100,7 @@ use; do not paste replacement secrets into chat.
 | 56 | Gateway API-key auth and Google provider-key routing are confused by the UI or header names. | PARTIAL | Keep separate labels, headers, docs, and tests; add a negative matrix for each credential type on each endpoint. |
 | 57 | Model catalog entries imply the upstream model identity or availability is guaranteed. | PARTIAL | Call entries aliases/routing targets and defer current availability to Google; add live model verification only when available. |
 | 58 | A BOB alias is advertised as an OpenAI/Anthropic model rather than a Google route. | PARTIAL | Keep adapter docs explicit that aliases are local mappings and not provider identity assertions. |
-| 59 | Typed/multipart content is silently dropped or flattened incorrectly by an adapter. | PARTIAL | Add per-adapter content-shape fixtures for text, images, tool results, and unsupported blocks before enabling more routes. |
+| 59 | Typed/multipart content is silently dropped or flattened incorrectly by an adapter. | PARTIAL | Anthropic typed messages now fail closed on unsupported blocks, wrong field types, invalid base64, and malformed tool results; OpenAI/Google content fixtures and upstream/provider semantics remain separate evidence gates. |
 | 60 | A data URL exceeds decoding, image-dimension, or request limits and causes memory or upstream failure. | PROTECTED | Gateway and direct-API paths bound base64, decoded bytes, dimensions, and pixels; keep client-side size checks aligned. |
 
 ## 4. Streaming, retry, and protocol state
@@ -133,7 +133,7 @@ use; do not paste replacement secrets into chat.
 | # | Failure path | Status | Proactive step now |
 |---:|---|---|---|
 | 81 | OpenAI Responses items unsupported by the translator disappear without a client-visible error. | PROTECTED | `ResponsesInputToMessages` rejects unsupported item/content types, wrong field types, missing tool IDs/arguments/results, and invalid JSON arguments; focused fixtures cover supported tool continuations and malformed items. The selected Responses surface remains partial overall. |
-| 82 | Anthropic content blocks or SSE lifecycle events are dropped/reordered. | PARTIAL | Keep deterministic ordering fixtures and classify unsupported blocks instead of silently claiming full compatibility. |
+| 82 | Anthropic content blocks or SSE lifecycle events are dropped/reordered. | PARTIAL | Anthropic input conversion now rejects unsupported/malformed blocks and preserves tool-result order; focused fixtures cover image, tool-use, tool-result, and error cases. Complete Anthropic SSE lifecycle parity remains unproven. |
 | 83 | Thinking fences split at arbitrary boundaries or remain unterminated. | PROTECTED | Golden formatter/parser tests cover fragmented open/close fences, missing closes, and following content. |
 | 84 | `RandHex` receives an invalid/oversized request and panics or allocates excessively. | PROTECTED | `internal/format/openai.go` clamps invalid lengths to a bounded result and `openai_test.go` covers negative, zero, oversized, and normal lengths. |
 | 85 | Estimated token counts are interpreted as authoritative billing/context counts. | PARTIAL | Label all estimates, expose the method/limits, and compare against provider counting only in explicit live experiments. |
