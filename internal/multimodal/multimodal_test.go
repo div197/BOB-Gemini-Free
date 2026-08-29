@@ -2,6 +2,7 @@ package multimodal
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"image"
 	"image/color"
@@ -10,12 +11,26 @@ import (
 	"net"
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/gemini"
 )
+
+type contextCheckingRequester struct{}
+
+func (contextCheckingRequester) Do(req *http.Request) (*http.Response, error) {
+	if err := req.Context().Err(); err != nil {
+		return nil, err
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Content-Type": []string{"image/png"}},
+		Body:       io.NopCloser(bytes.NewReader(createTestImage(2, 2))),
+	}, nil
+}
 
 func createTestImage(width, height int) []byte {
 	img := image.NewRGBA(image.Rect(0, 0, width, height))
@@ -98,6 +113,15 @@ func TestCompressIfNeededBase64(t *testing.T) {
 	}
 }
 
+func TestImageInputBounds(t *testing.T) {
+	if _, _, err := CompressImageBytesIfNeeded([]byte("not-an-image"), "image/png", MaxImageByteSize); err == nil {
+		t.Fatal("invalid image bytes were accepted")
+	}
+	if _, _, err := CompressImageBytesIfNeeded(make([]byte, MaxImageInputBytes+1), "image/png", MaxImageByteSize); err == nil {
+		t.Fatal("oversized image input was accepted")
+	}
+}
+
 func TestFetchImageBytes(t *testing.T) {
 	_, err := FetchImageBytes(nil, "file:///etc/passwd")
 	if err == nil {
@@ -116,6 +140,33 @@ func TestFetchImageBytes(t *testing.T) {
 		t.Fatalf("Expected non-empty image bytes")
 	}
 }
+
+func TestFetchImageBytesRejectsNilClientAndResponse(t *testing.T) {
+	_, err := fetchImageBytes(nil, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "HTTP client") {
+		t.Fatalf("nil client error = %v", err)
+	}
+
+	_, err = fetchImageBytes(emptyResponseRequester{}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "empty response") {
+		t.Fatalf("nil response error = %v", err)
+	}
+}
+
+func TestFetchImageBytesRejectsUnguardedRequester(t *testing.T) {
+	_, err := FetchImageBytes(imageFixtureRequester{body: createTestImage(2, 2)}, "https://images.example.test/image.png")
+	if err == nil || !strings.Contains(err.Error(), "guardable HTTP client") {
+		t.Fatalf("unguarded requester error = %v", err)
+	}
+}
+
+type emptyResponseRequester struct{}
+
+func (emptyResponseRequester) Do(*http.Request) (*http.Response, error) { return nil, nil }
 
 type imageFixtureRequester struct {
 	body []byte
@@ -141,6 +192,17 @@ func TestFetchImageBytesRejectsHTTPError(t *testing.T) {
 	}
 }
 
+func TestFetchImageBytesContextHonorsCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	_, err := fetchImageBytesContext(ctx, contextCheckingRequester{}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "context canceled") {
+		t.Fatalf("fetch error = %v, want context cancellation", err)
+	}
+}
+
 func TestFetchImageBytesRejectsPrivateAndLocalHosts(t *testing.T) {
 	for _, imageURL := range []string{
 		"http://127.0.0.1/image.png",
@@ -159,6 +221,29 @@ func TestFetchImageBytesRejectsPrivateDNSResolution(t *testing.T) {
 	})
 	if err == nil {
 		t.Fatal("private DNS result was accepted")
+	}
+}
+
+func TestFetchImageBytesRevalidatesDNSBeforeDial(t *testing.T) {
+	calls := 0
+	client := &http.Client{Transport: &http.Transport{
+		DialContext: func(context.Context, string, string) (net.Conn, error) {
+			t.Fatal("guarded image dial should reject the private second DNS answer before opening a socket")
+			return nil, nil
+		},
+	}}
+	_, err := fetchImageBytes(client, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		calls++
+		if calls == 1 {
+			return []net.IP{net.ParseIP("203.0.113.10")}, nil
+		}
+		return []net.IP{net.ParseIP("10.0.0.7")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "private or local") {
+		t.Fatalf("DNS rebinding result = %v, want private-address rejection", err)
+	}
+	if calls != 2 {
+		t.Fatalf("resolver calls = %d, want validation plus final dial lookup", calls)
 	}
 }
 

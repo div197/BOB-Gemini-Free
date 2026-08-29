@@ -1,0 +1,20 @@
+{
+  "name": "BOB Gemini Free — Local Gateway Studio",
+  "short_name": "BOB Gemini Free",
+  "description": "The local-first BOB Gemini Free gateway studio. Provider and session limits still apply.",
+  "id": "/playground",
+  "start_url": "/playground",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#030712",
+  "theme_color": "#f97316",
+  "categories": ["developer", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64 32x32 24x24 16x16",
+      "type": "image/x-icon"
+    }
+  ]
+}

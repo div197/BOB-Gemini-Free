@@ -1,6 +1,7 @@
 package updater
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -49,11 +50,11 @@ type DesktopCheckResult struct {
 }
 
 // CheckLatestDesktop checks whether the official release contains a native
-// package for this platform. It performs no automatic network request from
-// application startup; callers should invoke it only from an explicit user
-// action such as “Check for updates”.
+// package for this platform. It never downloads, stages, or installs anything.
+// Callers choose whether the check is explicit or part of a low-frequency
+// background check.
 func CheckLatestDesktop(currentVersion string) (*DesktopCheckResult, error) {
-	return CheckLatestDesktopForChannel(currentVersion, DesktopChannelStable)
+	return CheckLatestDesktopForChannelContext(context.Background(), currentVersion, DesktopChannelStable)
 }
 
 // CheckLatestDesktopForChannel checks only fixed official release channels
@@ -64,15 +65,25 @@ func CheckLatestDesktop(currentVersion string) (*DesktopCheckResult, error) {
 // highest semver tag whose prerelease identifier is preview.N. The channel is a
 // build property, never a runtime URL or user-controlled setting.
 func CheckLatestDesktopForChannel(currentVersion, channel string) (*DesktopCheckResult, error) {
-	client := &http.Client{Timeout: 8 * time.Second}
+	return CheckLatestDesktopForChannelContext(context.Background(), currentVersion, channel)
+}
+
+// CheckLatestDesktopForChannelContext is the cancelable form used by the
+// native desktop background checker. Cancellation stops an in-flight metadata
+// request without changing the signed-manifest installation boundary.
+func CheckLatestDesktopForChannelContext(ctx context.Context, currentVersion, channel string) (*DesktopCheckResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	client := newUpdateHTTPClient(8 * time.Second)
 	if channel != DesktopChannelStable && channel != DesktopChannelPreview {
 		return nil, fmt.Errorf("unsupported desktop update channel: %s", channel)
 	}
 	if channel == DesktopChannelPreview {
-		return checkLatestDesktopPreviewWithStableMigration(client, DesktopReleaseAPIURL, DesktopPreviewReleaseAPIURL, currentVersion, runtime.GOOS, runtime.GOARCH)
+		return checkLatestDesktopPreviewWithStableMigrationContext(ctx, client, DesktopReleaseAPIURL, DesktopPreviewReleaseAPIURL, currentVersion, runtime.GOOS, runtime.GOARCH)
 	}
 	apiURL := DesktopReleaseAPIURL
-	return checkLatestDesktopChannel(client, apiURL, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
+	return checkLatestDesktopChannelContext(ctx, client, apiURL, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
 }
 
 // checkLatestDesktopPreviewWithStableMigration keeps the two channels
@@ -81,14 +92,18 @@ func CheckLatestDesktopForChannel(currentVersion, channel string) (*DesktopCheck
 // preview result because doing so would make the update UI report an
 // incomplete view of the official release channels.
 func checkLatestDesktopPreviewWithStableMigration(client *http.Client, stableURL, previewURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
-	stable, err := checkLatestDesktopChannel(client, stableURL, currentVersion, DesktopChannelStable, targetOS, targetArch)
+	return checkLatestDesktopPreviewWithStableMigrationContext(context.Background(), client, stableURL, previewURL, currentVersion, targetOS, targetArch)
+}
+
+func checkLatestDesktopPreviewWithStableMigrationContext(ctx context.Context, client *http.Client, stableURL, previewURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	stable, err := checkLatestDesktopChannelContext(ctx, client, stableURL, currentVersion, DesktopChannelStable, targetOS, targetArch)
 	if err != nil {
 		return nil, fmt.Errorf("stable desktop update check failed: %w", err)
 	}
 	if stable.HasUpdate {
 		return stable, nil
 	}
-	return checkLatestDesktopChannel(client, previewURL, currentVersion, DesktopChannelPreview, targetOS, targetArch)
+	return checkLatestDesktopChannelContext(ctx, client, previewURL, currentVersion, DesktopChannelPreview, targetOS, targetArch)
 }
 
 func checkLatestDesktop(client *http.Client, apiURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
@@ -96,13 +111,21 @@ func checkLatestDesktop(client *http.Client, apiURL, currentVersion, targetOS, t
 }
 
 func checkLatestDesktopChannel(client *http.Client, apiURL, currentVersion, channel, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	return checkLatestDesktopChannelContext(context.Background(), client, apiURL, currentVersion, channel, targetOS, targetArch)
+}
+
+func checkLatestDesktopChannelContext(ctx context.Context, client *http.Client, apiURL, currentVersion, channel, targetOS, targetArch string) (*DesktopCheckResult, error) {
 	if client == nil {
 		return nil, fmt.Errorf("desktop update check requires an HTTP client")
+	}
+	client = withUpdateRedirectPolicy(client)
+	if ctx == nil {
+		ctx = context.Background()
 	}
 	if channel != DesktopChannelStable && channel != DesktopChannelPreview {
 		return nil, fmt.Errorf("unsupported desktop update channel: %s", channel)
 	}
-	req, err := http.NewRequest(http.MethodGet, apiURL, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, apiURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create desktop update request: %w", err)
 	}
@@ -112,12 +135,19 @@ func checkLatestDesktopChannel(client *http.Client, apiURL, currentVersion, chan
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach desktop update server: %w", err)
 	}
-	defer resp.Body.Close()
+	if resp == nil {
+		return nil, fmt.Errorf("desktop update server returned an empty response")
+	}
 	if resp.StatusCode != http.StatusOK {
+		closeUpdateResponse(resp)
 		return nil, fmt.Errorf("desktop update server returned HTTP %d", resp.StatusCode)
 	}
 
-	release, err := decodeDesktopRelease(resp, channel)
+	data, err := readBoundedUpdateResponse(resp, MaxUpdateMetadataBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read desktop release metadata: %w", err)
+	}
+	release, err := decodeDesktopRelease(data, channel)
 	if err != nil {
 		return nil, err
 	}
@@ -165,10 +195,10 @@ func checkLatestDesktopChannel(client *http.Client, apiURL, currentVersion, chan
 	return result, nil
 }
 
-func decodeDesktopRelease(resp *http.Response, channel string) (*GitHubRelease, error) {
+func decodeDesktopRelease(data []byte, channel string) (*GitHubRelease, error) {
 	if channel == DesktopChannelStable {
 		var release GitHubRelease
-		if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+		if err := json.Unmarshal(data, &release); err != nil {
 			return nil, fmt.Errorf("failed to parse desktop release metadata: %w", err)
 		}
 		if release.Draft || release.Prerelease {
@@ -178,7 +208,7 @@ func decodeDesktopRelease(resp *http.Response, channel string) (*GitHubRelease, 
 	}
 
 	var releases []GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&releases); err != nil {
+	if err := json.Unmarshal(data, &releases); err != nil {
 		return nil, fmt.Errorf("failed to parse desktop preview release metadata: %w", err)
 	}
 	var selected *GitHubRelease
@@ -211,7 +241,7 @@ func isOfficialGitHubURL(raw string) bool {
 	if parsed.Port() != "" && parsed.Port() != "443" {
 		return false
 	}
-	if host == "objects.githubusercontent.com" {
+	if host == "objects.githubusercontent.com" || host == "release-assets.githubusercontent.com" {
 		// GitHub's release CDN uses opaque paths and query parameters. The
 		// signed manifest remains the authenticity boundary for those URLs.
 		return true
@@ -223,6 +253,67 @@ func isOfficialGitHubURL(raw string) bool {
 	return len(segments) >= 2 &&
 		strings.EqualFold(segments[0], officialGitHubOwner) &&
 		strings.EqualFold(segments[1], officialGitHubRepository)
+}
+
+func isOfficialGitHubAPIURL(raw string) bool {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme != "https" || parsed.User != nil || parsed.Fragment != "" {
+		return false
+	}
+	if parsed.Port() != "" && parsed.Port() != "443" {
+		return false
+	}
+	if !strings.EqualFold(parsed.Hostname(), "api.github.com") {
+		return false
+	}
+	segments := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+	return len(segments) >= 3 &&
+		strings.EqualFold(segments[0], "repos") &&
+		strings.EqualFold(segments[1], officialGitHubOwner) &&
+		strings.EqualFold(segments[2], officialGitHubRepository)
+}
+
+func isAllowedUpdateRedirect(raw *url.URL) bool {
+	if raw == nil {
+		return false
+	}
+	return isOfficialGitHubURL(raw.String()) || isOfficialGitHubAPIURL(raw.String())
+}
+
+func newUpdateHTTPClient(timeout time.Duration) *http.Client {
+	return &http.Client{
+		Timeout: timeout,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			if len(via) >= 5 {
+				return fmt.Errorf("update server exceeded redirect limit")
+			}
+			if !isAllowedUpdateRedirect(req.URL) {
+				return fmt.Errorf("update server redirected to an untrusted host")
+			}
+			return nil
+		},
+	}
+}
+
+func withUpdateRedirectPolicy(client *http.Client) *http.Client {
+	if client == nil {
+		return nil
+	}
+	clone := *client
+	previous := client.CheckRedirect
+	clone.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+		if len(via) >= 5 {
+			return fmt.Errorf("update server exceeded redirect limit")
+		}
+		if !isAllowedUpdateRedirect(req.URL) {
+			return fmt.Errorf("update server redirected to an untrusted host")
+		}
+		if previous != nil {
+			return previous(req, via)
+		}
+		return nil
+	}
+	return &clone
 }
 
 func findMatchingDesktopAsset(assets []ReleaseAsset, targetOS, targetArch string) *ReleaseAsset {

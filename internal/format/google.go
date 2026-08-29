@@ -75,6 +75,30 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 		for _, toolGroup := range req.Tools {
 			toolDefs = append(toolDefs, toolGroup.FunctionDeclarations...)
 		}
+		if len(toolDefs) > MaxToolDefinitions {
+			return "", nil, fmt.Errorf("tool definition count exceeds %d", MaxToolDefinitions)
+		}
+		for _, tool := range toolDefs {
+			if strings.TrimSpace(tool.Name) == "" {
+				return "", nil, fmt.Errorf("tool name is empty")
+			}
+			if len(tool.Name) > MaxToolNameBytes {
+				return "", nil, fmt.Errorf("tool %q name exceeds %d bytes", tool.Name[:MaxToolNameBytes], MaxToolNameBytes)
+			}
+			if len(tool.Description) > MaxToolDescriptionBytes {
+				return "", nil, fmt.Errorf("tool %q description exceeds %d bytes", tool.Name, MaxToolDescriptionBytes)
+			}
+			if err := ValidateToolSchema(tool.Parameters); err != nil {
+				return "", nil, fmt.Errorf("tool %q schema: %w", tool.Name, err)
+			}
+		}
+		encoded, err := json.Marshal(toolDefs)
+		if err != nil {
+			return "", nil, fmt.Errorf("encode tool definitions: %w", err)
+		}
+		if len(encoded) > MaxToolDefinitionBytes {
+			return "", nil, fmt.Errorf("tool definitions exceed %d bytes", MaxToolDefinitionBytes)
+		}
 	}
 
 	var sysText string
@@ -123,14 +147,20 @@ func GoogleContentsToPrompt(req models.GoogleGenerateRequest) (string, []Image, 
 				if args == nil {
 					args = map[string]any{}
 				}
-				payload, _ := json.Marshal(map[string]any{"name": p.FunctionCall.Name, "args": args})
+				payload, err := json.Marshal(map[string]any{"name": p.FunctionCall.Name, "args": args})
+				if err != nil {
+					return "", nil, fmt.Errorf("encode function call %q: %w", p.FunctionCall.Name, err)
+				}
 				msgParts = append(msgParts, fmt.Sprintf("```function_call\n%s\n```", string(payload)))
 			} else if p.FunctionResponse != nil {
 				resp := p.FunctionResponse.Response
 				if resp == nil {
 					resp = map[string]any{}
 				}
-				payload, _ := json.Marshal(resp)
+				payload, err := json.Marshal(resp)
+				if err != nil {
+					return "", nil, fmt.Errorf("encode function response %q: %w", p.FunctionResponse.Name, err)
+				}
 				msgParts = append(msgParts, fmt.Sprintf("[Tool result for %s]: %s", p.FunctionResponse.Name, string(payload)))
 			}
 		}
@@ -155,55 +185,72 @@ func ParseGoogleFunctionCalls(text string) (string, []models.GoogleFunctionCall)
 	var calls []models.GoogleFunctionCall
 	clean := text
 
-	for _, m := range reFencedGoogleCall.FindAllStringSubmatch(clean, -1) {
-		var data map[string]any
-		if err := json.Unmarshal([]byte(strings.TrimSpace(m[1])), &data); err == nil {
-			if name, ok := data["name"].(string); ok && name != "" {
-				args, _ := data["args"].(map[string]any)
-				if args == nil {
-					args, _ = data["arguments"].(map[string]any)
-				}
-				if args == nil {
-					args = map[string]any{}
-				}
-				calls = append(calls, models.GoogleFunctionCall{Name: name, Args: args})
-			}
+	var fenced strings.Builder
+	lastEnd := 0
+	for _, m := range reFencedGoogleCall.FindAllStringSubmatchIndex(clean, -1) {
+		fenced.WriteString(clean[lastEnd:m[0]])
+		call, ok := parseGoogleFunctionCallPayload(strings.TrimSpace(clean[m[2]:m[3]]))
+		if ok {
+			calls = append(calls, call)
+		} else {
+			// Preserve invalid/ambiguous model Markdown instead of silently
+			// deleting content that was not converted into a call.
+			fenced.WriteString(clean[m[0]:m[1]])
 		}
+		lastEnd = m[1]
 	}
-	clean = strings.TrimSpace(reFencedGoogleCall.ReplaceAllString(clean, ""))
+	fenced.WriteString(clean[lastEnd:])
+	clean = strings.TrimSpace(fenced.String())
 
-	for _, m := range reUnfencedGoogleCall.FindAllStringSubmatch(clean, -1) {
-		var data map[string]any
-		if err := json.Unmarshal([]byte(strings.TrimSpace(m[1])), &data); err == nil {
-			if name, ok := data["name"].(string); ok && name != "" {
-				args, _ := data["args"].(map[string]any)
-				if args == nil {
-					args, _ = data["arguments"].(map[string]any)
-				}
-				if args == nil {
-					args = map[string]any{}
-				}
-				calls = append(calls, models.GoogleFunctionCall{Name: name, Args: args})
-			}
+	var unfenced strings.Builder
+	lastEnd = 0
+	for _, m := range reUnfencedGoogleCall.FindAllStringSubmatchIndex(clean, -1) {
+		unfenced.WriteString(clean[lastEnd:m[0]])
+		call, ok := parseGoogleFunctionCallPayload(strings.TrimSpace(clean[m[2]:m[3]]))
+		if ok {
+			calls = append(calls, call)
+		} else {
+			unfenced.WriteString(clean[m[0]:m[1]])
 		}
+		lastEnd = m[1]
 	}
-	clean = strings.TrimSpace(reUnfencedGoogleCall.ReplaceAllString(clean, ""))
+	unfenced.WriteString(clean[lastEnd:])
+	clean = strings.TrimSpace(unfenced.String())
 
 	if len(calls) == 0 && strings.HasPrefix(strings.TrimSpace(clean), "{") {
-		var data map[string]any
-		if err := json.Unmarshal([]byte(strings.TrimSpace(clean)), &data); err == nil {
-			if name, ok := data["name"].(string); ok && name != "" {
-				args, hasArgs := data["args"].(map[string]any)
-				if !hasArgs {
-					args, hasArgs = data["arguments"].(map[string]any)
-				}
-				if hasArgs {
-					calls = append(calls, models.GoogleFunctionCall{Name: name, Args: args})
-					clean = ""
-				}
-			}
+		if call, ok := parseGoogleFunctionCallPayload(strings.TrimSpace(clean)); ok {
+			calls = append(calls, call)
+			clean = ""
 		}
 	}
 
 	return clean, calls
+}
+
+func parseGoogleFunctionCallPayload(payload string) (models.GoogleFunctionCall, bool) {
+	var data map[string]any
+	if err := json.Unmarshal([]byte(payload), &data); err != nil {
+		return models.GoogleFunctionCall{}, false
+	}
+	name, ok := data["name"].(string)
+	if !ok || strings.TrimSpace(name) == "" || len(name) > MaxToolNameBytes {
+		return models.GoogleFunctionCall{}, false
+	}
+	args := map[string]any{}
+	rawArgs, hasArgs := data["args"]
+	if !hasArgs {
+		rawArgs, hasArgs = data["arguments"]
+	}
+	if hasArgs {
+		var ok bool
+		args, ok = rawArgs.(map[string]any)
+		if !ok {
+			return models.GoogleFunctionCall{}, false
+		}
+	}
+	encoded, err := json.Marshal(args)
+	if err != nil || len(encoded) > MaxToolArgumentBytes {
+		return models.GoogleFunctionCall{}, false
+	}
+	return models.GoogleFunctionCall{Name: name, Args: args}, true
 }

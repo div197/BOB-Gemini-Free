@@ -482,6 +482,7 @@ func main() {
 	}
 
 	app := server.New(cfg, currentVersion)
+	defer app.Close()
 
 	modelKeys := make([]string, 0, len(models.MODELS))
 	for k := range models.MODELS {
@@ -489,7 +490,7 @@ func main() {
 	}
 	slices.Sort(modelKeys)
 
-	cookieStatus := "none (anonymous free tier)"
+	cookieStatus := "none (no cookie configured; upstream access not guaranteed)"
 	if cfg.CookieFile != "" {
 		cookieStatus = fmt.Sprintf("yes (%s)", cfg.CookieFile)
 	}

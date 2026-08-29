@@ -72,7 +72,11 @@ func authorize(r *http.Request, apiKeys []string) bool {
 func (a *App) withCORS(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := strings.TrimSpace(r.Header.Get("Origin"))
-		if origin != "" && !isAllowedOrigin(origin, a.Cfg.AllowedOrigins) {
+		requestScheme := "http"
+		if r.TLS != nil {
+			requestScheme = "https"
+		}
+		if origin != "" && !isAllowedOrigin(origin, a.Cfg.AllowedOrigins, r.Host, requestScheme) {
 			w.Header().Set("Vary", "Origin")
 			writeJSON(w, http.StatusForbidden, map[string]any{
 				"error": map[string]any{
@@ -92,7 +96,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 			w.Header().Add("Vary", "Origin")
 		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, *")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, x-bob-gemini-api-key, *")
 		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, x-ratelimit-limit-requests, x-ratelimit-remaining-requests, x-ratelimit-reset-requests, content-length, *")
 		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 
@@ -105,7 +109,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 	})
 }
 
-func isAllowedOrigin(origin string, configured []string) bool {
+func isAllowedOrigin(origin string, configured []string, requestHost, requestScheme string) bool {
 	parsed, err := url.Parse(origin)
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" || parsed.Path != "" || parsed.RawQuery != "" || parsed.Fragment != "" || parsed.User != nil {
 		return false
@@ -122,11 +126,11 @@ func isAllowedOrigin(origin string, configured []string) bool {
 		}
 	}
 
-	host := strings.ToLower(parsed.Hostname())
-	if host == "localhost" || host == "wails.localhost" {
-		return true
-	}
-	if ip := net.ParseIP(host); ip != nil && ip.IsLoopback() {
+	// A local browser page needs no cross-origin permission when it talks to
+	// the exact gateway origin that served it. Do not trust every loopback
+	// port by default: another local web server can be malicious and the
+	// gateway may hold privileged Google session credentials.
+	if strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
 		return true
 	}
 	return false

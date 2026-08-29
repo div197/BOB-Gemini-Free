@@ -1,7 +1,9 @@
 package server
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -11,6 +13,7 @@ import (
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/format"
+	"github.com/div197/bob-gemini-free/internal/geminiapi"
 )
 
 type fakeGeminiRequester struct {
@@ -32,6 +35,19 @@ func (f fakeGeminiRequester) Do(req *http.Request) (*http.Response, error) {
 	}, nil
 }
 
+type streamFailureRequester struct{}
+
+func (streamFailureRequester) Do(req *http.Request) (*http.Response, error) {
+	if req.Method == http.MethodGet {
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("<html></html>")),
+		}, nil
+	}
+	return nil, errors.New("connection reset after request write")
+}
+
 func mockGeminiBody(text string) string {
 	padded := text + " " + strings.Repeat("x", 220)
 	inner := []any{nil, nil, nil, nil, []any{[]any{nil, []any{padded}}}}
@@ -39,6 +55,16 @@ func mockGeminiBody(text string) string {
 	outer := []any{[]any{"wrb.fr", nil, string(innerBytes)}}
 	outerBytes, _ := json.Marshal(outer)
 	return string(outerBytes) + "\n"
+}
+
+func TestReadRequestBodyHasIndependentLimit(t *testing.T) {
+	oversized := strings.NewReader(strings.Repeat("x", maxRequestBodySize+1))
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", oversized)
+
+	_, err := readRequestBody(req)
+	if !errors.Is(err, errRequestBodyTooLarge) {
+		t.Fatalf("readRequestBody error = %v, want %v", err, errRequestBodyTooLarge)
+	}
 }
 
 func TestHealthEndpoint(t *testing.T) {
@@ -134,6 +160,7 @@ func TestCORSPreflight(t *testing.T) {
 	handler := app.Handler()
 
 	req := httptest.NewRequest("OPTIONS", "/v1/chat/completions", nil)
+	req.Header.Set("Access-Control-Request-Headers", "content-type, x-bob-gemini-api-key")
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -143,6 +170,9 @@ func TestCORSPreflight(t *testing.T) {
 	}
 	if rec.Header().Get("Access-Control-Allow-Origin") != "*" {
 		t.Errorf("Expected CORS origin *, got %s", rec.Header().Get("Access-Control-Allow-Origin"))
+	}
+	if !strings.Contains(strings.ToLower(rec.Header().Get("Access-Control-Allow-Headers")), "x-bob-gemini-api-key") {
+		t.Errorf("Expected CORS headers to allow x-bob-gemini-api-key, got %s", rec.Header().Get("Access-Control-Allow-Headers"))
 	}
 }
 
@@ -291,6 +321,50 @@ func TestBadRequestHandling(t *testing.T) {
 	}
 }
 
+func TestChatReportsFormatValidationErrors(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	req := httptest.NewRequest("POST", "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"use tools"}],"tools":[{"type":"function","function":{"name":"large","description":"`+strings.Repeat("x", format.MaxToolDescriptionBytes+1)+`"}}]}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "empty prompt") || !strings.Contains(rec.Body.String(), "description exceeds") {
+		t.Fatalf("format validation error was hidden: %s", rec.Body.String())
+	}
+}
+
+func TestGoogleReportsFormatValidationErrors(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	payload := `{"contents":[{"role":"user","parts":[{"text":"use tools"}]}],"tools":[{"functionDeclarations":[{"name":"large","description":"` + strings.Repeat("x", format.MaxToolDescriptionBytes+1) + `"}]}]}`
+	req := httptest.NewRequest("POST", "/v1beta/models/gemini-3.7-flash:generateContent", strings.NewReader(payload))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "empty content") || !strings.Contains(rec.Body.String(), "description exceeds") {
+		t.Fatalf("format validation error was hidden: %s", rec.Body.String())
+	}
+}
+
+func TestResponsesReportsFormatValidationErrors(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "test-version")
+	payload := `{"model":"gpt-5.6-sol","input":[{"role":"user","content":"use tools"}],"tools":[{"type":"function","function":{"name":"large","description":"` + strings.Repeat("x", format.MaxToolDescriptionBytes+1) + `"}}]}`
+	req := httptest.NewRequest("POST", "/v1/responses", strings.NewReader(payload))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "empty input") || !strings.Contains(rec.Body.String(), "description exceeds") {
+		t.Fatalf("format validation error was hidden: %s", rec.Body.String())
+	}
+}
+
 func TestUploadImagesRejectsUnsupportedRemoteURL(t *testing.T) {
 	cfg := config.Default()
 	app := New(cfg, "test-version")
@@ -350,6 +424,42 @@ func TestImageGenerationNoExtractedURLReturnsError(t *testing.T) {
 	}
 	if !strings.Contains(rec.Body.String(), "upstream response did not contain a generated image URL") {
 		t.Fatalf("expected explicit missing-image error, got %s", rec.Body.String())
+	}
+}
+
+func TestImageGenerationB64DoesNotFallbackToURL(t *testing.T) {
+	cfg := config.Default()
+	cfg.RetryAttempts = 1
+	app := New(cfg, "test-version")
+	app.Gem.HTTP = fakeGeminiRequester{body: mockGeminiBody("![generated](https://127.0.0.1/generated.png)")}
+	req := httptest.NewRequest("POST", "/v1/images/generations", strings.NewReader(`{"prompt":"draw a lotus","response_format":"b64_json"}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "generated.png") {
+		t.Fatalf("b64_json failure returned the source URL: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "image download failed") {
+		t.Fatalf("missing explicit image download failure: %s", rec.Body.String())
+	}
+}
+
+func TestImageGenerationRejectsUnsupportedFormatAndModel(t *testing.T) {
+	app := New(config.Default(), "test-version")
+	for name, payload := range map[string]string{
+		"format": `{"prompt":"draw a lotus","response_format":"binary"}`,
+		"model":  `{"prompt":"draw a lotus","model":"not-a-gemini-model"}`,
+	} {
+		t.Run(name, func(t *testing.T) {
+			req := httptest.NewRequest("POST", "/v1/images/generations", strings.NewReader(payload))
+			rec := httptest.NewRecorder()
+			app.Handler().ServeHTTP(rec, req)
+			if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "invalid_request_error") {
+				t.Fatalf("status/body = %d %s", rec.Code, rec.Body.String())
+			}
+		})
 	}
 }
 
@@ -427,7 +537,7 @@ func TestPlaygroundEndpoint(t *testing.T) {
 	app := New(cfg, "test-version")
 	handler := app.Handler()
 
-	for _, path := range []string{"/playground", "/ui", "/favicon.ico"} {
+	for _, path := range []string{"/playground", "/ui", "/favicon.ico", "/manifest.json", "/sw.js"} {
 		req := httptest.NewRequest("GET", path, nil)
 		rec := httptest.NewRecorder()
 		handler.ServeHTTP(rec, req)
@@ -435,22 +545,41 @@ func TestPlaygroundEndpoint(t *testing.T) {
 		if rec.Code != http.StatusOK {
 			t.Errorf("Expected 200 for %s, got %d", path, rec.Code)
 		}
-		if path != "/favicon.ico" && !strings.Contains(rec.Body.String(), "BOB GEMINI FREE") {
+		if path != "/favicon.ico" && path != "/manifest.json" && path != "/sw.js" && !strings.Contains(rec.Body.String(), "BOB GEMINI FREE") {
 			t.Errorf("Expected playground HTML content for %s", path)
 		}
-		if path != "/favicon.ico" && (strings.Contains(rec.Body.String(), "sql.js") || strings.Contains(rec.Body.String(), "SQLite WASM")) {
+		if path != "/favicon.ico" && path != "/manifest.json" && path != "/sw.js" && (strings.Contains(rec.Body.String(), "sql.js") || strings.Contains(rec.Body.String(), "SQLite WASM")) {
 			t.Errorf("Removed SQLite WASM studio still advertised by %s", path)
 		}
-		if path != "/favicon.ico" && !strings.Contains(rec.Body.String(), "test-version") {
+		if path != "/favicon.ico" && path != "/manifest.json" && path != "/sw.js" && !strings.Contains(rec.Body.String(), "test-version") {
 			t.Errorf("expected served playground %s to inject the application version", path)
 		}
-		if path != "/favicon.ico" && strings.Contains(rec.Body.String(), "__BOB_DESKTOP_VERSION__") {
+		if path != "/favicon.ico" && path != "/manifest.json" && path != "/sw.js" && strings.Contains(rec.Body.String(), "__BOB_DESKTOP_VERSION__") {
 			t.Errorf("served playground %s leaked its version placeholder", path)
 		}
 		if path == "/favicon.ico" && len(rec.Body.Bytes()) == 0 {
 			t.Error("favicon response was empty")
 		}
-		if path != "/favicon.ico" && rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
+		if path == "/manifest.json" {
+			if got := rec.Header().Get("Content-Type"); got != "application/manifest+json; charset=utf-8" {
+				t.Errorf("manifest Content-Type = %q", got)
+			}
+			if !strings.Contains(rec.Body.String(), `"start_url": "/playground"`) {
+				t.Error("local manifest must launch the local playground")
+			}
+		}
+		if path == "/sw.js" {
+			if got := rec.Header().Get("Content-Type"); got != "application/javascript; charset=utf-8" {
+				t.Errorf("service worker Content-Type = %q", got)
+			}
+			if !strings.Contains(rec.Body.String(), `"bob-gemini-local-studio-" + "test-version"`) {
+				t.Error("service worker must contain the served application version")
+			}
+			if strings.Contains(rec.Body.String(), "__BOB_CACHE_VERSION__") {
+				t.Error("service worker leaked its cache version placeholder")
+			}
+		}
+		if (path == "/playground" || path == "/ui") && rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
 			t.Errorf("Expected text/html Content-Type for %s, got %s", path, rec.Header().Get("Content-Type"))
 		}
 	}
@@ -487,6 +616,63 @@ func TestStreamWithKeepAlive(t *testing.T) {
 	body := rec.Body.String()
 	if !strings.Contains(body, ": keepalive") {
 		t.Errorf("expected keepalive comment in stream output, got %q", body)
+	}
+}
+
+func TestStreamWithKeepAliveNormalizesNilContext(t *testing.T) {
+	rec := httptest.NewRecorder()
+	err := StreamWithKeepAlive(nil, rec, time.Hour, func(emit func(string) error) error {
+		return emit("one")
+	}, func(string) error { return nil })
+	if err != nil {
+		t.Fatalf("StreamWithKeepAlive with nil context failed: %v", err)
+	}
+}
+
+func TestStreamWithKeepAliveRejectsNilCallbacks(t *testing.T) {
+	rec := httptest.NewRecorder()
+	if err := StreamWithKeepAlive(context.Background(), rec, time.Hour, nil, func(string) error { return nil }); err == nil {
+		t.Fatal("nil stream runner was accepted")
+	}
+	if err := StreamWithKeepAlive(context.Background(), rec, time.Hour, func(func(string) error) error { return nil }, nil); err == nil {
+		t.Fatal("nil stream emitter was accepted")
+	}
+}
+
+func TestChatStreamEmitsStructuredErrorWithoutAssistantMarkdown(t *testing.T) {
+	app := New(config.Default(), "stream-error-test")
+	app.Gem.HTTP = streamFailureRequester{}
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","stream":true,"messages":[{"role":"user","content":"hello"}]}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK {
+		t.Fatalf("stream status = %d body=%s", rec.Code, body)
+	}
+	if !strings.Contains(body, `"error"`) || !strings.Contains(body, `"type":"api_error"`) {
+		t.Fatalf("stream error was not structured: %s", body)
+	}
+	if strings.Contains(body, "Upstream Error") || strings.Contains(body, `"finish_reason":"error"`) {
+		t.Fatalf("stream error was serialized as assistant/error-choice content: %s", body)
+	}
+	if !strings.Contains(body, "[DONE]") {
+		t.Fatalf("stream error did not terminate with [DONE]: %s", body)
+	}
+}
+
+func TestDirectGeminiStreamWithKeepAliveRejectsNilCallbacks(t *testing.T) {
+	rec := httptest.NewRecorder()
+	if err := streamGeminiWithKeepAlive(context.Background(), rec, time.Hour, nil, func(geminiapi.GenerateContentResponse) error { return nil }); err == nil {
+		t.Fatal("nil direct stream runner was accepted")
+	}
+	if err := streamGeminiWithKeepAlive(context.Background(), rec, time.Hour, func(func(geminiapi.GenerateContentResponse) error) error { return nil }, nil); err == nil {
+		t.Fatal("nil direct stream emitter was accepted")
+	}
+	if err := streamGeminiWithKeepAlive(nil, rec, time.Hour, func(emit func(geminiapi.GenerateContentResponse) error) error {
+		return emit(geminiapi.GenerateContentResponse{})
+	}, func(geminiapi.GenerateContentResponse) error { return nil }); err != nil {
+		t.Fatalf("nil direct stream context failed: %v", err)
 	}
 }
 
@@ -553,5 +739,15 @@ func TestRefineEndpoint(t *testing.T) {
 
 	if resp["original_prompt"] != "Build a Cyberpunk Snake game" {
 		t.Errorf("Expected original_prompt, got %v", resp["original_prompt"])
+	}
+}
+
+func TestRefineRejectsUnknownModel(t *testing.T) {
+	app := New(config.Default(), "test-version")
+	req := httptest.NewRequest("POST", "/v1/refine", strings.NewReader(`{"prompt":"Improve this","model":"not-a-gemini-model"}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusBadRequest || !strings.Contains(rec.Body.String(), "invalid_request_error") {
+		t.Fatalf("status/body = %d %s", rec.Code, rec.Body.String())
 	}
 }

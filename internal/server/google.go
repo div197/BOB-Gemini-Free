@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -21,10 +20,11 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	modelName := target
 	stream := false
+	action := "generateContent"
 
 	isCountTokens := false
 	if idx := strings.LastIndex(target, ":"); idx != -1 {
-		action := target[idx+1:]
+		action = target[idx+1:]
 		modelName = target[:idx]
 		if action == "streamGenerateContent" {
 			stream = true
@@ -36,9 +36,23 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	bodyBytes, err := io.ReadAll(r.Body)
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+	if !json.Valid(bodyBytes) {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
+		return
+	}
+
+	providerKey, useDeveloperAPI, keyErr := a.geminiAPIKeyForRequest(r)
+	if keyErr != nil {
+		writeGeminiAPIError(w, keyErr)
+		return
+	}
+	if useDeveloperAPI {
+		a.handleDirectGoogleGenerate(w, r, modelName, action, bodyBytes, providerKey)
 		return
 	}
 
@@ -76,15 +90,19 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	hasTools := len(req.Tools) > 0 && fcMode != "NONE"
 
 	prompt, images, err := format.GoogleContentsToPrompt(req)
-	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty content"}})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty content", "type": "invalid_request_error"}})
 		return
 	}
 	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
 		prompt = "Please analyze the attached image."
 	}
 
-	fileRefs, err := a.uploadImages(images)
+	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
 		return

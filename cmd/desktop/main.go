@@ -40,12 +40,13 @@ func main() {
 	cfg := loadDesktopConfig()
 
 	srv := server.New(cfg, desktopVersion)
+	defer srv.Close()
 	app := NewApp()
 	app.updateConfirmationPath = updater.DesktopUpdateConfirmationPath(os.Args[1:])
 	gateway, err := startDesktopGateway(cfg.Port, srv.Handler())
 	if err != nil {
 		fmt.Printf("Gateway startup failed: %v\n", err)
-		if windowErr := wails.Run(desktopOptions(app, nil, err)); windowErr != nil {
+		if windowErr := wails.Run(desktopOptions(app, nil, err, srv)); windowErr != nil {
 			fmt.Printf("Desktop startup error window failed: %v\n", windowErr)
 		}
 		return
@@ -54,14 +55,14 @@ func main() {
 	app.gatewayURL = gateway.Endpoint()
 
 	// 2. Launch the branded native window, pointing it to our Gateway UI
-	err = wails.Run(desktopOptions(app, gateway, nil))
+	err = wails.Run(desktopOptions(app, gateway, nil, srv))
 
 	if err != nil {
 		println("Error:", err.Error())
 	}
 }
 
-func desktopOptions(app *App, gateway *desktopGateway, startupErr error) *options.App {
+func desktopOptions(app *App, gateway *desktopGateway, startupErr error, gatewayApp *server.App) *options.App {
 	return &options.App{
 		Title:  "BOB Gemini Free",
 		Width:  1100,
@@ -88,8 +89,13 @@ func desktopOptions(app *App, gateway *desktopGateway, startupErr error) *option
 				}
 			}
 			runtime.EventsEmit(ctx, "gateway-ready", gateway.Endpoint())
+			app.startAutomaticDesktopUpdateChecks(ctx)
 		},
 		OnShutdown: func(ctx context.Context) {
+			app.stopAutomaticDesktopUpdateChecks()
+			if gatewayApp != nil {
+				gatewayApp.Close()
+			}
 			if gateway == nil {
 				return
 			}
@@ -107,94 +113,7 @@ func desktopMenu(app *App) *menu.Menu {
 	result := menu.NewMenuFromItems(menu.AppMenu(), menu.EditMenu(), menu.WindowMenu())
 	help := result.AddSubmenu("Help")
 	help.AddText("Check for Updates", nil, func(*menu.CallbackData) {
-		if app.ctx == nil {
-			return
-		}
-		update, err := updater.CheckLatestDesktopForChannel(desktopVersion, desktopChannel)
-		if err != nil {
-			_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-				Type:    runtime.ErrorDialog,
-				Title:   "Update check failed",
-				Message: err.Error(),
-				Buttons: []string{"OK"},
-			})
-			return
-		}
-		message := fmt.Sprintf("This build is %s. The latest public release is %s. No newer release is available.", update.CurrentVersion, update.LatestVersion)
-		if update.HasUpdate && update.AssetAvailable {
-			if !update.ManifestAvailable {
-				message = fmt.Sprintf("A newer desktop release is available: %s, but it has no signed update manifest. Open the official release page for the manual download?", update.LatestVersion)
-				button, dialogErr := runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-					Type:          runtime.QuestionDialog,
-					Title:         "Manual update required",
-					Message:       message,
-					Buttons:       []string{"Open Releases", "Cancel"},
-					DefaultButton: "Open Releases",
-					CancelButton:  "Cancel",
-				})
-				if dialogErr == nil && button == "Open Releases" {
-					runtime.BrowserOpenURL(app.ctx, update.ReleaseURL)
-				}
-				return
-			}
-			message = fmt.Sprintf("A newer signed desktop release is available: %s\\n\\nDownload, verify, and install it after restarting BOB?", update.LatestVersion)
-			button, dialogErr := runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-				Type:          runtime.QuestionDialog,
-				Title:         "Update available",
-				Message:       message,
-				Buttons:       []string{"Install Update", "Open Releases", "Cancel"},
-				DefaultButton: "Install Update",
-				CancelButton:  "Cancel",
-			})
-			if dialogErr == nil && button == "Install Update" {
-				plan, stageErr := updater.StageDesktopUpdate(update)
-				if stageErr != nil {
-					_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-						Type:    runtime.ErrorDialog,
-						Title:   "Update could not be staged",
-						Message: stageErr.Error(),
-						Buttons: []string{"OK"},
-					})
-					return
-				}
-				if startErr := updater.StartDesktopUpdate(plan); startErr != nil {
-					_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-						Type:    runtime.ErrorDialog,
-						Title:   "Update could not start",
-						Message: startErr.Error(),
-						Buttons: []string{"OK"},
-					})
-					return
-				}
-				runtime.Quit(app.ctx)
-				return
-			}
-			if dialogErr == nil && button == "Open Releases" {
-				runtime.BrowserOpenURL(app.ctx, update.ReleaseURL)
-			}
-			return
-		}
-		if update.HasUpdate && !update.AssetAvailable {
-			message = fmt.Sprintf("Release %s exists, but it does not contain a native package for this platform yet. Open the official release page?", update.LatestVersion)
-			button, dialogErr := runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-				Type:          runtime.QuestionDialog,
-				Title:         "Desktop package unavailable",
-				Message:       message,
-				Buttons:       []string{"Open Releases", "Cancel"},
-				DefaultButton: "Open Releases",
-				CancelButton:  "Cancel",
-			})
-			if dialogErr == nil && button == "Open Releases" {
-				runtime.BrowserOpenURL(app.ctx, update.ReleaseURL)
-			}
-			return
-		}
-		_, _ = runtime.MessageDialog(app.ctx, runtime.MessageDialogOptions{
-			Type:    runtime.InfoDialog,
-			Title:   "BOB Gemini Free updates",
-			Message: message,
-			Buttons: []string{"OK"},
-		})
+		app.checkDesktopUpdate(app.ctx, false)
 	})
 	help.AddText("Open GitHub Releases", nil, func(*menu.CallbackData) {
 		if app.ctx != nil {

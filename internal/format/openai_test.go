@@ -7,6 +7,18 @@ import (
 	"github.com/div197/bob-gemini-free/internal/models"
 )
 
+func TestRandHexBoundsInvalidLengths(t *testing.T) {
+	for _, length := range []int{-1, 0, 33, 1000000} {
+		got := RandHex(length)
+		if len(got) > 32 {
+			t.Fatalf("RandHex(%d) returned %d characters", length, len(got))
+		}
+	}
+	if got := RandHex(16); len(got) != 16 {
+		t.Fatalf("RandHex(16) length = %d, want 16", len(got))
+	}
+}
+
 func TestParseToolCalls(t *testing.T) {
 	input := "Here is a call:\n```tool_call\n{\"name\": \"get_weather\", \"arguments\": {\"city\": \"Jakarta\"}}\n```\nDone."
 	clean, calls := ParseToolCalls(input)
@@ -62,6 +74,53 @@ func TestMessagesToPrompt(t *testing.T) {
 	}
 	if !strings.Contains(promptDev, "You must respond strictly with valid JSON output.") {
 		t.Errorf("Prompt missing JSON instruction: %q", promptDev)
+	}
+}
+
+func TestValidateToolResultReferences(t *testing.T) {
+	valid := []models.OpenAIMessage{
+		{Role: "assistant", ToolCalls: []models.OpenAIToolCall{{ID: "call_1", Function: models.OpenAIToolCallFunction{Name: "lookup"}}}},
+		{Role: "tool", ToolCallID: "call_1", Name: "lookup", Content: `{"ok":true}`},
+	}
+	if err := ValidateToolResultReferences(valid); err != nil {
+		t.Fatalf("valid tool continuation rejected: %v", err)
+	}
+	tests := []struct {
+		name string
+		msgs []models.OpenAIMessage
+		want string
+	}{
+		{
+			name: "unknown id",
+			msgs: []models.OpenAIMessage{{Role: "tool", ToolCallID: "missing", Content: "result"}},
+			want: "unknown tool_call_id",
+		},
+		{
+			name: "mismatched name",
+			msgs: []models.OpenAIMessage{
+				{Role: "assistant", ToolCalls: []models.OpenAIToolCall{{ID: "call_1", Function: models.OpenAIToolCallFunction{Name: "lookup"}}}},
+				{Role: "tool", ToolCallID: "call_1", Name: "delete", Content: "result"},
+			},
+			want: "does not match",
+		},
+		{
+			name: "ambiguous name",
+			msgs: []models.OpenAIMessage{
+				{Role: "assistant", ToolCalls: []models.OpenAIToolCall{
+					{ID: "call_1", Function: models.OpenAIToolCallFunction{Name: "lookup"}},
+					{ID: "call_2", Function: models.OpenAIToolCallFunction{Name: "lookup"}},
+				}},
+				{Role: "tool", Name: "lookup", Content: "result"},
+			},
+			want: "ambiguous",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := ValidateToolResultReferences(test.msgs); err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
 	}
 }
 
@@ -249,6 +308,38 @@ func TestBuildToolChoiceInstruction(t *testing.T) {
 	}
 	if !strings.Contains(BuildToolChoiceInstruction(specificChoice), "lookup_user") {
 		t.Errorf("Expected specific choice to mention 'lookup_user'")
+	}
+}
+
+func TestToolPromptBudgetsRejectOversizedDeclarationsAndArguments(t *testing.T) {
+	tooMany := make([]models.OpenAITool, MaxToolDefinitions+1)
+	for i := range tooMany {
+		tooMany[i] = models.OpenAITool{Type: "function", Function: models.OpenAIFunction{Name: "tool"}}
+	}
+	if _, err := MessagesToPrompt(models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{{Role: "user", Content: "use tools"}},
+		Tools:    tooMany,
+	}); err == nil {
+		t.Fatal("oversized tool definition count was accepted")
+	}
+
+	if _, err := MessagesToPrompt(models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{{Role: "user", Content: "use tools"}},
+		Tools: []models.OpenAITool{{Type: "function", Function: models.OpenAIFunction{
+			Name:        "large_schema",
+			Description: strings.Repeat("x", MaxToolDescriptionBytes+1),
+		}}},
+	}); err == nil {
+		t.Fatal("oversized tool description was accepted")
+	}
+
+	largeArgs := strings.Repeat("x", MaxToolArgumentBytes+1)
+	if _, err := MessagesToPrompt(models.OpenAIChatRequest{
+		Messages: []models.OpenAIMessage{{Role: "assistant", ToolCalls: []models.OpenAIToolCall{{
+			Function: models.OpenAIToolCallFunction{Name: "large_args", Arguments: largeArgs},
+		}}}},
+	}); err == nil {
+		t.Fatal("oversized tool arguments were accepted")
 	}
 }
 

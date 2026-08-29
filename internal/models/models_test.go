@@ -156,6 +156,19 @@ func TestResolveEnhanced(t *testing.T) {
 	}
 }
 
+func TestResolveStrictRejectsUnknownModelWithoutFallback(t *testing.T) {
+	if _, err := ResolveStrict("not-a-gemini-model", "gemini-3.6-flash"); err == nil {
+		t.Fatal("ResolveStrict unexpectedly accepted an unknown model")
+	}
+	resolved, err := ResolveStrict("gemini-3.7-flash@think=0", "gemini-3.6-flash")
+	if err != nil {
+		t.Fatalf("ResolveStrict known model: %v", err)
+	}
+	if resolved.Name != "gemini-3.7-flash" || resolved.Think != 0 {
+		t.Fatalf("strict resolution = %#v", resolved)
+	}
+}
+
 func TestPricing(t *testing.T) {
 	pClaude := GetModelPricing("claude-5-sonnet")
 	if pClaude.BlendedPer1M != 9.00 {
@@ -184,4 +197,3 @@ func TestPricing(t *testing.T) {
 		t.Errorf("expected savings $0.90, got %f", savings)
 	}
 }
-

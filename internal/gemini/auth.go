@@ -3,6 +3,7 @@ package gemini
 import (
 	"context"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -11,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +21,14 @@ import (
 var (
 	reAt = regexp.MustCompile(`"(?:SNlM0e|thykhd)":"([^"]+)"`)
 	reBL = regexp.MustCompile(`"cfb2h":"([^"]+)"`)
+)
+
+const (
+	// Cookie files and the Gemini bootstrap document are untrusted local or
+	// network inputs. Keep their limits well above normal values without
+	// allowing an accidental large file/page to consume unbounded memory.
+	MaxCookieFileBytes  int64 = 1 << 20
+	maxSessionHTMLBytes int64 = 4 << 20
 )
 
 type CookieInfo struct {
@@ -31,12 +41,15 @@ type CookieInfo struct {
 }
 
 type CookieCache struct {
-	mu         sync.Mutex
-	file       string
-	mtime      time.Time
-	info       CookieInfo
-	refreshing bool
-	refreshCh  chan struct{}
+	mu             sync.Mutex
+	file           string
+	mtime          time.Time
+	fileSize       int64
+	contentHash    [32]byte
+	hasContentHash bool
+	info           CookieInfo
+	refreshing     bool
+	refreshCh      chan struct{}
 }
 
 func NewCookieCache(file string) *CookieCache {
@@ -47,56 +60,41 @@ func (c *CookieCache) loadUnlocked() error {
 	if c.file == "" {
 		return nil
 	}
-	stat, err := os.Stat(c.file)
+	stat, contentBytes, err := readSecureCookieFile(c.file)
 	if err != nil {
-		if c.info.Cookie != "" {
-			return nil
-		}
+		// Do not continue sending a deleted or unreadable credential file. Keep
+		// guest cookies separate so anonymous access can still be retried.
+		c.info.Cookie = ""
+		c.info.SAPISID = ""
+		c.info.At = ""
+		c.info.BL = ""
+		c.info.AtTime = time.Time{}
+		c.fileSize = 0
+		c.contentHash = [32]byte{}
+		c.hasContentHash = false
 		return err
 	}
-
-	if stat.ModTime().Equal(c.mtime) && c.info.Cookie != "" {
+	contentHash := sha256.Sum256(contentBytes)
+	if stat.ModTime().Equal(c.mtime) && stat.Size() == c.fileSize && c.hasContentHash && contentHash == c.contentHash {
 		return nil
 	}
 
-	contentBytes, err := os.ReadFile(c.file)
-	if err != nil {
-		return err
-	}
-
 	c.mtime = stat.ModTime()
-	content := strings.TrimSpace(string(contentBytes))
-
+	c.fileSize = stat.Size()
+	c.contentHash = contentHash
+	c.hasContentHash = true
 	c.info.Cookie = ""
 	c.info.SAPISID = ""
+	c.info.At = ""
+	c.info.BL = ""
+	c.info.AtTime = time.Time{}
 
-	if strings.HasPrefix(content, "{") {
-		var jsonCookies map[string]any
-		if err := json.Unmarshal(contentBytes, &jsonCookies); err == nil {
-			if cookieVal, ok := jsonCookies["cookie"].(string); ok {
-				c.info.Cookie = cookieVal
-			}
-			if sapisidVal, ok := jsonCookies["sapisid"].(string); ok {
-				c.info.SAPISID = sapisidVal
-			}
-		}
-	} else {
-		extracted, err := ExtractCookies(content)
-		if err == nil && extracted != nil {
-			c.info.Cookie = extracted.RawCookie
-			c.info.SAPISID = extracted.SAPISID
-		} else {
-			c.info.Cookie = content
-			for _, part := range strings.Split(content, ";") {
-				part = strings.TrimSpace(part)
-				if strings.HasPrefix(part, "SAPISID=") {
-					c.info.SAPISID = strings.TrimPrefix(part, "SAPISID=")
-					break
-				}
-			}
-		}
+	extracted, err := ExtractCookies(strings.TrimSpace(string(contentBytes)))
+	if err != nil {
+		return fmt.Errorf("parse cookie file %s: %w", c.file, err)
 	}
-
+	c.info.Cookie = extracted.RawCookie
+	c.info.SAPISID = extracted.SAPISID
 	return nil
 }
 
@@ -104,6 +102,9 @@ func (c *CookieCache) loadUnlocked() error {
 // for both authenticated user sessions and anonymous/guest school lab sessions.
 // It includes Stale-While-Revalidate and Thundering-Herd protection for 500+ concurrent students.
 func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, authUser string) (atToken string, blToken string, cookieHeader string, sapisid string) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
 	c.mu.Lock()
 	_ = c.loadUnlocked()
 
@@ -206,7 +207,12 @@ func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, 
 	if err != nil || resp == nil {
 		return lastAt, lastBL, cookieStr, sapi
 	}
-	defer resp.Body.Close()
+	if resp.Body == nil || resp.StatusCode != http.StatusOK || resp.ContentLength > maxSessionHTMLBytes {
+		if resp.Body != nil {
+			_ = resp.Body.Close()
+		}
+		return lastAt, lastBL, cookieStr, sapi
+	}
 
 	// Extract Set-Cookie headers for guest session
 	var extractedGuestCookies []string
@@ -220,8 +226,12 @@ func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, 
 	}
 	newGuestCookies := strings.Join(extractedGuestCookies, "; ")
 
-	bodyBytes, err := io.ReadAll(resp.Body)
+	bodyBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxSessionHTMLBytes+1))
+	_ = resp.Body.Close()
 	if err != nil {
+		return lastAt, lastBL, cookieStr, sapi
+	}
+	if int64(len(bodyBytes)) > maxSessionHTMLBytes {
 		return lastAt, lastBL, cookieStr, sapi
 	}
 	html := string(bodyBytes)
@@ -360,9 +370,53 @@ func ExtractCookies(raw string) (*ExtractedCookie, error) {
 
 // SaveCookieFile writes cookies to disk with restricted 0600 POSIX permissions.
 func SaveCookieFile(filePath string, cookieStr string) error {
+	if strings.TrimSpace(filePath) == "" {
+		return fmt.Errorf("cookie file path is empty")
+	}
+	if int64(len(cookieStr)) > MaxCookieFileBytes {
+		return fmt.Errorf("cookie input exceeds %d bytes", MaxCookieFileBytes)
+	}
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
 	}
-	return os.WriteFile(filePath, []byte(cookieStr), 0600)
+	if runtime.GOOS != "windows" {
+		if err := os.Chmod(dir, 0700); err != nil {
+			return fmt.Errorf("failed to restrict cookie directory: %w", err)
+		}
+	}
+	if err := os.WriteFile(filePath, []byte(cookieStr), 0600); err != nil {
+		return err
+	}
+	if err := os.Chmod(filePath, 0600); err != nil {
+		return fmt.Errorf("failed to restrict cookie file: %w", err)
+	}
+	return nil
+}
+
+func readSecureCookieFile(filePath string) (os.FileInfo, []byte, error) {
+	stat, err := os.Lstat(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	if stat.Mode()&os.ModeSymlink != 0 {
+		return nil, nil, fmt.Errorf("cookie file is a symlink: %s", filePath)
+	}
+	if !stat.Mode().IsRegular() {
+		return nil, nil, fmt.Errorf("cookie file is not a regular file: %s", filePath)
+	}
+	if stat.Size() > MaxCookieFileBytes {
+		return nil, nil, fmt.Errorf("cookie file exceeds %d bytes", MaxCookieFileBytes)
+	}
+	if runtime.GOOS != "windows" && stat.Mode().Perm()&0077 != 0 {
+		return nil, nil, fmt.Errorf("cookie file permissions are too broad: %o", stat.Mode().Perm())
+	}
+	content, err := os.ReadFile(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	if int64(len(content)) > MaxCookieFileBytes {
+		return nil, nil, fmt.Errorf("cookie file exceeds %d bytes", MaxCookieFileBytes)
+	}
+	return stat, content, nil
 }

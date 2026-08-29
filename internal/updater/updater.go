@@ -48,11 +48,20 @@ type CheckResult struct {
 	SignatureURL   string         `json:"signature_url,omitempty"`
 }
 
-// MaxUpdateArtifactBytes bounds the amount of untrusted release data that can
-// be written to the temporary update candidate before checksum verification.
-// It is intentionally much larger than the current binaries while preventing
-// an unexpectedly large response from exhausting local disk space.
-const MaxUpdateArtifactBytes int64 = 512 << 20
+const (
+	// MaxUpdateMetadataBytes bounds JSON returned by GitHub before it reaches
+	// the decoder. The current release metadata is far smaller; this protects
+	// a student device from a pathological or intercepted response.
+	MaxUpdateMetadataBytes  int64 = 4 << 20
+	MaxUpdateManifestBytes  int64 = 1 << 20
+	MaxUpdateSignatureBytes int64 = 16 << 10
+
+	// MaxUpdateArtifactBytes bounds the amount of untrusted release data that can
+	// be written to the temporary update candidate before checksum verification.
+	// It is intentionally much larger than the current binaries while preventing
+	// an unexpectedly large response from exhausting local disk space.
+	MaxUpdateArtifactBytes int64 = 512 << 20
+)
 
 // BuildUpdatePublicKey is injected into release builds with -ldflags. A
 // release binary therefore carries its trust anchor instead of depending on a
@@ -63,7 +72,7 @@ var BuildUpdatePublicKey string
 // CheckLatest queries the official GitHub repository for the latest release.
 func CheckLatest(currentVersion string) (*CheckResult, error) {
 	apiURL := "https://api.github.com/repos/div197/bob-gemini-free/releases/latest"
-	client := &http.Client{Timeout: 8 * time.Second}
+	client := newUpdateHTTPClient(8 * time.Second)
 
 	req, err := http.NewRequest("GET", apiURL, nil)
 	if err != nil {
@@ -76,15 +85,25 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach update server: %w", err)
 	}
-	defer resp.Body.Close()
+	if resp == nil {
+		return nil, fmt.Errorf("update server returned an empty response")
+	}
 
 	if resp.StatusCode != http.StatusOK {
+		closeUpdateResponse(resp)
 		return nil, fmt.Errorf("update server returned HTTP %d", resp.StatusCode)
 	}
 
+	data, err := readBoundedUpdateResponse(resp, MaxUpdateMetadataBytes)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read release metadata: %w", err)
+	}
 	var release GitHubRelease
-	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
+	if err := json.Unmarshal(data, &release); err != nil {
 		return nil, fmt.Errorf("failed to parse release metadata: %w", err)
+	}
+	if strings.TrimSpace(release.TagName) == "" {
+		return nil, fmt.Errorf("release metadata has no tag name")
 	}
 	if release.Draft || release.Prerelease {
 		return nil, fmt.Errorf("latest release endpoint returned a non-stable release")
@@ -182,12 +201,12 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 	}
 	defer os.Remove(tempPath)
 
-	client := &http.Client{Timeout: 90 * time.Second}
-	manifest, err := downloadBytes(client, res.ChecksumURL, 1<<20)
+	client := newUpdateHTTPClient(90 * time.Second)
+	manifest, err := downloadBytes(client, res.ChecksumURL, MaxUpdateManifestBytes)
 	if err != nil {
 		return fmt.Errorf("failed to download checksum manifest: %w", err)
 	}
-	signature, err := downloadBytes(client, res.SignatureURL, 16<<10)
+	signature, err := downloadBytes(client, res.SignatureURL, MaxUpdateSignatureBytes)
 	if err != nil {
 		return fmt.Errorf("failed to download checksum signature: %w", err)
 	}
@@ -196,9 +215,14 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 	}
 
 	assetName := ""
+	assetSize := int64(0)
 	if res.Release != nil {
 		if asset := findAssetByURL(res.Release.Assets, res.DownloadURL); asset != nil {
 			assetName = asset.Name
+			assetSize = asset.Size
+			if asset.Size <= 0 {
+				return fmt.Errorf("release asset %s has no trusted positive size", asset.Name)
+			}
 			if asset.Size > MaxUpdateArtifactBytes {
 				return fmt.Errorf("release asset %s exceeds the %d-byte safety limit", asset.Name, MaxUpdateArtifactBytes)
 			}
@@ -217,8 +241,8 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 	}
 	n := info.Size()
 
-	if n < 5*1024*1024 {
-		return fmt.Errorf("downloaded binary payload is suspiciously small (%d bytes), update aborted for safety", n)
+	if n != assetSize {
+		return fmt.Errorf("downloaded binary size changed during update: got %d bytes, release metadata declares %d", n, assetSize)
 	}
 
 	logFn("[+] Downloaded %d bytes successfully (SHA-256: %s).", n, shaSum[:16]+"...")
@@ -341,22 +365,24 @@ func decodeEncodedBytes(value string) ([]byte, error) {
 }
 
 func downloadBytes(client *http.Client, downloadURL string, maxBytes int64) ([]byte, error) {
+	if client == nil {
+		return nil, fmt.Errorf("update download requires an HTTP client")
+	}
+	if maxBytes <= 0 {
+		return nil, fmt.Errorf("invalid update response size limit: %d", maxBytes)
+	}
 	resp, err := client.Get(downloadURL)
 	if err != nil {
 		return nil, err
 	}
-	defer resp.Body.Close()
+	if resp == nil {
+		return nil, fmt.Errorf("update download returned an empty response")
+	}
 	if resp.StatusCode != http.StatusOK {
+		closeUpdateResponse(resp)
 		return nil, fmt.Errorf("download server returned HTTP %d", resp.StatusCode)
 	}
-	data, err := io.ReadAll(io.LimitReader(resp.Body, maxBytes+1))
-	if err != nil {
-		return nil, err
-	}
-	if int64(len(data)) > maxBytes {
-		return nil, fmt.Errorf("download exceeded %d-byte limit", maxBytes)
-	}
-	return data, nil
+	return readBoundedUpdateResponse(resp, maxBytes)
 }
 
 func verifyReleaseManifest(publicKey ed25519.PublicKey, manifest, encodedSignature []byte) error {
@@ -411,6 +437,9 @@ func downloadVerifiedArtifact(client *http.Client, downloadURL, destination, ass
 }
 
 func downloadVerifiedArtifactLimited(client *http.Client, downloadURL, destination, assetName string, manifest, signature []byte, publicKey ed25519.PublicKey, maxBytes int64) (string, error) {
+	if client == nil {
+		return "", fmt.Errorf("verified update download requires an HTTP client")
+	}
 	if maxBytes <= 0 {
 		return "", fmt.Errorf("invalid update artifact size limit: %d", maxBytes)
 	}
@@ -425,15 +454,27 @@ func downloadVerifiedArtifactLimited(client *http.Client, downloadURL, destinati
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	if resp == nil {
+		return "", fmt.Errorf("verified update download returned an empty response")
+	}
 	if resp.StatusCode != http.StatusOK {
+		closeUpdateResponse(resp)
 		return "", fmt.Errorf("download server returned HTTP %d", resp.StatusCode)
 	}
+	if resp.Body == nil {
+		return "", fmt.Errorf("verified update download returned an empty response body")
+	}
+	if resp.ContentLength > maxBytes {
+		closeUpdateResponse(resp)
+		return "", fmt.Errorf("download exceeded %d-byte safety limit", maxBytes)
+	}
 
-	file, err := os.Create(destination)
+	file, err := os.OpenFile(destination, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
+		closeUpdateResponse(resp)
 		return "", err
 	}
+	defer closeUpdateResponse(resp)
 	hasher := sha256.New()
 	n, copyErr := io.Copy(io.MultiWriter(file, hasher), io.LimitReader(resp.Body, maxBytes+1))
 	closeErr := file.Close()
@@ -457,12 +498,53 @@ func downloadVerifiedArtifactLimited(client *http.Client, downloadURL, destinati
 	return actual, nil
 }
 
+func closeUpdateResponse(resp *http.Response) {
+	if resp != nil && resp.Body != nil {
+		_ = resp.Body.Close()
+	}
+}
+
+func readBoundedUpdateResponse(resp *http.Response, maxBytes int64) ([]byte, error) {
+	if resp == nil {
+		return nil, fmt.Errorf("update response is empty")
+	}
+	if maxBytes <= 0 {
+		closeUpdateResponse(resp)
+		return nil, fmt.Errorf("invalid update response size limit: %d", maxBytes)
+	}
+	if resp.Body == nil {
+		return nil, fmt.Errorf("update response body is empty")
+	}
+	if resp.ContentLength > maxBytes {
+		closeUpdateResponse(resp)
+		return nil, fmt.Errorf("download exceeded %d-byte limit", maxBytes)
+	}
+	defer closeUpdateResponse(resp)
+	data, err := io.ReadAll(io.LimitReader(resp.Body, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, fmt.Errorf("download exceeded %d-byte limit", maxBytes)
+	}
+	return data, nil
+}
+
 func isNewerVersion(current, latest string) bool {
 	if current == "dev" || current == "" {
 		return false
 	}
 	comparison, valid := compareSemanticVersions(current, latest)
 	return valid && comparison < 0
+}
+
+// IsDesktopVersionCheckable reports whether a binary carries a published
+// semantic version suitable for release metadata checks. Local and ad-hoc
+// development builds must not query the public updater or present themselves
+// as an installable release.
+func IsDesktopVersionCheckable(version string) bool {
+	_, valid := parseSemanticVersion(version)
+	return valid
 }
 
 type semanticVersion struct {

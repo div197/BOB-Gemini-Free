@@ -21,8 +21,9 @@ func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bodyBytes, err := readRequestBody(r)
 	var req RefineRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || req.Prompt == "" {
+	if err != nil || json.Unmarshal(bodyBytes, &req) != nil || req.Prompt == "" {
 		http.Error(w, `{"error":{"message":"Invalid JSON or missing 'prompt' field","type":"invalid_request_error"}}`, http.StatusBadRequest)
 		return
 	}
@@ -32,9 +33,10 @@ func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
 		modelName = a.Cfg.DefaultModel
 	}
 
-	resolved, err := models.Resolve(modelName, a.Cfg.DefaultModel)
+	resolved, err := models.ResolveStrict(modelName, a.Cfg.DefaultModel)
 	if err != nil {
-		resolved = models.Resolved{Mode: 1, Think: 4}
+		http.Error(w, `{"error":{"message":"invalid model","type":"invalid_request_error"}}`, http.StatusBadRequest)
+		return
 	}
 
 	engine := refiner.NewEngine()

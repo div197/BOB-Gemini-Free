@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,10 @@ import (
 )
 
 func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/messages") {
+		return
+	}
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
 			"type": "error",
@@ -97,7 +99,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	// Upload any multimodal image attachments if present
 	var fileRefs []string
 	if len(images) > 0 {
-		fileRefs, err = a.uploadImages(images)
+		fileRefs, err = a.uploadImagesContext(r.Context(), images)
 		if err != nil {
 			writeJSON(w, http.StatusBadGateway, map[string]any{
 				"type": "error",

@@ -88,6 +88,100 @@ func TestDesktopStagingDirectoryErrorExplainsReadOnlyMacInstall(t *testing.T) {
 	}
 }
 
+func TestDesktopUpdateLockSerializesConcurrentHelpersAndReleases(t *testing.T) {
+	installTarget := filepath.Join(t.TempDir(), "BOB Gemini Free.app")
+	first, err := acquireDesktopUpdateLock(installTarget)
+	if err != nil {
+		t.Fatalf("acquire first update lock: %v", err)
+	}
+	if _, err := acquireDesktopUpdateLock(installTarget); err == nil || !strings.Contains(err.Error(), "already in progress") {
+		t.Fatalf("second update lock result = %v, want in-progress error", err)
+	}
+	if err := first.Release(); err != nil {
+		t.Fatalf("release first update lock: %v", err)
+	}
+	second, err := acquireDesktopUpdateLock(installTarget)
+	if err != nil {
+		t.Fatalf("acquire released update lock: %v", err)
+	}
+	if err := second.Release(); err != nil {
+		t.Fatalf("release second update lock: %v", err)
+	}
+}
+
+func TestDesktopUpdateLockRecoversOnlyAnOldEmptyLock(t *testing.T) {
+	installTarget := filepath.Join(t.TempDir(), "bob-gemini-free-wails.exe")
+	lockPath := desktopUpdateLockPath(installTarget)
+	if err := os.Mkdir(lockPath, 0700); err != nil {
+		t.Fatalf("create stale lock: %v", err)
+	}
+	staleAt := time.Now().Add(-(desktopUpdateLockStaleAfter + time.Second))
+	if err := os.Chtimes(lockPath, staleAt, staleAt); err != nil {
+		t.Fatalf("age stale lock: %v", err)
+	}
+	lock, err := acquireDesktopUpdateLock(installTarget)
+	if err != nil {
+		t.Fatalf("recover stale lock: %v", err)
+	}
+	if err := lock.Release(); err != nil {
+		t.Fatalf("release recovered lock: %v", err)
+	}
+
+	if err := os.Mkdir(lockPath, 0700); err != nil {
+		t.Fatalf("create lock with contents: %v", err)
+	}
+	marker := filepath.Join(lockPath, "owner")
+	if err := os.WriteFile(marker, []byte("active"), 0600); err != nil {
+		t.Fatalf("write lock marker: %v", err)
+	}
+	if err := os.Chtimes(lockPath, staleAt, staleAt); err != nil {
+		t.Fatalf("age non-empty lock: %v", err)
+	}
+	if _, err := acquireDesktopUpdateLock(installTarget); err == nil || !strings.Contains(err.Error(), "remove stale desktop update lock") {
+		t.Fatalf("non-empty stale lock result = %v, want safe refusal", err)
+	}
+}
+
+func TestCleanupStaleDesktopStagingRemovesOnlyMatchingCommittedPlans(t *testing.T) {
+	parent := t.TempDir()
+	target := filepath.Join(parent, desktopAppBundleName)
+	stage := filepath.Join(parent, ".bob-gemini-free-update-stale")
+	if err := os.MkdirAll(stage, 0700); err != nil {
+		t.Fatalf("create stale stage: %v", err)
+	}
+	plan := &DesktopUpdatePlan{
+		PlanPath:         filepath.Join(stage, "update-plan.json"),
+		StageDir:         stage,
+		InstallTarget:    target,
+		CandidatePath:    filepath.Join(stage, "candidate"),
+		BackupPath:       filepath.Join(stage, "rollback-backup"),
+		ConfirmationPath: filepath.Join(stage, ".bob-gemini-update-confirm"),
+		TargetVersion:    "v0.2.0",
+		AssetName:        "bob-gemini-free-wails-macos-universal.zip",
+		Channel:          DesktopChannelPreview,
+		TargetOS:         "darwin",
+	}
+	if err := writeDesktopUpdatePlan(plan); err != nil {
+		t.Fatalf("write stale plan: %v", err)
+	}
+	staleAt := time.Now().Add(-(desktopStagingStaleAfter + time.Second))
+	if err := os.Chtimes(stage, staleAt, staleAt); err != nil {
+		t.Fatalf("age stale stage: %v", err)
+	}
+	fresh := filepath.Join(parent, ".bob-gemini-free-update-fresh")
+	if err := os.Mkdir(fresh, 0700); err != nil {
+		t.Fatalf("create fresh stage: %v", err)
+	}
+
+	cleanupStaleDesktopStaging(target)
+	if _, err := os.Stat(stage); !os.IsNotExist(err) {
+		t.Fatalf("matching stale stage still exists: %v", err)
+	}
+	if _, err := os.Stat(fresh); err != nil {
+		t.Fatalf("fresh stage was removed: %v", err)
+	}
+}
+
 func TestStageDesktopUpdateRefusesUnsignedManifest(t *testing.T) {
 	result := &DesktopCheckResult{
 		CurrentVersion: "v0.1.7",
@@ -193,10 +287,52 @@ func TestStageDesktopUpdateRejectsDeclaredSizeMismatch(t *testing.T) {
 }
 
 func TestSafeArchiveNameRejectsTraversal(t *testing.T) {
-	for _, name := range []string{"../escape", "/absolute/path", "bob-gemini-free-wails.app/../../escape"} {
+	for _, name := range []string{"../escape", "/absolute/path", "bob-gemini-free-wails.app/../../escape", "bob-gemini-free-wails.app/./Contents"} {
 		if _, err := safeArchiveName(name); err == nil {
 			t.Errorf("safeArchiveName(%q) accepted traversal", name)
 		}
+	}
+}
+
+func TestExtractMacOSAppRejectsDuplicateAndSpecialEntries(t *testing.T) {
+	tests := []struct {
+		name string
+		mode os.FileMode
+	}{
+		{name: "duplicate", mode: 0644},
+		{name: "special", mode: os.ModeNamedPipe | 0600},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var buffer bytes.Buffer
+			archive := zip.NewWriter(&buffer)
+			writeEntry := func(name string, mode os.FileMode) {
+				header := &zip.FileHeader{Name: name, Method: zip.Store}
+				header.SetMode(mode)
+				writer, err := archive.CreateHeader(header)
+				if err != nil {
+					t.Fatal(err)
+				}
+				if _, err := writer.Write([]byte{0xcf, 0xfa, 0xed, 0xfe}); err != nil {
+					t.Fatal(err)
+				}
+			}
+			path := desktopAppBundleName + "/Contents/MacOS/" + desktopAppBinaryName
+			writeEntry(path, tc.mode)
+			if tc.name == "duplicate" {
+				writeEntry(path, tc.mode)
+			}
+			if err := archive.Close(); err != nil {
+				t.Fatal(err)
+			}
+			archivePath := filepath.Join(t.TempDir(), tc.name+".zip")
+			if err := os.WriteFile(archivePath, buffer.Bytes(), 0600); err != nil {
+				t.Fatal(err)
+			}
+			if _, err := extractMacOSApp(archivePath, t.TempDir()); err == nil {
+				t.Fatalf("%s archive was accepted", tc.name)
+			}
+		})
 	}
 }
 

@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -181,7 +180,7 @@ func (a *App) handleGoogleModels(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON body"}})
 		return

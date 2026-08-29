@@ -11,26 +11,37 @@ import (
 )
 
 type Config struct {
-	Port              int                           `json:"port"`
-	Host              string                        `json:"host"`
-	RetryAttempts     int                           `json:"retry_attempts"`
-	RetryDelaySec     int                           `json:"retry_delay_sec"`
-	RequestTimeoutSec int                           `json:"request_timeout_sec"`
-	GeminiBL          string                        `json:"gemini_bl"`
-	AuthUser          string                        `json:"auth_user"`
-	XSRFToken         string                        `json:"xsrf_token"`
-	DefaultModel      string                        `json:"default_model"`
-	LogRequests       bool                          `json:"log_requests"`
-	CookieFile        string                        `json:"cookie_file"`
-	CookiePool        []string                      `json:"cookie_pool,omitempty"`
-	Proxy             string                        `json:"proxy"`
-	APIKeys           []string                      `json:"api_keys"`
-	AllowedOrigins    []string                      `json:"allowed_origins,omitempty"`
-	Impersonate       string                        `json:"impersonate"`
-	Version           string                        `json:"version,omitempty"`
-	CustomModels      map[string]models.Model       `json:"custom_models,omitempty"`
-	CustomPricing     map[string]models.PricingInfo `json:"custom_pricing,omitempty"`
+	Port              int      `json:"port"`
+	Host              string   `json:"host"`
+	RetryAttempts     int      `json:"retry_attempts"`
+	RetryDelaySec     int      `json:"retry_delay_sec"`
+	RequestTimeoutSec int      `json:"request_timeout_sec"`
+	GeminiBL          string   `json:"gemini_bl"`
+	AuthUser          string   `json:"auth_user"`
+	XSRFToken         string   `json:"xsrf_token"`
+	DefaultModel      string   `json:"default_model"`
+	LogRequests       bool     `json:"log_requests"`
+	CookieFile        string   `json:"cookie_file"`
+	CookiePool        []string `json:"cookie_pool,omitempty"`
+	Proxy             string   `json:"proxy"`
+	APIKeys           []string `json:"api_keys"`
+	// GeminiAPIKey is a single, opt-in Developer API credential. It is loaded
+	// only from the process environment and deliberately excluded from JSON so
+	// config saves/exported diagnostics cannot persist it.
+	GeminiAPIKey   string                        `json:"-"`
+	AllowedOrigins []string                      `json:"allowed_origins,omitempty"`
+	Impersonate    string                        `json:"impersonate"`
+	Version        string                        `json:"version,omitempty"`
+	CustomModels   map[string]models.Model       `json:"custom_models,omitempty"`
+	CustomPricing  map[string]models.PricingInfo `json:"custom_pricing,omitempty"`
 }
+
+const (
+	DefaultRequestTimeoutSec = 180
+	MaxRetryAttempts         = 10
+	MaxRetryDelaySec         = 60
+	MaxRequestTimeoutSec     = 3600
+)
 
 func Default() Config {
 	return Config{
@@ -38,7 +49,7 @@ func Default() Config {
 		Host:              "127.0.0.1",
 		RetryAttempts:     3,
 		RetryDelaySec:     2,
-		RequestTimeoutSec: 180,
+		RequestTimeoutSec: DefaultRequestTimeoutSec,
 		GeminiBL:          "boq_assistant-bard-web-server_20260716.08_p0",
 		AuthUser:          "",
 		XSRFToken:         "",
@@ -54,8 +65,26 @@ func Default() Config {
 }
 
 func Normalize(cfg *Config) {
+	if cfg == nil {
+		return
+	}
 	if cfg.RetryAttempts < 1 {
 		cfg.RetryAttempts = 1
+	}
+	if cfg.RetryAttempts > MaxRetryAttempts {
+		cfg.RetryAttempts = MaxRetryAttempts
+	}
+	if cfg.RetryDelaySec < 0 {
+		cfg.RetryDelaySec = 0
+	}
+	if cfg.RetryDelaySec > MaxRetryDelaySec {
+		cfg.RetryDelaySec = MaxRetryDelaySec
+	}
+	if cfg.RequestTimeoutSec <= 0 {
+		cfg.RequestTimeoutSec = DefaultRequestTimeoutSec
+	}
+	if cfg.RequestTimeoutSec > MaxRequestTimeoutSec {
+		cfg.RequestTimeoutSec = MaxRequestTimeoutSec
 	}
 }
 
@@ -68,20 +97,20 @@ func Load(path string) (Config, error) {
 		}
 
 		var aux struct {
-			Port              *int      `json:"port"`
-			Host              *string   `json:"host"`
-			RetryAttempts     *int      `json:"retry_attempts"`
-			RetryDelaySec     *int      `json:"retry_delay_sec"`
-			RequestTimeoutSec *int      `json:"request_timeout_sec"`
-			GeminiBL          *string   `json:"gemini_bl"`
-			AuthUser          *string   `json:"auth_user"`
-			XSRFToken         *string   `json:"xsrf_token"`
-			DefaultModel      *string   `json:"default_model"`
-			LogRequests       *bool     `json:"log_requests"`
-			CookieFile        *string   `json:"cookie_file"`
-			CookiePool        *[]string `json:"cookie_pool"`
-			Proxy             *string   `json:"proxy"`
-			APIKeys           *[]string `json:"api_keys"`
+			Port              *int                           `json:"port"`
+			Host              *string                        `json:"host"`
+			RetryAttempts     *int                           `json:"retry_attempts"`
+			RetryDelaySec     *int                           `json:"retry_delay_sec"`
+			RequestTimeoutSec *int                           `json:"request_timeout_sec"`
+			GeminiBL          *string                        `json:"gemini_bl"`
+			AuthUser          *string                        `json:"auth_user"`
+			XSRFToken         *string                        `json:"xsrf_token"`
+			DefaultModel      *string                        `json:"default_model"`
+			LogRequests       *bool                          `json:"log_requests"`
+			CookieFile        *string                        `json:"cookie_file"`
+			CookiePool        *[]string                      `json:"cookie_pool"`
+			Proxy             *string                        `json:"proxy"`
+			APIKeys           *[]string                      `json:"api_keys"`
 			AllowedOrigins    *[]string                      `json:"allowed_origins"`
 			Impersonate       *string                        `json:"impersonate"`
 			CustomModels      *map[string]models.Model       `json:"custom_models"`
@@ -204,6 +233,11 @@ func Load(path string) (Config, error) {
 		if len(keys) > 0 {
 			cfg.APIKeys = keys
 		}
+	}
+	if envGeminiAPIKey := os.Getenv("BOB_GEMINI_FREE_GEMINI_API_KEY"); envGeminiAPIKey != "" {
+		// Keep this a single key. Never parse a comma-separated list: key
+		// rotation would evade provider quotas and make student usage opaque.
+		cfg.GeminiAPIKey = strings.TrimSpace(envGeminiAPIKey)
 	}
 	if envOrigins := os.Getenv("BOB_GEMINI_FREE_ALLOWED_ORIGINS"); envOrigins != "" {
 		var origins []string

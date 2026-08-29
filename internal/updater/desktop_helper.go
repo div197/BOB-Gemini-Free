@@ -2,12 +2,14 @@ package updater
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -24,6 +26,72 @@ var (
 	desktopUpdatePollInterval        = 250 * time.Millisecond
 	desktopUpdateConfirmationTimeout = 45 * time.Second
 )
+
+const desktopUpdateLockStaleAfter = 10 * time.Minute
+
+var errDesktopUpdateInProgress = errors.New("another desktop update is already in progress")
+
+type desktopUpdateLock struct {
+	path string
+	once sync.Once
+}
+
+// acquireDesktopUpdateLock coordinates helper processes that may have been
+// started by two app instances at the same time. An atomic directory create is
+// available on macOS and Windows without a third-party dependency. The lock
+// is intentionally beside the install target, not inside a staging directory
+// that a competing update could remove during rollback.
+func acquireDesktopUpdateLock(installTarget string) (*desktopUpdateLock, error) {
+	if strings.TrimSpace(installTarget) == "" || !filepath.IsAbs(installTarget) {
+		return nil, fmt.Errorf("desktop update lock requires an absolute install target")
+	}
+	lockPath := desktopUpdateLockPath(installTarget)
+	for attempt := 0; attempt < 2; attempt++ {
+		if err := os.Mkdir(lockPath, 0700); err == nil {
+			return &desktopUpdateLock{path: lockPath}, nil
+		} else if !os.IsExist(err) {
+			return nil, fmt.Errorf("create desktop update lock: %w", err)
+		}
+
+		info, err := os.Lstat(lockPath)
+		if err != nil {
+			if os.IsNotExist(err) {
+				continue
+			}
+			return nil, fmt.Errorf("inspect desktop update lock: %w", err)
+		}
+		age := time.Since(info.ModTime())
+		if age < 0 || age <= desktopUpdateLockStaleAfter {
+			return nil, fmt.Errorf("%w: %s", errDesktopUpdateInProgress, lockPath)
+		}
+		// The lock directory is created empty. Remove only the exact lock path;
+		// refusing to recursively remove it avoids turning stale-lock recovery
+		// into a deletion primitive if a damaged directory contains extra data.
+		if err := os.Remove(lockPath); err != nil && !os.IsNotExist(err) {
+			return nil, fmt.Errorf("remove stale desktop update lock: %w", err)
+		}
+	}
+	return nil, fmt.Errorf("%w: %s", errDesktopUpdateInProgress, lockPath)
+}
+
+func desktopUpdateLockPath(installTarget string) string {
+	cleanTarget := filepath.Clean(installTarget)
+	return filepath.Join(filepath.Dir(cleanTarget), "."+filepath.Base(cleanTarget)+".update-lock")
+}
+
+func (lock *desktopUpdateLock) Release() error {
+	if lock == nil {
+		return nil
+	}
+	var err error
+	lock.once.Do(func() {
+		err = os.Remove(lock.path)
+		if os.IsNotExist(err) {
+			err = nil
+		}
+	})
+	return err
+}
 
 // HandleDesktopUpdateCommand handles the private helper command before the
 // Wails runtime starts. It returns handled=false for ordinary application
@@ -167,6 +235,20 @@ func runDesktopUpdateHelper(planPath string) error {
 }
 
 func replaceAndConfirmDesktopUpdate(plan *DesktopUpdatePlan) error {
+	if err := validateInstallTarget(plan.InstallTarget, plan.TargetOS); err != nil {
+		return err
+	}
+	if err := validateCandidateTarget(plan.CandidatePath, plan.TargetOS); err != nil {
+		return err
+	}
+	lock, err := acquireDesktopUpdateLock(plan.InstallTarget)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = lock.Release() }()
+	// Revalidate after taking the cross-process lock. The first checks protect
+	// normal input errors; these checks narrow the target-swap window between
+	// validation and the destructive rename.
 	if err := validateInstallTarget(plan.InstallTarget, plan.TargetOS); err != nil {
 		return err
 	}

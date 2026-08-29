@@ -3,7 +3,6 @@ package server
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
@@ -13,7 +12,10 @@ import (
 )
 
 func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
-	bodyBytes, err := io.ReadAll(r.Body)
+	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/responses") {
+		return
+	}
+	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid JSON"}})
 		return
@@ -94,15 +96,19 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 	}
 
 	prompt, images, err := format.MessagesToPromptAndImages(chatReq)
-	if err != nil || (strings.TrimSpace(prompt) == "" && len(images) == 0) {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty input"}})
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+		return
+	}
+	if strings.TrimSpace(prompt) == "" && len(images) == 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "empty input", "type": "invalid_request_error"}})
 		return
 	}
 	if strings.TrimSpace(prompt) == "" && len(images) > 0 {
 		prompt = "Please analyze the attached image."
 	}
 
-	fileRefs, err := a.uploadImages(images)
+	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
 		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
 		return

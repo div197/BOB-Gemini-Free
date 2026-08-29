@@ -6,6 +6,10 @@ import (
 	"strings"
 )
 
+const maxStreamTextBytes = 32 << 20
+
+var errStreamTextTooLarge = fmt.Errorf("upstream stream text exceeded %d bytes", maxStreamTextBytes)
+
 type StreamParser struct {
 	prevText string
 	buf      []byte
@@ -23,6 +27,9 @@ func (p *StreamParser) ResetBuffer() {
 }
 
 func (p *StreamParser) Feed(chunk string) ([]string, error) {
+	if len(p.buf)+len(chunk) > maxStreamTextBytes {
+		return nil, errStreamTextTooLarge
+	}
 	p.buf = append(p.buf, chunk...)
 
 	if bytes.Contains(p.buf, []byte("BardErrorInfo")) && p.prevText == "" {
@@ -43,6 +50,9 @@ func (p *StreamParser) Feed(chunk string) ([]string, error) {
 
 		texts := ExtractTextsFromLine(line)
 		for _, t := range texts {
+			if len(t) > maxStreamTextBytes {
+				return nil, errStreamTextTooLarge
+			}
 			// Skip if this text segment has already been fully processed or is identical to the last one.
 			if t == p.prevText || strings.HasPrefix(p.prevText, t) {
 				continue

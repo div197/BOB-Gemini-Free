@@ -1,8 +1,10 @@
 package config
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -166,6 +168,30 @@ func TestRetryAttemptsClampedFromConfigFile(t *testing.T) {
 	}
 }
 
+func TestOperationalTimingBounds(t *testing.T) {
+	cfg := Config{
+		RetryAttempts:     MaxRetryAttempts + 1,
+		RetryDelaySec:     MaxRetryDelaySec + 1,
+		RequestTimeoutSec: MaxRequestTimeoutSec + 1,
+	}
+	Normalize(&cfg)
+	if cfg.RetryAttempts != MaxRetryAttempts {
+		t.Fatalf("retry attempts = %d, want %d", cfg.RetryAttempts, MaxRetryAttempts)
+	}
+	if cfg.RetryDelaySec != MaxRetryDelaySec {
+		t.Fatalf("retry delay = %d, want %d", cfg.RetryDelaySec, MaxRetryDelaySec)
+	}
+	if cfg.RequestTimeoutSec != MaxRequestTimeoutSec {
+		t.Fatalf("request timeout = %d, want %d", cfg.RequestTimeoutSec, MaxRequestTimeoutSec)
+	}
+
+	zero := Config{}
+	Normalize(&zero)
+	if zero.RetryAttempts != 1 || zero.RequestTimeoutSec != DefaultRequestTimeoutSec {
+		t.Fatalf("zero-value normalization = %+v, want minimum attempts and default timeout", zero)
+	}
+}
+
 func TestEnvVarRequestTimeout(t *testing.T) {
 	t.Setenv("BOB_GEMINI_FREE_REQUEST_TIMEOUT_SEC", "300")
 	cfg, err := Load("")
@@ -191,5 +217,24 @@ func TestEnvVarCookiePoolDir(t *testing.T) {
 	}
 	if len(cfg.CookiePool) < 2 {
 		t.Errorf("expected at least 2 cookie pool files from dir, got %d", len(cfg.CookiePool))
+	}
+}
+
+func TestEnvVarGeminiAPIKeyIsProcessOnly(t *testing.T) {
+	const key = "test-provider-key"
+	t.Setenv("BOB_GEMINI_FREE_GEMINI_API_KEY", key)
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.GeminiAPIKey != key {
+		t.Fatalf("GeminiAPIKey = %q, want %q", cfg.GeminiAPIKey, key)
+	}
+	encoded, err := json.Marshal(cfg)
+	if err != nil {
+		t.Fatalf("marshal config: %v", err)
+	}
+	if string(encoded) == "" || strings.Contains(string(encoded), key) {
+		t.Fatalf("provider key was persisted in config JSON: %s", encoded)
 	}
 }

@@ -82,6 +82,11 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 		`if (timer) clearTimeout(timer);`,
 		`throw new Error("Stream ended before completion")`,
 		`if (streamReadError.name === 'AbortError')`,
+		`status: "complete"`,
+		`status: "stopped"`,
+		`status: "error"`,
+		`const safeErrorMessage = String((err && err.message) || "Generation failed")`,
+		`if (m.role === "assistant" && m.status && m.status !== "complete") continue;`,
 	} {
 		if !strings.Contains(source, lifecycleMarker) {
 			t.Fatalf("sendMessage is missing stream lifecycle marker %q", lifecycleMarker)
@@ -93,9 +98,17 @@ func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
 		`const CHAT_BOTTOM_THRESHOLD = 120;`,
+		`const CHAT_TOP_THRESHOLD = 24;`,
 		`function isMessagesNearBottom()`,
+		`function isMessagesNearTop()`,
+		`function updateScrollButtons()`,
+		`const canNavigate = hasScrollableMessages;`,
+		`function scheduleScrollButtonUpdate()`,
+		`requestAnimationFrame(updateScrollButtons)`,
 		`function keepMessagesAtBottom()`,
 		`msgListEl.scrollTo({ top: bottom, behavior: "auto" });`,
+		`function scrollToTop()`,
+		`msgListEl.scrollTo({ top: 0, behavior: "smooth" });`,
 		`min-height: 0;`,
 		`overflow-anchor: none;`,
 		`var(--composer-offset, 140px)`,
@@ -103,6 +116,7 @@ func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 		`function syncComposerOffset()`,
 		`new ResizeObserver(() => {`,
 		`if (userIsAtBottom) keepMessagesAtBottom();`,
+		`aria-label="Jump to top"`,
 		`aria-label="Jump to bottom"`,
 	} {
 		if !strings.Contains(html, marker) {
@@ -111,6 +125,95 @@ func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 	}
 	if strings.Contains(html, `storyDiv.scrollIntoView({ behavior: "smooth", block: "start" })`) {
 		t.Fatal("new responses must not scroll the nested chat viewport to the story-card top")
+	}
+	if strings.Contains(html, `else if (/Gemini Developer API|AI Studio|quota|rate limit/i.test(err.message || ""))`) {
+		t.Fatal("provider-error rendering must not be nested inside the stream render scheduler")
+	}
+	if !strings.Contains(html, `fallbackTimer = setTimeout(() => requestAnimationFrame(doRender), 66 - elapsed);`) {
+		t.Fatal("stream render scheduler lost its bounded fallback timer")
+	}
+}
+
+func TestArtifactEditorPreservesGeneratedSource(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="art-code-editor" aria-label="Artifact source code editor"`,
+		`function getArtifactSource(artifact)`,
+		`function normalizeArtifactToken(token, fallbackLanguage)`,
+		`token.text ?? token.code ?? token.raw ?? token.value`,
+		`function prepareArtifactEditor(artifact)`,
+		`function persistArtifactEditorDraft()`,
+		`if (typeof artifact.originalCode !== 'string') artifact.originalCode = source;`,
+		`if (typeof artifact.editorCode !== 'string') artifact.editorCode = source;`,
+		`const needsEmptyEditorRecovery = !editor.value && !!artifact.editorCode;`,
+		`editor.value = artifact.editorCode;`,
+		`currentActiveArtifact.editorCode = editor.value;`,
+		`function runArtifactEditorCode()`,
+		`function resetArtifactEditorCode()`,
+		`function copyArtifactEditorCode()`,
+		`function toggleArtifactEditorWrap()`,
+		`Cannot run an empty artifact source.`,
+		`prepareArtifactEditor(currentActiveArtifact);`,
+		`switchArtifactTab(art.isInteractive ? 'preview' : 'code');`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing artifact editor marker %q", marker)
+		}
+	}
+}
+
+func TestHistoryStorageBoundsAttachmentsWithoutCorruptingPayloads(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const MAX_LOCAL_ATTACHMENT_BYTES = 32 * 1024 * 1024;`,
+		`function validateLocalAttachment(file)`,
+		`Attachment is too large. Maximum size is`,
+		`const MAX_HISTORY_IMAGE_DATA_URL_CHARS = 750000;`,
+		`const MAX_HISTORY_CONTENT_CHARS = 300000;`,
+		`const MAX_HISTORY_MESSAGES = 200;`,
+		`const MAX_HISTORY_TOTAL_CHARS = 4000000;`,
+		`function clipHistoryText(value, limit)`,
+		`function trimHistoryPairs(history, maxMessages = MAX_HISTORY_MESSAGES)`,
+		`function trimStoredHistory(history)`,
+		`chatHistory = trimStoredHistory(trimHistoryPairs(parsed`,
+		`function sanitizeAttachmentForStorage(attachment, includeImageData = true)`,
+		`const MAX_HISTORY_SERIALIZED_CHARS = MAX_HISTORY_TOTAL_CHARS + 500000;`,
+		`Stored chat history exceeded the safe size bound`,
+		`if (content.truncated) clean.contentTruncated = true;`,
+		`dataOmitted = true`,
+		`attachedFiles: Array.isArray(m.attachedFiles)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing bounded attachment-storage marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `dataUrl: item.attachedImage.dataUrl.slice(0, 100000)`) {
+		t.Fatal("history storage must not persist a truncated, invalid image data URL")
+	}
+}
+
+func TestArtifactSandboxKeepsOpaqueIsolationAndReportsRuntimeFailures(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`sandbox="allow-scripts allow-modals allow-forms"`,
+		`function artifactRuntimeBootstrap()`,
+		`function createMemoryStorage()`,
+		`installStorage('localStorage')`,
+		`installStorage('sessionStorage')`,
+		`type: 'BOB_ARTIFACT_RUNTIME_ERROR'`,
+		`window.addEventListener('unhandledrejection'`,
+		`function prepareHTMLArtifactSource(source)`,
+		`const htmlPattern = /<html\b[^>]*>/i;`,
+		`id="art-runtime-error" role="alert" hidden`,
+		`function showArtifactRuntimeError(message)`,
+		`e.source === iframe.contentWindow`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing artifact sandbox safety marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `sandbox="allow-scripts allow-same-origin`) {
+		t.Fatal("artifact sandbox must not combine scripts with same-origin access")
 	}
 }
 
@@ -185,11 +288,36 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 		`setGenerationControlsDisabled(true);`,
 		`setGenerationControlsDisabled(false);`,
 		`let streamProtocolError = null;`,
+		`if (data && data.error && data.error.message)`,
 		`if (finishReason === "error")`,
 		`Cookie pools do not bypass quotas or provider policy.`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("playground is missing provider-safety marker %q", marker)
 		}
+	}
+}
+
+func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`Gemini Developer API (optional)`,
+		`https://aistudio.google.com/app/apikey`,
+		`https://ai.google.dev/gemini-api/docs/rate-limits`,
+		`https://ai.google.dev/gemini-api/docs/models`,
+		`Use for this session`,
+		`is never saved by BOB`,
+		`Google project quotas, free-tier limits, and any billing settings still apply`,
+		`BOB does not rotate keys or automatically retry a request through a second provider`,
+		`function canSendGeminiProviderKey()`,
+		`configure a local or explicitly trusted gateway endpoint first`,
+		`descEn: "Translating selected OpenAI/Anthropic HTTP REST endpoints`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing Developer API education marker %q", marker)
+		}
+	}
+	if strings.Contains(html, "enabling 100% free local access") || strings.Contains(html, "100% मुफ़्त स्थानीय उपयोग संभव") {
+		t.Fatal("playground still presents provider access as universally free")
 	}
 }

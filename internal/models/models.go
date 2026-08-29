@@ -157,49 +157,49 @@ var MODELS = map[string]Model{
 		Desc:  "Alias for gemini-3.6-flash",
 	},
 	// OpenAI Drop-in Aliases (Frontier, Reasoning & Codex)
-	"gpt-5.6":           {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 alias (routed to gemini-3.7-flash)"},
-	"gpt-5.6-sol":       {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 Sol alias (routed to gemini-3.7-flash)"},
-	"gpt-5.6-terra":     {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 Terra alias (routed to gemini-3.7-flash)"},
-	"gpt-5.6-luna":      {Mode: 6, Think: 4, Desc: "OpenAI GPT-5.6 Luna alias (routed to gemini-flash-lite)"},
-	"gpt-5.6-cyber":     {Mode: 3, Think: 4, Desc: "OpenAI Daybreak/Cyber alias (routed to gemini-3.1-pro)"},
-	"gpt-5.5":           {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.5 alias (routed to gemini-3.7-flash)"},
-	"gpt-5.5-pro":       {Mode: 3, Think: 4, Desc: "OpenAI GPT-5.5 Pro alias (routed to gemini-3.1-pro)"},
-	"gpt-5.4":           {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.4 alias (routed to gemini-3.7-flash)"},
-	"gpt-5.4-mini":      {Mode: 6, Think: 4, Desc: "OpenAI GPT-5.4 mini alias (routed to gemini-flash-lite)"},
-	"gpt-5.4-pro":       {Mode: 3, Think: 4, Desc: "OpenAI GPT-5.4 Pro alias (routed to gemini-3.1-pro)"},
-	"gpt-5":             {Mode: 1, Think: 4, Desc: "OpenAI GPT-5 alias (routed to gemini-3.7-flash)"},
-	"gpt-5-pro":         {Mode: 3, Think: 4, Desc: "OpenAI GPT-5 Pro alias (routed to gemini-3.1-pro)"},
-	"gpt-5-codex":       {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
-	"gpt-5.1-codex":     {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
-	"gpt-5.2-codex":     {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
-	"gpt-5.3-codex":     {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
-	"codex-mini-latest": {Mode: 6, Think: 4, Desc: "OpenAI Codex mini alias (routed to gemini-flash-lite)"},
-	"gpt-4o":            {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o alias (routed to gemini-3.7-flash)"},
-	"gpt-4o-2024-11-20": {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o date-versioned alias (routed to gemini-3.7-flash)"},
-	"gpt-4o-2024-08-06": {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o structured outputs alias (routed to gemini-3.7-flash)"},
-	"gpt-4o-2024-05-13": {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o original release alias (routed to gemini-3.7-flash)"},
-	"gpt-4o-mini":       {Mode: 6, Think: 4, Desc: "OpenAI GPT-4o mini alias (routed to gemini-flash-lite)"},
+	"gpt-5.6":                {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 alias (routed to gemini-3.7-flash)"},
+	"gpt-5.6-sol":            {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 Sol alias (routed to gemini-3.7-flash)"},
+	"gpt-5.6-terra":          {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.6 Terra alias (routed to gemini-3.7-flash)"},
+	"gpt-5.6-luna":           {Mode: 6, Think: 4, Desc: "OpenAI GPT-5.6 Luna alias (routed to gemini-flash-lite)"},
+	"gpt-5.6-cyber":          {Mode: 3, Think: 4, Desc: "OpenAI Daybreak/Cyber alias (routed to gemini-3.1-pro)"},
+	"gpt-5.5":                {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.5 alias (routed to gemini-3.7-flash)"},
+	"gpt-5.5-pro":            {Mode: 3, Think: 4, Desc: "OpenAI GPT-5.5 Pro alias (routed to gemini-3.1-pro)"},
+	"gpt-5.4":                {Mode: 1, Think: 4, Desc: "OpenAI GPT-5.4 alias (routed to gemini-3.7-flash)"},
+	"gpt-5.4-mini":           {Mode: 6, Think: 4, Desc: "OpenAI GPT-5.4 mini alias (routed to gemini-flash-lite)"},
+	"gpt-5.4-pro":            {Mode: 3, Think: 4, Desc: "OpenAI GPT-5.4 Pro alias (routed to gemini-3.1-pro)"},
+	"gpt-5":                  {Mode: 1, Think: 4, Desc: "OpenAI GPT-5 alias (routed to gemini-3.7-flash)"},
+	"gpt-5-pro":              {Mode: 3, Think: 4, Desc: "OpenAI GPT-5 Pro alias (routed to gemini-3.1-pro)"},
+	"gpt-5-codex":            {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
+	"gpt-5.1-codex":          {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
+	"gpt-5.2-codex":          {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
+	"gpt-5.3-codex":          {Mode: 1, Think: 4, Desc: "OpenAI Codex alias (routed to gemini-3.7-flash)"},
+	"codex-mini-latest":      {Mode: 6, Think: 4, Desc: "OpenAI Codex mini alias (routed to gemini-flash-lite)"},
+	"gpt-4o":                 {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o alias (routed to gemini-3.7-flash)"},
+	"gpt-4o-2024-11-20":      {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o date-versioned alias (routed to gemini-3.7-flash)"},
+	"gpt-4o-2024-08-06":      {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o structured outputs alias (routed to gemini-3.7-flash)"},
+	"gpt-4o-2024-05-13":      {Mode: 1, Think: 4, Desc: "OpenAI GPT-4o original release alias (routed to gemini-3.7-flash)"},
+	"gpt-4o-mini":            {Mode: 6, Think: 4, Desc: "OpenAI GPT-4o mini alias (routed to gemini-flash-lite)"},
 	"gpt-4o-mini-2024-07-18": {Mode: 6, Think: 4, Desc: "OpenAI GPT-4o mini date-versioned alias (routed to gemini-flash-lite)"},
-	"chatgpt-4o-latest": {Mode: 1, Think: 4, Desc: "OpenAI ChatGPT latest dynamic alias (routed to gemini-3.7-flash)"},
-	"gpt-4.1":           {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.1 alias (routed to gemini-3.7-flash)"},
-	"gpt-4.1-mini":      {Mode: 6, Think: 4, Desc: "OpenAI GPT-4.1 mini alias (routed to gemini-flash-lite)"},
-	"gpt-4-turbo":       {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 Turbo alias (routed to gemini-3.7-flash)"},
-	"gpt-4-turbo-preview": {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 Turbo Preview alias (routed to gemini-3.7-flash)"},
-	"gpt-4":             {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 classic alias (routed to gemini-3.7-flash)"},
-	"gpt-3.5-turbo":     {Mode: 6, Think: 4, Desc: "OpenAI GPT-3.5 Turbo alias (routed to gemini-flash-lite)"},
-	"gpt-3.5-turbo-0125": {Mode: 6, Think: 4, Desc: "OpenAI GPT-3.5 Turbo date-versioned alias (routed to gemini-flash-lite)"},
-	"chat-latest":       {Mode: 1, Think: 4, Desc: "OpenAI ChatGPT latest alias (routed to gemini-3.7-flash)"},
-	"o3":                {Mode: 2, Think: 0, Desc: "OpenAI o3 reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o3-mini":           {Mode: 2, Think: 0, Desc: "OpenAI o3-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o3-mini-2025-01-31": {Mode: 2, Think: 0, Desc: "OpenAI o3-mini date-versioned alias (routed to gemini-3.7-flash-thinking)"},
-	"o3-pro":            {Mode: 3, Think: 4, Desc: "OpenAI o3-pro reasoning alias (routed to gemini-3.1-pro)"},
-	"o4-mini":           {Mode: 2, Think: 0, Desc: "OpenAI o4-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o1":                {Mode: 2, Think: 0, Desc: "OpenAI o1 reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o1-2024-12-17":     {Mode: 2, Think: 0, Desc: "OpenAI o1 date-versioned alias (routed to gemini-3.7-flash-thinking)"},
-	"o1-preview":        {Mode: 2, Think: 0, Desc: "OpenAI o1-preview reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o1-preview-2024-09-12": {Mode: 2, Think: 0, Desc: "OpenAI o1-preview date-versioned alias (routed to gemini-3.7-flash-thinking)"},
-	"o1-mini":           {Mode: 2, Think: 0, Desc: "OpenAI o1-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"o1-pro":            {Mode: 3, Think: 4, Desc: "OpenAI o1-pro reasoning alias (routed to gemini-3.1-pro)"},
+	"chatgpt-4o-latest":      {Mode: 1, Think: 4, Desc: "OpenAI ChatGPT latest dynamic alias (routed to gemini-3.7-flash)"},
+	"gpt-4.1":                {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.1 alias (routed to gemini-3.7-flash)"},
+	"gpt-4.1-mini":           {Mode: 6, Think: 4, Desc: "OpenAI GPT-4.1 mini alias (routed to gemini-flash-lite)"},
+	"gpt-4-turbo":            {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 Turbo alias (routed to gemini-3.7-flash)"},
+	"gpt-4-turbo-preview":    {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 Turbo Preview alias (routed to gemini-3.7-flash)"},
+	"gpt-4":                  {Mode: 1, Think: 4, Desc: "OpenAI GPT-4 classic alias (routed to gemini-3.7-flash)"},
+	"gpt-3.5-turbo":          {Mode: 6, Think: 4, Desc: "OpenAI GPT-3.5 Turbo alias (routed to gemini-flash-lite)"},
+	"gpt-3.5-turbo-0125":     {Mode: 6, Think: 4, Desc: "OpenAI GPT-3.5 Turbo date-versioned alias (routed to gemini-flash-lite)"},
+	"chat-latest":            {Mode: 1, Think: 4, Desc: "OpenAI ChatGPT latest alias (routed to gemini-3.7-flash)"},
+	"o3":                     {Mode: 2, Think: 0, Desc: "OpenAI o3 reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o3-mini":                {Mode: 2, Think: 0, Desc: "OpenAI o3-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o3-mini-2025-01-31":     {Mode: 2, Think: 0, Desc: "OpenAI o3-mini date-versioned alias (routed to gemini-3.7-flash-thinking)"},
+	"o3-pro":                 {Mode: 3, Think: 4, Desc: "OpenAI o3-pro reasoning alias (routed to gemini-3.1-pro)"},
+	"o4-mini":                {Mode: 2, Think: 0, Desc: "OpenAI o4-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o1":                     {Mode: 2, Think: 0, Desc: "OpenAI o1 reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o1-2024-12-17":          {Mode: 2, Think: 0, Desc: "OpenAI o1 date-versioned alias (routed to gemini-3.7-flash-thinking)"},
+	"o1-preview":             {Mode: 2, Think: 0, Desc: "OpenAI o1-preview reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o1-preview-2024-09-12":  {Mode: 2, Think: 0, Desc: "OpenAI o1-preview date-versioned alias (routed to gemini-3.7-flash-thinking)"},
+	"o1-mini":                {Mode: 2, Think: 0, Desc: "OpenAI o1-mini reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"o1-pro":                 {Mode: 3, Think: 4, Desc: "OpenAI o1-pro reasoning alias (routed to gemini-3.1-pro)"},
 	"gemini-3.5-flash-lite": {
 		Mode:  6,
 		Think: 4,
@@ -220,8 +220,8 @@ var MODELS = map[string]Model{
 		Think: 4,
 		Desc:  "Gemini Omni 1.1 Flash conversational multimodal model",
 	},
-	"gpt-4.5":           {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.5 research preview alias (routed to gemini-3.7-flash)"},
-	"gpt-4.5-preview":   {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.5 Preview alias (routed to gemini-3.7-flash)"},
+	"gpt-4.5":                    {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.5 research preview alias (routed to gemini-3.7-flash)"},
+	"gpt-4.5-preview":            {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.5 Preview alias (routed to gemini-3.7-flash)"},
 	"gpt-4.5-preview-2025-02-27": {Mode: 1, Think: 4, Desc: "OpenAI GPT-4.5 date-versioned alias (routed to gemini-3.7-flash)"},
 	// Anthropic Claude 5, 4.5 & 4 Family
 	"claude-5-sonnet":            {Mode: 2, Think: 0, Desc: "Anthropic Claude Sonnet 5 flagship daily driver (routed to gemini-3.7-flash-thinking)"},
@@ -256,13 +256,13 @@ var MODELS = map[string]Model{
 	"claude-opus-4":              {Mode: 3, Think: 4, Desc: "Anthropic Claude Opus 4 frontier alias (routed to gemini-3.1-pro)"},
 	"claude-code":                {Mode: 2, Think: 0, Desc: "Anthropic Claude Code alias (routed to gemini-3.7-flash-thinking)"},
 	// DeepSeek & Open Weights Drop-in Aliases
-	"deepseek-r1":                {Mode: 2, Think: 0, Desc: "DeepSeek R1 reasoning alias (routed to gemini-3.7-flash-thinking)"},
-	"deepseek-reasoner":          {Mode: 2, Think: 0, Desc: "DeepSeek Reasoner API alias (routed to gemini-3.7-flash-thinking)"},
-	"deepseek-v3":                {Mode: 1, Think: 4, Desc: "DeepSeek V3 chat alias (routed to gemini-3.7-flash)"},
-	"deepseek-chat":              {Mode: 1, Think: 4, Desc: "DeepSeek Chat API alias (routed to gemini-3.7-flash)"},
-	"llama-3.3-70b":              {Mode: 1, Think: 4, Desc: "Meta LLaMA 3.3 70B alias (routed to gemini-3.7-flash)"},
-	"llama-3.1-405b":             {Mode: 3, Think: 4, Desc: "Meta LLaMA 3.1 405B flagship alias (routed to gemini-3.1-pro)"},
-	"qwen-2.5-coder-32b":         {Mode: 1, Think: 4, Desc: "Qwen 2.5 Coder 32B alias (routed to gemini-3.7-flash)"},
+	"deepseek-r1":        {Mode: 2, Think: 0, Desc: "DeepSeek R1 reasoning alias (routed to gemini-3.7-flash-thinking)"},
+	"deepseek-reasoner":  {Mode: 2, Think: 0, Desc: "DeepSeek Reasoner API alias (routed to gemini-3.7-flash-thinking)"},
+	"deepseek-v3":        {Mode: 1, Think: 4, Desc: "DeepSeek V3 chat alias (routed to gemini-3.7-flash)"},
+	"deepseek-chat":      {Mode: 1, Think: 4, Desc: "DeepSeek Chat API alias (routed to gemini-3.7-flash)"},
+	"llama-3.3-70b":      {Mode: 1, Think: 4, Desc: "Meta LLaMA 3.3 70B alias (routed to gemini-3.7-flash)"},
+	"llama-3.1-405b":     {Mode: 3, Think: 4, Desc: "Meta LLaMA 3.1 405B flagship alias (routed to gemini-3.1-pro)"},
+	"qwen-2.5-coder-32b": {Mode: 1, Think: 4, Desc: "Qwen 2.5 Coder 32B alias (routed to gemini-3.7-flash)"},
 	// Google Image Generation & Multimodal Nano Banana Models
 	"imagen-3":                {Mode: 1, Think: 4, Desc: "Google Imagen 3 High-Fidelity Photorealistic Image Generation Model"},
 	"imagen-3-fast":           {Mode: 1, Think: 4, Desc: "Google Imagen 3 Fast Generation Model"},
@@ -287,6 +287,19 @@ const DefaultModelName = "gemini-3.6-flash"
 // It supports model name suffixes like "@think=N" (e.g. "gemini-3.6-flash@think=0")
 // to dynamically override the model's default thinking depth without modifying the model mapping.
 func Resolve(modelName, defaultName string) (Resolved, error) {
+	return resolve(modelName, defaultName, true)
+}
+
+// ResolveStrict resolves only an explicitly registered model. It is intended
+// for endpoints where silently routing an unknown model to a different model
+// would violate the caller's contract (for example image generation or a
+// refinement request). The long-standing Resolve behavior remains available
+// for compatibility with the adapter aliases that intentionally fall back.
+func ResolveStrict(modelName, defaultName string) (Resolved, error) {
+	return resolve(modelName, defaultName, false)
+}
+
+func resolve(modelName, defaultName string, allowFallback bool) (Resolved, error) {
 	if defaultName == "" {
 		defaultName = DefaultModelName
 	}
@@ -305,6 +318,9 @@ func Resolve(modelName, defaultName string) (Resolved, error) {
 
 	cfg, exists := MODELS[modelName]
 	if !exists {
+		if !allowFallback {
+			return Resolved{}, fmt.Errorf("unknown model %q", modelName)
+		}
 		log.Printf("Unknown model '%s', falling back to '%s'", modelName, defaultName)
 		modelName = defaultName
 		cfg = MODELS[defaultName]
@@ -342,4 +358,3 @@ func GetAllModels() map[string]Model {
 	}
 	return res
 }
-

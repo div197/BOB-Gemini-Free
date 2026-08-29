@@ -36,9 +36,10 @@ func TestSecurityBoundaryRejectsUntrustedOrigin(t *testing.T) {
 	}
 }
 
-func TestSecurityBoundaryAllowsLoopbackOrigin(t *testing.T) {
+func TestSecurityBoundaryAllowsExactLocalGatewayOrigin(t *testing.T) {
 	app := New(config.Default(), "security-loopback")
 	preflight := httptest.NewRequest(http.MethodOptions, "/v1/chat/completions", nil)
+	preflight.Host = "127.0.0.1:39123"
 	preflight.Header.Set("Origin", "http://127.0.0.1:39123")
 	preflight.Header.Set("Access-Control-Request-Method", http.MethodPost)
 	rec := httptest.NewRecorder()
@@ -51,6 +52,19 @@ func TestSecurityBoundaryAllowsLoopbackOrigin(t *testing.T) {
 	}
 	if got := rec.Header().Get("Vary"); got != "Origin" {
 		t.Fatalf("loopback Vary = %q, want Origin", got)
+	}
+}
+
+func TestSecurityBoundaryRejectsDifferentLoopbackOrigin(t *testing.T) {
+	app := New(config.Default(), "security-loopback-reject")
+	preflight := httptest.NewRequest(http.MethodOptions, "/v1/chat/completions", nil)
+	preflight.Host = "127.0.0.1:39123"
+	preflight.Header.Set("Origin", "http://127.0.0.1:39124")
+	preflight.Header.Set("Access-Control-Request-Method", http.MethodPost)
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, preflight)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("different loopback preflight status = %d, want 403", rec.Code)
 	}
 }
 

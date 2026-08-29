@@ -4,9 +4,11 @@ import (
 	"context"
 	"errors"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 )
@@ -43,6 +45,53 @@ func TestShouldRetryUpstreamOnlyRetriesTransientFailures(t *testing.T) {
 				t.Fatalf("shouldRetryUpstream(%v) = %t, want %t", tt.err, got, tt.want)
 			}
 		})
+	}
+}
+
+func TestTriageStatusCapturesBoundedRetryAfter(t *testing.T) {
+	client := &Client{}
+	resp := &http.Response{
+		StatusCode: http.StatusServiceUnavailable,
+		Header:     http.Header{"Retry-After": []string{"7"}},
+	}
+	err := client.triageStatus(resp)
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) {
+		t.Fatalf("triage error = %v, want UpstreamError", err)
+	}
+	if upstreamErr.RetryAfter != 7*time.Second {
+		t.Fatalf("retry-after = %s, want 7s", upstreamErr.RetryAfter)
+	}
+	if got := parseRetryAfter("999999999"); got != maxUpstreamRetryBackoff {
+		t.Fatalf("oversized retry-after = %s, want %s", got, maxUpstreamRetryBackoff)
+	}
+	if got := parseRetryAfter("not-a-delay"); got != 0 {
+		t.Fatalf("invalid retry-after = %s, want 0", got)
+	}
+}
+
+func TestUpstreamRetryDelayIsCappedAndJittered(t *testing.T) {
+	for attempt := 0; attempt < 8; attempt++ {
+		got := upstreamRetryDelay(attempt, 2)
+		if got < time.Second || got > maxUpstreamRetryBackoff {
+			t.Fatalf("attempt %d delay = %s, want [1s, %s]", attempt, got, maxUpstreamRetryBackoff)
+		}
+	}
+	if got := upstreamRetryDelay(4, 0); got != 0 {
+		t.Fatalf("zero-base retry delay = %s, want 0", got)
+	}
+}
+
+func TestWaitForUpstreamRetryHonorsContextCancellation(t *testing.T) {
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	started := time.Now()
+	err := waitForUpstreamRetry(ctx, &UpstreamError{RetryAfter: 5 * time.Second}, 0, 2)
+	if !errors.Is(err, context.Canceled) {
+		t.Fatalf("wait error = %v, want context.Canceled", err)
+	}
+	if elapsed := time.Since(started); elapsed > time.Second {
+		t.Fatalf("cancelled retry wait took %s", elapsed)
 	}
 }
 
@@ -90,9 +139,9 @@ func TestGenerateDoesNotAmplifyBardRateLimit(t *testing.T) {
 	}
 }
 
-func TestGenerateRetriesTransportFailure(t *testing.T) {
+func TestGenerateRetriesPreRequestDialFailure(t *testing.T) {
 	requester := &goldenRequester{responses: []goldenHTTPResponse{
-		{err: errors.New("temporary connection reset")},
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
 		{response: goldenOK(io.NopCloser(strings.NewReader(goldenBoQLine("recovered response"))))},
 	}}
 	client := testClientWithRequester(requester, 2)
@@ -108,7 +157,173 @@ func TestGenerateRetriesTransportFailure(t *testing.T) {
 	called := requester.called
 	requester.mu.Unlock()
 	if called != 2 {
-		t.Fatalf("transport retry request count = %d, want 2", called)
+		t.Fatalf("pre-request dial retry request count = %d, want 2", called)
+	}
+}
+
+func TestGenerateDoesNotRetryAmbiguousTransportFailure(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{
+		{err: errors.New("connection reset after request write")},
+		{response: goldenOK(io.NopCloser(strings.NewReader(goldenBoQLine("must not replay"))))},
+	}}
+	client := testClientWithRequester(requester, 2)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "connection reset") {
+		t.Fatalf("ambiguous transport error = %v", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 1 {
+		t.Fatalf("ambiguous transport request count = %d, want 1", called)
+	}
+}
+
+func TestGenerateRejectsOversizedUpstreamResponse(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{{
+		response: goldenOK(io.NopCloser(strings.NewReader(strings.Repeat("x", maxUpstreamResponseBytes+1)))),
+	}}}
+	client := testClientWithRequester(requester, 1)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "exceeded") {
+		t.Fatalf("oversized response error = %v", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 1 {
+		t.Fatalf("oversized response request count = %d, want 1", called)
+	}
+}
+
+func TestGenerateRejectsNilUpstreamResponseWithoutRetry(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{{}}}
+	client := testClientWithRequester(requester, 3)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "empty response") {
+		t.Fatalf("nil response error = %v", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 1 {
+		t.Fatalf("nil response request count = %d, want 1", called)
+	}
+}
+
+func TestGenerateStreamRejectsOversizedLineWithoutRetry(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{{
+		response: goldenOK(io.NopCloser(strings.NewReader(strings.Repeat("x", maxUpstreamStreamLineBytes+1) + "\n"))),
+	}}}
+	client := testClientWithRequester(requester, 3)
+
+	err := client.GenerateStreamContext(context.Background(), "fixture", 1, 4, nil, nil, func(string) error { return nil })
+	if err == nil || !strings.Contains(err.Error(), "stream line exceeded") {
+		t.Fatalf("oversized stream line error = %v", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 1 {
+		t.Fatalf("oversized stream line request count = %d, want 1", called)
+	}
+}
+
+func TestStreamAttemptRejectsAggregateByteLimit(t *testing.T) {
+	client := &Client{}
+	streamBytes := int64(maxUpstreamStreamBytes)
+	err := client.streamAttempt(strings.NewReader("ignored\n"), NewStreamParser(), func(string) error { return nil }, &streamBytes)
+	if err == nil || !strings.Contains(err.Error(), "stream exceeded") {
+		t.Fatalf("aggregate stream error = %v", err)
+	}
+}
+
+func TestStreamAttemptRejectsMissingParserOrCallback(t *testing.T) {
+	client := &Client{}
+	if err := client.streamAttempt(strings.NewReader("ignored\n"), nil, func(string) error { return nil }, nil); err == nil || !strings.Contains(err.Error(), "parser") {
+		t.Fatalf("nil parser error = %v", err)
+	}
+	if err := client.streamAttempt(strings.NewReader("ignored\n"), NewStreamParser(), nil, nil); err == nil || !strings.Contains(err.Error(), "callback") {
+		t.Fatalf("nil callback error = %v", err)
+	}
+}
+
+func TestClientStopsWhenAllConfiguredSessionsAreCoolingDown(t *testing.T) {
+	requester := &goldenRequester{}
+	client := testClientWithRequester(requester, 3)
+	client.Pool.AddSession("student.txt", "SID=sid; SAPISID=sapisid", "sapisid", "")
+	session := client.Pool.GetHealthySession()
+	if session == nil {
+		t.Fatal("configured session was not available before failure")
+	}
+	client.Pool.MarkFailure(session.ID)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) || upstreamErr.Kind != "session" {
+		t.Fatalf("cooldown error = %#v, want session UpstreamError", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 0 {
+		t.Fatalf("cooldown bypass made %d upstream requests", called)
+	}
+}
+
+func TestNewClientConfiguresTotalTimeout(t *testing.T) {
+	cfg := config.Default()
+	cfg.RequestTimeoutSec = 7
+	client := NewClient(cfg)
+	httpClient, ok := client.HTTP.(*http.Client)
+	if !ok {
+		t.Fatalf("HTTP requester type = %T, want *http.Client", client.HTTP)
+	}
+	if got := httpClient.Timeout; got != 7*time.Second {
+		t.Fatalf("HTTP client timeout = %s, want 7s", got)
+	}
+}
+
+func TestClientOnlyCoalescesAnonymousRequests(t *testing.T) {
+	client := testClientWithRequester(&goldenRequester{}, 1)
+	client.Flight = NewStreamFlight()
+
+	if key := client.requestFlightKey("same prompt", 1, 4, nil); key == "" {
+		t.Fatal("anonymous request unexpectedly disabled from-flight coalescing")
+	}
+
+	client.Cfg.CookieFile = "student-session.txt"
+	if key := client.requestFlightKey("same prompt", 1, 4, nil); key != "" {
+		t.Fatalf("configured cookie request received a coalescing key %q", key)
+	}
+
+	client.Cfg.CookieFile = ""
+	client.Pool.AddSession("student-session.txt", "SID=sid; SAPISID=sapisid", "sapisid", "")
+	if key := client.requestFlightKey("same prompt", 1, 4, nil); key != "" {
+		t.Fatalf("loaded session request received a coalescing key %q", key)
+	}
+}
+
+func TestConfiguredSessionPoolNeverFallsBackToGuestCookie(t *testing.T) {
+	client := testClientWithRequester(&goldenRequester{}, 1)
+	client.Pool.AddSession("student-session.txt", "SID=student; SAPISID=student-sapi", "student-sapi", "")
+
+	headers := client.buildHeaders(nil, "guest-cookie=1")
+	if got := headers.Get("Cookie"); got != "" {
+		t.Fatalf("configured session pool downgraded to guest cookie %q", got)
+	}
+}
+
+func TestConfiguredInvalidCookieNeverFallsBackToGuestCookie(t *testing.T) {
+	client := testClientWithRequester(&goldenRequester{}, 1)
+	client.Cfg.CookieFile = "missing-or-invalid-cookie.txt"
+
+	headers := client.buildHeaders(nil, "guest-cookie=1")
+	if got := headers.Get("Cookie"); got != "" {
+		t.Fatalf("configured invalid cookie downgraded to guest cookie %q", got)
 	}
 }
 
