@@ -11,7 +11,11 @@ PLATFORM="${BOB_WAILS_PLATFORM:-windows/amd64}"
 INTERNAL_APP_NAME="bob-gemini-free"
 VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.1}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
-EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
+EXPECTED_PUBLIC_KEY="$(awk '
+	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
+	in_key && /^[[:space:]]*$/ { in_key=0 }
+	in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }
+' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 
 if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
 	echo "preview packages require a semantic -preview.N version: $VERSION" >&2

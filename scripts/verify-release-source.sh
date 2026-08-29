@@ -25,6 +25,73 @@ if [[ -z "$MAKE_VERSION" ]]; then
 	echo "Makefile VERSION is missing" >&2
 	exit 1
 fi
+if [[ ! "$MAKE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+	echo "Makefile VERSION is not a stable semantic version: $MAKE_VERSION" >&2
+	exit 1
+fi
+
+# The standalone installers must carry the same trust anchor as the native
+# package build. Keep this check in the release-source gate so a future key
+# rotation cannot update only the Go/desktop path and silently leave the
+# public bootstrap scripts unable to verify releases.
+PUBLIC_KEY_FILE="$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt"
+if [[ ! -f "$PUBLIC_KEY_FILE" ]]; then
+	echo "update public-key file is missing: $PUBLIC_KEY_FILE" >&2
+	exit 1
+fi
+PUBLIC_KEY_HEX="$(awk '
+	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
+	in_key && /^[[:space:]]*$/ { in_key=0 }
+	in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { count++; value=tolower($0) }
+	END { if (count != 1) exit 1; print value }
+' "$PUBLIC_KEY_FILE")" || {
+	echo "update public-key file must contain exactly one 64-character hexadecimal key" >&2
+	exit 1
+}
+INSTALL_PUBLIC_KEY_HEX="$(awk -F'"' '$1 == "UPDATE_PUBLIC_KEY_HEX=" { count++; value=tolower($2) } END { if (count != 1) exit 1; print value }' "$ROOT_DIR/install.sh")" || {
+	echo "install.sh must contain exactly one UPDATE_PUBLIC_KEY_HEX assignment" >&2
+	exit 1
+}
+if [[ "$INSTALL_PUBLIC_KEY_HEX" != "$PUBLIC_KEY_HEX" ]]; then
+	echo "install.sh update public key does not match $PUBLIC_KEY_FILE" >&2
+	exit 1
+fi
+WINDOWS_PUBLIC_KEY_HEX="$(awk -F'"' '$1 ~ /^\$UpdatePublicKeyHex[[:space:]]*=[[:space:]]*$/ { count++; value=tolower($2) } END { if (count != 1) exit 1; print value }' "$ROOT_DIR/install.ps1")" || {
+	echo "install.ps1 must contain exactly one UpdatePublicKeyHex assignment" >&2
+	exit 1
+}
+if [[ "$WINDOWS_PUBLIC_KEY_HEX" != "$PUBLIC_KEY_HEX" ]]; then
+	echo "install.ps1 update public key does not match $PUBLIC_KEY_FILE" >&2
+	exit 1
+fi
+
+DOCKER_VERSION="$(awk -F= '$1 == "ARG VERSION" { gsub(/[[:space:]]/, "", $2); print $2; exit }' "$ROOT_DIR/Dockerfile")"
+if [[ -n "$DOCKER_VERSION" && "$DOCKER_VERSION" != "$MAKE_VERSION" ]]; then
+	echo "Dockerfile VERSION $DOCKER_VERSION does not match Makefile VERSION $MAKE_VERSION" >&2
+	exit 1
+fi
+
+for preview_script in \
+	"scripts/package-wails-preview.sh" \
+	"scripts/package-wails-windows-preview.sh" \
+	"scripts/package-wails-linux-preview.sh"; do
+	preview_path="$ROOT_DIR/$preview_script"
+	if [[ ! -f "$preview_path" ]]; then
+		echo "preview packager is missing: $preview_script" >&2
+		exit 1
+	fi
+	preview_version="$(awk -F':-' '/^VERSION=.*BOB_RELEASE_VERSION/ { value=$2; sub(/}.*/, "", value); gsub(/"/, "", value); print value; exit }' "$preview_path")"
+	if [[ -z "$preview_version" || "$preview_version" != "$MAKE_VERSION-preview."* ]]; then
+		echo "$preview_script default preview version $preview_version does not use Makefile base $MAKE_VERSION" >&2
+		exit 1
+	fi
+	preview_channel="$(awk -F':-' '/^CHANNEL=.*BOB_RELEASE_CHANNEL/ { value=$2; sub(/}.*/, "", value); gsub(/"/, "", value); print value; exit }' "$preview_path")"
+	if [[ "$preview_channel" != "preview" ]]; then
+		echo "$preview_script default channel must be preview" >&2
+		exit 1
+	fi
+done
+
 if [[ -n "$VERSION" ]]; then
 	if [[ "$VERSION" == "$MAKE_VERSION" ]]; then
 		:

@@ -86,6 +86,10 @@ live provider key, or enabled GitHub Actions.
 ### Reliability and release hardening
 
 #### Added
+- Added a release-source preflight that treats the canonical Ed25519 public-key
+  block, standalone macOS/Linux and Windows installer trust anchors, Docker
+  base version, and preview packager defaults as one checked matrix. A key or
+  version drift now fails before a release package is built.
 - Added bounded, fail-closed release-control verification and a local release
   evidence receipt so the signed manifest, exact asset set, source revision,
   toolchain, and host can be reconciled before publication.

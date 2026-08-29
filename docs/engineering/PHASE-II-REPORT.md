@@ -456,6 +456,9 @@ risks as complete. The local implementation continuation added:
 - all three preview desktop Make targets now forward the checked-in public
   updater key to their packagers, and each preview packager rejects a stable
   version or non-preview channel before invoking Wails;
+- the release-source preflight now validates the explicit canonical updater-key
+  block against both standalone installers and the native/package entry points,
+  and rejects Docker or preview-version drift before packaging;
 - the 15-check diagnostic runner now fails closed on malformed/empty response
   objects, incomplete Anthropic lifecycles, oversized streams, and unavailable
   provider-dependent image generation rather than reporting a transport-only
