@@ -95,18 +95,22 @@ pilot path.
 ## Automatic update plan and 30-device rollout gate
 
 Preview 4 was the first public native preview with a signed, build-pinned
-preview update channel. After Preview 4 is installed once, a later signed
-preview can be discovered from the Help menu, verified, staged, and rolled
-back after user consent. Preview 3 still requires one manual migration because
-it has no embedded desktop trust key. Preview 6 installations also require
-  one manual migration to Preview 7 because the original project signing key
-  was not recoverable.
+update channel. A newly built current-key preview can discover a newer stable
+release from the Help menu and migrate after user consent; when stable has no
+update, a newer signed preview can be discovered, verified, staged, and rolled
+back. The already-published Preview 7 binary predates the stable-first change,
+so it must first receive a same-key bridge preview to reach stable through the
+updater, or be manually replaced with stable. Preview 3 still requires one
+manual migration because it has no embedded desktop trust key. Preview 6
+installations also require one manual migration to Preview 7 because the
+original project signing key was not recoverable.
 
 The source contains the tested user-consented updater that
 downloads a platform-matching package, verifies a release manifest with the
 embedded Ed25519 public key, asks the user to restart, replaces the app via a
 platform-specific helper, and retains rollback evidence. It is enabled for
-Preview 7's preview channel but never treats an unsigned archive as trusted.
+Preview 7's preview/stable migration policy but never treats an unsigned
+archive as trusted.
 Apple Developer
 ID/notarization and Windows publisher signing remain separate trust
 requirements; an Ed25519 manifest authenticates release bytes, not the

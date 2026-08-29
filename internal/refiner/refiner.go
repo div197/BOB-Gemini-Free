@@ -1,6 +1,7 @@
-// Package refiner provides a pure-local, zero-cloud multi-stage reasoning and prompt refiner engine.
-// It decomposes complex tasks into formal invariants, explores candidate reasoning traces,
-// verifies constraints against boundary conditions, and synthesizes clean outputs.
+// Package refiner provides a three-stage reasoning and prompt-refinement
+// orchestration. It calls a supplied inference function for decomposition,
+// audit, and synthesis; it does not provide a local model or guarantee zero
+// cloud use.
 package refiner
 
 import (
@@ -39,10 +40,10 @@ type RefinementResult struct {
 	TotalDuration  time.Duration  `json:"total_duration"`
 }
 
-// InferenceFunc defines the signature for local model generation.
+// InferenceFunc defines the inference operation supplied by the caller.
 type InferenceFunc func(ctx context.Context, prompt string) (string, error)
 
-// Engine manages local multi-stage reasoning refinement.
+// Engine manages multi-stage reasoning refinement.
 type Engine struct {
 	mu sync.RWMutex
 }
@@ -100,7 +101,8 @@ USER SPECIFICATION:
 %s`, plan, audit, userPrompt)
 }
 
-// Refine executes the complete 4-stage deep reasoning pipeline locally.
+// Refine executes the three-stage reasoning pipeline through the supplied
+// inference function.
 func (e *Engine) Refine(ctx context.Context, userPrompt string, infer InferenceFunc) (*RefinementResult, error) {
 	startTime := time.Now()
 	res := &RefinementResult{

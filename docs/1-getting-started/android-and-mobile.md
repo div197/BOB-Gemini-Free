@@ -1,197 +1,73 @@
-# Android & Mobile Deployment Guide (`pkg/mobile`)
+# Android and Mobile Status
 
-**BOB Gemini Free** supports running natively on **Android (ARM64)** and **iOS (Swift / Apple Silicon)** via the embedded `pkg/mobile` package and `gomobile bind`.
+**Status: experimental Go binding substrate; no supported native Android or iOS
+application is shipped.**
 
-This architecture turns any standard mobile phone or tablet into a **sovereign, self-contained AI coding workstation** with zero cloud API billing and zero external framework bloat.
+This page documents the boundary of `pkg/mobile` so it is not mistaken for a
+finished mobile product. The current repository contains Go source and tests,
+but it does not contain an Android Gradle project, Kotlin/Compose application,
+iOS Xcode project, SwiftUI application, AAR, XCFramework, mobile updater, or
+mobile release artifacts.
 
----
+## What currently exists
 
-## 📱 Mobile Architecture Overview
+`pkg/mobile` exposes a small Go API for exploratory embedding:
 
-```
-                                  ┌─────────────────────────────────────────────────────────┐
-                                  │               MOBILE APP (Android / iOS)                │
-                                  ├─────────────────────────────────────────────────────────┤
-                                  │  UI Layer: Jetpack Compose (Kotlin) / SwiftUI / Flutter │
-                                  └──────────────────────────┬──────────────────────────────┘
-                                                             │
-                                   ┌─────────────────────────┴─────────────────────────┐
-                                   │                                                   │
-                                   ▼                                                   ▼
-                    ┌──────────────────────────────┐                   ┌──────────────────────────────┐
-                    │   1-Tap Native Login Sheet   │                   │  Embedded Core (`gomobile`)  │
-                    │   (WebView / WKWebView)      │                   │  • In-Memory Stream Deltas   │
-                    │   • CookieManager (Android)  │ ──(Extracted)───► │  • Zero Socket Latency (0ms) │
-                    │   • WKCookieStore (iOS)      │    Cookies        │  • 4-Stage Invariant Refiner │
-                    │   • Hardware Keystore AES-256│                   │  • BPE Subword Tokenizer     │
-                    └──────────────────────────────┘                   └───────────────┬──────────────┘
-                                                                                       │
-                                                                                       ▼ (Direct HTTPS)
-                                                                       ┌──────────────────────────────┐
-                                                                       │    Google Gemini Web RPC     │
-                                                                       │    • streamGenerateContent   │
-                                                                       │    • batchexecute            │
-                                                                       └──────────────────────────────┘
-```
+- start and stop a local HTTP gateway;
+- report the gateway URL and health state;
+- call the existing Go Gemini client for text generation and streaming;
+- estimate tokens locally; and
+- call the existing three-stage refiner orchestration.
 
----
+The implementation currently creates a `net.Listener` and an HTTP server. It is
+therefore not an in-process, zero-socket, or 0 ms mobile transport. It uses the
+same Google web upstream as the desktop/CLI gateway, so generation remains
+network-, session-, account-, and provider-dependent.
 
-## 🤖 Android Integration (Kotlin & Jetpack Compose)
+The current cookie argument is written to a temporary local file for the Go
+client. It is not an Android `CookieManager`, iOS `WKHTTPCookieStore`, hardware
+keystore, or Keychain integration. Do not pass a shared teacher cookie, and do
+not bind the experimental gateway to `0.0.0.0` or another LAN interface.
 
-### 1. Build the Android Archive (`.aar`)
-Compile the `pkg/mobile` package into a standard Android `.aar` library:
+## Current verification
+
+The Go bridge has deterministic package tests:
 
 ```bash
-# Prerequisites: Go 1.26+ and Android NDK
-go install golang.org/x/mobile/cmd/gomobile@latest
-gomobile init
-
-# Compile BOB Mobile core
-gomobile bind -target=android -o bob-mobile.aar ./pkg/mobile
+go test ./pkg/mobile
+go test -race ./pkg/mobile
 ```
 
-Place `bob-mobile.aar` into your Android project's `app/libs/` folder.
+These tests cover the Go lifecycle and local health endpoint only. They do not
+prove an Android/iOS build, mobile UI, callback-thread safety, secure cookie
+storage, cancellation behavior, app lifecycle integration, or a real device.
+The audit host does not treat `gomobile` as an installed release tool.
 
----
+## What is required for a real mobile release
 
-### 2. Boot Gateway In-Process in Android (`MainActivity.kt`)
+Before describing BOB as a downloadable Android or iOS app, a separate mobile
+project and acceptance track is required:
 
-```kotlin
-package com.abcsteps.bobgeminifree
+1. choose and document the mobile UI/runtime architecture;
+2. implement app-sandboxed session storage using the platform security APIs;
+3. define cancellation, lifecycle, background, offline, and callback-thread
+   contracts;
+4. build and sign an Android APK/AAB and an iOS archive on the native hosts;
+5. test text, streaming, errors, expired sessions, large inputs, and app
+   suspension on representative devices;
+6. add a mobile-specific update/distribution policy; and
+7. publish only artifacts that have actually passed those gates.
 
-import android.os.Bundle
-import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import mobile.Mobile
-import mobile.MobileGateway
-import mobile.StreamCallback
+`gomobile bind` may be evaluated as an implementation experiment, but a bind
+command alone is not a native application or a release acceptance proof. No
+student should be asked to install an AAR/XCFramework generated from this
+repository until the missing application and security work is complete.
 
-class MainActivity : ComponentActivity() {
-    private val gateway: MobileGateway = Mobile.getDefaultGateway()
+## Desktop and CLI remain separate
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-
-        // 1. Start in-process gateway on 127.0.0.1 (random high port or 9610)
-        val endpointUrl = gateway.start(9610, "127.0.0.1", "")
-
-        setContent {
-            MobileStudioScreen(gateway = gateway)
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        gateway.stop()
-    }
-}
-```
-
----
-
-### 3. 1-Tap Google Sign-In with Android `CookieManager`
-
-Android provides programmatic access to web session cookies without requiring developer flags:
-
-```kotlin
-import android.webkit.CookieManager
-import android.webkit.WebView
-import android.webkit.WebViewClient
-
-fun setupGoogleLoginWebView(webView: WebView, onSessionExtracted: (String) -> Unit) {
-    webView.settings.javaScriptEnabled = true
-    webView.webViewClient = object : WebViewClient() {
-        override fun onPageFinished(view: WebView?, url: String?) {
-            super.onPageFinished(view, url)
-            if (url?.contains("gemini.google.com") == true) {
-                val cookies = CookieManager.getInstance().getCookie("https://gemini.google.com")
-                if (cookies != null && cookies.contains("__Secure-1PSID")) {
-                    onSessionExtracted(cookies)
-                }
-            }
-        }
-    }
-    webView.loadUrl("https://gemini.google.com/app")
-}
-```
-
----
-
-### 4. Real-Time Streaming in Jetpack Compose
-
-```kotlin
-fun streamResponse(prompt: String, onTextUpdate: (String) -> Unit) {
-    val callback = object : StreamCallback {
-        override fun onDelta(chunk: String) {
-            runOnUiThread {
-                onTextUpdate(chunk)
-            }
-        }
-
-        override fun onComplete(totalTokens: Long, errStr: String) {
-            if (errStr.isNotEmpty()) {
-                println("Stream error: $errStr")
-            }
-        }
-    }
-
-    Thread {
-        gateway.generateStream(prompt, "gemini-3.7-flash", callback)
-    }.start()
-}
-```
-
----
-
-## 🛠️ Mobile IDE Integration (Acode & Termux)
-
-Students on Android can use BOB directly inside mobile code editors:
-
-### Acode Editor Configuration:
-1. Open **Acode** $\rightarrow$ **Settings** $\rightarrow$ **AI Assistant Plugin**.
-2. Set **Base URL**: `http://127.0.0.1:9610/v1`
-3. Set **API Key**: `none`
-4. Set **Model**: `gemini-3.7-flash` or `gemini-3.7-flash-thinking`
-
-### Termux CLI Configuration:
-```bash
-export OPENAI_BASE_URL=http://127.0.0.1:9610/v1
-export OPENAI_API_KEY=none
-export ANTHROPIC_BASE_URL=http://127.0.0.1:9610
-export ANTHROPIC_API_KEY=none
-
-# Test instant CLI completion on Android
-curl -s http://127.0.0.1:9610/v1/chat/completions \
-  -H "Content-Type: application/json" \
-  -d '{"model": "gemini-3.7-flash", "messages": [{"role": "user", "content": "Hello from Android Termux!"}]}'
-```
-
----
-
-## 🍏 iOS Integration (Swift & SwiftUI)
-
-1. Compile the Apple `XCFramework`:
-   ```bash
-   gomobile bind -target=ios -o BOBMobile.xcframework ./pkg/mobile
-   ```
-2. Drag `BOBMobile.xcframework` into your Xcode project.
-3. Import and initialize in SwiftUI:
-   ```swift
-   import SwiftUI
-   import BOBMobile
-
-   @main
-   struct BOBApp: App {
-       let gateway = MobileGetDefaultGateway()!
-
-       init() {
-           try? gateway.start(9610, host: "127.0.0.1", cookieContent: "")
-       }
-
-       var body: some Scene {
-           WindowGroup {
-               ContentView(gateway: gateway)
-           }
-       }
-   }
-   ```
+The supported student-facing targets in this release cycle are the Go CLI and
+the Wails desktop application. Their release, signing, updater, and 30-device
+acceptance rules are documented in
+[`docs/engineering/RELEASE-READINESS-v0.2.0.md`](../engineering/RELEASE-READINESS-v0.2.0.md).
+The experimental mobile package is deliberately excluded from that desktop
+release contract.

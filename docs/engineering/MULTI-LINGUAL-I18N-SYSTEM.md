@@ -1,4 +1,9 @@
-# Multi-Lingual Universal i18n & Pedagogical Architecture for BOB Gemini Free (v0.1.9+)
+# Multi-Lingual i18n and Pedagogical Architecture for BOB Gemini Free
+
+**Implementation status:** English and Hindi UI translations are present. The
+Indic script selector exposes eight script codes, but it is not a complete
+eight-language UI or an offline translation engine. Transliteration may call
+Google Input Tools and has a small local fallback.
 
 > **"विद्ययाऽमृतमश्नुते" (Through True Knowledge, One Attains Immortality)**  
 > *Radical accessibility: Bringing state-of-the-art AI, first-principles systems engineering, and pedagogical clarity to every student in their native mother tongue.*
@@ -7,9 +12,13 @@
 
 ## 1. Executive Summary & Vision
 
-AI must not be an exclusive domain restricted by linguistic barriers or financial gatekeeping. **BOB Gemini Free** was created by **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)) and **ABCsteps** to give every student and young coder a completely local, zero-friction playground with **zero signup, zero OTP, and zero cloud billing**.
+AI must not be an exclusive domain restricted by linguistic barriers or financial gatekeeping. **BOB Gemini Free** was created by **Divyanshu Singh Chouhan** ([@div197](https://github.com/div197)). The browser UI is local-first and does not require a BOB account, but provider requests and optional transliteration services remain network- and session-dependent.
 
-To fulfill this mission, version **v0.1.9** establishes a **Universal Multi-Lingual Internationalization (i18n) & Pedagogical Subsystem**. This enables students across India and the globe to study, experiment with, and interrogate frontier AI models in their native languages with first-principles depth.
+The current implementation establishes a foundation for a multi-lingual
+internationalization (i18n) and pedagogical subsystem. It currently provides
+English/Hindi UI coverage plus selectable Indic transliteration targets; it does
+not establish full UI translation or native-language model capability for
+every listed language.
 
 ---
 
@@ -38,8 +47,10 @@ To fulfill this mission, version **v0.1.9** establishes a **Universal Multi-Ling
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Pillar 1: First-Principles Bilingual Base (`en` + `hi`)
-- Every UI element, telemetry metric, modal dialog, command palette action, and error message is 100% synchronized between **English** and **हिन्दी (Hindi)**.
+### Pillar 1: Bilingual Base (`en` + `hi`)
+- The current `I18N` registry supplies English and Hindi values for the
+  implemented UI surfaces. New dialogs, error paths, and future features still
+  require translation review; 100% synchronization is not assumed.
 - Pure zero-cliché explanations: avoiding tired LEGO tropes in favor of intuitive physical models (wave optics, statistical thermodynamics, vector spaces, and graph paths).
 
 ### Pillar 2: The Interactive AI & Systems Glossary ("Ask the Teacher")
@@ -66,28 +77,25 @@ To fulfill this mission, version **v0.1.9** establishes a **Universal Multi-Ling
 | Code | Language | Script | Phonetic Transliteration Engine | Status |
 | :--- | :--- | :--- | :--- | :--- |
 | `en` | English | Latin | N/A | **Active (Tier 1)** |
-| `hi` | हिन्दी (Hindi) | Devanagari | `hi-t-i0-und` (Active) | **Active (Tier 1)** |
-| `sa` | संस्कृतम् (Sanskrit) | Devanagari | `sa-t-i0-und` (Active) | Translit Live |
-| `mr` | मराठी (Marathi) | Devanagari | `mr-t-i0-und` (Active) | Translit Live |
-| `bn` | বাংলা (Bengali) | Eastern Nagari | `bn-t-i0-und` (Active) | Translit Live |
-| `gu` | ગુજરાતી (Gujarati) | Gujarati | `gu-t-i0-und` (Active) | Translit Live |
-| `ta` | தமிழ் (Tamil) | Tamil | `ta-t-i0-und` | Scheduled v0.1.9 |
-| `te` | తెలుగు (Telugu) | Telugu | `te-t-i0-und` | Scheduled v0.1.9 |
-| `kn` | ಕನ್ನಡ (Kannada) | Kannada | `kn-t-i0-und` | Scheduled v0.1.9 |
-| `ml` | മലയാളം (Malayalam) | Malayalam | `ml-t-i0-und` | Scheduled v0.1.9 |
-| `pa` | ਪੰਜਾਬੀ (Punjabi) | Gurmukhi | `pa-t-i0-und` | Scheduled v0.1.9 |
-| `or` | ଓଡ଼ିଆ (Odia) | Odia | `or-t-i0-und` | Scheduled v0.1.9 |
+| `hi` | हिन्दी (Hindi) | Devanagari | `hi-t-i0-und` | UI active; transliteration target |
+| `sa` | संस्कृतम् (Sanskrit) | Devanagari | `sa-t-i0-und` | Selector target; partial local fallback |
+| `mr` | मराठी (Marathi) | Devanagari | `mr-t-i0-und` | Selector target; partial local fallback |
+| `bn` | বাংলা (Bengali) | Eastern Nagari | `bn-t-i0-und` | Selector target; provider-dependent |
+| `gu` | ગુજરાતી (Gujarati) | Gujarati | `gu-t-i0-und` | Selector target; provider-dependent |
+| `ta` | தமிழ் (Tamil) | Tamil | `ta-t-i0-und` | Selector target; provider-dependent |
+| `te` | తెలుగు (Telugu) | Telugu | `te-t-i0-und` | Selector target; provider-dependent |
+| `pa` | ਪੰਜਾਬੀ (Punjabi) | Gurmukhi | `pa-t-i0-und` | Selector target; provider-dependent |
 
-### Global Language Tier
+### Global UI Language Tier
 | Code | Language | Native Title | Status |
 | :--- | :--- | :--- | :--- |
-| `es` | Spanish | Español | Scheduled v0.1.9+ |
-| `ja` | Japanese | 日本語 | Scheduled v0.1.9+ |
-| `de` | German | Deutsch | Scheduled v0.1.9+ |
-| `fr` | French | Français | Scheduled v0.1.9+ |
-| `ru` | Russian | Русский | Scheduled v0.1.9+ |
-| `ar` | Arabic | العربية | Scheduled v0.1.9+ |
-| `zh` | Chinese (Simplified) | 简体中文 | Scheduled v0.1.9+ |
+| `es` | Spanish | Español | Not implemented in current `I18N` registry |
+| `ja` | Japanese | 日本語 | Not implemented in current `I18N` registry |
+| `de` | German | Deutsch | Not implemented in current `I18N` registry |
+| `fr` | French | Français | Not implemented in current `I18N` registry |
+| `ru` | Russian | Русский | Not implemented in current `I18N` registry |
+| `ar` | Arabic | العربية | Not implemented in current `I18N` registry |
+| `zh` | Chinese (Simplified) | 简体中文 | Not implemented in current `I18N` registry |
 
 ---
 
@@ -128,10 +136,14 @@ I18N.ta = {
 
 ## 5. Verification & Testing
 
-Every language expansion is validated through:
-1. **Zero-Scroll Layout Bounds**: Ensuring typography and scripts do not cause horizontal or vertical clipping in modal viewports.
-2. **Headless Chrome CDP Lossless Screenshots**: Capturing high-resolution PNGs across desktop viewports (`1440x900`).
-3. **Full Go Test Suite**: 100% pass across all 14 Go packages (`go test -count=1 ./...`).
+The current evidence is narrower:
+1. The source registry and selector entries are inspected in
+   `internal/server/playground.html`.
+2. The full Go test suite checks the Go packages, not every browser language
+   string or viewport.
+3. A release-quality language expansion still needs browser tests at target
+   viewports, native-script typography review, fallback/error tests, and a
+   privacy review of any external transliteration request.
 
 ---
 

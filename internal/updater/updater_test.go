@@ -90,6 +90,30 @@ func TestFindMatchingDesktopAssetAcceptsLegacyMigrationName(t *testing.T) {
 	}
 }
 
+func TestIsOfficialGitHubURLPinsOfficialRepository(t *testing.T) {
+	tests := []struct {
+		name string
+		raw  string
+		want bool
+	}{
+		{name: "release asset", raw: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: true},
+		{name: "case variation", raw: "https://github.com/DIV197/bob-gemini-free/releases/tag/v0.2.0", want: true},
+		{name: "release CDN", raw: "https://objects.githubusercontent.com/github-production-release-asset/1/2/3?x=1", want: true},
+		{name: "other owner", raw: "https://github.com/another/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: false},
+		{name: "other repository", raw: "https://github.com/div197/other-repository/releases/download/v0.2.0/app.zip", want: false},
+		{name: "wrong scheme", raw: "http://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/app.zip", want: false},
+		{name: "lookalike host", raw: "https://github.com.evil.example/div197/BOB-Gemini-Free/app.zip", want: false},
+		{name: "unexpected port", raw: "https://github.com:444/div197/BOB-Gemini-Free/app.zip", want: false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := isOfficialGitHubURL(tt.raw); got != tt.want {
+				t.Fatalf("isOfficialGitHubURL(%q) = %v, want %v", tt.raw, got, tt.want)
+			}
+		})
+	}
+}
+
 func TestCheckLatestDesktopReportsMissingNativePackage(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
@@ -198,6 +222,181 @@ func TestCheckLatestDesktopPreviewSelectsHighestPublishedPreview(t *testing.T) {
 	}
 	if result.Channel != DesktopChannelPreview || !result.AssetAvailable || !result.ManifestAvailable {
 		t.Fatalf("preview channel result = %#v", result)
+	}
+}
+
+func TestLegacyPreview7CanDiscoverSameKeyBridgePreview(t *testing.T) {
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if r.URL.Path != "/preview" {
+			t.Errorf("legacy Preview 7 requested %s; want preview channel only", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+			TagName:    "v0.2.0-preview.1",
+			Prerelease: true,
+			HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1",
+			Assets: []ReleaseAsset{
+				{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.1/bob-gemini-free-macos-universal.zip", Size: 2048},
+				{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.1/SHA256SUMS"},
+				{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.1/SHA256SUMS.sig"},
+			},
+		}})
+	}))
+	defer server.Close()
+
+	// The published v0.1.7-preview.7 binary used this preview-only lookup.
+	// A same-key bridge is therefore the only updater-mediated path it can see.
+	result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", "v0.1.7-preview.7", DesktopChannelPreview, "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("legacy Preview 7 bridge lookup: %v", err)
+	}
+	if result.LatestVersion != "v0.2.0-preview.1" || !result.HasUpdate || !result.AssetAvailable || !result.ManifestAvailable {
+		t.Fatalf("legacy Preview 7 bridge result = %#v", result)
+	}
+	if requests != 1 {
+		t.Fatalf("legacy Preview 7 requests = %d, want 1 preview request", requests)
+	}
+}
+
+func TestLegacyPreview7CannotDiscoverStableWithoutBridge(t *testing.T) {
+	var requests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests++
+		if r.URL.Path != "/preview" {
+			t.Errorf("legacy Preview 7 requested %s; want preview channel only", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+			TagName:    "v0.1.7-preview.7",
+			Prerelease: true,
+			HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7",
+		}})
+	}))
+	defer server.Close()
+
+	// Even if a future stable v0.2.0 exists, the released Preview 7 updater did
+	// not query the stable endpoint and cannot discover that release directly.
+	result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", "v0.1.7-preview.7", DesktopChannelPreview, "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("legacy Preview 7 stable-only lookup: %v", err)
+	}
+	if result.HasUpdate {
+		t.Fatalf("legacy Preview 7 reported a stable update through preview-only lookup: %#v", result)
+	}
+	if requests != 1 {
+		t.Fatalf("legacy Preview 7 requests = %d, want 1 preview request", requests)
+	}
+}
+
+func TestPreviewDesktopBuildCanMigrateToNewerStableRelease(t *testing.T) {
+	var stableRequests, previewRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/stable":
+			stableRequests++
+			_ = json.NewEncoder(w).Encode(GitHubRelease{
+				TagName: "v0.2.0",
+				HTMLURL: "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0",
+				Assets: []ReleaseAsset{
+					{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-gemini-free-macos-universal.zip", Size: 2048},
+					{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/SHA256SUMS"},
+					{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/SHA256SUMS.sig"},
+				},
+			})
+		case "/preview":
+			previewRequests++
+			_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+				TagName:    "v0.1.7-preview.8",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.8",
+			}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("checkLatestDesktopPreviewWithStableMigration: %v", err)
+	}
+	if result.LatestVersion != "v0.2.0" || result.Channel != DesktopChannelStable {
+		t.Fatalf("migration result = %#v, want stable v0.2.0", result)
+	}
+	if !result.HasUpdate || !result.AssetAvailable || !result.ManifestAvailable {
+		t.Fatalf("migration result is not installable: %#v", result)
+	}
+	if stableRequests != 1 || previewRequests != 0 {
+		t.Fatalf("requests = stable:%d preview:%d, want stable:1 preview:0", stableRequests, previewRequests)
+	}
+}
+
+func TestPreviewDesktopBuildChecksPreviewWhenStableHasNoUpdate(t *testing.T) {
+	var stableRequests, previewRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/stable":
+			stableRequests++
+			_ = json.NewEncoder(w).Encode(GitHubRelease{TagName: "v0.1.5", HTMLURL: "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.5"})
+		case "/preview":
+			previewRequests++
+			_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+				TagName:    "v0.1.7-preview.8",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.8",
+			}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("checkLatestDesktopPreviewWithStableMigration: %v", err)
+	}
+	if result.LatestVersion != "v0.1.7-preview.8" || result.Channel != DesktopChannelPreview || !result.HasUpdate {
+		t.Fatalf("preview fallback result = %#v", result)
+	}
+	if stableRequests != 1 || previewRequests != 1 {
+		t.Fatalf("requests = stable:%d preview:%d, want one request to each channel", stableRequests, previewRequests)
+	}
+}
+
+func TestPreviewDesktopBuildDoesNotHideStableCheckFailure(t *testing.T) {
+	var previewRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/stable":
+			w.WriteHeader(http.StatusBadGateway)
+			_, _ = w.Write([]byte(`{"message":"upstream unavailable"}`))
+		case "/preview":
+			previewRequests++
+			_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+				TagName:    "v0.2.0-preview.1",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1",
+			}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	if _, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64"); err == nil {
+		t.Fatal("stable metadata failure was hidden by the preview path")
+	}
+	if previewRequests != 0 {
+		t.Fatalf("preview requests = %d, want 0 after stable failure", previewRequests)
 	}
 }
 

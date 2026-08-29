@@ -1,6 +1,8 @@
 # BOB Gemini Free v0.1.7-preview.7 Release Evidence
 
-**Status:** published prerelease `v0.1.7-preview.7` as of 2026-08-25.
+**Status:** historical evidence for published prerelease `v0.1.7-preview.7`
+(2026-08-25). This file describes that tag, not the current v0.2.0 source
+milestone.
 The tag points to merged commit `a5ec476`. A new owner-controlled Ed25519 key
 pair was generated because the original Preview 6 private key was not
 recoverable; its public half is recorded in `UPDATE-PUBLIC-KEY.txt`, while
@@ -61,5 +63,8 @@ provider burst.
 
 The updater remains explicit and user-consented. Preview 7 does not silently
 push itself to every installed Preview 6 device: those devices need the
-documented one-time manual migration. It does not change the Google upstream
-authentication or shared-network boundary.
+documented one-time manual migration. The released Preview 7 updater also
+predates the later stable-first source change and can discover only a newer
+preview; a same-key bridge preview or manual stable installation is required
+before updater-based migration to stable. It does not change the Google
+upstream authentication or shared-network boundary.

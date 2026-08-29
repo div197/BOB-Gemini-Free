@@ -5,16 +5,17 @@ set -euo pipefail
 # must not already exist so stale artifacts cannot accidentally be signed.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-VERSION="${BOB_RELEASE_VERSION:-v0.1.7}"
+VERSION="${BOB_RELEASE_VERSION:-v0.2.0}"
 OUTPUT_DIR="${1:-release-assets}"
 PUBLIC_KEY="${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}"
+EXPECTED_PUBLIC_KEY="$(awk 'length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 
 if [[ -z "$PUBLIC_KEY" ]]; then
   echo "BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY is required" >&2
   exit 1
 fi
-if [[ -z "${BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY:-}" ]]; then
-  echo "BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY is required" >&2
+if [[ -z "$EXPECTED_PUBLIC_KEY" || "$PUBLIC_KEY" != "$EXPECTED_PUBLIC_KEY" ]]; then
+  echo "configured update public key does not match $ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt" >&2
   exit 1
 fi
 if [[ "$OUTPUT_DIR" = "." || "$OUTPUT_DIR" = "/" || "$OUTPUT_DIR" = /* || "$OUTPUT_DIR" = *..* ]]; then
@@ -49,7 +50,6 @@ build_cli linux arm64
 build_cli windows amd64
 build_cli windows arm64
 
-BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY="$BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY" \
-  go run ./cmd/release-manifest -dir "$OUTPUT_DIR" -public-key "$PUBLIC_KEY"
+scripts/sign-release-assets.sh "$OUTPUT_DIR"
 
 echo "signed release assets: $ROOT_DIR/$OUTPUT_DIR"

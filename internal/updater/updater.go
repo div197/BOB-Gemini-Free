@@ -86,6 +86,12 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	if err := json.NewDecoder(resp.Body).Decode(&release); err != nil {
 		return nil, fmt.Errorf("failed to parse release metadata: %w", err)
 	}
+	if release.Draft || release.Prerelease {
+		return nil, fmt.Errorf("latest release endpoint returned a non-stable release")
+	}
+	if release.HTMLURL != "" && !isOfficialGitHubURL(release.HTMLURL) {
+		return nil, fmt.Errorf("release metadata contains a non-official release URL")
+	}
 
 	latestVer := strings.TrimPrefix(release.TagName, "v")
 	currVer := strings.TrimPrefix(currentVersion, "v")
@@ -95,14 +101,23 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 
 	downloadURL := ""
 	if targetAsset != nil {
+		if targetAsset.BrowserDownloadURL == "" || !isOfficialGitHubURL(targetAsset.BrowserDownloadURL) {
+			return nil, fmt.Errorf("release asset %q has a non-official download URL", targetAsset.Name)
+		}
 		downloadURL = targetAsset.BrowserDownloadURL
 	}
 	checksumURL := ""
 	if checksumAsset := findAssetByName(release.Assets, "SHA256SUMS"); checksumAsset != nil {
+		if checksumAsset.BrowserDownloadURL == "" || !isOfficialGitHubURL(checksumAsset.BrowserDownloadURL) {
+			return nil, fmt.Errorf("release checksum manifest has a non-official download URL")
+		}
 		checksumURL = checksumAsset.BrowserDownloadURL
 	}
 	signatureURL := ""
 	if signatureAsset := findAssetByName(release.Assets, "SHA256SUMS.sig"); signatureAsset != nil {
+		if signatureAsset.BrowserDownloadURL == "" || !isOfficialGitHubURL(signatureAsset.BrowserDownloadURL) {
+			return nil, fmt.Errorf("release checksum signature has a non-official download URL")
+		}
 		signatureURL = signatureAsset.BrowserDownloadURL
 	}
 

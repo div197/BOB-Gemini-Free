@@ -1,8 +1,6 @@
-// Package mobile provides mobile-optimized bindings for embedding BOB Gemini Free into
-// Android (via gomobile bind to .aar) and iOS (via gomobile bind to XCFramework / Swift).
-//
-// It enables Android and iOS apps to run the complete gateway engine in-process with 0ms loopback latency,
-// direct in-memory streaming callbacks, and native cookie injection from Android CookieManager or Apple WKHTTPCookieStore.
+// Package mobile provides an experimental Go bridge for future Android/iOS
+// bindings. It is not itself a native mobile application and currently starts
+// a local HTTP gateway backed by the existing Google web client.
 package mobile
 
 import (
@@ -22,14 +20,15 @@ import (
 	"github.com/div197/bob-gemini-free/internal/server"
 )
 
-// StreamCallback defines the interface for receiving real-time token deltas on mobile.
-// Both Kotlin (Android) and Swift (iOS) implement this interface to update UI states.
+// StreamCallback defines the interface an eventual mobile host can implement
+// to receive real-time token deltas.
 type StreamCallback interface {
 	OnDelta(delta string)
 	OnComplete(totalTokens int, errStr string)
 }
 
-// MobileGateway provides an in-process mobile bridge to the BOB Gemini Free core engine.
+// MobileGateway provides an experimental local HTTP bridge to the BOB Gemini
+// Free core engine.
 type MobileGateway struct {
 	mu         sync.RWMutex
 	app        *server.App
@@ -53,9 +52,9 @@ func GetDefaultGateway() *MobileGateway {
 	return defaultGateway
 }
 
-// Start boots the in-process HTTP gateway on Android or iOS.
-// If port is 0, an available random high port is automatically allocated.
-// If cookieContent is provided, it is securely cached into the application sandbox.
+// Start boots the local HTTP gateway. If cookieContent is provided, the current
+// experimental implementation writes it to a temporary file for the Go client;
+// it does not provide platform keystore integration.
 func (m *MobileGateway) Start(port int, host string, cookieContent string) (string, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
@@ -152,7 +151,8 @@ func (m *MobileGateway) GetURL() string {
 	return m.baseURL
 }
 
-// Generate executes a synchronous generation request directly in Go memory with 0ms socket latency.
+// Generate executes a synchronous generation request through the configured
+// upstream client.
 func (m *MobileGateway) Generate(prompt string, modelName string) (string, error) {
 	m.mu.RLock()
 	app := m.app
@@ -211,12 +211,13 @@ func (m *MobileGateway) GenerateStream(prompt string, modelName string, cb Strea
 	return err
 }
 
-// CountTokens provides an instant subword BPE token estimation for typed mobile inputs.
+// CountTokens provides a local subword token estimate for typed mobile inputs.
 func (m *MobileGateway) CountTokens(text string) int {
 	return format.EstimateTokens(text)
 }
 
-// Refine executes the 4-stage deep reasoning refiner on mobile.
+// Refine executes the three-stage reasoning orchestration through the configured
+// upstream client.
 func (m *MobileGateway) Refine(prompt string) (string, error) {
 	m.mu.RLock()
 	app := m.app

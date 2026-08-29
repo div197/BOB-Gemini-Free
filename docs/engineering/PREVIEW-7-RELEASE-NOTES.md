@@ -9,8 +9,11 @@ Preview 7 uses the project update-signing key documented by the repository's
 public-key file. The original Preview 6 private signing key was not
 recoverable, so existing Preview 6 installations cannot automatically accept
 Preview 7. Each Preview 6 device must install this release once manually,
-then later releases signed with the Preview 7 key can be installed through
-**Help -> Check for Updates** after the user gives consent.
+then later preview releases signed with the Preview 7 key can be installed
+through **Help -> Check for Updates** after the user gives consent. This
+released Preview 7 updater predates the later stable-first change; reaching a
+future stable release through the updater requires a same-key bridge preview,
+or a manual stable installation.
 
 The updater is explicit and user-consented. It does not silently check on
 startup or push an update to other computers.

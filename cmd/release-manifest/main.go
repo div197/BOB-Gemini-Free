@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -17,9 +18,18 @@ import (
 func main() {
 	directory := flag.String("dir", "release-assets", "directory containing release assets")
 	publicKey := flag.String("public-key", "", "optional base64 or hexadecimal public key to match against the signing key")
+	privateKeyStdin := flag.Bool("private-key-stdin", false, "read the private key from stdin instead of BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY")
 	flag.Parse()
 
-	privateKey, err := decodePrivateKey(os.Getenv("BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY"))
+	privateKeyInput := os.Getenv("BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY")
+	var err error
+	if *privateKeyStdin {
+		privateKeyInput, err = readPrivateKeyStdin()
+		if err != nil {
+			fail(err)
+		}
+	}
+	privateKey, err := decodePrivateKey(privateKeyInput)
 	if err != nil {
 		fail(err)
 	}
@@ -37,6 +47,22 @@ func main() {
 		fail(fmt.Errorf("write SHA256SUMS.sig: %w", err))
 	}
 	fmt.Printf("signed %d release assets in %s\n", strings.Count(string(manifest), "\n"), *directory)
+}
+
+func readPrivateKeyStdin() (string, error) {
+	return readPrivateKey(os.Stdin)
+}
+
+func readPrivateKey(reader io.Reader) (string, error) {
+	const maxPrivateKeyInputBytes = 4096
+	data, err := io.ReadAll(io.LimitReader(reader, maxPrivateKeyInputBytes+1))
+	if err != nil {
+		return "", fmt.Errorf("read private key from stdin: %w", err)
+	}
+	if len(data) > maxPrivateKeyInputBytes {
+		return "", fmt.Errorf("private key stdin input exceeds %d bytes", maxPrivateKeyInputBytes)
+	}
+	return string(data), nil
 }
 
 func verifyPublicKeyMatch(privateKey ed25519.PrivateKey, encodedPublicKey string) error {

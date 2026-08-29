@@ -46,7 +46,9 @@ Once started, the gateway listens at `http://127.0.0.1:9610`.
 For a classroom where many students connect at the same time, run the gateway on one teacher machine or local lab server:
 
 ```bash
-./bob-gemini-free --host 0.0.0.0 --port 9610 --cookie-pool-dir ./cookies
+BOB_GEMINI_FREE_API_KEYS='choose-a-local-classroom-key' \
+BOB_GEMINI_FREE_COOKIE_POOL_DIR=./cookies \
+  ./bob-gemini-free --host 0.0.0.0 --port 9610
 ```
 
 Then students open:
@@ -173,9 +175,10 @@ check:
 ./bob-gemini-free --update
 ```
 
-The CLI refuses an unsigned update. The public Preview 3 native beta is a separate
-manual beta path; its native auto-update is not enabled until a desktop build
-embeds the release public key and the release publishes a signed manifest.
+The CLI refuses an unsigned update. Public Preview 7 is the current native
+preview with the embedded project key. Its released updater predates the later
+stable-first bridge logic, so existing Preview 7 installations need a same-key
+bridge preview or a manual stable installation before updater-based migration.
 
 ---
 

@@ -38,14 +38,20 @@ the binary can replace the installed executable.
 The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
-declared size, signed manifest, and official GitHub URLs. Preview 3 has no
-embedded desktop key and therefore cannot install a native update.
+declared size, signed manifest, and official GitHub URLs. Public Preview 7 has
+the current key, but its released updater predates stable-first discovery; a
+same-key bridge preview or manual install is required before it can reach a
+new stable release through the updater. Preview 3 has no embedded desktop key
+and therefore cannot install a native update.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
-injects it into every CLI matrix binary. It also passes that public key to
-`cmd/release-manifest`, which verifies that it matches the private signing key
-held in `BOB_GEMINI_FREE_UPDATE_PRIVATE_KEY`. A pair mismatch fails packaging
-before publication. No hosted CI service is required for this process.
+injects it into every CLI matrix binary. On macOS,
+`scripts/sign-release-assets.sh` reads the private signing value from the
+owner-controlled Keychain and streams it to `cmd/release-manifest` over stdin;
+other operators may use a protected local secret-manager environment. The
+signer verifies that the derived public key matches the embedded public key. A
+pair mismatch fails packaging before publication. No hosted CI service is
+required for this process.
 
 The updater rejects a GitHub asset whose declared size exceeds
 `MaxUpdateArtifactBytes` (512 MiB), and the streaming download has the same
@@ -71,7 +77,7 @@ developer's running binary.
 
 1. Generate or retrieve the Ed25519 key pair using an offline, controlled
    process. Keep the private key only in the release secret store; publish the
-   public key through the repository variable and the project's trusted release
+   public key through the repository file and the project's trusted release
    documentation.
 2. Confirm that the public and private values are the same key pair before
    tagging. The local command repeats this check, so an accidental mismatch cannot

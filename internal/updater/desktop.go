@@ -11,6 +11,9 @@ import (
 )
 
 const (
+	officialGitHubOwner      = "div197"
+	officialGitHubRepository = "BOB-Gemini-Free"
+
 	DesktopChannelStable  = "stable"
 	DesktopChannelPreview = "preview"
 
@@ -53,18 +56,39 @@ func CheckLatestDesktop(currentVersion string) (*DesktopCheckResult, error) {
 	return CheckLatestDesktopForChannel(currentVersion, DesktopChannelStable)
 }
 
-// CheckLatestDesktopForChannel checks only the fixed official release channel
-// selected by the build. Stable builds use GitHub's latest-release endpoint;
-// preview builds use the published prerelease list and select the highest
-// semver tag whose prerelease identifier is preview.N. The channel is a build
-// property, never a runtime URL or user-controlled setting.
+// CheckLatestDesktopForChannel checks only fixed official release channels
+// selected by the build. Stable builds use GitHub's latest-release endpoint.
+// Preview builds first check that same stable endpoint so a preview install can
+// make the intentional one-way migration to a newer stable release; when no
+// stable update exists, they use the published prerelease list and select the
+// highest semver tag whose prerelease identifier is preview.N. The channel is a
+// build property, never a runtime URL or user-controlled setting.
 func CheckLatestDesktopForChannel(currentVersion, channel string) (*DesktopCheckResult, error) {
 	client := &http.Client{Timeout: 8 * time.Second}
-	apiURL := DesktopReleaseAPIURL
-	if channel == DesktopChannelPreview {
-		apiURL = DesktopPreviewReleaseAPIURL
+	if channel != DesktopChannelStable && channel != DesktopChannelPreview {
+		return nil, fmt.Errorf("unsupported desktop update channel: %s", channel)
 	}
+	if channel == DesktopChannelPreview {
+		return checkLatestDesktopPreviewWithStableMigration(client, DesktopReleaseAPIURL, DesktopPreviewReleaseAPIURL, currentVersion, runtime.GOOS, runtime.GOARCH)
+	}
+	apiURL := DesktopReleaseAPIURL
 	return checkLatestDesktopChannel(client, apiURL, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
+}
+
+// checkLatestDesktopPreviewWithStableMigration keeps the two channels
+// explicit: a preview app may move forward into stable, but a stable app never
+// moves backwards into preview. A failed stable check is not hidden by a
+// preview result because doing so would make the update UI report an
+// incomplete view of the official release channels.
+func checkLatestDesktopPreviewWithStableMigration(client *http.Client, stableURL, previewURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	stable, err := checkLatestDesktopChannel(client, stableURL, currentVersion, DesktopChannelStable, targetOS, targetArch)
+	if err != nil {
+		return nil, fmt.Errorf("stable desktop update check failed: %w", err)
+	}
+	if stable.HasUpdate {
+		return stable, nil
+	}
+	return checkLatestDesktopChannel(client, previewURL, currentVersion, DesktopChannelPreview, targetOS, targetArch)
 }
 
 func checkLatestDesktop(client *http.Client, apiURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
@@ -180,11 +204,25 @@ func decodeDesktopRelease(resp *http.Response, channel string) (*GitHubRelease, 
 
 func isOfficialGitHubURL(raw string) bool {
 	parsed, err := url.Parse(raw)
-	if err != nil || parsed.Scheme != "https" || parsed.User != nil {
+	if err != nil || parsed.Scheme != "https" || parsed.User != nil || parsed.Fragment != "" {
 		return false
 	}
 	host := strings.ToLower(parsed.Hostname())
-	return host == "github.com" || host == "objects.githubusercontent.com"
+	if parsed.Port() != "" && parsed.Port() != "443" {
+		return false
+	}
+	if host == "objects.githubusercontent.com" {
+		// GitHub's release CDN uses opaque paths and query parameters. The
+		// signed manifest remains the authenticity boundary for those URLs.
+		return true
+	}
+	if host != "github.com" {
+		return false
+	}
+	segments := strings.Split(strings.Trim(parsed.Path, "/"), "/")
+	return len(segments) >= 2 &&
+		strings.EqualFold(segments[0], officialGitHubOwner) &&
+		strings.EqualFold(segments[1], officialGitHubRepository)
 }
 
 func findMatchingDesktopAsset(assets []ReleaseAsset, targetOS, targetArch string) *ReleaseAsset {

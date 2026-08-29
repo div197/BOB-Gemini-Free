@@ -23,12 +23,16 @@ student-facing release names are BOB Gemini Free.
   English/Hindi UI language coverage;
 - a native Help menu with an explicit “Check for Updates” action.
 
-The update action checks the fixed official GitHub preview channel only when
-the user selects it. It never silently downloads or replaces an application.
-When a newer signed preview is available, it asks for consent, verifies the
-manifest and package, stages the update, and retains rollback protection. The
-older Preview 3 must be manually migrated once because it has no embedded
-desktop trust key. This project-level signature does not create Apple
+The update action checks fixed official GitHub channels only when the user
+selects it. A newly built preview first checks for a newer stable release so it
+can make an explicit Preview → Stable migration; if none exists, it checks the
+preview channel. The already-published Preview 7 binary predates that
+stable-first behavior and can reach stable through the updater only after a
+same-key bridge preview, or through a manual stable install. It never silently
+downloads or replaces an application. A newer signed candidate requires
+consent, manifest/package verification, safe staging, and rollback protection.
+Preview 3 and other builds without the current embedded desktop trust key still
+require a manual migration. This project-level signature does not create Apple
 Developer ID or notarization trust.
 
 ## Public preview release
@@ -65,6 +69,11 @@ From macOS:
 ```bash
 make desktop-preview-mac
 ```
+
+In the current source this command defaults to a new `v0.2.0-preview.1`
+migration-bridge candidate. Set `BOB_RELEASE_VERSION` explicitly for every
+publication; the already-published `v0.1.7-preview.7` package remains the
+historical public preview and is not rebuilt in place.
 
 The updater-capable preview packager requires the non-secret public trust key
 in `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`. The matching private key is never

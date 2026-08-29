@@ -16,12 +16,17 @@ the user confirms, verify a signed `SHA256SUMS` manifest, stage the package
 beside the installed app, restart through a short-lived helper, and roll back
 if the new app does not confirm healthy startup.
 
-The public `v0.1.7-preview.7` build contains the new embedded public update
-key and signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is
-still explicit and user-consented; it is not a hidden or silent auto-update.
-Preview 6 installations require a one-time manual migration because the
-original Preview 6 project signing key was not recoverable. Preview 3 also
-remains a manual migration path because it predates the trust key.
+The public `v0.1.7-preview.7` build contains the embedded public update key and
+signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
+explicit and user-consented; it is not a hidden or silent auto-update. The
+released Preview 7 binary predates the later stable-first source change and
+therefore discovers only newer previews. If preserving an updater path for
+those installations matters, publish a same-key bridge preview first; the
+bridge can then discover a newer stable release. A direct stable install is
+the simpler alternative. Preview 6 installations require a one-time manual
+migration because the original Preview 6 project signing key was not
+recoverable. Preview 3 also remains a manual migration path because it
+predates the trust key.
 
 The local macOS, Windows, and Linux preview packagers now fail closed when a
 non-development package is built without `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`.
@@ -110,9 +115,10 @@ local test run is not proof that the GitHub asset upload preserved the bytes.
 ## Rollout gates for the 30 Macs
 
 1. One clean Mac: install, first-run gateway, anonymous request behavior,
-   per-user sign-in path, Preview 7 installation/update, rollback, and
-   uninstall. Preview 6 devices require the documented one-time manual
-   migration before the signed updater can be used.
+   per-user sign-in path, bridge-preview installation/update if testing the
+   existing Preview 7 fleet path, stable update, rollback, and uninstall.
+   Preview 6 devices require the documented one-time manual migration before
+   the signed updater can be used.
 2. Two or three pilot Macs: repeat with ordinary student accounts and the
    real classroom network; record version, OS, architecture, and provider
    session result without recording cookies or prompts.
@@ -122,6 +128,9 @@ local test run is not proof that the GitHub asset upload preserved the bytes.
 The updater reduces repeated manual replacement work; it does not remove the
 need for a support owner, a release key, per-user authentication instructions,
 or a manual recovery artifact.
+
+For the exact existing-fleet sequence, use the
+[`Preview 7 to v0.2.0 Migration Runbook`](PREVIEW-7-TO-V0.2.0-MIGRATION.md).
 
 ## Current decision
 
