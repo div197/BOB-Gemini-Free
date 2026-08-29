@@ -40,11 +40,12 @@ gaps found after Preview 7:
   legacy Preview 7 bridge/no-direct-stable boundary.
 
 These changes are on the reviewed branch `codex/release-readiness-v0.2.0` at
-`73532d2`; they are not merged into `main` in this checkout. `origin/main` is
-at `a3e65ea`, and its relationship to this branch must be reconciled through
-review before any publication. The signed `v0.2.0-preview.1` migration bridge
-is publicly published. Stable `v0.2.0` remains unpublished until the
-clean-device and pilot gates pass.
+`d318b4f`; the current branch is not merged into `main` in this checkout.
+`origin/main` is at `a3e65ea` (two commits not present on this branch), while
+the reviewed branch contains 24 commits not present on `origin/main`. Their
+relationship must be reconciled through review before any publication. The
+signed `v0.2.0-preview.1` migration bridge is publicly published. Stable
+`v0.2.0` remains unpublished until the clean-device and pilot gates pass.
 
 ## Evidence already available
 
@@ -70,23 +71,23 @@ cross-builds in an isolated
 temporary directory, and the public-key presence gate. Coverage remains a
 measured limitation.
 
-The current audit slice is 72 modified files in the working tree; the complete
-post-Preview-7 branch delta is 104 files relative to `origin/main`. This is
-therefore a release-candidate audit of a large feature milestone, not a routine
-patch release. Repository-wide weighted statement coverage measured 63.6% in
-the current local run; the project must not claim blanket 80% coverage. The current
-local-only 1/10/20/30-concurrency baseline is recorded in
+The working tree is currently clean. The complete post-Preview-7 branch delta
+is 134 files relative to `origin/main`, so this remains a release-candidate
+audit of a large feature milestone, not a routine patch release. Repository-wide
+weighted statement coverage measured 63.6% in the current local run; the project
+must not claim blanket 80% coverage. The current local-only 1/10/20/30-concurrency baseline is recorded in
 [`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
 Google capacity or latency result.
 
-An earlier pre-audit macOS universal `v0.2.0` candidate and same-key
-`v0.2.0-preview.1` migration-bridge candidate passed package, checksum, ad-hoc
-signature, DMG-layout, and packaged `/healthz` checks. That evidence predates
-the current `73532d2` audit slice; the current source still requires a fresh
-native Wails package and clean-device update run before publication. `spctl`
-rejected the earlier stable candidate as expected for a package without Apple
-Developer ID trust. An intentionally missing Keychain item also caused the
-manifest signer to fail closed; the real private key was not read.
+The current clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
+package run on this Mac. The resulting universal ad-hoc-signed app, ZIP, DMG,
+Applications shortcut, checksum file, bundle metadata, local PWA routes, and
+native GUI quit/shutdown path were verified. This remains a local unsigned-
+manifest candidate: the current source still requires a signed release
+manifest, public-upload reconciliation, clean-device updater run, and pilot
+before publication. `spctl` rejection remains expected for a package without
+Apple Developer ID trust. An intentionally missing Keychain item also caused
+the manifest signer to fail closed; the real private key was not read.
 
 The public GitHub state was also checked:
 

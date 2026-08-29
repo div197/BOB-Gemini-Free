@@ -517,3 +517,13 @@ generated web bundle, and Wails module. Release-directory publication,
 platform-native packaging, and real installed-bundle checks remain separate
 gates. No GitHub Actions were added or run, and no provider/API/release
 private key was used.
+
+The subsequent clean-commit preview packaging check also passed on macOS:
+`make desktop-preview-mac` forwarded the checked-in public updater key,
+produced a universal arm64/x86_64 `.app`, ZIP, and drag-to-Applications DMG,
+and passed checksum, bundle-signature, PWA-route, and native GUI
+Quit/gateway-shutdown checks. The preview packager now rejects a stable
+version or non-preview channel before invoking Wails. This is local package
+evidence only; the manifest was not signed or uploaded, and no Apple
+Developer ID/notarization, clean-device update, Windows, Linux, or provider
+acceptance claim follows from it.
