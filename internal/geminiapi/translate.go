@@ -182,9 +182,7 @@ func partsFromContent(content any) ([]Part, error) {
 			if err != nil {
 				return nil, err
 			}
-			if part.Text != "" || part.InlineData != nil {
-				parts = append(parts, part)
-			}
+			parts = append(parts, part)
 		}
 		return parts, nil
 	default:
@@ -210,6 +208,9 @@ func contentPart(obj map[string]any) (Part, error) {
 		text, ok := rawText.(string)
 		if !ok {
 			return Part{}, errors.New("OpenAI text content part text must be a string")
+		}
+		if text == "" {
+			return Part{}, errors.New("OpenAI text content part text must not be empty")
 		}
 		return Part{Text: text}, nil
 	case "image_url", "input_image":

@@ -239,6 +239,7 @@ func TestFromOpenAIRejectsDroppedContentParts(t *testing.T) {
 	}{
 		{name: "missing type", content: []any{map[string]any{"text": "hello"}}, want: "missing type"},
 		{name: "wrong text type", content: []any{map[string]any{"type": "text", "text": 42}}, want: "text must be a string"},
+		{name: "empty text", content: []any{map[string]any{"type": "input_text", "text": ""}}, want: "text must not be empty"},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
