@@ -371,6 +371,10 @@ risks as complete. The local implementation continuation added:
 - shared reflection-safe tool-schema budgets for typed and JSON-decoded
   schemas, plus fail-closed provider tool-output validation and explicit nil
   callback/context guards at the stream boundaries.
+- strict selected Responses input normalization: unsupported items and content
+  blocks now return client-visible validation errors, malformed function calls
+  and results fail closed, and `call_id`, `name`, and `tool_calls` survive the
+  server conversion into the shared OpenAI message model.
 - a shared 32 MiB request-body reader at every JSON handler seam, so direct
   handler or embedding calls retain the same memory bound as normal HTTP
   middleware.

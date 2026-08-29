@@ -54,15 +54,18 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 
 	messages, err := format.ResponsesInputToMessages(inputRaw, instructions)
 	if err != nil {
-		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": "invalid input structure"}})
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
 		return
 	}
 
 	var reqMessages []models.OpenAIMessage
 	for _, m := range messages {
-		role, _ := m["role"].(string)
-		content := m["content"]
-		reqMessages = append(reqMessages, models.OpenAIMessage{Role: role, Content: content})
+		message, err := responsesInputMapToOpenAIMessage(m)
+		if err != nil {
+			writeJSON(w, http.StatusBadRequest, map[string]any{"error": map[string]any{"message": err.Error(), "type": "invalid_request_error"}})
+			return
+		}
+		reqMessages = append(reqMessages, message)
 	}
 
 	var reqTools []models.OpenAITool
@@ -348,4 +351,19 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 			},
 		})
 	}
+}
+
+func responsesInputMapToOpenAIMessage(input map[string]any) (models.OpenAIMessage, error) {
+	encoded, err := json.Marshal(input)
+	if err != nil {
+		return models.OpenAIMessage{}, fmt.Errorf("encode Responses input message: %w", err)
+	}
+	var message models.OpenAIMessage
+	if err := json.Unmarshal(encoded, &message); err != nil {
+		return models.OpenAIMessage{}, fmt.Errorf("decode Responses input message: %w", err)
+	}
+	if strings.TrimSpace(message.Role) == "" {
+		return models.OpenAIMessage{}, fmt.Errorf("Responses input message is missing role")
+	}
+	return message, nil
 }

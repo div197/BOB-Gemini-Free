@@ -402,3 +402,115 @@ func TestResponsesInputString(t *testing.T) {
 		t.Errorf("Unexpected roles: %v", msgs)
 	}
 }
+
+func TestResponsesInputToMessagesPreservesToolContinuations(t *testing.T) {
+	input := []any{
+		map[string]any{
+			"type":      "function_call",
+			"call_id":   "call_weather",
+			"name":      "get_weather",
+			"arguments": `{"city":"Jodhpur","units":"metric"}`,
+		},
+		map[string]any{
+			"type":    "function_call_output",
+			"call_id": "call_weather",
+			"output": map[string]any{
+				"temperature": 31,
+				"condition":   "clear",
+			},
+		},
+	}
+
+	messages, err := ResponsesInputToMessages(input, "")
+	if err != nil {
+		t.Fatalf("ResponsesInputToMessages error: %v", err)
+	}
+	if len(messages) != 2 {
+		t.Fatalf("expected assistant call and tool result, got %d messages", len(messages))
+	}
+
+	calls, ok := messages[0]["tool_calls"].([]map[string]any)
+	if !ok || len(calls) != 1 {
+		t.Fatalf("expected one preserved tool call, got %#v", messages[0]["tool_calls"])
+	}
+	if calls[0]["id"] != "call_weather" {
+		t.Fatalf("tool call ID = %#v, want call_weather", calls[0]["id"])
+	}
+	function, ok := calls[0]["function"].(map[string]any)
+	if !ok || function["name"] != "get_weather" || function["arguments"] != `{"city":"Jodhpur","units":"metric"}` {
+		t.Fatalf("tool call function was not preserved: %#v", calls[0]["function"])
+	}
+	if messages[1]["tool_call_id"] != "call_weather" {
+		t.Fatalf("tool result ID = %#v, want call_weather", messages[1]["tool_call_id"])
+	}
+	if _, ok := messages[1]["name"]; ok {
+		t.Fatalf("tool result unexpectedly synthesized a name: %#v", messages[1]["name"])
+	}
+	result, ok := messages[1]["content"].(string)
+	if !ok || !strings.Contains(result, `"temperature":31`) {
+		t.Fatalf("tool result output was not encoded safely: %#v", messages[1]["content"])
+	}
+}
+
+func TestResponsesInputToMessagesRejectsMalformedItems(t *testing.T) {
+	tests := []struct {
+		name  string
+		input any
+		want  string
+	}{
+		{
+			name:  "unsupported item type",
+			input: []any{map[string]any{"type": "reasoning", "summary": []any{}}},
+			want:  "unsupported input item type",
+		},
+		{
+			name:  "missing function call ID",
+			input: []any{map[string]any{"type": "function_call", "name": "lookup", "arguments": `{}`}},
+			want:  `missing "call_id"`,
+		},
+		{
+			name:  "missing function call arguments",
+			input: []any{map[string]any{"type": "function_call", "call_id": "call_1", "name": "lookup"}},
+			want:  `missing "arguments"`,
+		},
+		{
+			name:  "missing tool output",
+			input: []any{map[string]any{"type": "function_call_output", "call_id": "call_1"}},
+			want:  `missing "output"`,
+		},
+		{
+			name: "missing input text",
+			input: []any{map[string]any{
+				"type":    "message",
+				"role":    "user",
+				"content": []any{map[string]any{"type": "input_text"}},
+			}},
+			want: `missing "text"`,
+		},
+		{
+			name:  "unsupported scalar",
+			input: []any{42},
+			want:  "unsupported item type",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			_, err := ResponsesInputToMessages(test.input, "")
+			if err == nil || !strings.Contains(err.Error(), test.want) {
+				t.Fatalf("error = %v, want substring %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestResponsesInputToMessagesRejectsInvalidFunctionArguments(t *testing.T) {
+	_, err := ResponsesInputToMessages([]any{map[string]any{
+		"type":      "function_call",
+		"call_id":   "call_1",
+		"name":      "lookup",
+		"arguments": "not-json",
+	}}, "")
+	if err == nil || !strings.Contains(err.Error(), "invalid JSON arguments") {
+		t.Fatalf("error = %v, want invalid JSON arguments", err)
+	}
+}
