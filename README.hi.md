@@ -873,7 +873,7 @@ OpenAI फ़ॉर्मेट में Base64 इमेज डेटा भ�
 <details>
 <summary><strong>9. क्या कई ऐप्स या टीम के सदस्य एक ही गेटवे शेयर कर सकते हैं?</strong></summary>
 
-हाँ। `config.json` में `api_keys: ["sk-team-1", "sk-team-2"]` सेट करें। सभी आने वाले अनुरोधों का प्रमाणीकरण टाइमिंग-हमलों से सुरक्षित कॉन्स्टेंट-टाइम कम्पैरिजन (`crypto/subtle`) द्वारा होता है।
+हाँ। `config.json` में `api_keys: ["sk-team-1", "sk-team-2"]` सेट करें। सभी आने वाले अनुरोधों का प्रमाणीकरण टाइमिंग-हमलों से सुरक्षित कॉन्स्टेंट-टाइम कम्पैरिजन (`crypto/subtle`) द्वारा होता है। Credential को `Authorization`, `x-api-key` या `x-goog-api-key` header में भेजें। URL में `?key=` प्रमाणीकरण default रूप से बंद है क्योंकि URL history, logs, referrer और proxy में leak हो सकता है। पुराने client के लिए केवल स्पष्ट opt-in के साथ `allow_query_api_key: true` या `BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY=true` सेट करें और gateway को local रखें।
 </details>
 
 <details>

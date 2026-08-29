@@ -1087,7 +1087,7 @@ Send standard OpenAI image payloads containing base64 data URLs (`data:image/png
 <details>
 <summary><strong>9. Can multiple apps or teammates share one instance?</strong></summary>
 
-Yes. Set `api_keys: ["sk-team-key-1", "sk-team-key-2"]` in `config.json` or pass `BOB_GEMINI_FREE_API_KEYS`. All incoming requests are authenticated using constant-time comparison (`crypto/subtle`) to prevent timing attacks.
+Yes. Set `api_keys: ["sk-team-key-1", "sk-team-key-2"]` in `config.json` or pass `BOB_GEMINI_FREE_API_KEYS`. All incoming requests are authenticated using constant-time comparison (`crypto/subtle`) to prevent timing attacks. Send credentials in `Authorization`, `x-api-key`, or `x-goog-api-key`; query-string `?key=` authentication is disabled by default because URLs can leak through history, logs, referrers, and proxies. For a legacy client that cannot send headers, explicitly opt in with `allow_query_api_key: true` or `BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY=true` and keep the gateway local.
 </details>
 
 <details>

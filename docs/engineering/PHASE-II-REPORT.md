@@ -243,8 +243,10 @@ for provenance; the 2026-08-29 addendum records the later coverage run.
    literal-IP dial in the production HTTP-client path. A release deployment
    should additionally constrain egress at the network layer and test the
    deployed DNS/proxy topology.
-6. API keys in query parameters can leak through URLs, logs, and referrers;
-   header-based credentials should be required for exposed deployments.
+6. Header-based credentials are the default. Legacy gateway query-key
+   authentication is disabled unless explicitly opted in; URLs can still leak
+   credentials when an operator enables that compatibility mode, so it remains
+   unsuitable for exposed deployments.
 7. Legacy diagnostic tests still contain best-effort upstream-aware paths and
    permit 502 responses. They are not a substitute for live acceptance.
 8. The updater’s security contract is fail-closed only after release assets and

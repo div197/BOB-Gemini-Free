@@ -62,6 +62,9 @@ func TestLoadConfigFile(t *testing.T) {
 	if len(cfg.AllowedOrigins) != 1 || cfg.AllowedOrigins[0] != "https://studio.example.test" {
 		t.Errorf("unexpected allowed origins: %v", cfg.AllowedOrigins)
 	}
+	if cfg.AllowQueryAPIKey {
+		t.Error("query API keys must remain disabled unless explicitly configured")
+	}
 	if cfg.CookieFile != "/path/to/cookie.txt" {
 		t.Errorf("expected cookie file /path/to/cookie.txt, got %s", cfg.CookieFile)
 	}
@@ -113,6 +116,42 @@ func TestEnvVarAllowedOrigins(t *testing.T) {
 	}
 	if len(cfg.AllowedOrigins) != 2 || cfg.AllowedOrigins[1] != "https://two.example" {
 		t.Fatalf("unexpected allowed origins from env: %v", cfg.AllowedOrigins)
+	}
+}
+
+func TestEnvVarAllowQueryAPIKey(t *testing.T) {
+	for _, value := range []string{"true", "1", "yes"} {
+		t.Setenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY", value)
+		cfg, err := Load("")
+		if err != nil {
+			t.Fatalf("unexpected load error: %v", err)
+		}
+		if !cfg.AllowQueryAPIKey {
+			t.Fatalf("expected query API key compatibility for env value %q", value)
+		}
+	}
+	t.Setenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY", "false")
+	cfg, err := Load("")
+	if err != nil {
+		t.Fatalf("unexpected load error: %v", err)
+	}
+	if cfg.AllowQueryAPIKey {
+		t.Fatal("expected false to disable query API key compatibility")
+	}
+}
+
+func TestConfigFileCanExplicitlyEnableQueryAPIKey(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+	if err := os.WriteFile(configFile, []byte(`{"allow_query_api_key":true}`), 0600); err != nil {
+		t.Fatalf("failed to write config file: %v", err)
+	}
+	cfg, err := Load(configFile)
+	if err != nil {
+		t.Fatalf("failed to load config file: %v", err)
+	}
+	if !cfg.AllowQueryAPIKey {
+		t.Fatal("expected config file to enable query API key compatibility")
 	}
 }
 

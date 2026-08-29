@@ -145,12 +145,26 @@ func TestAuthMatrix(t *testing.T) {
 		t.Errorf("Expected 200 with x-goog-api-key, got %d", rec5.Code)
 	}
 
-	// 6. Valid query param ?key= -> 200
+	// Query credentials are disabled by default because URLs are routinely
+	// logged or copied. Header credentials above remain the supported path.
 	req6 := httptest.NewRequest("GET", "/v1/models?key=sk-secret-key", nil)
 	rec6 := httptest.NewRecorder()
 	handler.ServeHTTP(rec6, req6)
-	if rec6.Code != http.StatusOK {
-		t.Errorf("Expected 200 with ?key= query, got %d", rec6.Code)
+	if rec6.Code != http.StatusUnauthorized {
+		t.Errorf("Expected 401 with query key disabled, got %d", rec6.Code)
+	}
+}
+
+func TestQueryAPIKeyCompatibilityIsExplicitlyOptIn(t *testing.T) {
+	cfg := config.Default()
+	cfg.APIKeys = []string{"sk-secret-key"}
+	cfg.AllowQueryAPIKey = true
+	app := New(cfg, "test-version")
+	req := httptest.NewRequest("GET", "/v1/models?key=sk-secret-key", nil)
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("Expected 200 with explicitly enabled query key, got %d", rec.Code)
 	}
 }
 
@@ -197,12 +211,21 @@ func TestHealthAuthCheck(t *testing.T) {
 		t.Errorf("Expected 401 on health check with API keys configured, got %d", rec1.Code)
 	}
 
-	// With key -> 200
+	// Query keys are disabled by default, even on the human health endpoint.
 	req2 := httptest.NewRequest("GET", "/?key=sk-secret", nil)
 	rec2 := httptest.NewRecorder()
 	handler.ServeHTTP(rec2, req2)
-	if rec2.Code != http.StatusOK {
-		t.Errorf("Expected 200 on health check with valid API key, got %d", rec2.Code)
+	if rec2.Code != http.StatusUnauthorized {
+		t.Errorf("Expected 401 on health check with query key disabled, got %d", rec2.Code)
+	}
+
+	cfg.AllowQueryAPIKey = true
+	app = New(cfg, "test-version")
+	req3 := httptest.NewRequest("GET", "/?key=sk-secret", nil)
+	rec3 := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec3, req3)
+	if rec3.Code != http.StatusOK {
+		t.Errorf("Expected 200 on health check with explicitly enabled query key, got %d", rec3.Code)
 	}
 }
 

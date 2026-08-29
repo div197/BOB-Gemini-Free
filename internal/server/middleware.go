@@ -32,7 +32,7 @@ func (lrw *loggingResponseWriter) Flush() {
 	}
 }
 
-func authorize(r *http.Request, apiKeys []string) bool {
+func authorize(r *http.Request, apiKeys []string, allowQueryAPIKey bool) bool {
 	if len(apiKeys) == 0 {
 		return true
 	}
@@ -58,10 +58,12 @@ func authorize(r *http.Request, apiKeys []string) bool {
 		}
 	}
 
-	if queryKey := r.URL.Query().Get("key"); queryKey != "" {
-		for _, key := range apiKeys {
-			if subtle.ConstantTimeCompare([]byte(queryKey), []byte(key)) == 1 {
-				return true
+	if allowQueryAPIKey {
+		if queryKey := r.URL.Query().Get("key"); queryKey != "" {
+			for _, key := range apiKeys {
+				if subtle.ConstantTimeCompare([]byte(queryKey), []byte(key)) == 1 {
+					return true
+				}
 			}
 		}
 	}
@@ -190,7 +192,7 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 			isPublicRoute = true
 		}
 
-		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys) {
+		if len(a.Cfg.APIKeys) > 0 && !isPublicRoute && !authorize(r, a.Cfg.APIKeys, a.Cfg.AllowQueryAPIKey) {
 			writeJSON(lrw, http.StatusUnauthorized, map[string]any{
 				"error": map[string]any{
 					"message": "invalid api key",

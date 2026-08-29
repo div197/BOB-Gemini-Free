@@ -25,6 +25,10 @@ type Config struct {
 	CookiePool        []string `json:"cookie_pool,omitempty"`
 	Proxy             string   `json:"proxy"`
 	APIKeys           []string `json:"api_keys"`
+	// AllowQueryAPIKey is an explicit compatibility escape hatch for clients
+	// that cannot send an authentication header. It is false by default because
+	// URL credentials can leak through history, logs, referrers, and proxies.
+	AllowQueryAPIKey bool `json:"allow_query_api_key,omitempty"`
 	// GeminiAPIKey is a single, opt-in Developer API credential. It is loaded
 	// only from the process environment and deliberately excluded from JSON so
 	// config saves/exported diagnostics cannot persist it.
@@ -59,6 +63,7 @@ func Default() Config {
 		CookiePool:        []string{},
 		Proxy:             "",
 		APIKeys:           []string{},
+		AllowQueryAPIKey:  false,
 		AllowedOrigins:    []string{},
 		Impersonate:       "",
 	}
@@ -111,6 +116,7 @@ func Load(path string) (Config, error) {
 			CookiePool        *[]string                      `json:"cookie_pool"`
 			Proxy             *string                        `json:"proxy"`
 			APIKeys           *[]string                      `json:"api_keys"`
+			AllowQueryAPIKey  *bool                          `json:"allow_query_api_key"`
 			AllowedOrigins    *[]string                      `json:"allowed_origins"`
 			Impersonate       *string                        `json:"impersonate"`
 			CustomModels      *map[string]models.Model       `json:"custom_models"`
@@ -162,6 +168,9 @@ func Load(path string) (Config, error) {
 		}
 		if aux.APIKeys != nil {
 			cfg.APIKeys = *aux.APIKeys
+		}
+		if aux.AllowQueryAPIKey != nil {
+			cfg.AllowQueryAPIKey = *aux.AllowQueryAPIKey
 		}
 		if aux.AllowedOrigins != nil {
 			cfg.AllowedOrigins = *aux.AllowedOrigins
@@ -233,6 +242,9 @@ func Load(path string) (Config, error) {
 		if len(keys) > 0 {
 			cfg.APIKeys = keys
 		}
+	}
+	if envQueryKey := os.Getenv("BOB_GEMINI_FREE_ALLOW_QUERY_API_KEY"); envQueryKey != "" {
+		cfg.AllowQueryAPIKey = envQueryKey == "true" || envQueryKey == "1" || envQueryKey == "yes"
 	}
 	if envGeminiAPIKey := os.Getenv("BOB_GEMINI_FREE_GEMINI_API_KEY"); envGeminiAPIKey != "" {
 		// Keep this a single key. Never parse a comma-separated list: key
