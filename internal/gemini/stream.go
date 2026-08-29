@@ -13,6 +13,7 @@ var errStreamTextTooLarge = fmt.Errorf("upstream stream text exceeded %d bytes",
 type StreamParser struct {
 	prevText string
 	buf      []byte
+	sawText  bool
 }
 
 func NewStreamParser() *StreamParser {
@@ -52,6 +53,9 @@ func (p *StreamParser) Feed(chunk string) ([]string, error) {
 		for _, t := range texts {
 			if len(t) > maxStreamTextBytes {
 				return nil, errStreamTextTooLarge
+			}
+			if CleanText(t, true) != "" {
+				p.sawText = true
 			}
 			// Skip if this text segment has already been fully processed or is identical to the last one.
 			if t == p.prevText || strings.HasPrefix(p.prevText, t) {
@@ -97,4 +101,12 @@ func (p *StreamParser) Flush() ([]string, error) {
 		return nil, nil
 	}
 	return p.Feed("\n")
+}
+
+// HasText reports whether the parser saw usable model text in this stream.
+// A syntactically readable response with no text is not a successful
+// generation; callers need an explicit protocol error instead of fabricating a
+// normal stop response.
+func (p *StreamParser) HasText() bool {
+	return p != nil && p.sawText
 }

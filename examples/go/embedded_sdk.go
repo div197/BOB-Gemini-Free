@@ -14,6 +14,7 @@ func main() {
 		gateway.WithDefaultModel("gemini-3.7-flash"),
 		gateway.WithLogRequests(false),
 	)
+	defer engine.Close()
 
 	ctx := context.Background()
 

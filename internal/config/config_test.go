@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -67,6 +68,19 @@ func TestLoadConfigFile(t *testing.T) {
 	}
 	if cfg.CookieFile != "/path/to/cookie.txt" {
 		t.Errorf("expected cookie file /path/to/cookie.txt, got %s", cfg.CookieFile)
+	}
+}
+
+func TestLoadRejectsOversizedConfigFile(t *testing.T) {
+	tmpDir := t.TempDir()
+	configFile := filepath.Join(tmpDir, "config.json")
+	content := bytes.Repeat([]byte{' '}, int(MaxConfigFileBytes)+1)
+	if err := os.WriteFile(configFile, content, 0600); err != nil {
+		t.Fatalf("failed to write oversized config file: %v", err)
+	}
+
+	if _, err := Load(configFile); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("expected bounded config read error, got %v", err)
 	}
 }
 

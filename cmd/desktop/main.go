@@ -42,7 +42,7 @@ func main() {
 	}
 
 	// 1. Run the local Gateway engine in the background
-	cfg := loadDesktopConfig()
+	cfg, configErr := loadDesktopConfig()
 
 	srv := server.New(cfg, desktopVersion)
 	defer srv.Close()
@@ -51,6 +51,13 @@ func main() {
 	if recoveryErr != nil {
 		if windowErr := wails.Run(desktopOptions(app, nil, recoveryErr, srv)); windowErr != nil {
 			fmt.Printf("Desktop recovery error window failed: %v\n", windowErr)
+		}
+		return
+	}
+	if configErr != nil {
+		fmt.Printf("Desktop configuration failed: %v\n", configErr)
+		if windowErr := wails.Run(desktopOptions(app, nil, configErr, srv)); windowErr != nil {
+			fmt.Printf("Desktop configuration error window failed: %v\n", windowErr)
 		}
 		return
 	}

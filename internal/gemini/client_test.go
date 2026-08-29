@@ -26,6 +26,18 @@ func testClientWithRequester(requester Requester, attempts int) *Client {
 	}
 }
 
+func TestUpstreamLogMessageDoesNotExposeTransportURL(t *testing.T) {
+	secretURL := "https://gemini.google.com/StreamGenerate?bl=short-lived-token"
+	err := &UpstreamError{Kind: "transport", Msg: "Post " + secretURL + ": connection reset"}
+	message := upstreamLogMessage(err)
+	if strings.Contains(message, "short-lived-token") || strings.Contains(message, "StreamGenerate") {
+		t.Fatalf("transport URL leaked through retry log message: %q", message)
+	}
+	if message != "transport failure" {
+		t.Fatalf("retry log message = %q", message)
+	}
+}
+
 func TestShouldRetryUpstreamOnlyRetriesTransientFailures(t *testing.T) {
 	tests := []struct {
 		name string
@@ -214,6 +226,25 @@ func TestGenerateRejectsNilUpstreamResponseWithoutRetry(t *testing.T) {
 	}
 }
 
+func TestGenerateRejectsEmptyUpstreamText(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{{
+		response: goldenOK(io.NopCloser(strings.NewReader("[]"))),
+	}}}
+	client := testClientWithRequester(requester, 3)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) || upstreamErr.Kind != "protocol" || !strings.Contains(err.Error(), "no usable text") {
+		t.Fatalf("empty upstream text error = %#v, want protocol failure", err)
+	}
+	requester.mu.Lock()
+	called := requester.called
+	requester.mu.Unlock()
+	if called != 1 {
+		t.Fatalf("empty upstream text request count = %d, want 1", called)
+	}
+}
+
 func TestGenerateStreamRejectsOversizedLineWithoutRetry(t *testing.T) {
 	requester := &goldenRequester{responses: []goldenHTTPResponse{{
 		response: goldenOK(io.NopCloser(strings.NewReader(strings.Repeat("x", maxUpstreamStreamLineBytes+1) + "\n"))),
@@ -248,6 +279,15 @@ func TestStreamAttemptRejectsMissingParserOrCallback(t *testing.T) {
 	}
 	if err := client.streamAttempt(strings.NewReader("ignored\n"), NewStreamParser(), nil, nil); err == nil || !strings.Contains(err.Error(), "callback") {
 		t.Fatalf("nil callback error = %v", err)
+	}
+}
+
+func TestStreamAttemptRejectsEmptyUsableOutput(t *testing.T) {
+	for _, body := range []string{"", "ignored\n"} {
+		err := (&Client{}).streamAttempt(strings.NewReader(body), NewStreamParser(), func(string) error { return nil }, nil)
+		if err == nil || !strings.Contains(err.Error(), "no usable text") {
+			t.Fatalf("body %q error = %v, want explicit empty-output failure", body, err)
+		}
 	}
 }
 

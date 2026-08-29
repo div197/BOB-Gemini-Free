@@ -300,10 +300,11 @@ func ResolveStrict(modelName, defaultName string) (Resolved, error) {
 }
 
 func resolve(modelName, defaultName string, allowFallback bool) (Resolved, error) {
+	defaultName = strings.TrimPrefix(strings.TrimSpace(defaultName), "models/")
 	if defaultName == "" {
 		defaultName = DefaultModelName
 	}
-	modelName = strings.TrimPrefix(modelName, "models/")
+	modelName = strings.TrimPrefix(strings.TrimSpace(modelName), "models/")
 
 	var thinkOverride *int
 	if idx := strings.LastIndex(modelName, "@think="); idx != -1 {
@@ -316,14 +317,18 @@ func resolve(modelName, defaultName string, allowFallback bool) (Resolved, error
 		thinkOverride = &val
 	}
 
-	cfg, exists := MODELS[modelName]
+	cfg, exists := GetModel(modelName)
 	if !exists {
 		if !allowFallback {
 			return Resolved{}, fmt.Errorf("unknown model %q", modelName)
 		}
 		log.Printf("Unknown model '%s', falling back to '%s'", modelName, defaultName)
 		modelName = defaultName
-		cfg = MODELS[defaultName]
+		var defaultExists bool
+		cfg, defaultExists = GetModel(defaultName)
+		if !defaultExists {
+			return Resolved{}, fmt.Errorf("default model %q is not registered", defaultName)
+		}
 	}
 
 	thinkMode := cfg.Think
@@ -335,7 +340,7 @@ func resolve(modelName, defaultName string, allowFallback bool) (Resolved, error
 		Name:  modelName,
 		Mode:  cfg.Mode,
 		Think: thinkMode,
-		Extra: cfg.Extra,
+		Extra: cloneExtra(cfg.Extra),
 	}, nil
 }
 
@@ -345,7 +350,22 @@ var modelsMu sync.RWMutex
 func RegisterModel(name string, m Model) {
 	modelsMu.Lock()
 	defer modelsMu.Unlock()
+	m.Extra = cloneExtra(m.Extra)
 	MODELS[name] = m
+}
+
+// GetModel returns a thread-safe copy of one registered model. The Extra map
+// is cloned because callers may retain the returned configuration while a
+// later registration replaces the model definition.
+func GetModel(name string) (Model, bool) {
+	modelsMu.RLock()
+	defer modelsMu.RUnlock()
+	m, ok := MODELS[name]
+	if !ok {
+		return Model{}, false
+	}
+	m.Extra = cloneExtra(m.Extra)
+	return m, true
 }
 
 // GetAllModels returns a thread-safe copy of all registered models.
@@ -354,7 +374,19 @@ func GetAllModels() map[string]Model {
 	defer modelsMu.RUnlock()
 	res := make(map[string]Model, len(MODELS))
 	for k, v := range MODELS {
+		v.Extra = cloneExtra(v.Extra)
 		res[k] = v
 	}
 	return res
+}
+
+func cloneExtra(extra map[int]any) map[int]any {
+	if len(extra) == 0 {
+		return nil
+	}
+	clone := make(map[int]any, len(extra))
+	for k, v := range extra {
+		clone[k] = v
+	}
+	return clone
 }

@@ -199,7 +199,7 @@ func cleanupStaleDesktopStaging(targetPath string) {
 			continue
 		}
 		planPath := filepath.Join(stagePath, "update-plan.json")
-		data, err := os.ReadFile(planPath)
+		data, err := readBoundedDesktopUpdateFile(planPath, maxDesktopUpdatePlanBytes)
 		if err != nil {
 			continue
 		}

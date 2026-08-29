@@ -1,8 +1,11 @@
 package mobile
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -83,5 +86,87 @@ func TestMobileGatewayLifecycle(t *testing.T) {
 	}
 	if gw.IsRunning() {
 		t.Fatal("expected gateway to be stopped after Stop()")
+	}
+}
+
+func TestMobileGatewayRejectsNonLoopbackBinding(t *testing.T) {
+	gw := &MobileGateway{}
+	if _, err := gw.Start(0, "0.0.0.0", ""); err == nil || !strings.Contains(err.Error(), "must be loopback") {
+		t.Fatalf("non-loopback host was accepted: %v", err)
+	}
+	if gw.IsRunning() {
+		t.Fatal("mobile gateway became running after rejecting a non-loopback host")
+	}
+}
+
+func TestMobileGatewayUsesEphemeralCookieFileAndCleansItUp(t *testing.T) {
+	gw := &MobileGateway{}
+	if _, err := gw.Start(0, "localhost", "SID=test-session; SAPISID=test-sapisid"); err != nil {
+		t.Fatalf("Start() with cookie content: %v", err)
+	}
+	cookiePath := gw.cookiePath
+	if cookiePath == "" || strings.HasSuffix(cookiePath, "bob_mobile_cookie.txt") {
+		t.Fatalf("cookie path is predictable: %q", cookiePath)
+	}
+	info, err := os.Stat(cookiePath)
+	if err != nil {
+		t.Fatalf("stat temporary cookie: %v", err)
+	}
+	if got := info.Mode().Perm(); got != 0600 {
+		t.Fatalf("temporary cookie permissions = %o, want 600", got)
+	}
+	if err := gw.Stop(); err != nil {
+		t.Fatalf("Stop(): %v", err)
+	}
+	if _, err := os.Stat(cookiePath); !os.IsNotExist(err) {
+		t.Fatalf("temporary cookie still exists after Stop(): %v", err)
+	}
+}
+
+func TestMobileGatewayDoesNotSilentlySubstituteInvalidModel(t *testing.T) {
+	gw := &MobileGateway{}
+	if _, err := gw.Start(0, "127.0.0.1", ""); err != nil {
+		t.Fatalf("Start(): %v", err)
+	}
+	defer func() { _ = gw.Stop() }()
+
+	if _, err := gw.Generate("hello", "not-a-real-model"); err == nil {
+		t.Fatal("Generate() silently substituted a model for invalid input")
+	}
+	if err := gw.GenerateStream("hello", "not-a-real-model", nil); err == nil {
+		t.Fatal("GenerateStream() silently substituted a model for invalid input")
+	}
+
+	if err := gw.Stop(); err != nil {
+		t.Fatalf("Stop(): %v", err)
+	}
+	if _, err := gw.Generate("hello", "gemini-3.7-flash"); err == nil || !strings.Contains(err.Error(), "not running") {
+		t.Fatalf("Generate() after Stop() = %v, want stopped error", err)
+	}
+}
+
+func TestMobileGatewayStopCancelsOwnedRunContext(t *testing.T) {
+	gw := &MobileGateway{}
+	if _, err := gw.Start(0, "127.0.0.1", ""); err != nil {
+		t.Fatalf("Start(): %v", err)
+	}
+	runCtx := gw.runCtx
+	if runCtx == nil {
+		t.Fatal("Start() did not create an owned run context")
+	}
+	if err := gw.Stop(); err != nil {
+		t.Fatalf("Stop(): %v", err)
+	}
+	if !errors.Is(runCtx.Err(), context.Canceled) {
+		t.Fatalf("owned run context error = %v, want context.Canceled", runCtx.Err())
+	}
+}
+
+func TestResolveMobileModelUsesDefaultOnlyWhenOmitted(t *testing.T) {
+	if _, err := resolveMobileModel(""); err != nil {
+		t.Fatalf("omitted model should use default: %v", err)
+	}
+	if _, err := resolveMobileModel("not-a-real-model"); err == nil {
+		t.Fatal("unknown model was accepted by the strict mobile resolver")
 	}
 }

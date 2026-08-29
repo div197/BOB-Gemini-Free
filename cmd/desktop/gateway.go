@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"strconv"
@@ -90,7 +91,7 @@ func probeCompatibleGateway(endpoint string) (bool, error) {
 	var payload struct {
 		Status string `json:"status"`
 	}
-	if err := json.NewDecoder(resp.Body).Decode(&payload); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 16<<10)).Decode(&payload); err != nil {
 		return false, fmt.Errorf("invalid healthz JSON: %w", err)
 	}
 	if payload.Status != "ok" {

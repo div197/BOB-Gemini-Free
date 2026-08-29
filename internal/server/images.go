@@ -74,7 +74,7 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		writeJSON(w, ErrorToStatusCode(err), map[string]any{
 			"error": map[string]any{
-				"message": fmt.Sprintf("upstream error: %v", err),
+				"message": publicUpstreamErrorMessage(err),
 				"type":    "api_error",
 			},
 		})
@@ -95,13 +95,9 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 		if strings.ToLower(req.ResponseFormat) == "b64_json" {
 			imgBytes, err := multimodal.FetchImageBytesContext(r.Context(), a.HTTPClient, img.URL)
 			if err != nil || len(imgBytes) == 0 {
-				message := "image download failed for requested b64_json response"
-				if err != nil {
-					message += ": " + err.Error()
-				}
 				writeJSON(w, http.StatusBadGateway, map[string]any{
 					"error": map[string]any{
-						"message": message,
+						"message": publicAttachmentErrorMessage(err),
 						"type":    "api_error",
 					},
 				})
@@ -119,7 +115,6 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 			"error": map[string]any{
 				"message": "upstream response did not contain a generated image URL",
 				"type":    "api_error",
-				"details": text,
 			},
 		})
 		return

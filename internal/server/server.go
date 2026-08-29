@@ -79,7 +79,10 @@ func New(cfg config.Config, version string) *App {
 		Metrics:    registry,
 	}
 
-	if gemClient.Pool != nil {
+	// Guest-only apps have no file-backed session state to reload. Avoid
+	// starting an idle ticker in every embedded handler; configured session
+	// apps still get reload behavior and must be closed by their owner.
+	if gemClient.Pool != nil && (cfg.CookieFile != "" || len(cfg.CookiePool) > 0) {
 		app.stopPoolReload = gemClient.Pool.StartAutoReloadContext(context.Background(), 30*time.Second)
 	}
 
@@ -100,6 +103,16 @@ func (a *App) Close() {
 }
 
 func (a *App) Handler() http.Handler {
+	if a == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+				"error": map[string]any{
+					"message": "gateway app is not initialized",
+					"type":    "api_error",
+				},
+			})
+		})
+	}
 	mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /{$}", a.handleHealth)

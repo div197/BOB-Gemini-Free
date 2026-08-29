@@ -2,11 +2,13 @@ package gateway
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
 	"runtime/debug"
 	"strings"
+	"sync"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/models"
@@ -144,6 +146,27 @@ type Engine struct {
 	app *server.App
 }
 
+// CloseableHandler is implemented by handlers returned from NewHandler. A
+// caller that supplies cookie files or a cookie pool should close the handler
+// when its owning HTTP server shuts down.
+type CloseableHandler interface {
+	http.Handler
+	Close() error
+}
+
+type managedHandler struct {
+	http.Handler
+	closeOnce sync.Once
+	closeFn   func()
+}
+
+func (h *managedHandler) Close() error {
+	if h != nil {
+		h.closeOnce.Do(h.closeFn)
+	}
+	return nil
+}
+
 // NewEngine creates an embedded in-process engine for direct programmatic Go inference.
 func NewEngine(opts ...Option) *Engine {
 	cfg := config.Default()
@@ -157,7 +180,21 @@ func NewEngine(opts ...Option) *Engine {
 
 // Handler returns the standard http.Handler for mounting into HTTP servers or routers.
 func (e *Engine) Handler() http.Handler {
+	if e == nil || e.app == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+			http.Error(w, "gateway engine is not initialized", http.StatusServiceUnavailable)
+		})
+	}
 	return e.app.Handler()
+}
+
+// Close releases background workers owned by the embedded engine. Callers
+// should defer this immediately after NewEngine when a cookie file or pool is
+// configured; it is safe to call more than once.
+func (e *Engine) Close() {
+	if e != nil && e.app != nil {
+		e.app.Close()
+	}
 }
 
 // Generate performs a synchronous, single-turn text generation request directly in Go.
@@ -167,10 +204,13 @@ func (e *Engine) Generate(ctx context.Context, prompt string, model string) (str
 
 // GenerateWithMedia performs a synchronous text generation request with multimodal file references directly in Go.
 func (e *Engine) GenerateWithMedia(ctx context.Context, prompt string, model string, fileRefs []string) (string, error) {
+	if e == nil || e.app == nil || e.app.Gem == nil {
+		return "", fmt.Errorf("gateway engine is not initialized")
+	}
 	if model == "" {
 		model = e.app.Cfg.DefaultModel
 	}
-	resolved, err := models.Resolve(model, e.app.Cfg.DefaultModel)
+	resolved, err := models.ResolveStrict(model, e.app.Cfg.DefaultModel)
 	if err != nil {
 		return "", err
 	}
@@ -184,10 +224,13 @@ func (e *Engine) GenerateStream(ctx context.Context, prompt string, model string
 
 // GenerateStreamWithMedia performs real-time streaming text generation with multimodal file references directly in Go.
 func (e *Engine) GenerateStreamWithMedia(ctx context.Context, prompt string, model string, fileRefs []string, onDelta func(delta string) error) error {
+	if e == nil || e.app == nil || e.app.Gem == nil {
+		return fmt.Errorf("gateway engine is not initialized")
+	}
 	if model == "" {
 		model = e.app.Cfg.DefaultModel
 	}
-	resolved, err := models.Resolve(model, e.app.Cfg.DefaultModel)
+	resolved, err := models.ResolveStrict(model, e.app.Cfg.DefaultModel)
 	if err != nil {
 		return err
 	}
@@ -197,5 +240,8 @@ func (e *Engine) GenerateStreamWithMedia(ctx context.Context, prompt string, mod
 // NewHandler creates a standalone standard http.Handler that can be mounted into any Go HTTP server or router.
 func NewHandler(opts ...Option) http.Handler {
 	engine := NewEngine(opts...)
-	return engine.Handler()
+	return &managedHandler{
+		Handler: engine.Handler(),
+		closeFn: engine.Close,
+	}
 }

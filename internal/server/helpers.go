@@ -201,6 +201,10 @@ func publicUpstreamErrorMessage(err error) string {
 				return message
 			}
 		case "protocol":
+			switch strings.TrimSpace(upstreamErr.Msg) {
+			case "upstream response contained no usable text", "upstream stream contained no usable text":
+				return strings.TrimSpace(upstreamErr.Msg)
+			}
 			return "Google upstream returned an invalid or oversized response"
 		case "transport":
 			return "Could not reach Google Gemini upstream"
@@ -208,6 +212,82 @@ func publicUpstreamErrorMessage(err error) string {
 	}
 
 	return "upstream request failed"
+}
+
+// publicAttachmentErrorMessage keeps image-fetch/upload implementation
+// details out of API responses. In particular, an image URL can be present in
+// a wrapped fetch error and an HTTP transport error can contain a complete
+// request URL. Neither belongs in a client-visible error envelope.
+func publicAttachmentErrorMessage(err error) string {
+	if err == nil {
+		return "image attachment could not be prepared"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "image attachment request canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "image attachment request timed out"
+	}
+	return "image attachment could not be fetched or uploaded"
+}
+
+// publicUpdateCheckErrorMessage prevents network-library and GitHub URL
+// details from being returned by the unauthenticated update-check endpoint.
+// The desktop UI only needs a stable, actionable state; release diagnostics
+// remain in local operator logs and the updater's own tests.
+func publicUpdateCheckErrorMessage(err error) string {
+	if err == nil {
+		return "update check unavailable"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "update check canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "update check timed out"
+	}
+	return "update check unavailable"
+}
+
+// publicDeveloperAPIErrorMessage is the final boundary for errors generated
+// by the explicit Developer API adapter. Provider APIError values are already
+// sanitized, while generic errors can originate in future transports or
+// embedding code and may contain URLs, headers, or other request details.
+func publicDeveloperAPIErrorMessage(err error) string {
+	if err == nil {
+		return "Gemini Developer API request failed"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "request canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "Gemini Developer API request timed out"
+	}
+	var apiErr *geminiapi.APIError
+	if errors.As(err, &apiErr) && apiErr != nil {
+		return publicUpstreamErrorMessage(apiErr)
+	}
+	message := strings.TrimSpace(err.Error())
+	if message == "" {
+		return "Gemini Developer API request failed"
+	}
+	lower := strings.ToLower(message)
+	for _, marker := range []string{
+		"http://", "https://", "x-goog-api-key", "authorization", "cookie", "sapisid", "access_token", "api_key",
+	} {
+		if strings.Contains(lower, marker) {
+			return "Gemini Developer API request failed"
+		}
+	}
+	message = strings.Map(func(r rune) rune {
+		if r == '\r' || r == '\n' || r == '\t' {
+			return ' '
+		}
+		return r
+	}, message)
+	if len([]rune(message)) > 512 {
+		message = string([]rune(message)[:512]) + "..."
+	}
+	return message
 }
 
 func writeSSEError(w http.ResponseWriter, err error) error {
@@ -307,6 +387,9 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 	if len(images) == 0 {
 		return nil, nil
 	}
+	if a == nil || a.Gem == nil || a.Tokens == nil {
+		return nil, errors.New("image upload is not initialized")
+	}
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -343,7 +426,7 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 		hashStr := imageCacheKey(data, cacheScope)
 		if cacheEnabled {
 			ref, shared, err := a.ImageCache.Do(ctx, hashStr, func() (string, error) {
-				tokens := a.Tokens.Get()
+				tokens := a.Tokens.GetContext(ctx)
 				ref, err := multimodal.UploadImageContext(ctx, requester, tokens, data, mime, a.Gem.Cookies, a.Cfg.AuthUser)
 				if err == nil && ref != "" && a.Metrics != nil {
 					a.Metrics.ImageUploads.Add(1)
@@ -366,7 +449,7 @@ func (a *App) uploadImagesContext(ctx context.Context, images []format.Image) ([
 			continue
 		}
 
-		tokens := a.Tokens.Get()
+		tokens := a.Tokens.GetContext(ctx)
 		ref, err := multimodal.UploadImageContext(ctx, requester, tokens, data, mime, a.Gem.Cookies, a.Cfg.AuthUser)
 		if err != nil {
 			return nil, fmt.Errorf("image upload failed: %w", err)

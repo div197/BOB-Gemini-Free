@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -15,6 +17,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"slices"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -61,23 +64,36 @@ func handleBrowserLogin() {
 		os.Exit(1)
 	}
 
-	home, err := os.UserHomeDir()
-	if err == nil {
-		targetDir := filepath.Join(home, ".config", "bob-gemini-free")
-		targetCookieFile := filepath.Join(targetDir, "cookie.txt")
-		_ = gemini.SaveCookieFile(targetCookieFile, extracted.RawCookie)
+	var savedPaths []string
+	var saveErrors []string
+	if home, err := os.UserHomeDir(); err == nil {
+		targetCookieFile := filepath.Join(home, ".config", "bob-gemini-free", "cookie.txt")
+		if err := gemini.SaveCookieFile(targetCookieFile, extracted.RawCookie); err != nil {
+			saveErrors = append(saveErrors, fmt.Sprintf("%s: %v", targetCookieFile, err))
+		} else {
+			savedPaths = append(savedPaths, targetCookieFile)
+		}
+	} else {
+		saveErrors = append(saveErrors, fmt.Sprintf("home directory: %v", err))
 	}
-
-	_ = gemini.SaveCookieFile("./cookie.txt", extracted.RawCookie)
+	if err := gemini.SaveCookieFile("./cookie.txt", extracted.RawCookie); err != nil {
+		saveErrors = append(saveErrors, fmt.Sprintf("./cookie.txt: %v", err))
+	} else {
+		savedPaths = append(savedPaths, "./cookie.txt")
+	}
+	if len(savedPaths) == 0 {
+		fmt.Printf("\n[!] Login succeeded but no secure cookie file could be saved: %s\n", strings.Join(saveErrors, "; "))
+		os.Exit(1)
+	}
 
 	fmt.Println()
 	fmt.Println("================================================================")
 	fmt.Printf("[✔] Verified %d session tokens!\n", len(extracted.Tokens))
 	if extracted.SAPISID != "" {
-		fmt.Printf("[✔] SAPISID detected: %s... (SAPISIDHASH active)\n", extracted.SAPISID[:min(6, len(extracted.SAPISID))])
+		fmt.Println("[✔] SAPISID detected (SAPISIDHASH support available; value withheld)")
 	}
-	fmt.Printf("[✔] Securely saved cookie to ./cookie.txt and ~/.config/bob-gemini-free/cookie.txt (mode 0600)\n")
-	fmt.Println("[✔] Gemini Pro model (gemini-3.1-pro / gemini-pro) & Imagen 3 activated!")
+	fmt.Printf("[✔] Securely saved cookie file(s) (mode 0600): %s\n", strings.Join(savedPaths, ", "))
+	fmt.Println("[i] Provider model, vision, and image capabilities remain session-dependent; verify them with a real request.")
 	fmt.Println("================================================================")
 	fmt.Println()
 	fmt.Println("Start BOB Gemini Free with:")
@@ -130,8 +146,7 @@ func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
 	fmt.Println("    Break Ordinary Boundaries | ABCsteps (https://abcsteps.com)   ")
 	fmt.Println("==================================================================")
 	fmt.Printf("Target Gateway URL:   %s\n", targetURL)
-	fmt.Printf("Concurrency Level:    %d workers\n", concurrency)
-	fmt.Printf("Total Batch Requests: %d queries\n\n", requests)
+	fmt.Printf("Requested Workload:    %d workers × %d queries\n\n", concurrency, requests)
 	fmt.Println("[*] Benchmarking live throughput and latencies against upstream...")
 
 	report := diag.RunBenchmark(targetURL, apiKey, concurrency, requests)
@@ -147,7 +162,12 @@ func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
 	fmt.Printf("  • 90th Percentile (P90):%v\n", report.P90Latency.Round(time.Millisecond))
 	fmt.Printf("  • 99th Percentile (P99):%v\n", report.P99Latency.Round(time.Millisecond))
 	fmt.Printf("  • Request Throughput:   %.2f req/sec\n", report.RequestsPerSec)
-	fmt.Printf("  • Token Throughput:     %.1f tokens/sec\n", report.TokensPerSecond)
+	fmt.Printf("  • Effective Workload:   %d workers × %d queries\n", report.Concurrency, report.TotalRequests)
+	if report.TokenCountsMeasured {
+		fmt.Printf("  • Token Throughput:     %.1f tokens/sec (provider-reported usage)\n", report.TokensPerSecond)
+	} else {
+		fmt.Println("  • Token Throughput:     unavailable (usage was not reported for every successful response)")
+	}
 	fmt.Println("==================================================================")
 	fmt.Println()
 
@@ -159,9 +179,10 @@ func handleBenchmark(targetURL, apiKey string, concurrency, requests int) {
 
 func handleStatus(targetURL, apiKey string) {
 	client := &http.Client{Timeout: 5 * time.Second}
-	req, _ := http.NewRequest("GET", targetURL+"/", nil)
-	if apiKey != "" {
-		req.Header.Set("Authorization", "Bearer "+apiKey)
+	req, err := newStatusRequest(targetURL, apiKey)
+	if err != nil {
+		fmt.Printf("❌ Invalid gateway status URL %q: %v\n", targetURL, err)
+		os.Exit(1)
 	}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -169,6 +190,10 @@ func handleStatus(targetURL, apiKey string) {
 		os.Exit(1)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		fmt.Printf("❌ Gateway status endpoint returned HTTP %d\n", resp.StatusCode)
+		os.Exit(1)
+	}
 
 	var data struct {
 		Status              string   `json:"status"`
@@ -182,7 +207,7 @@ func handleStatus(targetURL, apiKey string) {
 		PoolSessionsHealthy int      `json:"pool_sessions_healthy"`
 	}
 
-	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+	if err := json.NewDecoder(io.LimitReader(resp.Body, 64<<10)).Decode(&data); err != nil {
 		fmt.Printf("❌ Failed to parse status response: %v\n", err)
 		os.Exit(1)
 	}
@@ -202,6 +227,17 @@ func handleStatus(targetURL, apiKey string) {
 	fmt.Println("==================================================================")
 	fmt.Println()
 	os.Exit(0)
+}
+
+func newStatusRequest(targetURL, apiKey string) (*http.Request, error) {
+	req, err := http.NewRequest(http.MethodGet, strings.TrimRight(targetURL, "/")+"/", nil)
+	if err != nil {
+		return nil, err
+	}
+	if apiKey != "" {
+		req.Header.Set("Authorization", "Bearer "+apiKey)
+	}
+	return req, nil
 }
 
 func handleCookieSetup(rawInput string) {
@@ -256,10 +292,10 @@ func handleCookieSetup(rawInput string) {
 	fmt.Println()
 	fmt.Printf("[✔] Verified %d session tokens!\n", len(extracted.Tokens))
 	if extracted.SAPISID != "" {
-		fmt.Printf("[✔] SAPISID detected: %s... (SAPISIDHASH active)\n", extracted.SAPISID[:min(6, len(extracted.SAPISID))])
+		fmt.Println("[✔] SAPISID detected (SAPISIDHASH support available; value withheld)")
 	}
 	fmt.Printf("[✔] Securely saved cookies to: %s (mode 0600)\n", targetCookieFile)
-	fmt.Println("[✔] Gemini Pro model (gemini-3.1-pro / gemini-pro) routing activated!")
+	fmt.Println("[i] Provider model, vision, and image capabilities remain session-dependent; verify them with a real request.")
 	fmt.Println()
 	fmt.Println("Start BOB Gemini Free with:")
 	fmt.Printf("  ./bob-gemini-free --cookie-file %s\n", targetCookieFile)
@@ -267,31 +303,45 @@ func handleCookieSetup(rawInput string) {
 	os.Exit(0)
 }
 
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
 type studioLauncher func(context.Context, int, func(string, ...any)) error
 
-func launchStudioOrFallback(ctx context.Context, port int, launch studioLauncher, fallback func(string)) {
-	if err := launch(ctx, port, log.Printf); err != nil {
-		fallback(fmt.Sprintf("http://localhost:%d/playground", port))
+type studioFallback func(string) error
+
+func launchStudioOrFallback(ctx context.Context, port int, launch studioLauncher, fallback studioFallback) error {
+	if launch == nil {
+		return fmt.Errorf("desktop Studio launcher is unavailable")
 	}
+	if err := launch(ctx, port, log.Printf); err == nil {
+		return nil
+	} else {
+		studioURL := fmt.Sprintf("http://localhost:%d/playground", port)
+		if fallback == nil {
+			return fmt.Errorf("embedded Studio launch failed: %w; browser fallback is unavailable", err)
+		}
+		if fallbackErr := fallback(studioURL); fallbackErr != nil {
+			return fmt.Errorf("embedded Studio launch failed: %w; browser fallback failed: %v", err, fallbackErr)
+		}
+	}
+	return nil
 }
 
-func openStudioFallback(studioURL string) {
+func openStudioFallback(studioURL string) error {
+	var command *exec.Cmd
 	switch runtime.GOOS {
 	case "linux":
-		_ = exec.Command("xdg-open", studioURL).Start()
+		command = exec.Command("xdg-open", studioURL)
 	case "windows":
-		_ = exec.Command("rundll32", "url.dll,FileProtocolHandler", studioURL).Start()
+		command = exec.Command("rundll32", "url.dll,FileProtocolHandler", studioURL)
 	case "darwin":
-		_ = exec.Command("open", studioURL).Start()
+		command = exec.Command("open", studioURL)
+	default:
+		return fmt.Errorf("default browser fallback is unsupported on %s", runtime.GOOS)
+	}
+	if err := command.Start(); err != nil {
+		return fmt.Errorf("open default browser: %w", err)
 	}
 	log.Printf("🚀 Opened Studio in default browser tab: %s", studioURL)
+	return nil
 }
 
 func handleUpdate(currentVersion string) {
@@ -436,7 +486,7 @@ func main() {
 
 	cfg, err := config.Load(configPath)
 	if err != nil && configPath != "" {
-		log.Printf("Warning: failed to load config from %s: %v", configPath, err)
+		log.Fatalf("failed to load config from %s: %v", configPath, err)
 	}
 
 	// Auto-fallback test key if none specified and API keys are configured
@@ -484,8 +534,9 @@ func main() {
 	app := server.New(cfg, currentVersion)
 	defer app.Close()
 
-	modelKeys := make([]string, 0, len(models.MODELS))
-	for k := range models.MODELS {
+	modelCatalog := models.GetAllModels()
+	modelKeys := make([]string, 0, len(modelCatalog))
+	for k := range modelCatalog {
 		modelKeys = append(modelKeys, k)
 	}
 	slices.Sort(modelKeys)
@@ -518,7 +569,7 @@ func main() {
 	fmt.Println()
 
 	srv := &http.Server{
-		Addr:              fmt.Sprintf("%s:%d", cfg.Host, cfg.Port),
+		Addr:              net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
 		Handler:           app.Handler(),
 		ReadHeaderTimeout: 10 * time.Second,
 		WriteTimeout:      0,
@@ -536,7 +587,9 @@ func main() {
 	go func() {
 		time.Sleep(500 * time.Millisecond) // Give server time to bind
 		if !*headlessFlag {
-			launchStudioOrFallback(context.Background(), cfg.Port, browser.LaunchStudioWindow, openStudioFallback)
+			if err := launchStudioOrFallback(context.Background(), cfg.Port, browser.LaunchStudioWindow, openStudioFallback); err != nil {
+				log.Printf("Studio startup failed: %v", err)
+			}
 		}
 	}()
 

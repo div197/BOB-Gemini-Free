@@ -133,6 +133,28 @@ func TestEmptyStreamFailsClosed(t *testing.T) {
 	}
 }
 
+func TestStreamRejectsMetadataOnlyOrFinishOnlyOutput(t *testing.T) {
+	tests := []struct {
+		name string
+		body string
+	}{
+		{name: "usage only", body: "data: {\"usageMetadata\":{\"totalTokenCount\":2}}\n\n"},
+		{name: "finish only", body: "data: {\"candidates\":[{\"finishReason\":\"STOP\"}]}\n\n"},
+		{name: "whitespace text", body: "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"   \"}]}}]}\n\n"},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+				return response(http.StatusOK, "text/event-stream", test.body), nil
+			}))
+			err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil })
+			if err == nil || !strings.Contains(err.Error(), "no usable stream content") {
+				t.Fatalf("error = %v, want no usable stream content", err)
+			}
+		})
+	}
+}
+
 func TestProviderEmptyResponseFailsClosed(t *testing.T) {
 	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
 		return nil, nil
@@ -152,12 +174,57 @@ func TestProviderEmptyResponseFailsClosed(t *testing.T) {
 	}
 }
 
+func TestGenerateRawRejectsSuccessfulNonJSONResponse(t *testing.T) {
+	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return response(http.StatusOK, "text/html", "<html>temporary provider page</html>"), nil
+	}))
+
+	_, err := client.GenerateRaw(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{})
+	if err == nil || !strings.Contains(err.Error(), "invalid JSON") {
+		t.Fatalf("non-JSON success response error = %v, want invalid JSON", err)
+	}
+}
+
+func TestGenerateRejectsSemanticEmptyResponse(t *testing.T) {
+	for _, body := range []string{
+		`{"candidates":[{"finishReason":"STOP"}],"usageMetadata":{"totalTokenCount":2}}`,
+		`{"usageMetadata":{"totalTokenCount":2}}`,
+	} {
+		client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+			return response(http.StatusOK, "application/json", body), nil
+		}))
+		if _, err := client.Generate(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}); err == nil || !strings.Contains(err.Error(), "no") {
+			t.Fatalf("semantic empty response %s was accepted: %v", body, err)
+		}
+	}
+}
+
+func TestGenerateAcceptsNativeInlineDataOutput(t *testing.T) {
+	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return response(http.StatusOK, "application/json", `{"candidates":[{"content":{"parts":[{"inlineData":{"mimeType":"image/png","data":"aGk="}}]}}]}`), nil
+	}))
+	if _, err := client.Generate(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}); err != nil {
+		t.Fatalf("inline-data response was rejected: %v", err)
+	}
+}
+
+func TestSanitizeMessageDoesNotSplitUTF8(t *testing.T) {
+	message := strings.Repeat("न", 501)
+	got := sanitizeMessage(message)
+	if !strings.HasSuffix(got, "...") {
+		t.Fatalf("sanitized message lost truncation suffix: %q", got)
+	}
+	if !strings.HasPrefix(got, strings.Repeat("न", 500)) {
+		t.Fatalf("sanitized message split or corrupted UTF-8: %q", got)
+	}
+}
+
 func TestClientNormalizesNilContext(t *testing.T) {
 	client := NewClient(roundTripFunc(func(req *http.Request) (*http.Response, error) {
 		if req.Context() == nil {
 			t.Fatal("request context is nil")
 		}
-		return response(http.StatusOK, "application/json", `{"candidates":[]}`), nil
+		return response(http.StatusOK, "application/json", `{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}`), nil
 	}))
 	if _, err := client.Generate(nil, "gemini-3.7-flash", "context-key", GenerateContentRequest{}); err != nil {
 		t.Fatalf("Generate(nil context) error = %v", err)
@@ -168,6 +235,16 @@ func TestClientNormalizesNilContext(t *testing.T) {
 	})
 	if err := client.Stream(nil, "gemini-3.7-flash", "context-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil }); err != nil {
 		t.Fatalf("Stream(nil context) error = %v", err)
+	}
+}
+
+func TestNilClientFailsClosed(t *testing.T) {
+	var client *Client
+	if _, err := client.GenerateRaw(context.Background(), "gemini-3.7-flash", "context-key", GenerateContentRequest{}); err == nil || !strings.Contains(err.Error(), "client is nil") {
+		t.Fatalf("nil GenerateRaw client error = %v", err)
+	}
+	if err := client.Stream(context.Background(), "gemini-3.7-flash", "context-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil }); err == nil || !strings.Contains(err.Error(), "client is nil") {
+		t.Fatalf("nil Stream client error = %v", err)
 	}
 }
 

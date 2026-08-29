@@ -4858,7 +4858,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <div class="cmd-item-left">
           <span class="cmd-item-icon">🧠</span>
           <div class="cmd-item-info">
-            <span class="cmd-item-title">Deep Invariant Refiner (4-Stage Reasoning)</span>
+            <span class="cmd-item-title">Deep Invariant Refiner (3-Stage Reasoning)</span>
             <span class="cmd-item-desc">Recursive requirement decomposition, self-audit & synthesis</span>
           </div>
         </div>
@@ -7757,7 +7757,9 @@ function downloadCode(btn, lang) {
   a.href = url;
   a.download = `bob_code_${Date.now()}.${ext}`;
   a.click();
-  URL.revokeObjectURL(url);
+  // Allow the browser's download hand-off to finish before releasing the
+  // object URL. Immediate revocation is racy in some native WebViews.
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
   showToast(`Downloaded as bob_code.${ext}`, "💾");
 }
 
@@ -8129,7 +8131,7 @@ function openArtifactCanvas(artId) {
     } else if (art.type === 'svg') {
       iframe.srcdoc = `<!DOCTYPE html><html><head><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; overflow:auto;} svg{max-width:90vw; max-height:85vh; filter:drop-shadow(0 10px 25px rgba(0,0,0,0.5));}</style></head><body>${code}</body></html>`;
     } else if (art.type === 'mermaid') {
-      iframe.srcdoc = `<!DOCTYPE html><html><head><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(code)}</div><script>mermaid.initialize({startOnLoad:true, theme:'dark'});<\/script></body></html>`;
+      iframe.srcdoc = `<!DOCTYPE html><html><head><script>(function(){window.__bobMermaidFailure=function(message){try{window.parent.postMessage({type:'BOB_ARTIFACT_RUNTIME_ERROR',message:String(message||'Mermaid library could not be loaded').slice(0,500)},'*');}catch(_){}};window.setTimeout(function(){if(!window.mermaid)window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.');},10000);})();<\/script><script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js" onerror="window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.')"><\/script><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a; color:#fff; font-family:sans-serif;}</style></head><body><div class="mermaid">${escapeHtml(code)}</div><script>if(!window.mermaid){window.__bobMermaidFailure('Mermaid preview library could not be loaded. Check the network connection and try again.');}else{try{mermaid.initialize({startOnLoad:true, theme:'dark'});}catch(err){window.__bobMermaidFailure('Mermaid preview failed to initialize.');}}<\/script></body></html>`;
     } else if (art.type === 'python') {
       const cleanPyCode = sanitizePythonCode(code);
       iframe.srcdoc = `<!DOCTYPE html>
@@ -8137,7 +8139,8 @@ function openArtifactCanvas(artId) {
 <head>
   <meta charset="utf-8">
   <title>Python WASM Runner</title>
-  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js"><\/script>
+  <script>window.__bobPyodideLoadError='';window.__bobReportPyodideFailure=function(message){try{window.parent.postMessage({type:'BOB_ARTIFACT_RUNTIME_ERROR',message:String(message||'Pyodide could not be loaded').slice(0,500)},'*');}catch(_){}};<\/script>
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js" onerror="window.__bobPyodideLoadError='Pyodide WebAssembly library could not be loaded';window.__bobReportPyodideFailure('Pyodide WebAssembly library could not be loaded. Check the network connection and try again.')"><\/script>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -8261,6 +8264,9 @@ function openArtifactCanvas(artId) {
 
     async function initPyodide() {
       try {
+        if (window.__bobPyodideLoadError || typeof loadPyodide !== 'function') {
+          throw new Error(window.__bobPyodideLoadError || 'Pyodide WebAssembly library could not be loaded');
+        }
         pyodideInstance = await loadPyodide({
           stdout: (text) => appendTerm(text, 'term-out'),
           stderr: (text) => appendTerm(text, 'term-err')
@@ -8276,7 +8282,9 @@ function openArtifactCanvas(artId) {
       } catch (err) {
         document.getElementById('py-dot').className = 'py-dot error';
         document.getElementById('py-status-text').textContent = 'Pyodide Load Failed';
-        appendTerm('Failed to load Pyodide WebAssembly: ' + err.message, 'term-err');
+        const message = (err && err.message) || 'Pyodide WebAssembly library could not be loaded';
+        appendTerm('Failed to load Pyodide WebAssembly: ' + message, 'term-err');
+        window.__bobReportPyodideFailure(message);
       }
     }
 
@@ -8488,7 +8496,7 @@ function downloadArtifactFile() {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  setTimeout(() => URL.revokeObjectURL(url), 30000);
   showToast("Saved: " + filename, "💾");
 }
 
@@ -8500,9 +8508,27 @@ function popOutArtifact() {
     content = `<!DOCTYPE html><html><head><title>${escapeHtml(currentActiveArtifact.title)}</title><style>body{margin:0; min-height:100vh; display:flex; align-items:center; justify-content:center; background:#0f172a;} svg{max-width:95vw; max-height:90vh;}</style></head><body>${content}</body></html>`;
     mime = 'text/html';
   }
-  const blob = new Blob([content], { type: mime });
+  // Keep the same opaque-origin sandbox in a pop-out window. Opening the raw
+  // generated HTML would turn an explicit preview action into an unsandboxed
+  // document that can retain an opener reference or make privileged requests.
+  // Escape '<' before embedding JSON so an artifact cannot close the wrapper's
+  // script element with a literal closing-script sequence.
+  const frameSource = JSON.stringify(content)
+    .replace(/</g, "\\u003c")
+    .replace(/>/g, "\\u003e")
+    .replace(/&/g, "\\u0026")
+    .replace(/\u2028/g, "\\u2028")
+    .replace(/\u2029/g, "\\u2029");
+  const wrapper = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>BOB Artifact Preview</title><style>html,body{margin:0;width:100%;height:100%;background:#0f172a;}iframe{display:block;width:100%;height:100%;border:0;}</style></head><body><iframe sandbox="allow-scripts allow-modals allow-forms" title="Sandboxed BOB artifact preview"></iframe><script>document.querySelector('iframe').srcdoc=${frameSource};<\/script></body></html>`;
+  const blob = new Blob([wrapper], { type: mime });
   const url = URL.createObjectURL(blob);
-  window.open(url, '_blank');
+  const opened = window.open(url, '_blank', 'noopener,noreferrer');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  if (!opened) {
+    URL.revokeObjectURL(url);
+    showToast("The artifact window was blocked by the browser", "⚠️");
+    return;
+  }
   showToast("Launched artifact in standalone window", "⛶");
 }
 
@@ -10149,6 +10175,7 @@ function clearChat() {
 
 async function enhanceCurrentPrompt() {
   const inputEl = document.getElementById("user-input");
+  if (!inputEl) return;
   const raw = inputEl.value.trim();
   if (!raw) {
     showToast("Type a rough thought or idea first, then click 🪄 to polish it!", "🪄");
@@ -10162,14 +10189,21 @@ async function enhanceCurrentPrompt() {
   }
 
   const useLiveGateway = !isHostedStudio() || hasExplicitGatewayEndpoint();
-  showToast(useLiveGateway ? "🪄 Crafting precision master prompt with Gemini..." : "🪄 Using offline prompt polish in browser mode...", "✨");
+  if (!useLiveGateway) {
+    showToast("Connect a local gateway to use AI prompt polish; original prompt kept", "⚠️");
+    if (btn) btn.classList.remove("wand-sparkle");
+    return;
+  }
 
-  // 1. Live AI Prompt Metaprompting Engine (via local BOB Gateway)
-  if (useLiveGateway) {
+  showToast("🪄 Crafting precision master prompt with Gemini...", "✨");
+
+  // Live AI Prompt Metaprompting Engine (via local BOB Gateway). A failed
+  // request must never replace the user's prompt with a hard-coded template.
+  let timeoutId = null;
   try {
     const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash";
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6500);
+    timeoutId = setTimeout(() => controller.abort(), 6500);
 
     const res = await fetch(getGatewayBaseUrl() + "/v1/chat/completions", {
       method: "POST",
@@ -10194,80 +10228,31 @@ async function enhanceCurrentPrompt() {
       }),
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      const aiOptimized = data?.choices?.[0]?.message?.content?.trim();
-      if (aiOptimized && aiOptimized.length > 10) {
-        inputEl.value = aiOptimized;
-        autoResize(inputEl);
-        inputEl.focus();
-        showToast("Prompt expanded with AI master-prompt precision!", "🪄");
-        if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
-        return;
-      }
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      showToast("AI prompt polish failed; original prompt kept", "⚠️");
+      return;
     }
+    const aiOptimized = data?.choices?.[0]?.message?.content?.trim();
+    if (!aiOptimized || aiOptimized.length <= 10) {
+      showToast("AI prompt polish returned no usable output; original prompt kept", "⚠️");
+      return;
+    }
+
+    inputEl.value = aiOptimized;
+    autoResize(inputEl);
+    inputEl.focus();
+    showToast("Prompt expanded with AI master-prompt precision!", "🪄");
   } catch (err) {
-    console.warn("AI prompt enhancement offline fallback:", err);
+    const message = err && err.name === "AbortError"
+      ? "AI prompt polish timed out; original prompt kept"
+      : "AI prompt polish failed; original prompt kept";
+    showToast(message, "⚠️");
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+    if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
   }
-  }
-
-  // 2. Intelligent Offline Fallback Engine
-  const lower = raw.toLowerCase();
-  let enhanced = "";
-
-  // Case 1: Game / Interactive Simulation / Artifact Canvas
-  if (lower.includes("game") || lower.includes("html") || lower.includes("app") || lower.includes("canvas") || lower.includes("simulation") || lower.includes("calculator") || lower.includes("visualizer") || lower.includes("dashboard")) {
-    enhanced = `Build a complete, standalone, production-grade interactive single-file HTML5 application for: ${raw}.
-
-### Technical & Aesthetic Specifications:
-1. **Self-Contained Architecture**: Include all semantic HTML5 markup, embedded modern CSS3 styling, and JavaScript logic inside a single runnable file.
-2. **Visual Aesthetics & UI**:
-   - Dark theme palette with sleek cyberpunk/glassmorphic accents, clean typography, responsive layout, and smooth transitions.
-   - Fluid 60fps animations, keyboard and pointer touch controls, visual HUD with score/metrics, and particle effects.
-3. **Robust Engineering**:
-   - Clean state management, restart/pause states, zero runtime console errors, and high frame-rate performance.
-   - Avoid external heavy frameworks unless using standard CDN scripts (like Chart.js, Three.js, or Mermaid) when necessary.
-4. Output the complete runnable source code inside a single \`\`\`html\`\`\` code block.`;
-  }
-  // Case 2: Math / Physics / First-Principles Proofs
-  else if (lower.includes("proof") || lower.includes("math") || lower.includes("physics") || lower.includes("equation") || lower.includes("theorem") || lower.includes("derivation") || lower.includes("quantum")) {
-    enhanced = `Provide a rigorous, first-principles mathematical and theoretical deconstruction of: ${raw}.
-
-### Required Structure:
-1. **Core Axioms & Definitions**: Define all mathematical variables, state vectors, operators, and physical constants with standard LaTeX notation.
-2. **Step-by-Step Derivation**: Formulate the full derivation without skipping intermediate steps using clean display math ($$...$$) and inline math ($...$).
-3. **Intuitive Grounded Analogies**: Provide physical intuition and real-world natural analogies (flowing fluids, wave dynamics, mechanical systems) without cliché toy metaphors.
-4. **Edge Cases & Asymptotic Limits**: Evaluate the boundary conditions and asymptotic behavior.
-5. If visual representations aid comprehension, include structured ASCII schematics or valid Mermaid flowcharts.`;
-  }
-  // Case 3: Code / Backend / Microservices / Architecture
-  else if (lower.includes("code") || lower.includes("go") || lower.includes("python") || lower.includes("api") || lower.includes("backend") || lower.includes("microservice") || lower.includes("database") || lower.includes("refactor")) {
-    enhanced = `Design a high-performance, production-ready implementation and architecture for: ${raw}.
-
-### Technical Constraints:
-1. **Idiomatic Standards**: Clean, robust, production-quality code following best design patterns and concurrency safety.
-2. **Performance & Memory**: Zero unnecessary allocations, optimal algorithmic time/space complexity, and clean error propagation.
-3. **Complete Implementation**: Provide complete, fully runnable code with comments on non-obvious architecture decisions (no placeholders or stubbed logic).
-4. **Unit Verification**: Include realistic test cases or curl examples to verify correctness.`;
-  }
-  // Case 4: General Thought / Explanatory Inquiry
-  else {
-    enhanced = `Provide a comprehensive, first-principles deconstruction of: ${raw}.
-
-### Structure your response with:
-- **Executive Summary**: Core insights distilled into 2-3 precise paragraphs.
-- **Deep Axiomatic Breakdown**: Foundational concepts, mechanisms, and causal chains.
-- **Real-World Applications & Edge Cases**: Practical implications and common pitfalls.
-- **Key Takeaways**: Actionable conclusions formatted with clear bullet points.`;
-  }
-
-  inputEl.value = enhanced;
-  autoResize(inputEl);
-  inputEl.focus();
-  showToast("Prompt expanded with temple-grade specifications!", "🪄");
-  if (btn) setTimeout(() => btn.classList.remove("wand-sparkle"), 900);
 }
 
 async function refineCurrentPromptDeep() {
@@ -10279,11 +10264,12 @@ async function refineCurrentPromptDeep() {
     return;
   }
 
-  showToast("🧠 Running 4-Stage Deep Invariant Refinement...", "✨");
+  showToast("🧠 Running 3-Stage Deep Invariant Refinement...", "✨");
+  let timeoutId = null;
   try {
     const activeModel = document.getElementById("model-select")?.value || "gemini-3.7-flash-thinking";
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 60000);
+    timeoutId = setTimeout(() => controller.abort(), 60000);
 
     const res = await fetch(getGatewayBaseUrl() + "/v1/refine", {
       method: "POST",
@@ -10297,22 +10283,29 @@ async function refineCurrentPromptDeep() {
       }),
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
 
-    if (res.ok) {
-      const data = await res.json();
-      if (data.final_output) {
-        inputEl.value = data.final_output;
-        autoResize(inputEl);
-        inputEl.focus();
-        showToast("🧠 Deep 4-Stage Invariant Refinement Complete!", "✨");
-        return;
-      }
+    const data = await res.json().catch(() => null);
+    if (!res.ok) {
+      showToast("Deep refiner unavailable; original prompt kept", "⚠️");
+      return;
     }
+    if (!data || typeof data.final_output !== "string" || !data.final_output.trim()) {
+      showToast("Deep refiner returned no usable output; original prompt kept", "⚠️");
+      return;
+    }
+
+    inputEl.value = data.final_output;
+    autoResize(inputEl);
+    inputEl.focus();
+    showToast("🧠 Deep 3-Stage Invariant Refinement Complete!", "✨");
   } catch (err) {
-    console.warn("Deep refiner fallback:", err);
+    const message = err && err.name === "AbortError"
+      ? "Deep refiner timed out; original prompt kept"
+      : "Deep refiner failed; original prompt kept";
+    showToast(message, "⚠️");
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
   }
-  enhanceCurrentPrompt();
 }
 
 function printConversation() {
@@ -11270,7 +11263,11 @@ async function sendMessage() {
                 scheduleSmoothRenderTracked();
               }
             }
-          } catch(e) {}
+          } catch(e) {
+            streamProtocolError = "Stream contained an invalid SSE event";
+            streamDone = true;
+            break;
+          }
         }
       }
       return remaining;
@@ -11319,6 +11316,9 @@ async function sendMessage() {
     }
     if (streamProtocolError) {
       throw new Error(streamProtocolError);
+    }
+    if (!asstFullText.trim() && !thoughtFullText.trim()) {
+      throw new Error("Stream completed without usable model output");
     }
 
     // Clear throttles and do a synchronous final render
@@ -11402,50 +11402,11 @@ async function sendMessage() {
       });
       saveHistory();
     } else {
-      // Auto-Healing for Multimodal BardErrorInfo [1003] via Client-Side Local OCR
-      const isMultimodal1003 = err.message && (err.message.includes("1003") || err.message.includes("image attachment") || err.message.includes("BardErrorInfo"));
-      const lastUserEntry = chatHistory[chatHistory.length - 1];
-      const hasImageWithOCR = lastUserEntry && lastUserEntry.role === 'user' && (
-        (lastUserEntry.attachedImage && lastUserEntry.attachedImage.ocrText) ||
-        (lastUserEntry.attachedFiles && lastUserEntry.attachedFiles.some(f => f.isImage && f.ocrText))
-      );
-
-      if (isMultimodal1003 && hasImageWithOCR) {
-        let extractedText = (lastUserEntry.attachedImage && lastUserEntry.attachedImage.ocrText) || '';
-        let imgName = (lastUserEntry.attachedImage && lastUserEntry.attachedImage.name) || 'image.png';
-        if (!extractedText && lastUserEntry.attachedFiles) {
-          const imgF = lastUserEntry.attachedFiles.find(f => f.isImage && f.ocrText);
-          if (imgF) {
-            extractedText = imgF.ocrText;
-            imgName = imgF.name;
-          }
-        }
-
-        if (extractedText) {
-          showToast("⚡ Auto-recovering via Client-Side Local OCR...", "🔍");
-          storyDiv.remove();
-          
-          let origPrompt = text || "Please analyze this image.";
-          if (Array.isArray(lastUserEntry.content) && lastUserEntry.content[0] && lastUserEntry.content[0].text) {
-            origPrompt = lastUserEntry.content[0].text;
-          }
-          lastUserEntry.content = `[Attached Image: ${imgName} (Extracted via Client-Side Local OCR)]:\n\`\`\`\n${extractedText}\n\`\`\`\n\n${origPrompt}`;
-          saveHistory();
-
-          // Reset UI state for retry
-          isGenerating = false;
-          setGenerationControlsDisabled(false);
-          sendBtn.classList.remove("stop-mode");
-          sendLabel.innerText = dict.btnSend;
-          sendIcon.innerText = "➤";
-          inputEl.disabled = false;
-          
-          // Trigger seamless replay
-          pendingRetry = true;
-          return retryWithModel('default', chatHistory.length - 1);
-        }
-      }
-
+      // Do not silently convert an image request into an OCR-only text request
+      // after a provider upload failure. OCR is useful evidence, but it is not
+      // equivalent to vision and an automatic replay can spend another quota
+      // unit while changing the user's requested semantics. Keep the failed
+      // turn visible and let an explicit user retry decide what happens next.
       updateGatewayStatusIndicator(false, null);
       let mixedContentHint = "";
       if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
@@ -11457,9 +11418,10 @@ async function sendMessage() {
       }
 
       const safeErrorMessage = String((err && err.message) || "Generation failed")
-        .slice(0, MAX_HISTORY_ERROR_CHARS)
         .replace(/(?:AIzaSy|ghp_)[A-Za-z0-9_\-]+/g, "[redacted]")
-        .replace(/(authorization|cookie|x-goog-api-key)\s*[:=]\s*[^\s,;]+/ig, "$1: [redacted]");
+        .replace(/(authorization|cookie|x-goog-api-key)\s*[:=]\s*[^\s,;]+/ig, "$1: [redacted]")
+        .replace(/https?:\/\/[^\s<>"']+/gi, "[redacted-url]")
+        .slice(0, MAX_HISTORY_ERROR_CHARS);
       let errorHtml = "";
       if (safeErrorMessage.includes("401")) {
         errorHtml = `

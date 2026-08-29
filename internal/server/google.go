@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
+	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/models"
 )
 
@@ -104,7 +105,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 
 	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 	a.RequestsServed.Add(1) // Track all Google API requests, not just countTokens
@@ -140,6 +141,9 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			return writeSSEData(w, chunkObj)
 		})
 
+		if emitErr == nil && strings.TrimSpace(fullText) == "" {
+			emitErr = &gemini.UpstreamError{Kind: "protocol", Msg: "upstream response contained no usable text"}
+		}
 		if emitErr == nil {
 			promptTokens := format.EstimateTokens(prompt)
 			candidatesTokens := format.EstimateTokens(fullText)
@@ -165,7 +169,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			}
 			_ = writeSSEData(w, finalChunk)
 		} else {
-			a.Logf("Google stream error: %v", emitErr)
+			a.Logf("Google stream error: %s", publicUpstreamErrorMessage(emitErr))
 			// Headers have already been sent. A top-level error preserves the
 			// native Google-shaped stream contract without pretending that a
 			// provider failure is model-authored Markdown. Native Google SSE
@@ -178,6 +182,13 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 	text, err := a.Gem.GenerateContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra)
 	if err != nil {
 		writeJSON(w, ErrorToStatusCode(err), map[string]any{"error": map[string]any{"message": publicUpstreamErrorMessage(err), "type": "api_error"}})
+		return
+	}
+	if strings.TrimSpace(text) == "" {
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{
+			"message": "upstream response contained no usable text",
+			"type":    "api_error",
+		}})
 		return
 	}
 
@@ -200,11 +211,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			responseParts = append(responseParts, models.GooglePart{Text: text})
 		}
 	} else {
-		fallbackText := text
-		if fallbackText == "" {
-			fallbackText = "I apologize, but I was unable to generate a response. Please try again."
-		}
-		responseParts = append(responseParts, models.GooglePart{Text: fallbackText})
+		responseParts = append(responseParts, models.GooglePart{Text: text})
 	}
 
 	promptTokens := format.EstimateTokens(prompt)

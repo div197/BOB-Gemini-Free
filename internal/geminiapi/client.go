@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -91,6 +92,9 @@ func (c *Client) Generate(ctx context.Context, model, apiKey string, req Generat
 			Err:     err,
 		}
 	}
+	if err := ValidateGenerateContentResponse(response); err != nil {
+		return GenerateContentResponse{}, err
+	}
 	return response, nil
 }
 
@@ -117,7 +121,8 @@ func (c *Client) Stream(ctx context.Context, model, apiKey string, req GenerateC
 	if emit == nil {
 		return errors.New("Gemini Developer API stream callback is nil")
 	}
-	return c.StreamRaw(ctx, model, apiKey, req, func(data json.RawMessage) error {
+	sawUsableContent := false
+	err := c.StreamRaw(ctx, model, apiKey, req, func(data json.RawMessage) error {
 		var response GenerateContentResponse
 		if err := json.Unmarshal(data, &response); err != nil {
 			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid stream JSON", Err: err}
@@ -125,8 +130,53 @@ func (c *Client) Stream(ctx context.Context, model, apiKey string, req GenerateC
 		if len(response.Candidates) == 0 && response.PromptFeedback == nil && response.UsageMetadata == nil {
 			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned an empty stream event"}
 		}
+		if HasUsableContent(response) {
+			sawUsableContent = true
+		}
 		return emit(response)
 	})
+	if err != nil {
+		return err
+	}
+	if !sawUsableContent {
+		return &APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable stream content"}
+	}
+	return nil
+}
+
+// HasUsableContent reports whether a response contains model-produced content
+// rather than only usage metadata, prompt feedback, or a finish reason.
+// Inline data is included because the native Google route may return generated
+// media instead of text.
+func HasUsableContent(response GenerateContentResponse) bool {
+	for _, candidate := range response.Candidates {
+		if candidate.Content == nil {
+			continue
+		}
+		for _, part := range candidate.Content.Parts {
+			if strings.TrimSpace(part.Text) != "" || part.FunctionCall != nil || part.InlineData != nil {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// ValidateGenerateContentResponse rejects a syntactically valid but
+// semantically empty generation. Returning a normal success for a response
+// containing only usage metadata or a finish reason makes adapters look as if
+// generation succeeded while giving callers no model output.
+func ValidateGenerateContentResponse(response GenerateContentResponse) error {
+	if len(response.Candidates) == 0 {
+		if response.PromptFeedback != nil && response.PromptFeedback.BlockReason != "" {
+			return &APIError{Status: http.StatusBadRequest, Kind: "provider", Message: fmt.Sprintf("Gemini Developer API blocked the prompt: %s", response.PromptFeedback.BlockReason)}
+		}
+		return &APIError{Kind: "protocol", Message: "Gemini Developer API returned no candidates"}
+	}
+	if !HasUsableContent(response) {
+		return &APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable output"}
+	}
+	return nil
 }
 
 func (c *Client) StreamRaw(ctx context.Context, model, apiKey string, body any, emit func(json.RawMessage) error) error {
@@ -222,6 +272,9 @@ func (c *Client) doJSON(ctx context.Context, model, apiKey, action, query string
 	if len(bytes.TrimSpace(data)) == 0 {
 		return nil, &APIError{Kind: "protocol", Message: "Gemini Developer API returned an empty response"}
 	}
+	if !json.Valid(data) {
+		return nil, &APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid JSON"}
+	}
 	return data, nil
 }
 
@@ -233,6 +286,9 @@ func normalizeContext(ctx context.Context) context.Context {
 }
 
 func (c *Client) endpoint(model, action, query string) (string, error) {
+	if c == nil {
+		return "", &APIError{Kind: "request", Message: "Gemini Developer API client is nil"}
+	}
 	model = strings.TrimSpace(strings.TrimPrefix(model, "models/"))
 	if model == "" {
 		return "", &APIError{Kind: "request", Message: "Gemini Developer API model is empty"}
@@ -341,8 +397,9 @@ func sanitizeMessage(message string) string {
 		return -1
 	}, message)
 	message = strings.TrimSpace(message)
-	if len(message) > 500 {
-		message = message[:500] + "..."
+	runes := []rune(message)
+	if len(runes) > 500 {
+		message = string(runes[:500]) + "..."
 	}
 	return message
 }
@@ -377,6 +434,9 @@ func parseSSE(reader io.Reader, maxBody int64, emit func(json.RawMessage) error)
 		eventBytes = 0
 		if data == "" || data == "[DONE]" {
 			return nil
+		}
+		if !json.Valid([]byte(data)) {
+			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid stream JSON"}
 		}
 		emitted = true
 		return emit(json.RawMessage(data))

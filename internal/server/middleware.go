@@ -99,7 +99,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, x-bob-gemini-api-key, *")
-		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, x-ratelimit-limit-requests, x-ratelimit-remaining-requests, x-ratelimit-reset-requests, content-length, *")
+		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, content-length")
 		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 
 		if r.Method == "OPTIONS" {
@@ -140,6 +140,20 @@ func isAllowedOrigin(origin string, configured []string, requestHost, requestSch
 
 const maxRequestBodySize = 32 << 20 // 32 MB limit
 
+const maxRequestIDBytes = 128
+
+func requestIDFor(r *http.Request) string {
+	if r != nil {
+		requestID := strings.TrimSpace(r.Header.Get("X-Client-Request-Id"))
+		if requestID != "" && len(requestID) <= maxRequestIDBytes && strings.IndexFunc(requestID, func(r rune) bool {
+			return r < 0x20 || r == 0x7f
+		}) < 0 {
+			return requestID
+		}
+	}
+	return fmt.Sprintf("req_%s", format.RandHex(16))
+}
+
 func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		requestStart := time.Now()
@@ -157,11 +171,9 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		start := time.Now()
 		lrw := newLoggingResponseWriter(w)
 
-		// Set standard request metadata and rate limit headers
-		reqID := r.Header.Get("X-Client-Request-Id")
-		if reqID == "" {
-			reqID = fmt.Sprintf("req_%s", format.RandHex(16))
-		}
+		// Set standard request metadata. Do not advertise rate limits that this
+		// process does not actually enforce.
+		reqID := requestIDFor(r)
 		w.Header().Set("x-request-id", reqID)
 		w.Header().Set("x-powered-by", "BOB-Gemini-Free / ABCsteps (div197)")
 		w.Header().Set("openai-version", "2020-10-01")
@@ -170,10 +182,6 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		w.Header().Set("x-xss-protection", "1; mode=block")
 		w.Header().Set("referrer-policy", "strict-origin-when-cross-origin")
 		w.Header().Set("cross-origin-opener-policy", "same-origin-allow-popups")
-		w.Header().Set("x-ratelimit-limit-requests", "1000")
-		w.Header().Set("x-ratelimit-remaining-requests", "999")
-		w.Header().Set("x-ratelimit-reset-requests", "1s")
-
 		isPublicRoute := false
 		// Routes that must always be publicly accessible (never blocked by api_keys):
 		// - /playground and /ui: the embedded Web Studio must always load

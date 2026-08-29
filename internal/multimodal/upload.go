@@ -251,7 +251,9 @@ func fetchImageBytesContext(ctx context.Context, client gemini.Requester, imageU
 
 	resp, err := doImageRequest(client, req, parsed.Host, lookupIP)
 	if err != nil {
-		log.Printf("Image fetch failed: %v", err)
+		// Do not log the source URL or transport error: image URLs can contain
+		// signed query parameters, and net/http errors may echo the full URL.
+		log.Printf("Image fetch failed")
 		return nil, err
 	}
 	if resp == nil {

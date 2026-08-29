@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"github.com/div197/bob-gemini-free/internal/config"
 )
 
 func TestStreamParserAndParsing(t *testing.T) {
@@ -46,11 +48,20 @@ func TestStreamParserAndParsing(t *testing.T) {
 func TestFingerprintProfiles(t *testing.T) {
 	profiles := []string{
 		"chrome_120", "chrome_124", "chrome_131", "chrome_133", "chrome_144", "chrome_146",
-		"firefox_120", "firefox_123", "firefox_147", "safari_16_0", "safari_ios_17_0", "unknown_profile",
+		"firefox_120", "firefox_123", "firefox_147", "safari_16_0", "safari_ios_17_0",
 	}
 
 	for _, p := range profiles {
-		_ = ResolveFingerprint(p)
+		fp, err := ResolveFingerprint(p)
+		if err != nil {
+			t.Fatalf("ResolveFingerprint(%q) failed: %v", p, err)
+		}
+		if p == "chrome_133" && !strings.Contains(fp.Headers["User-Agent"], "Chrome/133") {
+			t.Fatalf("chrome_133 resolved to unexpected user agent: %q", fp.Headers["User-Agent"])
+		}
+	}
+	if _, err := ResolveFingerprint("unknown_profile"); err == nil {
+		t.Fatal("unknown fingerprint profile was silently accepted")
 	}
 
 	client, err := getTLSClient("chrome_133", 10)
@@ -65,5 +76,13 @@ func TestFingerprintProfiles(t *testing.T) {
 	clientCached, err := getTLSClient("chrome_133", 10)
 	if err != nil || clientCached != client {
 		t.Errorf("Expected cached client adapter")
+	}
+}
+
+func TestInvalidFingerprintDoesNotSilentlyEmitAnotherProfile(t *testing.T) {
+	client := NewClient(config.Config{Impersonate: "not-a-real-profile", RequestTimeoutSec: 1})
+	headers := client.buildHeaders(nil, "")
+	if got := headers.Get("User-Agent"); got != "" {
+		t.Fatalf("invalid fingerprint emitted a substituted user agent: %q", got)
 	}
 }

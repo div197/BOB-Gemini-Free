@@ -307,6 +307,9 @@ func ExtractCookies(raw string) (*ExtractedCookie, error) {
 	if raw == "" {
 		return nil, fmt.Errorf("cookie input is empty")
 	}
+	if int64(len(raw)) > MaxCookieFileBytes {
+		return nil, fmt.Errorf("cookie input exceeds %d bytes", MaxCookieFileBytes)
+	}
 
 	tokens := make(map[string]string)
 	var cookieStr string
@@ -411,7 +414,12 @@ func readSecureCookieFile(filePath string) (os.FileInfo, []byte, error) {
 	if runtime.GOOS != "windows" && stat.Mode().Perm()&0077 != 0 {
 		return nil, nil, fmt.Errorf("cookie file permissions are too broad: %o", stat.Mode().Perm())
 	}
-	content, err := os.ReadFile(filePath)
+	file, err := os.Open(filePath)
+	if err != nil {
+		return nil, nil, err
+	}
+	content, err := io.ReadAll(io.LimitReader(file, MaxCookieFileBytes+1))
+	_ = file.Close()
 	if err != nil {
 		return nil, nil, err
 	}

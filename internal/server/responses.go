@@ -113,7 +113,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 
 	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 
@@ -187,7 +187,7 @@ func (a *App) handleResponses(w http.ResponseWriter, r *http.Request) {
 		if streamErr != nil {
 			_ = writeSSEEvent(w, "error", map[string]any{
 				"type":    "error",
-				"message": streamErr.Error(),
+				"message": publicUpstreamErrorMessage(streamErr),
 			})
 			return
 		}

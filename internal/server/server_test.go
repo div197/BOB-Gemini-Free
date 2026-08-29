@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -93,6 +95,96 @@ func TestHealthEndpoint(t *testing.T) {
 	}
 	if _, ok := body["estimated_savings_usd"]; !ok {
 		t.Errorf("Expected estimated_savings_usd in health response")
+	}
+}
+
+func TestHealthAndMetricsToleratePartialEmbeddedApp(t *testing.T) {
+	// Embedders may construct an App-like handler during setup or diagnostics
+	// before optional provider and metrics components are attached. These
+	// read-only endpoints must remain safe and deterministic in that state.
+	app := &App{Version: "partial-test"}
+	handler := app.Handler()
+
+	for _, path := range []string{"/healthz", "/v1/metrics", "/"} {
+		req := httptest.NewRequest(http.MethodGet, path, nil)
+		rec := httptest.NewRecorder()
+		handler.ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("GET %s status = %d, want 200", path, rec.Code)
+		}
+		var body map[string]any
+		if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+			t.Fatalf("GET %s returned invalid JSON: %v", path, err)
+		}
+		if path == "/" && body["uptime_seconds"] != float64(0) {
+			t.Fatalf("partial health uptime = %v, want 0", body["uptime_seconds"])
+		}
+	}
+}
+
+func TestAppLifecycleOnlyStartsConfiguredSessionReload(t *testing.T) {
+	guest := New(config.Default(), "guest-lifecycle-test")
+	if guest.stopPoolReload != nil {
+		t.Fatal("guest app started a session-reload worker without cookie state")
+	}
+	guest.Close()
+	guest.Close()
+
+	cfg := config.Default()
+	cfg.CookieFile = filepath.Join(t.TempDir(), "cookie.txt")
+	sessionApp := New(cfg, "session-lifecycle-test")
+	if sessionApp.stopPoolReload == nil {
+		t.Fatal("configured session app did not start its reload worker")
+	}
+	sessionApp.Close()
+	sessionApp.Close()
+}
+
+func TestImageUploadRejectsPartiallyInitializedApp(t *testing.T) {
+	app := &App{}
+	_, err := app.uploadImagesContext(t.Context(), []format.Image{{Data: []byte("not-an-image")}})
+	if err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("partial image upload error = %v, want explicit initialization error", err)
+	}
+
+	var nilApp *App
+	_, err = nilApp.uploadImagesContext(t.Context(), []format.Image{{Data: []byte("not-an-image")}})
+	if err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("nil image upload error = %v, want explicit initialization error", err)
+	}
+}
+
+func TestRefineRejectsPartiallyInitializedApp(t *testing.T) {
+	app := &App{}
+	req := httptest.NewRequest(http.MethodPost, "/v1/refine", strings.NewReader(`{"prompt":"hello"}`))
+	rec := httptest.NewRecorder()
+	app.handleRefine(rec, req)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("partial refine status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
+	}
+	if strings.Contains(rec.Body.String(), "panic") {
+		t.Fatalf("partial refine response exposes panic text: %s", rec.Body.String())
+	}
+
+	var nilApp *App
+	rec = httptest.NewRecorder()
+	nilApp.handleRefine(rec, req)
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("nil refine status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
+	}
+}
+
+func TestNilAppHandlerFailsClosed(t *testing.T) {
+	var app *App
+	handler := app.Handler()
+	if handler == nil {
+		t.Fatal("nil App Handler returned nil")
+	}
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/", nil))
+	if rec.Code != http.StatusServiceUnavailable {
+		t.Fatalf("nil App handler status = %d, want %d", rec.Code, http.StatusServiceUnavailable)
 	}
 }
 
@@ -374,6 +466,24 @@ func TestGoogleReportsFormatValidationErrors(t *testing.T) {
 	}
 }
 
+func TestGoogleGenerateRejectsEmptyUpstreamText(t *testing.T) {
+	cfg := config.Default()
+	cfg.RetryAttempts = 1
+	app := New(cfg, "test-version")
+	app.Gem.HTTP = fakeGeminiRequester{body: "[]"}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash:generateContent", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadGateway {
+		t.Fatalf("status = %d body = %s, want 502", rec.Code, rec.Body.String())
+	}
+	if strings.Contains(rec.Body.String(), "I apologize") || !strings.Contains(rec.Body.String(), "no usable text") {
+		t.Fatalf("empty upstream response was not surfaced explicitly: %s", rec.Body.String())
+	}
+}
+
 func TestResponsesReportsFormatValidationErrors(t *testing.T) {
 	cfg := config.Default()
 	app := New(cfg, "test-version")
@@ -424,8 +534,11 @@ func TestResponsesRejectsUnsupportedInputImageURL(t *testing.T) {
 	if rec.Code != http.StatusBadGateway {
 		t.Fatalf("expected status 502 for unsupported input image URL, got %d body=%s", rec.Code, rec.Body.String())
 	}
-	if !strings.Contains(rec.Body.String(), "unsupported image URL scheme") {
-		t.Fatalf("expected unsupported image URL scheme error, got %s", rec.Body.String())
+	if strings.Contains(rec.Body.String(), "file:///etc/passwd") || strings.Contains(rec.Body.String(), "unsupported image URL scheme") {
+		t.Fatalf("image source detail escaped the public error boundary: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "image attachment could not be fetched or uploaded") {
+		t.Fatalf("expected safe image attachment error, got %s", rec.Body.String())
 	}
 }
 
@@ -465,8 +578,11 @@ func TestImageGenerationB64DoesNotFallbackToURL(t *testing.T) {
 	if strings.Contains(rec.Body.String(), "generated.png") {
 		t.Fatalf("b64_json failure returned the source URL: %s", rec.Body.String())
 	}
-	if !strings.Contains(rec.Body.String(), "image download failed") {
-		t.Fatalf("missing explicit image download failure: %s", rec.Body.String())
+	if strings.Contains(rec.Body.String(), "generated.png") || strings.Contains(rec.Body.String(), "127.0.0.1") {
+		t.Fatalf("image source detail escaped the b64 error boundary: %s", rec.Body.String())
+	}
+	if !strings.Contains(rec.Body.String(), "image attachment could not be fetched or uploaded") {
+		t.Fatalf("missing safe image download failure: %s", rec.Body.String())
 	}
 }
 
@@ -504,11 +620,30 @@ func TestObservabilityHeaders(t *testing.T) {
 	if rec.Header().Get("openai-version") != "2020-10-01" {
 		t.Errorf("Expected openai-version 2020-10-01, got %s", rec.Header().Get("openai-version"))
 	}
-	if rec.Header().Get("x-ratelimit-limit-requests") == "" {
-		t.Errorf("Missing x-ratelimit-limit-requests header")
+	if got := rec.Header().Get("x-ratelimit-limit-requests"); got != "" {
+		t.Errorf("must not advertise an unenforced rate limit, got %s", got)
 	}
 	if rec.Header().Get("openai-processing-ms") == "" {
 		t.Errorf("Missing openai-processing-ms header")
+	}
+}
+
+func TestRequestIDRejectsControlCharactersAndOversizedValues(t *testing.T) {
+	app := New(config.Default(), "test-version")
+	for name, value := range map[string]string{
+		"control":   "trace\nforged: value",
+		"oversized": strings.Repeat("x", maxRequestIDBytes+1),
+	} {
+		t.Run(name, func(t *testing.T) {
+			req := httptest.NewRequest("GET", "/v1/models", nil)
+			req.Header.Set("X-Client-Request-Id", value)
+			rec := httptest.NewRecorder()
+			app.Handler().ServeHTTP(rec, req)
+			got := rec.Header().Get("x-request-id")
+			if got == value || got == "" || !strings.HasPrefix(got, "req_") {
+				t.Fatalf("request id = %q, want generated bounded id", got)
+			}
+		})
 	}
 }
 
@@ -713,6 +848,50 @@ func TestPublicUpstreamErrorMessageDoesNotExposeWebRPCURL(t *testing.T) {
 	}
 	if message != "Could not reach Google Gemini upstream" {
 		t.Fatalf("public transport message = %q", message)
+	}
+}
+
+func TestPublicAttachmentErrorMessageDoesNotExposeSourceDetails(t *testing.T) {
+	secretURL := "https://images.example.test/download?token=short-lived-secret"
+	err := fmt.Errorf("image fetch failed for %s: dial %s", secretURL, secretURL)
+	message := publicAttachmentErrorMessage(err)
+	if strings.Contains(message, "images.example.test") || strings.Contains(message, "short-lived-secret") {
+		t.Fatalf("attachment detail leaked through public error: %q", message)
+	}
+	if message != "image attachment could not be fetched or uploaded" {
+		t.Fatalf("public attachment message = %q", message)
+	}
+	if got := publicAttachmentErrorMessage(context.Canceled); got != "image attachment request canceled" {
+		t.Fatalf("canceled attachment message = %q", got)
+	}
+}
+
+func TestPublicUpdateCheckErrorMessageDoesNotExposeTransportDetails(t *testing.T) {
+	secretURL := "https://api.github.com/repos/div197/BOB-Gemini-Free/releases/latest?token=should-not-escape"
+	err := fmt.Errorf("Get %s: context deadline exceeded", secretURL)
+	message := publicUpdateCheckErrorMessage(err)
+	if strings.Contains(message, "api.github.com") || strings.Contains(message, "should-not-escape") {
+		t.Fatalf("update detail leaked through public error: %q", message)
+	}
+	if message != "update check unavailable" {
+		t.Fatalf("public update message = %q", message)
+	}
+}
+
+func TestPublicDeveloperAPIErrorMessageDoesNotExposeTransportDetails(t *testing.T) {
+	secretURL := "https://generativelanguage.googleapis.com/v1beta/models/gemini-test:generateContent?x-goog-api-key=provider-secret"
+	err := fmt.Errorf("POST %s: authorization=provider-secret", secretURL)
+	message := publicDeveloperAPIErrorMessage(err)
+	if strings.Contains(message, "generativelanguage.googleapis.com") || strings.Contains(message, "provider-secret") || strings.Contains(message, "authorization") {
+		t.Fatalf("Developer API transport detail leaked through public error: %q", message)
+	}
+	if message != "Gemini Developer API request failed" {
+		t.Fatalf("public Developer API message = %q", message)
+	}
+
+	longMessage := strings.Repeat("x", 600)
+	if got := publicDeveloperAPIErrorMessage(errors.New(longMessage)); len([]rune(got)) > 515 {
+		t.Fatalf("generic Developer API message was not bounded: %d runes", len([]rune(got)))
 	}
 }
 

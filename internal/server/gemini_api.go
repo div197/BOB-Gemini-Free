@@ -142,6 +142,10 @@ func (a *App) handleDirectGeminiChat(w http.ResponseWriter, r *http.Request, req
 		writeGeminiAPIError(w, err)
 		return
 	}
+	if strings.TrimSpace(result.Text) == "" && strings.TrimSpace(result.Thinking) == "" && len(result.ToolCalls) == 0 {
+		writeGeminiAPIError(w, &geminiapi.APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable output"})
+		return
+	}
 	usage := directUsage(req, result.PromptTokens, result.CompletionTokens, result.TotalTokens, result.ReasoningTokens, result.Text, result.Thinking)
 	a.addEstimatedTokens(uint64(usage.TotalTokens))
 
@@ -201,18 +205,40 @@ func (a *App) handleDirectGoogleGenerate(w http.ResponseWriter, r *http.Request,
 			writeGeminiAPIError(w, err)
 			return
 		}
+		var parsed geminiapi.GenerateContentResponse
+		if err := json.Unmarshal(response, &parsed); err != nil {
+			writeGeminiAPIError(w, &geminiapi.APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid JSON", Err: err})
+			return
+		}
+		if err := geminiapi.ValidateGenerateContentResponse(parsed); err != nil {
+			writeGeminiAPIError(w, err)
+			return
+		}
 		writeRawJSON(w, http.StatusOK, response)
 	case "streamGenerateContent":
 		if !startSSE(w) {
 			return
 		}
+		sawUsableContent := false
 		err := streamGeminiRawWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emit func(json.RawMessage) error) error {
-			return a.GeminiAPI.StreamRaw(r.Context(), model, key, rawBody, emit)
+			return a.GeminiAPI.StreamRaw(r.Context(), model, key, rawBody, func(event json.RawMessage) error {
+				var parsed geminiapi.GenerateContentResponse
+				if err := json.Unmarshal(event, &parsed); err != nil {
+					return &geminiapi.APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid stream JSON", Err: err}
+				}
+				if geminiapi.HasUsableContent(parsed) {
+					sawUsableContent = true
+				}
+				return emit(event)
+			})
 		}, func(event json.RawMessage) error {
 			return writeSSEData(w, event)
 		})
+		if err == nil && !sawUsableContent {
+			err = &geminiapi.APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable stream content"}
+		}
 		if err != nil {
-			a.Logf("Gemini Developer API Google stream error: %v", err)
+			a.Logf("Gemini Developer API Google stream error: %s", publicUpstreamErrorMessage(err))
 			_ = writeSSEError(w, err)
 		}
 	default:
@@ -453,7 +479,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 		return a.GeminiAPI.Stream(r.Context(), model, key, translated, emitResponse)
 	}, emit)
 	if err != nil {
-		a.Logf("Gemini Developer API stream error: %v", err)
+		a.Logf("Gemini Developer API stream error: %s", publicUpstreamErrorMessage(err))
 		// Do not serialize provider/transport failures as assistant Markdown.
 		// OpenAI stream consumers can classify the structured error after any
 		// already-received partial deltas, and the browser can keep it out of
@@ -464,10 +490,11 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 	if !streamFailed && toolAssembler.Len() > 0 {
 		toolCalls, finalizeErr := toolAssembler.Finalize()
 		if finalizeErr != nil {
-			a.Logf("Gemini Developer API tool-call finalization error: %v", finalizeErr)
+			safeMessage := publicDeveloperAPIErrorMessage(finalizeErr)
+			a.Logf("Gemini Developer API tool-call finalization error: %s", safeMessage)
 			_ = writeSSEData(w, map[string]any{
 				"error": map[string]any{
-					"message": finalizeErr.Error(),
+					"message": safeMessage,
 					"type":    "api_error",
 				},
 			})
@@ -478,7 +505,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 				ID: cid, Object: "chat.completion.chunk", Created: created, Model: model,
 				Choices: []models.OpenAIChoice{{Index: 0, Delta: &toolMessage, FinishReason: nil}},
 			}); err != nil {
-				a.Logf("Gemini Developer API tool-call stream write error: %v", err)
+				a.Logf("Gemini Developer API tool-call stream write error: %s", publicDeveloperAPIErrorMessage(err))
 			}
 			reason := "tool_calls"
 			_ = writeSSEData(w, models.OpenAIChatResponse{
@@ -619,7 +646,7 @@ func writeGeminiAPIError(w http.ResponseWriter, err error) {
 	if status < http.StatusBadRequest || status > 599 {
 		status = http.StatusBadGateway
 	}
-	message := err.Error()
+	message := publicDeveloperAPIErrorMessage(err)
 	if errors.As(err, &apiErr) {
 		switch apiErr.Kind {
 		case "auth":

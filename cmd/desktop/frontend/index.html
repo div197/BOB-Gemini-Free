@@ -29,6 +29,7 @@
         const status = document.querySelector("[data-status]");
         let opened = false;
         const showGatewayError = (message) => {
+            if (shell.querySelector(".error")) return;
             document.querySelector(".status-row")?.remove();
             const error = document.createElement("div");
             error.className = "error";
@@ -64,7 +65,9 @@
 
         // OnStartup can emit before the WebView has registered EventsOn. The
         // bound method is the durable fallback for that one-shot event.
-        GatewayURL().then(openGateway).catch(() => {});
+        GatewayURL().then(openGateway).catch(() => {
+            showGatewayError("The desktop gateway bootstrap failed. Restart the app and try again.");
+        });
     </script>
 </head>
 <body>

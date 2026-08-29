@@ -191,6 +191,23 @@ func TestExtractCookies(t *testing.T) {
 	}
 }
 
+func TestExtractCookiesRejectsOversizedInput(t *testing.T) {
+	raw := strings.Repeat("x", int(MaxCookieFileBytes)+1)
+	if _, err := ExtractCookies(raw); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized cookie input was accepted: %v", err)
+	}
+}
+
+func TestReadSecureCookieFileRejectsOversizedContent(t *testing.T) {
+	cookieFile := filepath.Join(t.TempDir(), "cookie.txt")
+	if err := os.WriteFile(cookieFile, []byte(strings.Repeat("x", int(MaxCookieFileBytes)+1)), 0600); err != nil {
+		t.Fatalf("write oversized cookie: %v", err)
+	}
+	if _, _, err := readSecureCookieFile(cookieFile); err == nil || !strings.Contains(err.Error(), "exceeds") {
+		t.Fatalf("oversized cookie file was accepted: %v", err)
+	}
+}
+
 func TestSaveCookieFile(t *testing.T) {
 	tmpDir := t.TempDir()
 	targetPath := filepath.Join(tmpDir, "sub", "cookie.txt")

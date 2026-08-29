@@ -41,7 +41,7 @@ func recoverDesktopUpdate(targetPath, targetOS, currentConfirmationPath string) 
 		}
 		stagePath := filepath.Join(parent, entry.Name())
 		planPath := filepath.Join(stagePath, "update-plan.json")
-		data, readErr := os.ReadFile(planPath)
+		data, readErr := readBoundedDesktopUpdateFile(planPath, maxDesktopUpdatePlanBytes)
 		if readErr != nil {
 			continue
 		}
@@ -152,7 +152,7 @@ func desktopUpdateConfirmed(path string) (bool, error) {
 	if err := validateConfirmationPath(path); err != nil {
 		return false, err
 	}
-	data, err := os.ReadFile(path)
+	data, err := readBoundedDesktopUpdateFile(path, maxDesktopUpdateConfirmationBytes)
 	if os.IsNotExist(err) {
 		return false, nil
 	}

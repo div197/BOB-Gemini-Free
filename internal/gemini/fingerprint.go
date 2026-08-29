@@ -63,34 +63,78 @@ var highTrustProfiles = []Fingerprint{
 	},
 }
 
-func ResolveFingerprint(name string) Fingerprint {
-	name = strings.ToLower(name)
-	if name == "" || name == "random" || name == "iphone" || name == "ios" {
-		return highTrustProfiles[safeRandIntn(len(highTrustProfiles))]
+func ResolveFingerprint(name string) (Fingerprint, error) {
+	name = strings.ToLower(strings.TrimSpace(name))
+	if name == "" || name == "random" {
+		return highTrustProfiles[safeRandIntn(len(highTrustProfiles))], nil
+	}
+	if name == "iphone" || name == "ios" || name == "safari_ios_17_0" {
+		return safariFingerprint(profiles.Safari_IOS_17_0, "iPhone; CPU iPhone OS 17_0 like Mac OS X", "17.0"), nil
 	}
 
 	switch name {
-	case "chrome_120", "chrome":
-		return Fingerprint{
-			Profile: profiles.Chrome_120,
-			Headers: map[string]string{
-				"User-Agent":         "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
-				"sec-ch-ua":          "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"",
-				"sec-ch-ua-mobile":   "?0",
-				"sec-ch-ua-platform": "\"Windows\"",
-			},
-		}
-	case "firefox_120", "firefox":
-		return Fingerprint{
-			Profile: profiles.Firefox_120,
-			Headers: map[string]string{
-				"User-Agent":      "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:120.0) Gecko/20100101 Firefox/120.0",
-				"Accept-Language": "en-US,en;q=0.5",
-			},
-		}
+	case "chrome", "chrome_120":
+		return chromeFingerprint(profiles.Chrome_120, "120"), nil
+	case "chrome_124":
+		return chromeFingerprint(profiles.Chrome_124, "124"), nil
+	case "chrome_131":
+		return chromeFingerprint(profiles.Chrome_131, "131"), nil
+	case "chrome_133":
+		return chromeFingerprint(profiles.Chrome_133, "133"), nil
+	case "chrome_144":
+		return chromeFingerprint(profiles.Chrome_144, "144"), nil
+	case "chrome_146":
+		return chromeFingerprint(profiles.Chrome_146, "146"), nil
+	case "firefox", "firefox_120":
+		return firefoxFingerprint(profiles.Firefox_120, "120"), nil
+	case "firefox_123":
+		return firefoxFingerprint(profiles.Firefox_123, "123"), nil
+	case "firefox_147":
+		return firefoxFingerprint(profiles.Firefox_147, "147"), nil
+	case "safari", "safari_16_0":
+		return safariFingerprint(profiles.Safari_16_0, "Macintosh", "16.0"), nil
+	default:
+		return Fingerprint{}, fmt.Errorf("unknown TLS fingerprint profile %q", name)
 	}
-	// Fallback to a random high trust profile
-	return highTrustProfiles[0]
+}
+
+func chromeFingerprint(profile profiles.ClientProfile, version string) Fingerprint {
+	return Fingerprint{
+		Profile: profile,
+		Headers: map[string]string{
+			"User-Agent":         fmt.Sprintf("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/%s.0.0.0 Safari/537.36", version),
+			"sec-ch-ua":          fmt.Sprintf("\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"%s\", \"Google Chrome\";v=\"%s\"", version, version),
+			"sec-ch-ua-mobile":   "?0",
+			"sec-ch-ua-platform": "\"Windows\"",
+		},
+	}
+}
+
+func firefoxFingerprint(profile profiles.ClientProfile, version string) Fingerprint {
+	return Fingerprint{
+		Profile: profile,
+		Headers: map[string]string{
+			"User-Agent":      fmt.Sprintf("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:%s) Gecko/20100101 Firefox/%s", version, version),
+			"Accept-Language": "en-US,en;q=0.5",
+		},
+	}
+}
+
+func safariFingerprint(profile profiles.ClientProfile, platform, version string) Fingerprint {
+	uaPlatform := platform
+	if platform == "Macintosh" {
+		uaPlatform = "Macintosh; Intel Mac OS X 10_15_7"
+	}
+	return Fingerprint{
+		Profile: profile,
+		Headers: map[string]string{
+			"User-Agent":      fmt.Sprintf("Mozilla/5.0 (%s) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/%s Safari/605.1.15", uaPlatform, version),
+			"Accept-Language": "en-US,en;q=0.9",
+			"Sec-Fetch-Dest":  "empty",
+			"Sec-Fetch-Mode":  "cors",
+			"Sec-Fetch-Site":  "same-origin",
+		},
+	}
 }
 
 func getTLSClient(profileName string, timeoutSec int) (*tlsClientAdapter, error) {
@@ -102,7 +146,10 @@ func getTLSClient(profileName string, timeoutSec int) (*tlsClientAdapter, error)
 		return adapter, nil
 	}
 
-	fp := ResolveFingerprint(profileName)
+	fp, err := ResolveFingerprint(profileName)
+	if err != nil {
+		return nil, err
+	}
 
 	options := []http_client.HttpClientOption{
 		http_client.WithClientProfile(fp.Profile),

@@ -2,6 +2,8 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -45,6 +47,9 @@ const (
 	MaxRetryAttempts         = 10
 	MaxRetryDelaySec         = 60
 	MaxRequestTimeoutSec     = 3600
+	// MaxConfigFileBytes keeps a malformed or hostile local configuration from
+	// consuming unbounded memory before JSON validation can reject it.
+	MaxConfigFileBytes int64 = 1 << 20
 )
 
 func Default() Config {
@@ -96,7 +101,7 @@ func Normalize(cfg *Config) {
 func Load(path string) (Config, error) {
 	cfg := Default()
 	if path != "" {
-		data, err := os.ReadFile(path)
+		data, err := readConfigFile(path)
 		if err != nil {
 			return cfg, err
 		}
@@ -289,6 +294,29 @@ func Load(path string) (Config, error) {
 
 	Normalize(&cfg)
 	return cfg, nil
+}
+
+func readConfigFile(path string) ([]byte, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	if info, err := file.Stat(); err != nil {
+		return nil, err
+	} else if info.Size() > MaxConfigFileBytes {
+		return nil, fmt.Errorf("config file exceeds %d-byte limit", MaxConfigFileBytes)
+	}
+
+	data, err := io.ReadAll(io.LimitReader(file, MaxConfigFileBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > MaxConfigFileBytes {
+		return nil, fmt.Errorf("config file exceeds %d-byte limit", MaxConfigFileBytes)
+	}
+	return data, nil
 }
 
 func Find() string {

@@ -61,6 +61,24 @@ func TestChatDeveloperAPIUsesExplicitRouteAndNativeResponse(t *testing.T) {
 	}
 }
 
+func TestChatDeveloperAPIRejectsEmptyNonstreamOutput(t *testing.T) {
+	provider := &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		return developerResponse(http.StatusOK, "application/json", `{"candidates":[{"finishReason":"STOP"}],"usageMetadata":{"totalTokenCount":2}}`), nil
+	})}
+	app := New(config.Default(), "test-version")
+	app.GeminiAPI.HTTP = provider
+	app.GeminiAPI.BaseURL = "https://provider.test"
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`))
+	req.Header.Set(geminiProviderKeyHeader, "test-provider-key")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusBadGateway || !strings.Contains(rec.Body.String(), "no usable output") {
+		t.Fatalf("empty nonstream output was accepted: status=%d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestChatDeveloperAPIStreamPreservesDeltasAndUsage(t *testing.T) {
 	provider := &http.Client{Transport: developerRoundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return developerResponse(http.StatusOK, "text/event-stream", ": waiting\n\ndata: {\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"hello \"}]}}]}\n\ndata: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"world\"}]},\"finishReason\":\"STOP\"}],\"usageMetadata\":{\"promptTokenCount\":2,\"candidatesTokenCount\":2,\"totalTokenCount\":4}}\n\n"), nil
@@ -202,6 +220,61 @@ func TestGoogleDeveloperAPIRouteForwardsNativeJSON(t *testing.T) {
 	app.Handler().ServeHTTP(rec, req)
 	if rec.Code != http.StatusOK || gotURL != "https://provider.test/v1beta/models/gemini-3.7-flash:generateContent" || !strings.Contains(rec.Body.String(), "native") {
 		t.Fatalf("status/url/body = %d %s %s", rec.Code, gotURL, rec.Body.String())
+	}
+}
+
+func TestGoogleDeveloperAPIRouteRejectsSemanticEmptyJSON(t *testing.T) {
+	for _, body := range []string{
+		`{"candidates":[{"finishReason":"STOP"}],"usageMetadata":{"totalTokenCount":2}}`,
+		`{"usageMetadata":{"totalTokenCount":2}}`,
+	} {
+		provider := &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+			return developerResponse(http.StatusOK, "application/json", body), nil
+		})}
+		app := New(config.Default(), "test-version")
+		app.GeminiAPI.HTTP = provider
+		app.GeminiAPI.BaseURL = "https://provider.test"
+		req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash:generateContent", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+		req.Header.Set(geminiProviderKeyHeader, "test-provider-key")
+		rec := httptest.NewRecorder()
+		app.Handler().ServeHTTP(rec, req)
+		if rec.Code != http.StatusBadGateway || !strings.Contains(rec.Body.String(), "no") {
+			t.Fatalf("semantic empty native response was accepted: status=%d body=%s", rec.Code, rec.Body.String())
+		}
+	}
+}
+
+func TestGoogleDeveloperAPIRouteRejectsSemanticEmptyStream(t *testing.T) {
+	provider := &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		return developerResponse(http.StatusOK, "text/event-stream", "data: {\"candidates\":[{\"finishReason\":\"STOP\"}]}\n\ndata: {\"usageMetadata\":{\"totalTokenCount\":2}}\n\n"), nil
+	})}
+	app := New(config.Default(), "test-version")
+	app.GeminiAPI.HTTP = provider
+	app.GeminiAPI.BaseURL = "https://provider.test"
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash:streamGenerateContent", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	req.Header.Set(geminiProviderKeyHeader, "test-provider-key")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, `"error"`) || !strings.Contains(body, "no usable stream content") {
+		t.Fatalf("semantic empty native stream was accepted: status=%d body=%s", rec.Code, body)
+	}
+}
+
+func TestGoogleDeveloperAPIRoutePreservesNativeStreamEvents(t *testing.T) {
+	provider := &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		return developerResponse(http.StatusOK, "text/event-stream", "data: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"hello\"}]}}]}\n\ndata: {\"candidates\":[{\"finishReason\":\"STOP\"}]}\n\n"), nil
+	})}
+	app := New(config.Default(), "test-version")
+	app.GeminiAPI.HTTP = provider
+	app.GeminiAPI.BaseURL = "https://provider.test"
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash:streamGenerateContent", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	req.Header.Set(geminiProviderKeyHeader, "test-provider-key")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	body := rec.Body.String()
+	if rec.Code != http.StatusOK || !strings.Contains(body, `"text":"hello"`) || !strings.Contains(body, `"finishReason":"STOP"`) || strings.Contains(body, `"no usable stream content"`) {
+		t.Fatalf("native stream events were not preserved: status=%d body=%s", rec.Code, body)
 	}
 }
 

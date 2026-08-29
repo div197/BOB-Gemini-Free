@@ -115,7 +115,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
-					"message": err.Error(),
+					"message": publicAttachmentErrorMessage(err),
 				},
 			})
 			return
@@ -246,7 +246,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
-					"message": streamErr.Error(),
+					"message": publicUpstreamErrorMessage(streamErr),
 				},
 			})
 			return

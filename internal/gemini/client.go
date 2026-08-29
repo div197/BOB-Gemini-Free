@@ -30,6 +30,34 @@ func (e *UpstreamError) Error() string {
 	return e.Msg
 }
 
+// upstreamLogMessage deliberately keeps transport details out of optional
+// request logs. net/http can include the complete Web RPC URL in an error;
+// that URL may contain the short-lived `bl` token used by Gemini's frontend.
+func upstreamLogMessage(err error) string {
+	if err == nil {
+		return "request failed"
+	}
+	if errors.Is(err, context.Canceled) {
+		return "request canceled"
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "request timed out"
+	}
+
+	var upstreamErr *UpstreamError
+	if errors.As(err, &upstreamErr) && upstreamErr != nil {
+		kind := strings.TrimSpace(upstreamErr.Kind)
+		if kind == "" {
+			kind = "upstream"
+		}
+		if upstreamErr.Status > 0 {
+			return fmt.Sprintf("%s failure (HTTP %d)", kind, upstreamErr.Status)
+		}
+		return kind + " failure"
+	}
+	return "request failed"
+}
+
 type Requester interface {
 	Do(req *http.Request) (*http.Response, error)
 }
@@ -63,7 +91,7 @@ func NewClient(cfg config.Config) *Client {
 	if cfg.Impersonate != "" && cfg.Proxy == "" {
 		tlsAdapter, err := getTLSClient(cfg.Impersonate, timeoutSec)
 		if err != nil {
-			log.Printf("Failed to create TLS client for profile %s: %v, falling back to stdlib", cfg.Impersonate, err)
+			log.Printf("TLS impersonation unavailable for profile %s; using standard transport", cfg.Impersonate)
 		} else {
 			req = tlsAdapter
 		}
@@ -138,9 +166,15 @@ func (c *Client) buildHeaders(session *AccountSession, guestCookies string) http
 	h.Set("X-Same-Domain", "1")
 
 	// Dynamic Fingerprint matching (Mobile/iOS High-Trust Rotation)
-	fp := ResolveFingerprint(c.Cfg.Impersonate)
-	for k, v := range fp.Headers {
-		h.Set(k, v)
+	if strings.TrimSpace(c.Cfg.Impersonate) == "" {
+		fp, _ := ResolveFingerprint("")
+		for k, v := range fp.Headers {
+			h.Set(k, v)
+		}
+	} else if fp, err := ResolveFingerprint(c.Cfg.Impersonate); err == nil {
+		for k, v := range fp.Headers {
+			h.Set(k, v)
+		}
 	}
 
 	if prefix != "" && authUser != "" {
@@ -468,6 +502,15 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 							if session != nil {
 								c.Pool.MarkFailure(session.ID)
 							}
+						} else if strings.TrimSpace(text) == "" {
+							// A syntactically readable Web RPC response can still
+							// contain no model output. Treat it as a provider
+							// protocol failure so adapters cannot fabricate a normal
+							// assistant stop or apology.
+							lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream response contained no usable text"}
+							if session != nil {
+								c.Pool.MarkFailure(session.ID)
+							}
 						} else {
 							if session != nil {
 								c.Pool.MarkSuccess(session.ID)
@@ -483,7 +526,7 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
+			c.Logf("Retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
 			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
 				return "", err
 			}
@@ -623,7 +666,7 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Stream retry %d/%d: %v", attempt+1, c.Cfg.RetryAttempts, lastErr)
+			c.Logf("Stream retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
 			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
 				return err
 			}
@@ -679,6 +722,9 @@ func (c *Client) streamAttempt(body io.Reader, parser *StreamParser, emit func(s
 					if emitErr := emit(delta); emitErr != nil {
 						return emitErr
 					}
+				}
+				if !parser.HasText() {
+					return &UpstreamError{Kind: "protocol", Msg: "upstream stream contained no usable text"}
 				}
 				return nil
 			}

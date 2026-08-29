@@ -79,7 +79,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 	fileRefs, err := a.uploadImagesContext(r.Context(), images)
 	if err != nil {
-		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": err.Error(), "type": "api_error"}})
+		writeJSON(w, http.StatusBadGateway, map[string]any{"error": map[string]any{"message": publicAttachmentErrorMessage(err), "type": "api_error"}})
 		return
 	}
 	cid := fmt.Sprintf("chatcmpl-%s", format.RandHex(12))
@@ -203,7 +203,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 			_ = writeSSEDone(w)
 		} else {
-			a.Logf("Chat stream error: %v", emitErr)
+			a.Logf("Chat stream error: %s", publicUpstreamErrorMessage(emitErr))
 			// Headers have already been sent, so preserve any partial model
 			// output but never turn a transport/provider failure into
 			// assistant-authored Markdown. The browser and standard SSE

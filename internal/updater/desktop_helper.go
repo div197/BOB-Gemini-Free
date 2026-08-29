@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -19,6 +20,9 @@ const (
 	// writable or alive while the replacement occurs.
 	DesktopUpdateHelperFlag  = "--bob-desktop-update-helper"
 	DesktopUpdateConfirmFlag = "--bob-desktop-update-confirm"
+
+	maxDesktopUpdatePlanBytes         int64 = 64 << 10
+	maxDesktopUpdateConfirmationBytes int64 = 4 << 10
 )
 
 var (
@@ -191,7 +195,7 @@ func runDesktopUpdateHelper(planPath string) error {
 	if err != nil {
 		return fmt.Errorf("resolve desktop update plan path: %w", err)
 	}
-	data, err := os.ReadFile(planPath)
+	data, err := readBoundedDesktopUpdateFile(planPath, maxDesktopUpdatePlanBytes)
 	if err != nil {
 		return fmt.Errorf("read desktop update plan: %w", err)
 	}
@@ -315,8 +319,13 @@ func rollbackDesktopUpdate(plan *DesktopUpdatePlan, process *os.Process, cause e
 func waitForDesktopConfirmation(path string) error {
 	deadline := time.Now().Add(desktopUpdateConfirmationTimeout)
 	for time.Now().Before(deadline) {
-		if data, err := os.ReadFile(path); err == nil && strings.TrimSpace(string(data)) == "healthy" {
-			return nil
+		data, err := readBoundedDesktopUpdateFile(path, maxDesktopUpdateConfirmationBytes)
+		if err == nil {
+			if strings.TrimSpace(string(data)) == "healthy" {
+				return nil
+			}
+		} else if !os.IsNotExist(err) {
+			return fmt.Errorf("read desktop update confirmation: %w", err)
 		}
 		time.Sleep(desktopUpdatePollInterval)
 	}
@@ -364,6 +373,19 @@ func validateDesktopUpdatePlan(plan *DesktopUpdatePlan) error {
 	if plan.TargetOS != "darwin" && plan.TargetOS != "windows" {
 		return fmt.Errorf("desktop update plan has unsupported target OS: %s", plan.TargetOS)
 	}
+	stagePath := filepath.Clean(plan.StageDir)
+	if !strings.HasPrefix(filepath.Base(stagePath), desktopStagingPrefix) {
+		return fmt.Errorf("desktop update staging directory has an unexpected name")
+	}
+	if filepath.Clean(plan.PlanPath) != filepath.Join(stagePath, "update-plan.json") {
+		return fmt.Errorf("desktop update plan path has an unexpected location")
+	}
+	if filepath.Clean(plan.BackupPath) != filepath.Join(stagePath, "rollback-backup") {
+		return fmt.Errorf("desktop update rollback path has an unexpected location")
+	}
+	if filepath.Clean(plan.ConfirmationPath) != filepath.Join(stagePath, ".bob-gemini-update-confirm") {
+		return fmt.Errorf("desktop update confirmation path has an unexpected location")
+	}
 	if filepath.Clean(plan.StageDir) == filepath.Clean(filepath.Dir(plan.InstallTarget)) {
 		return fmt.Errorf("desktop update staging directory cannot be the install directory")
 	}
@@ -386,8 +408,30 @@ func validateDesktopUpdatePlan(plan *DesktopUpdatePlan) error {
 		if err := ensurePathWithin(plan.StageDir, plan.HelperPath); err != nil {
 			return fmt.Errorf("desktop helper path is outside staging directory: %w", err)
 		}
+		if filepath.Base(filepath.Clean(plan.HelperPath)) != ".bob-gemini-free-update-helper" {
+			return fmt.Errorf("desktop helper path has an unexpected name")
+		}
 	}
 	return nil
+}
+
+func readBoundedDesktopUpdateFile(path string, maxBytes int64) ([]byte, error) {
+	if maxBytes <= 0 {
+		return nil, fmt.Errorf("desktop update file limit is invalid")
+	}
+	file, err := os.Open(path)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+	data, err := io.ReadAll(io.LimitReader(file, maxBytes+1))
+	if err != nil {
+		return nil, err
+	}
+	if int64(len(data)) > maxBytes {
+		return nil, fmt.Errorf("desktop update file exceeds %d bytes", maxBytes)
+	}
+	return data, nil
 }
 
 func validateConfirmationPath(path string) error {

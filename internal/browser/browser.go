@@ -194,17 +194,16 @@ func LaunchLoginSession(ctx context.Context, logFn func(format string, args ...a
 		}
 
 		resp, err := httpClient.Get(fmt.Sprintf("http://127.0.0.1:%d/json/version", port))
-		if err == nil && resp.StatusCode == http.StatusOK {
-			bodyBytes, _ := io.ReadAll(resp.Body)
-			_ = resp.Body.Close()
-
-			var v cdpVersionResponse
-			if err := json.Unmarshal(bodyBytes, &v); err == nil && v.WebSocketDebuggerURL != "" {
-				wsURL = v.WebSocketDebuggerURL
-				break
+		if err == nil {
+			if resp.StatusCode == http.StatusOK {
+				bodyBytes, readErr := io.ReadAll(io.LimitReader(resp.Body, 64<<10))
+				var v cdpVersionResponse
+				if readErr == nil && json.Unmarshal(bodyBytes, &v) == nil && v.WebSocketDebuggerURL != "" {
+					wsURL = v.WebSocketDebuggerURL
+					_ = resp.Body.Close()
+					break
+				}
 			}
-		}
-		if resp != nil {
 			_ = resp.Body.Close()
 		}
 		time.Sleep(300 * time.Millisecond)

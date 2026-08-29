@@ -169,6 +169,33 @@ func TestResolveStrictRejectsUnknownModelWithoutFallback(t *testing.T) {
 	}
 }
 
+func TestModelRegistrySnapshotsAreSafeAndDeterministic(t *testing.T) {
+	extra := map[int]any{1: "original"}
+	RegisterModel("test-snapshot-model", Model{Mode: 9, Think: 3, Extra: extra})
+	extra[1] = "mutated after registration"
+
+	model, ok := GetModel("test-snapshot-model")
+	if !ok || model.Mode != 9 || model.Extra[1] != "original" {
+		t.Fatalf("GetModel() = %#v, %v", model, ok)
+	}
+	model.Extra[1] = "mutated outside registry"
+	again, ok := GetModel("test-snapshot-model")
+	if !ok || again.Extra[1] != "original" {
+		t.Fatalf("GetModel() exposed mutable Extra map: %#v, %v", again, ok)
+	}
+
+	resolved, err := Resolve("unknown-model", "test-snapshot-model")
+	if err != nil || resolved.Mode != 9 || resolved.Extra[1] != "original" {
+		t.Fatalf("Resolve() fallback = %#v, %v", resolved, err)
+	}
+}
+
+func TestResolveRejectsMissingDefaultModelInsteadOfReturningZeroConfig(t *testing.T) {
+	if _, err := Resolve("unknown-model", "missing-default-model"); err == nil {
+		t.Fatal("Resolve() accepted a missing default model")
+	}
+}
+
 func TestPricing(t *testing.T) {
 	pClaude := GetModelPricing("claude-5-sonnet")
 	if pClaude.BlendedPer1M != 9.00 {

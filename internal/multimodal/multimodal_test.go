@@ -21,6 +21,10 @@ import (
 
 type contextCheckingRequester struct{}
 
+type tokenRoundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f tokenRoundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) { return f(req) }
+
 func (contextCheckingRequester) Do(req *http.Request) (*http.Response, error) {
 	if err := req.Context().Err(); err != nil {
 		return nil, err
@@ -331,6 +335,70 @@ func TestTokenCache(t *testing.T) {
 	tokens := tc.Get()
 	if tokens.PushID == "" || tokens.Pctx == "" {
 		t.Errorf("Expected valid PushID and Pctx tokens, got: %+v", tokens)
+	}
+}
+
+func TestTokenCacheRefreshesValidPageAndKeepsItAfterOversizedFailure(t *testing.T) {
+	responses := []*http.Response{
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"qKIAYe":"fresh-push","Ylro7b":"fresh-pctx","SNlM0e":"fresh-at","cfb2h":"fresh-bl"}`)),
+		},
+		{
+			StatusCode:    http.StatusOK,
+			Header:        make(http.Header),
+			ContentLength: MaxPageTokenResponseBytes + 1,
+			Body:          io.NopCloser(strings.NewReader("too large")),
+		},
+	}
+	client := &http.Client{Transport: tokenRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		response := responses[0]
+		responses = responses[1:]
+		return response, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.mu.Unlock()
+	first := cache.GetContext(context.Background())
+	if first.PushID != "fresh-push" || first.Pctx != "fresh-pctx" || first.At != "fresh-at" || first.BL != "fresh-bl" {
+		t.Fatalf("fresh tokens = %+v", first)
+	}
+
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.mu.Unlock()
+	second := cache.GetContext(context.Background())
+	if second != first {
+		t.Fatalf("failed refresh replaced last good tokens: got %+v, want %+v", second, first)
+	}
+}
+
+func TestTokenCacheRejectsRedirectWithoutFollowingIt(t *testing.T) {
+	var calls int
+	client := &http.Client{Transport: tokenRoundTripFunc(func(req *http.Request) (*http.Response, error) {
+		calls++
+		return &http.Response{
+			StatusCode: http.StatusFound,
+			Header:     http.Header{"Location": []string{"https://accounts.example.test/login"}},
+			Body:       io.NopCloser(strings.NewReader("redirect")),
+			Request:    req,
+		}, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+	cache.mu.Lock()
+	cache.ts = time.Time{}
+	cache.tokens = PageTokens{PushID: "old-push", Pctx: "old-pctx", At: "old-at", BL: "old-bl"}
+	cache.mu.Unlock()
+
+	got := cache.GetContext(context.Background())
+	if calls != 1 {
+		t.Fatalf("token refresh followed redirect or retried: %d transport calls", calls)
+	}
+	if got.PushID != "old-push" || got.Pctx != "old-pctx" || got.At != "old-at" || got.BL != "old-bl" {
+		t.Fatalf("redirect failure replaced last good tokens: %+v", got)
 	}
 }
 

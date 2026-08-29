@@ -469,6 +469,25 @@ func TestConfirmDesktopUpdateRejectsUnexpectedPath(t *testing.T) {
 	}
 }
 
+func TestDesktopUpdateMetadataReadsAreBounded(t *testing.T) {
+	root := t.TempDir()
+	planPath := filepath.Join(root, "update-plan.json")
+	if err := os.WriteFile(planPath, []byte(strings.Repeat("p", int(maxDesktopUpdatePlanBytes)+1)), 0600); err != nil {
+		t.Fatalf("write oversized plan: %v", err)
+	}
+	if _, err := readBoundedDesktopUpdateFile(planPath, maxDesktopUpdatePlanBytes); err == nil {
+		t.Fatal("oversized update plan was accepted")
+	}
+
+	confirmationPath := filepath.Join(root, ".bob-gemini-update-confirm")
+	if err := os.WriteFile(confirmationPath, []byte(strings.Repeat("c", int(maxDesktopUpdateConfirmationBytes)+1)), 0600); err != nil {
+		t.Fatalf("write oversized confirmation: %v", err)
+	}
+	if _, err := readBoundedDesktopUpdateFile(confirmationPath, maxDesktopUpdateConfirmationBytes); err == nil {
+		t.Fatal("oversized update confirmation was accepted")
+	}
+}
+
 func macOSUpdateArchive(t *testing.T) []byte {
 	t.Helper()
 	return macOSBundleArchive(t, desktopAppBundleName, desktopAppBinaryName)

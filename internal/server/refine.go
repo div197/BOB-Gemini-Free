@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/refiner"
 )
@@ -16,6 +17,15 @@ type RefineRequest struct {
 }
 
 func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
+	if a == nil || a.Gem == nil {
+		writeJSON(w, http.StatusServiceUnavailable, map[string]any{
+			"error": map[string]any{
+				"message": "gateway engine is not initialized",
+				"type":    "api_error",
+			},
+		})
+		return
+	}
 	if r.Method != http.MethodPost {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
@@ -40,7 +50,11 @@ func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
 	}
 
 	engine := refiner.NewEngine()
-	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(a.Cfg.RequestTimeoutSec)*time.Second)
+	timeoutSec := a.Cfg.RequestTimeoutSec
+	if timeoutSec <= 0 {
+		timeoutSec = config.DefaultRequestTimeoutSec
+	}
+	ctx, cancel := context.WithTimeout(r.Context(), time.Duration(timeoutSec)*time.Second)
 	defer cancel()
 
 	result, err := engine.Refine(ctx, req.Prompt, func(ctx context.Context, p string) (string, error) {
@@ -52,7 +66,7 @@ func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		_ = json.NewEncoder(w).Encode(map[string]any{
 			"error": map[string]any{
-				"message": err.Error(),
+				"message": publicUpstreamErrorMessage(err),
 				"type":    "api_error",
 			},
 		})
