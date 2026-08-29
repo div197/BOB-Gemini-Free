@@ -2,7 +2,8 @@
 
 **Audit date:** 2026-08-29 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
-**Previous public native release:** `v0.1.7-preview.7`
+**Previous public fleet release:** `v0.1.7-preview.7`
+**Current public migration bridge:** `v0.2.0-preview.1`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
 This is a release gate, not a claim that the source is unusable. The current
@@ -38,8 +39,9 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes are prepared locally on the `codex/release-readiness-v0.2.0`
-branch. They have not been published as a tag or GitHub Release.
+These changes are merged into `main` at `e019cf8`. The signed
+`v0.2.0-preview.1` migration bridge is publicly published. Stable `v0.2.0`
+remains unpublished until the clean-device and pilot gates pass.
 
 ## Evidence already available
 
@@ -84,10 +86,11 @@ private key was not read.
 
 The public GitHub state was also checked:
 
-- the newest release is `v0.1.7-preview.7`;
+- the newest preview release is `v0.2.0-preview.1`, published as the same-key
+  migration bridge;
 - its macOS universal DMG/ZIP, release notice, checksum manifest, and detached
-  signature are present;
-- there is no `v0.2.0` tag or GitHub Release yet;
+  signature are present and were re-downloaded and verified;
+- there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
 ## Signing and trust gates
@@ -98,7 +101,7 @@ The public GitHub state was also checked:
 | Exact artifact integrity | Updater verifies the signed `SHA256SUMS` entry, size, package type, and platform magic | Must be regenerated and verified after the final upload bytes are known |
 | macOS platform trust | No Apple Developer ID certificate, hardened-runtime notarization, or stapled ticket is available in this workflow | The result must remain clearly labelled project-signed/ad-hoc and may require first-launch approval |
 | Windows publisher trust | No Windows publisher-signed installer has been accepted in this audit | Windows cannot be called production-ready from this branch |
-| Release channel | GitHub has no `v0.2.0` tag/release | Nothing can update until the exact release is manually published |
+| Release channel | Signed preview bridge `v0.2.0-preview.1` is public; stable `v0.2.0` is not | Existing Preview 7 devices can update to the bridge; stable remains gated |
 | Private-key custody | Keychain presence was checked without reading the secret | Keep it out of Git, chat, screenshots, student machines, and shell transcripts |
 
 The stable Wails targets now fail closed when the public key file is absent.
@@ -136,7 +139,7 @@ For the 30 devices, the result depends on the installed version and location:
 
 | Existing device state | Can it update to a published signed `v0.2.0` stable package? | Required action |
 |---|---|---|
-| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | Not directly to stable: that released binary still queries only the preview channel | Publish and sign a same-key bridge preview such as `v0.2.0-preview.1`, update to it first, then use its stable-first updater; alternatively install stable manually |
+| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | It can now update to the published bridge; it still cannot jump directly to stable | Use **Help → Check for Updates**, install `v0.2.0-preview.1`, then use the bridge's stable-first updater after stable is published; alternatively install stable manually |
 | A newly built current-source preview bridge, current key, writable directory | Yes, after a newer signed stable package is published | User performs the explicit bridge update, then selects Check for Updates again for Preview → Stable |
 | Preview 4–6 or another build with the old/unrecoverable project key | No, not cryptographically | One manual install of a package carrying the current public key, then later updates can be verified |
 | Preview 3 or older without an embedded updater key | No | Manual installation; do not use an environment variable as a production trust substitute |
@@ -144,10 +147,9 @@ For the 30 devices, the result depends on the installed version and location:
 | A package with no signed manifest or wrong platform asset | No | Updater must refuse it; use the official release page for recovery |
 
 Therefore, if all 30 students truly have the public Preview 7 binary, the
-current source does **not** provide a direct one-step Preview 7 → stable
-migration. To avoid manually reinstalling stable on every device, publish a
-same-key bridge preview first, pilot the two explicit update steps, and only
-then publish/announce stable. This still does **not** prove that all 30
+published bridge now provides the first updater step, but not a direct
+one-step Preview 7 → stable migration. Pilot the two explicit update steps,
+and only then publish/announce stable. This still does **not** prove that all 30
 machines will update: OS version, architecture, permissions, network access,
 release-asset availability, and provider usage are independent gates. If a
 device is on Preview 6 or earlier, it needs the manual one-time migration to
@@ -231,8 +233,7 @@ artifacts or measurements:
 6. Build and accept Windows/Linux artifacts on their native hosts if they are
    included in the release. Do not list a platform whose artifact was not
    tested.
-7. If preserving updates for already-installed public Preview 7 matters,
-   manually publish the signed same-key bridge preview before stable; then
+7. The signed same-key bridge preview is now published. After Gates A and B,
    create the immutable stable tag and manually upload its exact signed bytes.
    GitHub Actions are neither required nor used.
 8. Re-download every public asset, compare bytes and checksums, verify the

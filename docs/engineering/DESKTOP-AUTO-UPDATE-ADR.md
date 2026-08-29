@@ -7,10 +7,11 @@
 ## Context
 
 The native application is distributed as a macOS app bundle and a Windows
-executable. The current public Preview 7 is an ad-hoc, project-manifest-signed
-preview. Its released binary performs an explicit preview-channel metadata
-check; the later source implementation adds stable-first migration to newly
-built previews. It must not silently replace itself.
+executable. The existing public Preview 7 is an ad-hoc,
+project-manifest-signed preview whose released binary performs an explicit
+preview-channel metadata check. The public `v0.2.0-preview.1` bridge contains
+the later stable-first migration path for newly built previews. It must not
+silently replace itself.
 
 The repository already has a fail-closed Ed25519 verifier for CLI update
 assets. Native updates need a separate package-aware path because replacing a
@@ -86,8 +87,8 @@ It becomes eligible for a student-facing production channel only after the
   owner has configured the authoritative signing key, published signed desktop
   manifests, completed Apple/Windows publisher signing, and passed clean-device
   rollback tests. Preview-to-stable migration remains explicit and
-  user-consented. Existing public Preview 7 installations need a same-key
-  bridge preview or a manual stable install because the released binary
-  predates stable-first discovery; builds without the current trust anchor
+  user-consented. Existing public Preview 7 installations use the published
+  same-key bridge preview or a manual stable install because the released
+  binary predates stable-first discovery; builds without the current trust anchor
   still need a manual migration. See
 `DESKTOP-UPDATE-OPERATIONS.md` for the operator and classroom rollout gate.

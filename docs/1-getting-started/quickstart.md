@@ -175,10 +175,10 @@ check:
 ./bob-gemini-free --update
 ```
 
-The CLI refuses an unsigned update. Public Preview 7 is the current native
-preview with the embedded project key. Its released updater predates the later
-stable-first bridge logic, so existing Preview 7 installations need a same-key
-bridge preview or a manual stable installation before updater-based migration.
+The CLI refuses an unsigned update. The public `v0.2.0-preview.1` migration
+bridge carries the current native project key. Existing Preview 7 installations
+can install that bridge first, then use its stable-first updater after stable
+`v0.2.0` is published and accepted.
 
 ---
 
