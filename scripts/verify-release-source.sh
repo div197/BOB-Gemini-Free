@@ -52,4 +52,5 @@ if ! diff -u \
 fi
 
 HEAD="$(git -C "$ROOT_DIR" rev-parse HEAD)"
-printf 'release source verified: %s (%s)\n' "$MAKE_VERSION" "$HEAD"
+CHECKED_VERSION="${VERSION:-$MAKE_VERSION}"
+printf 'release source verified: %s (Makefile base %s; commit %s)\n' "$CHECKED_VERSION" "$MAKE_VERSION" "$HEAD"
