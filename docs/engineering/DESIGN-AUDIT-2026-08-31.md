@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `7d5989d` on `codex/release-readiness-v0.2.0`
+**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `a330e17` on `codex/release-readiness-v0.2.0`
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -99,6 +99,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Removed accidental Enter-to-close behavior in About | Enter should activate the focused control, not dismiss an unrelated dialog. | `internal/server/playground.html:7436-7443` |
 | Corrected all built-in subdued-text tokens | Small labels and metadata retain hierarchy while meeting a 4.5:1 normal-text contrast threshold on declared app/card/modal/input surfaces. | `internal/server/playground.html:46-300`; `TestPlaygroundThemeTextContrast` |
 | Removed duplicate legacy attachment dispatch | A file drop no longer enters both the old unbounded `FileReader` path and the bounded universal extractor; one event now gets one bounded parse lifecycle. | `internal/server/playground.html:6221-6230`, `9477-9868`; `TestAttachmentParsingIsBoundedAndCancellable` |
+| Removed duplicate code-copy declaration | The Studio now has one authoritative `copyCode` implementation, preventing silent function shadowing in the monolithic script. | `internal/server/playground.html:10295-10302`; `TestPlaygroundHasOneCodeCopyHandler` |
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 
 The L1 pass deliberately did not change the Gemini wire protocol, provider
@@ -251,7 +252,8 @@ stored in this document or source change.
 Changed:
 
 - `internal/server/playground.html` — L1 accessibility, modal, keyboard,
-  reduced-motion, onboarding, contrast-token, and attachment-dispatch corrections.
+  reduced-motion, onboarding, contrast-token, attachment-dispatch, and
+  duplicate-handler corrections.
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, and single-dispatch attachment regression tests.
 - `web/index.html` — generated static distribution synchronized by `make web`.
