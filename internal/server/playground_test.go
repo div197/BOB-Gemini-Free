@@ -361,7 +361,7 @@ func TestImageProviderFailureDoesNotSilentlyReplayViaOCR(t *testing.T) {
 	if start < 0 {
 		t.Fatal("image failure policy marker is missing")
 	}
-	endOffset := strings.Index(html[start:], "\n      updateGatewayStatusIndicator(false, null);")
+	endOffset := strings.Index(html[start:], "\n      let mixedContentHint = \"\";")
 	if endOffset < 0 {
 		t.Fatal("image failure policy boundary is missing")
 	}
@@ -465,6 +465,47 @@ func TestPlaygroundHasOneCodeCopyHandler(t *testing.T) {
 	html := string(playgroundHTML)
 	if got := strings.Count(html, "function copyCode("); got != 1 {
 		t.Fatalf("playground has %d copyCode declarations, want exactly one", got)
+	}
+}
+
+func TestPersistedAttachmentIconsAreEscapedBeforeHistoryHTML(t *testing.T) {
+	html := string(playgroundHTML)
+	marker := `${escapeHtml(f.icon || '📄')}`
+	if strings.Count(html, marker) < 2 {
+		t.Fatalf("history attachment icon escaping marker %q must protect both rendered attachment paths", marker)
+	}
+	for _, forbidden := range []string{
+		`<span>${f.icon || '📄'}</span>`,
+		`<span>${f.icon || '📄'} </span>`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("persisted attachment icon is still inserted into HTML without escaping: %q", forbidden)
+		}
+	}
+}
+
+func TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const SAFE_ATTACHMENT_IMAGE_MIME_TYPES = new Set([`,
+		`function isSafeAttachmentImageDataURL(value`,
+		`data-action="preview-attachment-image"`,
+		`function openAttachmentImagePreview(button)`,
+		`openAttachmentImagePreview(target)`,
+		`window.open(src, '_blank', 'noopener,noreferrer')`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("attachment image preview is missing safe accessible marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`onclick="window.open(this.src)"`,
+		`<img src="${escapeHtml(f.dataUrl)}" class="user-attached-thumb"`,
+		`<img src="${escapeHtml(attachedImgCopy.dataUrl)}" class="user-attached-thumb"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("attachment image preview still uses unsafe or inaccessible construction %q", forbidden)
+		}
 	}
 }
 
