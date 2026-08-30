@@ -6,9 +6,9 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `e6ca945` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
+**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed at `7efb6b7` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
 
-**Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
+**Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
 
 ## Executive conclusion
 
@@ -34,6 +34,15 @@ and Gemini-client construction. Those changes are recorded in the failure
 register and release docs. The result is not yet a visual release sign-off
 because the real browser session required for desktop, tablet, phone,
 keyboard, focus, and artifact walkthroughs was unavailable.
+
+This continuation adds a narrow L1 correctness pass at `7efb6b7`: every static
+and generated button declares `type="button"`, the brand/model/starter/token
+and artifact controls are native buttons, collapsed drawers are removed from
+the interaction tree with `inert`, drawer triggers expose expanded state,
+modal surfaces are bounded and scrollable at short viewports, the primary
+prompt has a skip link, and theme/language selectors have accessible names.
+The changes preserve the navigation model and feature set; they do not turn
+source-level proof into browser proof.
 
 ## 1. Product intent in three lines
 
@@ -76,9 +85,12 @@ signals than the aspirational adjectives in the CSS comments.
 |---|---|---|---|---|
 | 1 | Release blocker | No controlled desktop/tablet/phone browser walk could be completed: the in-app browser runtime reported no available browser and an empty browser list. | Evidence gate | **Open.** Do not call the current visual state release-ready until the matrix in section 8 is run. |
 | 2 | High | Several dialogs had no explicit dialog semantics or focus contract; the dynamically-created hosted onboarding surface used `.modal-overlay`/`.modal-content`, which were not defined by the current stylesheet. | L1 | **Fixed.** Shared dialog markup, labels, `aria-modal`, Escape behavior, focus trap, and focus return are now explicit. |
+| 2a | High | Core click-only controls used generic `role="button"` elements and button templates omitted an explicit non-submit type. | L1 | **Fixed in source.** Brand, model, starter, token-estimate, artifact-rail, static, and generated controls now use native buttons; a source regression scans every button opening tag. |
+| 2b | High | Collapsed configuration/code drawers were visually hidden but did not explicitly leave the keyboard and assistive-technology interaction tree. | L1 | **Fixed in source.** Drawer panels now synchronize `aria-hidden`/`inert` with `aria-expanded` trigger state. Live drawer focus and coverage still require the browser matrix. |
+| 2c | Medium | Modal surfaces could clip long content at short viewports or large browser zoom. | L1 | **Fixed in source.** Shared dialog surfaces use a bounded dynamic viewport height and internal vertical scrolling. Rendered 200% zoom evidence remains pending. |
 | 3 | High | The viewport disabled browser text scaling with `maximum-scale=1.0` and `user-scalable=no`. This directly contradicted the reading-zoom and accessibility intent. | L1 | **Fixed.** The scale lock was removed while preserving `viewport-fit` and keyboard-resize behavior. |
 | 4 | High | `--text-subdued` failed normal-text contrast in the default theme and several selectable themes; muted text also failed in the Tokyo Night and Solarized Light themes. | L1 | **Fixed.** Theme token values were corrected and covered by a contrast regression test. |
-| 5 | High | The responsive shell has enough density to make overlap, drawer coverage, composer collision, and New Chat visibility a real risk at tablet and phone widths. Source CSS contains mitigation, but no live viewport evidence was available. | L2 evidence gate | **Open.** Verify before restructuring; keep the change isolated if a section-level fix is needed. |
+| 5 | High | The responsive shell has enough density to make overlap, drawer coverage, composer collision, and New Chat visibility a real risk at tablet and phone widths. Source CSS contains mitigation, and drawer semantics are now explicit, but no live viewport evidence was available. | L2 evidence gate | **Open.** Verify before restructuring; keep the change isolated if a section-level fix is needed. |
 | 6 | Medium | The top area gives similar visual weight to status, configuration, code, command menu, GitHub, glossary, theme, language, model, zoom, export, and clear. This makes the prompt workspace compete with the product chrome. | L2 | **Proposal only.** Test a section-level hierarchy change with before/after captures. |
 | 7 | Medium | The Studio depends on multiple remote CDN scripts and styles for markdown, math, diagrams, document parsing, OCR, and runtime helpers. That is a reliability boundary for a product described as local-first and immediate. | L3 | **Proposal only.** Define explicit degraded states or package only the critical path; do not invent fake offline fallbacks. |
 | 8 | Medium | `playground.html` is a monolithic 11,674-line document containing tokens, layout, markup, runtime state, rendering, and feature logic. It makes visual regressions and ownership boundaries difficult to see. | L3 | **Proposal only.** Split by component/build boundary only after behavior and generated-artifact parity are protected. |
@@ -90,13 +102,18 @@ signals than the aspirational adjectives in the CSS comments.
 
 | Improvement | Why it matters | Evidence |
 |---|---|---|
+| Promoted core click-only surfaces to native controls | Native buttons provide correct keyboard activation, focus behavior, and assistive-technology semantics without a global keydown shim. Explicit `type="button"` also prevents accidental form submission if the shell is embedded later. | `internal/server/playground.html:5068-5354,11091-11110`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
+| Isolated collapsed drawers from the interaction tree | A visually translated panel must not leave hidden controls reachable by Tab or screen readers. The trigger and panel now expose one synchronized state. | `internal/server/playground.html:5097-5101,5136,5348,6716-6742`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
+| Added prompt skip link and selector names | Keyboard users can reach the primary task directly, and theme/language controls have names that do not depend on title tooltips. | `internal/server/playground.html:4020,5114-5127`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
+| Bounded shared dialog surfaces | Long onboarding, gateway, glossary, and instruction content can scroll inside the modal instead of clipping against a short viewport or 200% zoom. | `internal/server/playground.html:2776-2784,2867-2875`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
+| Restored missing semantic surface aliases | Theme-independent `--bg-hover` and `--bg-main` references now resolve to the active theme tokens instead of producing invalid computed declarations. | `internal/server/playground.html:74-76`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Removed the mobile scale lock | Users can use browser accessibility zoom and platform text enlargement without the page refusing it. | `internal/server/playground.html:10`; `TestPlaygroundAccessibilityFloorIsExplicit` |
 | Added global visible focus styling | Keyboard users can see the active control across native buttons, links, fields, and role buttons. | `internal/server/playground.html:839-855` |
 | Added reduced-motion behavior | The product remains usable for people who request less motion, including dialog, artifact, and micro-interaction animations. | `internal/server/playground.html:849-855` |
 | Normalized static and dynamic dialogs | Dialog surfaces now expose `role="dialog"`, `aria-modal`, `aria-hidden`, and an accessible label. | `internal/server/playground.html:3940-4483` |
 | Added shared modal lifecycle | Opening stores the trigger, focuses the intended first control, traps Tab/Shift+Tab, handles Escape, and returns focus on close. | `internal/server/playground.html:7373-7433` |
 | Repaired hosted onboarding surface | The onboarding popup now uses the existing dialog design system, wraps long commands, and remains bounded by the viewport. | `internal/server/playground.html:7737-7784` |
-| Made core click-only controls keyboard-usable | Starter cards, model chip, token estimate, and reasoning headers can be activated with Enter or Space. | `internal/server/playground.html:7435-7444`, `5175-5206` |
+| Made secondary click-only controls keyboard-usable | Reasoning headers, glossary help affordances, and tokenizer pills can still be activated with Enter or Space; primary surfaces now use native buttons instead of relying on the global shim. | `internal/server/playground.html:7545-7557`, secondary role-button renderers; `TestPlaygroundAccessibilityFloorIsExplicit`, `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Completed keyboard semantics for secondary controls | Command-palette options expose listbox/option state and active descendant tracking; the brand, glossary help affordances, and tokenizer pills are keyboard-operable. | `internal/server/playground.html:6782-6915`, `7435-7444`, `4969-5090`, tokenizer renderer |
 | Added accessible names and label associations | Composer tools, gateway fields, provider key controls, model settings, tokenizer search, audio actions, and message actions no longer rely on emoji or title text alone. | `internal/server/playground.html:5043-5254`, dynamic message renderers |
 | Removed accidental Enter-to-close behavior in About | Enter should activate the focused control, not dismiss an unrelated dialog. | `internal/server/playground.html:7436-7443` |
@@ -210,13 +227,14 @@ unavailable.
 | Studio shell `/playground` | Tablet 1024x768 and 768x1024 | Drawer coverage, New Chat visibility, header wrapping, composer collision | High | **Browser pending**; responsive CSS exists but is not acceptance evidence |
 | Studio shell `/playground` | Phone 390x844 and 320x844 | Narrow header, two-column starter cards, touch targets, safe-area behavior | High | **Browser pending**; source has phone rules, visual proof absent |
 | Page typography | All | Browser text scaling was disabled | High | **Source-fixed**; scale lock removed and regression-tested |
-| Primary prompt/composer | All | Accessible name, focus visibility, loading/stop/error recovery | High | **Partially source-fixed**; lifecycle tests pass, browser state walk pending |
+| Primary prompt/composer | All | Accessible name, focus visibility, loading/stop/error recovery | High | **Partially source-fixed**; native control/selector tests pass, browser state walk pending |
 | Chat scrolling | All | Top/bottom navigation, streaming bottom anchor, composer offset | High | **Source-supported** by existing regression tests; real scroll walk pending |
-| Starter cards | Desktop/tablet/phone | Click-only activation excluded keyboard users | Medium | **Source-fixed** with role/tabindex/Enter/Space; browser keyboard walk pending |
-| Model chip and token estimate | Desktop/tablet/phone | Click-only controls lacked keyboard semantics | Medium | **Source-fixed**; browser keyboard walk pending |
-| Dialogs and command palette | All | Missing semantics, focus trap/return, and consistent Escape behavior | High | **Source-fixed**; browser focus-trap and return test pending |
+| Starter cards | Desktop/tablet/phone | Click-only activation excluded keyboard users and used invalid generic control semantics | Medium | **Source-fixed** with native buttons and phrasing-content markup; browser keyboard walk pending |
+| Model chip and token estimate | Desktop/tablet/phone | Click-only controls lacked native button semantics | Medium | **Source-fixed**; browser keyboard walk pending |
+| Dialogs and command palette | All | Missing semantics, focus trap/return, consistent Escape behavior, and short-viewport clipping | High | **Source-fixed in source**; browser focus-trap, return, and 200% zoom test pending |
 | Hosted onboarding dialog | All | Undefined modal classes and long command content could render poorly | High | **Source-fixed**; browser resize/wrap test pending |
-| Gateway/configuration panel | Tablet/phone | Dense controls and 28px actions may be difficult to operate by touch | Medium | **Open**; assess target size and panel overflow in browser |
+| Configuration/code drawers | Tablet/phone | Dense controls, panel coverage, hidden-panel focus, and compact actions may be difficult to operate by touch | High | **Partially source-fixed**; `aria-hidden`/`inert` state is explicit, but coverage and target-size evidence require browser |
+| Gateway/configuration panel | Tablet/phone | Dense controls and compact actions may be difficult to operate by touch | Medium | **Open**; assess target size and panel overflow in browser |
 | Artifact Preview/Code | All | Empty/error/loading/source-limit states and generated game launch | High | **Open for rendered acceptance**; source-level sandbox/recovery tests pass |
 | Language selector and Hindi UI | All | Translation coverage and text expansion | Medium | **Open**; docs correctly classify coverage as English/Hindi plus partial targets |
 | Theme surfaces | All built-in themes | Subdued/muted text contrast | High | **Source-fixed** with numeric contrast regression; browser visual sampling pending |
@@ -246,23 +264,28 @@ states, and no lost New Chat or Send action.
 
 ## 9. Verification run
 
-Completed after the source pass:
+Completed on the clean source commit `7efb6b7` before this report update:
 
 ```text
 make web                                      PASS
-web/index.html source parity                  PASS
 go test -count=1 ./...                        PASS
+go test -race ./...                           PASS
 go vet ./...                                  PASS
+go build ./...                                PASS
+go mod verify                                 PASS
 git diff --check                              PASS
 inline playground JavaScript syntax check    PASS
-clipboard failure-safety regression          PASS
-GET /playground on 127.0.0.1:19614           200 OK
-GET /healthz on 127.0.0.1:19614              200 OK
+TestPlaygroundUsesNativeControlAndDrawerSemantics PASS
+scripts/verify-release-source.sh              PASS
 ```
 
-The local HTTP checks verified that the served route contains the corrected
-viewport, focus, dialog, and onboarding markers. They did not exercise layout,
-keyboard focus, touch, rendering libraries, or provider generation.
+`make web` regenerated the checked-in static bundle from the source studio.
+The source tests verify native button semantics, drawer state markers, modal
+height bounds, theme aliases, and the existing focus/contrast contracts. A
+real-browser connection was attempted for this audit, but the configured
+browser runtime reported no available browser and an empty browser list. No
+layout, keyboard focus, touch, rendering-library, artifact, or provider claim
+is upgraded on the basis of the source checks.
 
 No GitHub Actions workflow was added or invoked. No release was tagged or
 published by this audit. No credential, API key, cookie, or signing key is
@@ -274,11 +297,13 @@ Changed:
 
 - `internal/server/playground.html` — L1 accessibility, modal, keyboard,
   reduced-motion, onboarding, contrast-token, attachment-dispatch, image
-  preview, and duplicate-handler corrections.
+  preview, duplicate-handler, and native-control/drawer-semantics corrections
+  (the current continuation is commit `7efb6b7`).
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, single-dispatch attachment, clipboard failure-safety, Markdown
   link-protocol, artifact-action, and Developer API route-state regression
-  tests, including persisted-attachment and image-preview boundaries.
+  tests, including persisted-attachment, image-preview, and native-control /
+  drawer-state boundaries.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
   error classification.
 - `internal/updater/desktop_stage_test.go` — read-only and permission-denied

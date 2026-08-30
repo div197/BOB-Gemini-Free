@@ -13,7 +13,7 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `77032e2`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `7efb6b7`, ahead of `origin/main`; the
   branch also contains subsequent audit-documentation commits.
 - The current branch contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
@@ -24,6 +24,11 @@ current local truth is:
 - This refresh does not close signed-asset publication, Apple/Windows
   platform trust, clean-device updater, live provider, browser, or 30-device
   rollout gates.
+- The current tip also contains the isolated Studio correctness pass: native
+  button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
+  surfaces, accessible selector names, a prompt skip link, and synchronized
+  generated web output. These are source/regression results, not visual
+  browser acceptance.
 
 This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,
