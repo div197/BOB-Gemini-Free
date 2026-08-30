@@ -201,6 +201,29 @@ func TestPartialAppWithRequestLoggingDoesNotPanic(t *testing.T) {
 	}
 }
 
+func TestPartialAppWithoutLoggerServesGoogleRequest(t *testing.T) {
+	cfg := config.Default()
+	cfg.RetryAttempts = 1
+	app := &App{
+		Cfg: cfg,
+		Gem: &gemini.Client{
+			Cfg:     cfg,
+			HTTP:    fakeGeminiRequester{body: mockGeminiBody("ok")},
+			Cookies: gemini.NewCookieCache(""),
+			Pool:    gemini.NewCookiePool(),
+		},
+		Version: "partial-google-test",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	rec := httptest.NewRecorder()
+
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("partial logged Google request status = %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestAuthMatrix(t *testing.T) {
 	cfg := config.Default()
 	cfg.APIKeys = []string{"sk-secret-key"}

@@ -225,5 +225,14 @@ func (a *App) logRequest(r *http.Request, statusCode int, duration time.Duration
 	if err != nil {
 		clientIP = r.RemoteAddr
 	}
-	a.Logf("%s %s %s -> %d (%dms)", clientIP, r.Method, r.URL.Path, statusCode, duration.Milliseconds())
+	a.logf("%s %s %s -> %d (%dms)", clientIP, r.Method, r.URL.Path, statusCode, duration.Milliseconds())
+}
+
+// logf keeps optional embedding callbacks from becoming a request-serving
+// failure. Fully initialized applications still use the configured logger.
+func (a *App) logf(format string, args ...any) {
+	if a == nil || a.Logf == nil {
+		return
+	}
+	a.Logf(format, args...)
 }

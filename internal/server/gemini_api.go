@@ -238,7 +238,7 @@ func (a *App) handleDirectGoogleGenerate(w http.ResponseWriter, r *http.Request,
 			err = &geminiapi.APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable stream content"}
 		}
 		if err != nil {
-			a.Logf("Gemini Developer API Google stream error: %s", publicUpstreamErrorMessage(err))
+			a.logf("Gemini Developer API Google stream error: %s", publicUpstreamErrorMessage(err))
 			_ = writeSSEError(w, err)
 		}
 	default:
@@ -479,7 +479,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 		return a.GeminiAPI.Stream(r.Context(), model, key, translated, emitResponse)
 	}, emit)
 	if err != nil {
-		a.Logf("Gemini Developer API stream error: %s", publicUpstreamErrorMessage(err))
+		a.logf("Gemini Developer API stream error: %s", publicUpstreamErrorMessage(err))
 		// Do not serialize provider/transport failures as assistant Markdown.
 		// OpenAI stream consumers can classify the structured error after any
 		// already-received partial deltas, and the browser can keep it out of
@@ -491,7 +491,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 		toolCalls, finalizeErr := toolAssembler.Finalize()
 		if finalizeErr != nil {
 			safeMessage := publicDeveloperAPIErrorMessage(finalizeErr)
-			a.Logf("Gemini Developer API tool-call finalization error: %s", safeMessage)
+			a.logf("Gemini Developer API tool-call finalization error: %s", safeMessage)
 			_ = writeSSEData(w, map[string]any{
 				"error": map[string]any{
 					"message": safeMessage,
@@ -505,7 +505,7 @@ func (a *App) handleDirectGeminiStream(w http.ResponseWriter, r *http.Request, r
 				ID: cid, Object: "chat.completion.chunk", Created: created, Model: model,
 				Choices: []models.OpenAIChoice{{Index: 0, Delta: &toolMessage, FinishReason: nil}},
 			}); err != nil {
-				a.Logf("Gemini Developer API tool-call stream write error: %s", publicDeveloperAPIErrorMessage(err))
+				a.logf("Gemini Developer API tool-call stream write error: %s", publicDeveloperAPIErrorMessage(err))
 			}
 			reason := "tool_calls"
 			_ = writeSSEData(w, models.OpenAIChatResponse{
