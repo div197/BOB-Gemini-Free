@@ -7,7 +7,7 @@
 <html lang="en" data-theme="bob-builder">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">
 <meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
 <meta name="author" content="Divyanshu Singh Chouhan (@div197), ABCsteps">
 <meta name="generator" content="BOB Gemini Free by ABCsteps">
@@ -58,7 +58,7 @@
   --border-glow: rgba(255, 202, 0, 0.35);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --text-subdued: #64748b;
+  --text-subdued: #7f8fa3;
   --accent-primary: #ffca00;
   --accent-primary-hover: #ffd833;
   --accent-primary-text: #000000;
@@ -103,7 +103,7 @@
   --border-glow: rgba(230, 0, 0, 0.35);
   --text-main: #111418;
   --text-muted: #4b5563;
-  --text-subdued: #6b7280;
+  --text-subdued: #626a76;
   --accent-primary: #e60000;
   --accent-primary-hover: #cc0000;
   --accent-primary-text: #ffffff;
@@ -129,7 +129,7 @@
   --border-glow: rgba(30, 215, 96, 0.35);
   --text-main: #ffffff;
   --text-muted: #b3b3b3;
-  --text-subdued: #7c7c7c;
+  --text-subdued: #868686;
   --accent-primary: #1ed760;
   --accent-primary-hover: #1fdf64;
   --accent-primary-text: #000000;
@@ -155,7 +155,7 @@
   --border-glow: rgba(0, 240, 255, 0.35);
   --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --text-subdued: #64748b;
+  --text-subdued: #8290a5;
   --accent-primary: #00f0ff;
   --accent-primary-hover: #38f4ff;
   --accent-primary-text: #000000;
@@ -180,8 +180,8 @@
   --border-focus: #7aa2f7;
   --border-glow: rgba(122, 162, 247, 0.35);
   --text-main: #c0caf5;
-  --text-muted: #7982a9;
-  --text-subdued: #565f89;
+  --text-muted: #a6b0d0;
+  --text-subdued: #9aa6c6;
   --accent-primary: #bb9af7;
   --accent-primary-hover: #cbb2f9;
   --accent-primary-text: #1a1b26;
@@ -207,7 +207,7 @@
   --border-glow: rgba(166, 226, 46, 0.35);
   --text-main: #f8f8f2;
   --text-muted: #a6a69c;
-  --text-subdued: #75715e;
+  --text-subdued: #aaa89b;
   --accent-primary: #e6db74;
   --accent-primary-hover: #efe68a;
   --accent-primary-text: #272822;
@@ -233,7 +233,7 @@
   --border-glow: rgba(136, 192, 208, 0.35);
   --text-main: #eceff4;
   --text-muted: #d8dee9;
-  --text-subdued: #7e889b;
+  --text-subdued: #b4bdcb;
   --accent-primary: #88c0d0;
   --accent-primary-hover: #8fbcbb;
   --accent-primary-text: #2e3440;
@@ -258,8 +258,8 @@
   --border-focus: #b58900;
   --border-glow: rgba(181, 137, 0, 0.25);
   --text-main: #073642;
-  --text-muted: #586e75;
-  --text-subdued: #839496;
+  --text-muted: #536970;
+  --text-subdued: #4b6570;
   --accent-primary: #b58900;
   --accent-primary-hover: #cb4b16;
   --accent-primary-text: #ffffff;
@@ -285,7 +285,7 @@
   --border-glow: rgba(0, 102, 204, 0.22);
   --text-main: #1d1d1f;           /* Near-Black Ink */
   --text-muted: #6e6e73;          /* Ink Muted */
-  --text-subdued: #86868b;        /* Ink Muted 48 */
+  --text-subdued: #6e6e73;        /* Ink Muted */
   --accent-primary: #0066cc;      /* Action Blue */
   --accent-primary-hover: #0071e3; /* Focus Blue */
   --accent-primary-text: #ffffff;
@@ -838,6 +838,23 @@ select, textarea, input[type="range"] {
 select:focus, textarea:focus {
   border-color: var(--border-focus);
   box-shadow: 0 0 0 1px var(--border-focus);
+}
+button:focus-visible,
+a:focus-visible,
+select:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+[role="button"]:focus-visible {
+  outline: 2px solid var(--border-focus);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 input[type="range"] {
   accent-color: var(--accent-primary);
@@ -3920,7 +3937,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Extracted Document & OCR Markdown Preview Modal -->
-<div class="dialog-backdrop" id="doc-preview-modal" onclick="if(event.target===this) closeDocPreviewModal()">
+<div class="dialog-backdrop" id="doc-preview-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="doc-preview-title" tabindex="-1" onclick="if(event.target===this) closeDocPreviewModal()">
   <div class="about-dialog-box" style="max-width:720px; max-height:85vh; display:flex; flex-direction:column;">
     <div class="about-header-band">
       <div class="about-header-top">
@@ -3946,7 +3963,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 <input type="file" id="image-file-input" multiple accept="image/*,.pdf,.docx,.xlsx,.xls,.csv,.tsv,.txt,.py,.go,.js,.ts,.html,.css,.json,.md,.sql,.sh,.yaml,.yml,.c,.cpp,.rs,.java,.rb,.php,.xml,.log,.env" style="display:none" onchange="handleUniversalFileSelect(event)">
 
 <!-- 2026 Confirmation Modal -->
-<div class="dialog-backdrop" id="confirm-modal" onclick="if(event.target===this) closeConfirmModal()">
+<div class="dialog-backdrop" id="confirm-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="dialog-title" tabindex="-1" onclick="if(event.target===this) closeConfirmModal()">
   <div class="dialog-box">
     <div class="dialog-header">
       <div class="dialog-icon-orb" id="dialog-icon">🗑️</div>
@@ -3963,7 +3980,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Custom User Theme Studio Modal -->
-<div class="dialog-backdrop" id="custom-theme-modal" onclick="if(event.target===this) closeCustomThemeModal()">
+<div class="dialog-backdrop" id="custom-theme-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="custom-theme-modal-title" tabindex="-1" onclick="if(event.target===this) closeCustomThemeModal()">
   <div class="about-dialog-box" style="max-width:580px;">
     <div class="about-header-band">
       <div class="about-header-top">
@@ -4035,13 +4052,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- High-Precision Architectural About Modal -->
-<div class="dialog-backdrop" id="about-modal" onclick="if(event.target===this) closeAboutModal()">
+<div class="dialog-backdrop" id="about-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="about-modal-title" tabindex="-1" onclick="if(event.target===this) closeAboutModal()">
   <div class="about-dialog-box">
     <div class="about-header-band">
       <div class="about-header-top">
         <div class="about-brand-wrap">
           <span class="about-star">✦</span>
-          <span class="about-title">BOB GEMINI FREE</span>
+          <span class="about-title" id="about-modal-title">BOB GEMINI FREE</span>
         </div>
         <span class="about-version-badge" id="about-version-label">v0.2.0</span>
       </div>
@@ -4092,7 +4109,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- High-Performance Gateway Connection & Setup Modal -->
-<div class="dialog-backdrop" id="gateway-modal" onclick="if(event.target===this) closeGatewayModal()">
+<div class="dialog-backdrop" id="gateway-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="gateway-modal-title" tabindex="-1" onclick="if(event.target===this) closeGatewayModal()">
   <div class="about-dialog-box" style="max-width:580px;">
     <div class="about-header-band">
       <div class="about-header-top">
@@ -4107,12 +4124,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
     <div class="about-body">
       <div class="control-card" style="margin:0;">
-        <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <label for="gateway-url-input" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span id="gateway-endpoint-label" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gateway Endpoint URL</span>
           <span id="gateway-ping-badge" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Latency: --</span>
         </label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="gateway-url-input" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <input type="text" id="gateway-url-input" aria-label="Gateway endpoint URL" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
           <button class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
         </div>
@@ -4122,27 +4139,27 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </div>
 
       <div class="control-card" style="margin-top:10px;">
-        <label style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+        <label for="gateway-api-key-input" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">API Key (Bearer Auth)</span>
           <span style="font-size:0.72rem; color:var(--text-muted);">Optional for unauthenticated local instances</span>
         </label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="gateway-api-key-input" name="bearer_auth_token_string" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="sk-gemini or leave empty for none" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-subtle" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
+          <input type="text" id="gateway-api-key-input" aria-label="Gateway API key" name="bearer_auth_token_string" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="sk-gemini or leave empty for none" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <button class="btn-pill-subtle" aria-label="Show or hide gateway API key" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
         </div>
       </div>
 
       <div class="control-card" style="margin-top:10px; border-color:rgba(250,204,21,0.45);">
-        <label style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
           <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gemini Developer API (optional)</span>
           <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); text-transform:none; letter-spacing:0; cursor:pointer;">
             <input type="checkbox" id="gemini-provider-toggle" onchange="toggleGeminiProviderRoute(this.checked)" style="accent-color:var(--accent-primary);">
             <span id="gemini-provider-session-label">Use for this session</span>
           </label>
-        </label>
+        </div>
         <div style="display:flex; gap:8px;">
-          <input type="password" id="gemini-provider-key-input" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-subtle" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
+          <input type="password" id="gemini-provider-key-input" aria-label="Gemini Developer API key" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <button class="btn-pill-subtle" aria-label="Show or hide Gemini Developer API key" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">
           <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
@@ -4194,7 +4211,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Interactive Native Artifact Studio Canvas Modal -->
-<div class="dialog-backdrop artifact-modal-backdrop" id="artifact-modal" onclick="if(event.target===this) closeArtifactCanvas()">
+<div class="dialog-backdrop artifact-modal-backdrop" id="artifact-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="art-modal-title" tabindex="-1" onclick="if(event.target===this) closeArtifactCanvas()">
   <!-- Side Click Dismiss Rails -->
   <div class="artifact-side-rail left" onclick="closeArtifactCanvas()" title="Click to return to chat (Esc)">
     <div class="rail-hint-pill"><span>←</span> <span id="art-rail-left-label">Back to Chat</span></div>
@@ -4282,7 +4299,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Custom Instructions & User Persona Modal -->
-<div class="dialog-backdrop" id="instructions-modal" onclick="if(event.target===this) closeInstructionsModal()">
+<div class="dialog-backdrop" id="instructions-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="instr-user-persona-label" tabindex="-1" onclick="if(event.target===this) closeInstructionsModal()">
   <div class="about-dialog-box" style="max-width:620px;">
     <div class="about-header-band">
       <div class="about-header-top">
@@ -4307,14 +4324,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </div>
 
       <div class="control-card" style="margin-bottom:12px;">
-        <label id="instr-user-persona-label" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
+        <label id="instr-user-persona-label" for="instr-user-persona" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
           1. What should BOB Gemini Free know about you?
         </label>
         <textarea id="instr-user-persona" rows="3" placeholder="e.g. I am a software engineer in India. I work with Go, Python, and Docker. I prefer concise first-principles explanations." style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; color:var(--text-main); font-family:inherit; font-size:0.84rem; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
       </div>
 
       <div class="control-card" style="margin:0;">
-        <label id="instr-response-style-label" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
+        <label id="instr-response-style-label" for="instr-response-style" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:6px; display:block;">
           2. How would you like responses to be formatted?
         </label>
         <textarea id="instr-response-style" rows="3" placeholder="e.g. Always write production-ready code with error handling. Prefer Mermaid visual architecture diagrams over long paragraphs. Zero conversational filler." style="width:100%; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:10px 12px; color:var(--text-main); font-family:inherit; font-size:0.84rem; outline:none; resize:vertical; box-sizing:border-box;"></textarea>
@@ -4335,7 +4352,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Interactive Tokenizer & BPE Visualizer Modal (Wish 1) -->
-<div class="dialog-backdrop" id="tokenizer-modal" onclick="if(event.target===this) closeTokenizerModal()">
+<div class="dialog-backdrop" id="tokenizer-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="tok-brand-title" tabindex="-1" onclick="if(event.target===this) closeTokenizerModal()">
   <div class="about-dialog-box" style="max-width:820px; max-height:90vh; display:flex; flex-direction:column;">
     <div class="about-header-band" style="padding:12px 18px;">
       <div class="about-header-top">
@@ -4350,7 +4367,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
     <div class="about-body" style="overflow-y:auto; flex:1; padding:12px 18px;">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-        <label id="tok-input-label" style="font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-main);">Test Input Text</label>
+        <label id="tok-input-label" for="tokenizer-input" style="font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-main);">Test Input Text</label>
         <div style="display:flex; gap:6px;">
           <button class="btn-pill-subtle" onclick="loadTokenizerPreset('mantra')" style="padding:2px 8px; font-size:0.68rem;">🕉️ Mantra</button>
           <button class="btn-pill-subtle" onclick="loadTokenizerPreset('code')" style="padding:2px 8px; font-size:0.68rem;">💻 Python</button>
@@ -4423,7 +4440,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Interactive Student AI Glossary & Knowledge Base Modal (Wish 6 / Pedagogy) -->
-<div class="dialog-backdrop" id="glossary-modal" onclick="if(event.target===this) closeGlossaryModal()">
+<div class="dialog-backdrop" id="glossary-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="glossary-brand-title" tabindex="-1" onclick="if(event.target===this) closeGlossaryModal()">
   <div class="about-dialog-box" style="max-width:860px; max-height:88vh; display:flex; flex-direction:column;">
     <div class="about-header-band" style="padding:12px 20px;">
       <div class="about-header-top">
@@ -4439,7 +4456,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     <!-- Search & Filter Bar -->
     <div style="padding:10px 20px 0 20px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
       <div style="flex:1; min-width:240px; position:relative;">
-        <input type="text" id="glossary-search-input" placeholder="Search any term (e.g., Tokens, Temperature, Embeddings, SSE)..." oninput="filterGlossary(this.value)" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:8px; padding:8px 12px 8px 32px; color:var(--text-main); font-size:0.84rem; outline:none; box-sizing:border-box;">
+        <input type="text" id="glossary-search-input" aria-label="Search glossary terms" placeholder="Search any term (e.g., Tokens, Temperature, Embeddings, SSE)..." oninput="filterGlossary(this.value)" style="width:100%; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:8px; padding:8px 12px 8px 32px; color:var(--text-main); font-size:0.84rem; outline:none; box-sizing:border-box;">
         <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:var(--text-muted);">🔍</span>
       </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;" id="glossary-filter-chips">
@@ -4463,11 +4480,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Command Palette Modal (Spotlight / Raycast Categorized) -->
-<div class="cmd-modal-backdrop" id="cmd-modal" onclick="if(event.target===this) toggleCmdPalette()">
+<div class="cmd-modal-backdrop" id="cmd-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cmd-search" tabindex="-1" onclick="if(event.target===this) toggleCmdPalette()">
   <div class="cmd-palette">
     <div class="cmd-input-box">
       <span style="color:var(--accent-primary); font-size:1.1rem;">✦</span>
-      <input type="text" id="cmd-search" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)" onkeydown="handleCmdKeyDown(event)">
+      <input type="text" id="cmd-search" aria-label="Search commands, models, and themes" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)" onkeydown="handleCmdKeyDown(event)">
       <kbd>ESC</kbd>
     </div>
     <div class="cmd-list" id="cmd-items">
@@ -4949,7 +4966,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <header>
-  <div class="brand-anchor" onclick="openAboutModal()" title="View About & Credits">
+  <div class="brand-anchor" role="button" tabindex="0" aria-label="View About and Credits" onclick="openAboutModal()" title="View About & Credits">
     <!-- Pure Typographic Wordmark -->
     <div class="brand-headings">
       <div class="brand-title">
@@ -5024,11 +5041,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="control-card">
-      <label style="display:flex; justify-content:space-between; align-items:center;">
+      <label for="model-select" style="display:flex; justify-content:space-between; align-items:center;">
         <span id="label-target-model">Target Model</span>
-        <span style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('rpc')" title="Learn how model routing works">ⓘ</span>
+        <span class="inline-help-trigger" role="button" tabindex="0" aria-label="Learn how model routing works" style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('rpc')" title="Learn how model routing works">ⓘ</span>
       </label>
-      <select id="model-select" onchange="handleGenerationSafeModelChange(this)">
+      <select id="model-select" aria-label="Target model" onchange="handleGenerationSafeModelChange(this)">
         <option value="gemini-3.7-flash" selected>⚡ gemini-3.7-flash (Flagship Fast)</option>
         <option value="gemini-3.7-flash-thinking">🧠 gemini-3.7-flash-thinking (Deep Reasoning)</option>
         <option value="gemini-3.6-flash">⚡ gemini-3.6-flash</option>
@@ -5038,16 +5055,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </select>
       <div id="model-pricing-badge" style="font-size:0.72rem; color:var(--text-muted); font-family:var(--font-mono); margin-top:6px; background:rgba(0,0,0,0.12); padding:4px 8px; border-radius:6px; display:flex; justify-content:space-between; align-items:center;">
         <span>Cloud: <b id="model-cloud-price" style="color:var(--text-main);">$0.38/1M</b></span>
-        <span style="color:#10b981; font-weight:700; cursor:pointer;" onclick="openGlossaryTerm('savings')" title="Learn about cloud savings">BOB: $0.00 FREE</span>
+        <span class="inline-help-trigger" role="button" tabindex="0" aria-label="Learn about cloud savings" style="color:#10b981; font-weight:700; cursor:pointer;" onclick="openGlossaryTerm('savings')" title="Learn about cloud savings">BOB: $0.00 FREE</span>
       </div>
     </div>
 
     <div class="control-card">
-      <label style="display:flex; justify-content:space-between; align-items:center;">
+      <label for="think-select" style="display:flex; justify-content:space-between; align-items:center;">
         <span id="label-reasoning-depth">Reasoning Depth (@think)</span>
-        <span style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('reasoning')" title="Learn how reasoning models work">ⓘ</span>
+        <span class="inline-help-trigger" role="button" tabindex="0" aria-label="Learn how reasoning models work" style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('reasoning')" title="Learn how reasoning models work">ⓘ</span>
       </label>
-      <select id="think-select" onchange="handleGenerationSafeModelChange(this)">
+      <select id="think-select" aria-label="Reasoning depth" onchange="handleGenerationSafeModelChange(this)">
         <option value="default" selected>Model Default</option>
         <option value="@think=0">Deep Thinking (@think=0)</option>
         <option value="@think=2">Medium Thinking (@think=2)</option>
@@ -5056,22 +5073,22 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="control-card">
-      <label style="display:flex; justify-content:space-between; align-items:center;">
+      <label for="temp-range" style="display:flex; justify-content:space-between; align-items:center;">
         <div>
           <span id="label-sampling-temperature">Sampling Temperature</span>
-          <span style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85; margin-left:4px;" onclick="openGlossaryTerm('temperature')" title="Learn about sampling temperature">ⓘ</span>
+          <span class="inline-help-trigger" role="button" tabindex="0" aria-label="Learn about sampling temperature" style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85; margin-left:4px;" onclick="openGlossaryTerm('temperature')" title="Learn about sampling temperature">ⓘ</span>
         </div>
         <span class="val-badge" id="temp-val-badge">1.0</span>
       </label>
-      <input type="range" id="temp-range" min="0.0" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('temp-val-badge').innerText = this.value; updateSnippet();">
+      <input type="range" id="temp-range" aria-label="Sampling temperature" min="0.0" max="2.0" step="0.1" value="1.0" oninput="document.getElementById('temp-val-badge').innerText = this.value; updateSnippet();">
     </div>
 
     <div class="control-card">
-      <label style="display:flex; justify-content:space-between; align-items:center;">
+      <label for="max-tokens-select" style="display:flex; justify-content:space-between; align-items:center;">
         <span id="label-max-output-tokens">Max Output Tokens</span>
-        <span style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('tokens')" title="Learn about output tokens">ⓘ</span>
+        <span class="inline-help-trigger" role="button" tabindex="0" aria-label="Learn about output tokens" style="font-size:0.72rem; cursor:pointer; color:var(--accent-primary); opacity:0.85;" onclick="openGlossaryTerm('tokens')" title="Learn about output tokens">ⓘ</span>
       </label>
-      <select id="max-tokens-select" onchange="updateSnippet()">
+      <select id="max-tokens-select" aria-label="Maximum output tokens" onchange="updateSnippet()">
         <option value="8192" selected>8,192 Tokens (Balanced)</option>
         <option value="4096">4,096 Tokens (Fast)</option>
         <option value="16384">16,384 Tokens (Extended)</option>
@@ -5080,8 +5097,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="control-card">
-      <label id="label-protocol-endpoint">Protocol Endpoint</label>
-      <select id="proto-select" onchange="updateSnippet()">
+      <label id="label-protocol-endpoint" for="proto-select">Protocol Endpoint</label>
+      <select id="proto-select" aria-label="Protocol endpoint" onchange="updateSnippet()">
         <option value="openai" selected>OpenAI Standard (/v1/chat/completions)</option>
         <option value="anthropic">Anthropic Standard (/v1/messages)</option>
         <option value="google">Google Gemini (/v1beta/models/...)</option>
@@ -5089,21 +5106,21 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="control-card">
-      <label id="label-system-prompt">System Prompt (Optional)</label>
-      <textarea id="system-prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
+      <label id="label-system-prompt" for="system-prompt">System Prompt (Optional)</label>
+      <textarea id="system-prompt" aria-label="System prompt" rows="3" placeholder="Set custom instructions for the model..."></textarea>
     </div>
 
     <div class="control-card">
-      <label>
+      <label for="tts-voice-select">
         <span id="label-natural-speech">🔊 Natural Speech Engine</span>
         <span class="val-badge" id="tts-speed-badge">1.0x</span>
       </label>
-      <select id="tts-voice-select" onchange="localStorage.setItem('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
+      <select id="tts-voice-select" aria-label="Speech voice" onchange="localStorage.setItem('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
         <option value="auto">🌟 Auto Best Natural HD Voice</option>
       </select>
       <div style="display:flex; align-items:center; gap:8px;">
         <span id="label-tts-speed" style="font-size:0.65rem; color:var(--text-muted); min-width:40px;">Speed:</span>
-        <input type="range" id="tts-speed-range" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; localStorage.setItem('bob_tts_rate', this.value);" style="flex:1;">
+        <input type="range" id="tts-speed-range" aria-label="Speech speed" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; localStorage.setItem('bob_tts_rate', this.value);" style="flex:1;">
       </div>
     </div>
 
@@ -5121,7 +5138,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <button class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">
           <span>✦</span> <span class="sub-btn-text">New</span>
         </button>
-        <div class="active-model-chip" onclick="toggleCmdPalette()" title="Click to change model">
+        <div class="active-model-chip" role="button" tabindex="0" aria-label="Change model" onclick="toggleCmdPalette()" title="Click to change model">
           <div class="live-dot"></div>
           <span id="active-model-label">gemini-3.7-flash</span>
           <span style="font-size:0.65rem; color:var(--text-muted);">▾</span>
@@ -5155,7 +5172,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
             </div>
           </div>
           <div class="starters-grid">
-            <div class="starter-card" onclick="selectStarter('snake')">
+            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('snake')">
               <div class="badge-chip">
                 <span class="mini-orb">🎮</span>
                 <span>ARTIFACT CANVAS</span>
@@ -5163,7 +5180,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
               <div class="starter-card-title">2D Cyberpunk Snake Game</div>
               <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('py_finance')">
+            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('py_finance')">
               <div class="badge-chip">
                 <span class="mini-orb">🐍</span>
                 <span>PYTHON WASM SANDBOX</span>
@@ -5171,7 +5188,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
               <div class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</div>
               <div class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('orbit')">
+            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('orbit')">
               <div class="badge-chip">
                 <span class="mini-orb">🪐</span>
                 <span>THREE.JS WEBGL</span>
@@ -5179,7 +5196,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
               <div class="starter-card-title">3D Solar System & Orbit Lab</div>
               <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
             </div>
-            <div class="starter-card" onclick="selectStarter('grader')">
+            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('grader')">
               <div class="badge-chip">
                 <span class="mini-orb">🎓</span>
                 <span>FIRST PRINCIPLES</span>
@@ -5211,9 +5228,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
       </div>
       <div class="audio-bar-controls">
-        <button class="audio-ctrl-btn" id="audio-pause-btn" onclick="toggleAudioPause()" title="Play / Pause">⏸️</button>
-        <button class="audio-ctrl-btn" id="audio-speed-btn" onclick="cycleAudioSpeed()" title="Cycle playback speed">1.0x</button>
-        <button class="audio-ctrl-btn" onclick="stopAudioPlayback()" title="Stop audio">⏹️</button>
+        <button class="audio-ctrl-btn" id="audio-pause-btn" aria-label="Play or pause audio" onclick="toggleAudioPause()" title="Play / Pause">⏸️</button>
+        <button class="audio-ctrl-btn" id="audio-speed-btn" aria-label="Change audio playback speed" onclick="cycleAudioSpeed()" title="Cycle playback speed">1.0x</button>
+        <button class="audio-ctrl-btn" aria-label="Stop audio" onclick="stopAudioPlayback()" title="Stop audio">⏹️</button>
       </div>
     </div>
 
@@ -5225,16 +5242,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <div class="attachments-shelf" id="attachments-shelf"></div>
 
           <!-- Integrated Textarea -->
-          <textarea id="user-input" name="chat_prompt_body" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-disable-password-manager="true" data-private="true" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeyup="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
+          <textarea id="user-input" name="chat_prompt_body" aria-label="Chat prompt" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-form-type="other" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-disable-password-manager="true" data-private="true" placeholder="Ask anything, formulate proofs, or paste images/code..." rows="1" autofocus oninput="autoResize(this)" onkeyup="autoResize(this)" onkeydown="handleKeyDown(event)" onpaste="handleClipboardPaste(event)"></textarea>
 
           <!-- Integrated Action Dock inside the capsule -->
           <div class="capsule-bottom-bar">
             <div class="capsule-tools-left">
-              <button class="capsule-tool-btn" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
-              <button class="capsule-tool-btn btn-translit-pill" id="btn-translit" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
-              <button class="capsule-tool-btn btn-mic-pill" id="btn-mic" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
-              <button class="capsule-tool-btn btn-wand-pill" id="btn-wand" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
-              <span id="prompt-token-estimate" class="token-live-chip" onclick="openTokenizerModal()" title="Click to open Interactive Tokenizer & BPE Visualizer Lab">0 chars • ~0 tok</span>
+              <button class="capsule-tool-btn" aria-label="Attach or paste an image" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
+              <button class="capsule-tool-btn btn-translit-pill" id="btn-translit" aria-label="Toggle Indic phonetic typing" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
+              <button class="capsule-tool-btn btn-mic-pill" id="btn-mic" aria-label="Voice input" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
+              <button class="capsule-tool-btn btn-wand-pill" id="btn-wand" aria-label="Improve prompt with AI" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
+              <span id="prompt-token-estimate" class="token-live-chip" role="button" tabindex="0" aria-label="Open token estimate" onclick="openTokenizerModal()" title="Click to open Interactive Tokenizer & BPE Visualizer Lab">0 chars • ~0 tok</span>
             </div>
             <div class="capsule-tools-right">
               <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
@@ -6287,16 +6304,14 @@ function openConfirmModal(opts) {
   btn.innerText = opts.confirmText || "Confirm";
   
   pendingConfirmCallback = opts.onConfirm || null;
-  modal.classList.add("open");
+  openManagedModal(modal, "#dialog-cancel-btn");
   setTimeout(() => btn.focus(), 60);
 }
 
 function closeConfirmModal() {
   const modal = document.getElementById("confirm-modal");
-  modal.classList.remove("open");
+  closeManagedModal(modal);
   pendingConfirmCallback = null;
-  const input = document.getElementById("user-input");
-  if (input) input.focus();
 }
 
 function executeConfirmAction() {
@@ -6308,14 +6323,12 @@ function executeConfirmAction() {
 
 function openAboutModal() {
   const modal = document.getElementById("about-modal");
-  if (modal) modal.classList.add("open");
+  openManagedModal(modal, "#about-close-btn");
 }
 
 function closeAboutModal() {
   const modal = document.getElementById("about-modal");
-  if (modal) modal.classList.remove("open");
-  const input = document.getElementById("user-input");
-  if (input) input.focus();
+  closeManagedModal(modal);
 }
 
 const ENDPOINT_KEY = "bob_gemini_endpoint";
@@ -6387,14 +6400,12 @@ function openGatewayModal() {
   if (keyInput) keyInput.value = gatewayApiKey;
   if (providerKeyInput) providerKeyInput.value = geminiProviderKey;
   if (providerToggle) providerToggle.checked = useGeminiProvider;
-  if (modal) modal.classList.add("open");
+  openManagedModal(modal, "#gateway-url-input");
 }
 
 function closeGatewayModal() {
   const modal = document.getElementById("gateway-modal");
-  if (modal) modal.classList.remove("open");
-  const input = document.getElementById("user-input");
-  if (input) input.focus();
+  closeManagedModal(modal);
 }
 
 function saveApiKeyFromInput(val) {
@@ -6711,12 +6722,12 @@ function openCustomThemeModal() {
   updateCustomThemeLive();
 
   const modal = document.getElementById("custom-theme-modal");
-  if (modal) modal.classList.add("open");
+  openManagedModal(modal, "#ct-accent");
 }
 
 function closeCustomThemeModal() {
   const modal = document.getElementById("custom-theme-modal");
-  if (modal) modal.classList.remove("open");
+  closeManagedModal(modal);
 }
 
 function applyCustomThemePreset(presetName) {
@@ -6770,13 +6781,45 @@ function resetCustomTheme() {
 
 function toggleCmdPalette(initialFilter) {
   const modal = document.getElementById("cmd-modal");
-  modal.classList.toggle("open");
+  if (!modal) return;
+  enhanceCommandPaletteAccessibility();
   if (modal.classList.contains("open")) {
-    const input = document.getElementById("cmd-search");
+    closeManagedModal(modal);
+    return;
+  }
+  const input = document.getElementById("cmd-search");
+  if (input) {
     input.value = initialFilter || "";
     filterCmds(input.value);
-    input.focus();
   }
+  openManagedModal(modal, "#cmd-search");
+}
+
+function syncCommandPaletteAccessibility(items) {
+  const input = document.getElementById("cmd-search");
+  const commandItems = items ? Array.from(items) : Array.from(document.querySelectorAll("#cmd-items .cmd-item"));
+  let selected = null;
+  commandItems.forEach((item, index) => {
+    if (!item.id) item.id = `cmd-option-${index + 1}`;
+    item.setAttribute("role", "option");
+    item.setAttribute("tabindex", "-1");
+    const isSelected = item.classList.contains("selected") && item.style.display !== "none";
+    item.setAttribute("aria-selected", isSelected ? "true" : "false");
+    if (isSelected) selected = item;
+  });
+  if (input) {
+    input.setAttribute("aria-controls", "cmd-items");
+    if (selected) input.setAttribute("aria-activedescendant", selected.id);
+    else input.removeAttribute("aria-activedescendant");
+  }
+}
+
+function enhanceCommandPaletteAccessibility() {
+  const list = document.getElementById("cmd-items");
+  if (!list) return;
+  list.setAttribute("role", "listbox");
+  list.setAttribute("aria-label", "Commands, models, themes, and actions");
+  syncCommandPaletteAccessibility(list.querySelectorAll(".cmd-item"));
 }
 
 function filterCmds(query) {
@@ -6809,6 +6852,7 @@ function filterCmds(query) {
     }
     sec.style.display = hasVisible ? "block" : "none";
   });
+  syncCommandPaletteAccessibility(items);
 }
 
 function handleCmdKeyDown(e) {
@@ -6833,6 +6877,7 @@ function handleCmdKeyDown(e) {
     if (selIdx >= 0 && selIdx < items.length - 1) {
       items[selIdx].classList.remove("selected");
       items[selIdx + 1].classList.add("selected");
+      syncCommandPaletteAccessibility(items);
       items[selIdx + 1].scrollIntoView({ block: 'nearest' });
     }
   } else if (e.key === 'ArrowUp') {
@@ -6840,6 +6885,7 @@ function handleCmdKeyDown(e) {
     if (selIdx > 0) {
       items[selIdx].classList.remove("selected");
       items[selIdx - 1].classList.add("selected");
+      syncCommandPaletteAccessibility(items);
       items[selIdx - 1].scrollIntoView({ block: 'nearest' });
     }
   } else if (e.key === 'Enter') {
@@ -7314,8 +7360,95 @@ function handleKeyDown(e) {
   }
 }
 
+/* Accessible modal lifecycle: keep keyboard focus inside open dialogs and return
+   it to the control that opened the dialog when the dialog closes. */
+const MANAGED_MODAL_SELECTOR = '.dialog-backdrop.open, .cmd-modal-backdrop.open';
+const modalReturnFocus = new WeakMap();
+
+function getModalFocusableElements(modal) {
+  if (!modal) return [];
+  const selector = 'a[href], area[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), iframe, [contenteditable="true"], [tabindex]:not([tabindex="-1"])';
+  return Array.from(modal.querySelectorAll(selector)).filter((el) => {
+    if (el.hasAttribute('hidden') || el.getAttribute('aria-hidden') === 'true') return false;
+    return el.getClientRects().length > 0;
+  });
+}
+
+function getOpenManagedModal() {
+  const openModals = document.querySelectorAll(MANAGED_MODAL_SELECTOR);
+  return openModals.length ? openModals[openModals.length - 1] : null;
+}
+
+function openManagedModal(modal, initialSelector) {
+  if (!modal) return;
+  const active = document.activeElement;
+  if (active && active !== document.body && !modal.contains(active)) {
+    modalReturnFocus.set(modal, active);
+  }
+  modal.classList.add('open');
+  modal.setAttribute('aria-hidden', 'false');
+  setTimeout(() => {
+    const initial = initialSelector ? modal.querySelector(initialSelector) : null;
+    const focusable = getModalFocusableElements(modal);
+    const destination = initial || focusable[0] || modal;
+    if (destination && typeof destination.focus === 'function') destination.focus();
+  }, 0);
+}
+
+function closeManagedModal(modal) {
+  if (!modal) return;
+  modal.classList.remove('open');
+  modal.setAttribute('aria-hidden', 'true');
+  const returnFocus = modalReturnFocus.get(modal);
+  modalReturnFocus.delete(modal);
+  if (returnFocus && returnFocus.isConnected && !returnFocus.disabled) {
+    returnFocus.focus();
+    return;
+  }
+  const input = document.getElementById('user-input');
+  if (input) input.focus();
+}
+
+function trapManagedModalFocus(e, modal) {
+  if (!modal || e.key !== 'Tab') return false;
+  const focusable = getModalFocusableElements(modal);
+  if (!focusable.length) {
+    e.preventDefault();
+    modal.focus();
+    return true;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!modal.contains(document.activeElement)) {
+    e.preventDefault();
+    (e.shiftKey ? last : first).focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+  return true;
+}
+
+function activateKeyboardButton(e) {
+  if (e.key !== 'Enter' && e.key !== ' ') return false;
+  const target = e.target && e.target.closest
+    ? e.target.closest('.brand-anchor, .inline-help-trigger, .token-pill, .starter-card, .active-model-chip, #prompt-token-estimate, .thought-card-header')
+    : null;
+  if (!target) return false;
+  e.preventDefault();
+  target.click();
+  return true;
+}
+
 // Global Key Listeners for Modals and Shortcuts
 document.addEventListener("keydown", (e) => {
+  const openModal = getOpenManagedModal();
+  if (openModal && trapManagedModalFocus(e, openModal)) return;
+  if (activateKeyboardButton(e)) return;
+
   const confirmModal = document.getElementById("confirm-modal");
   if (confirmModal && confirmModal.classList.contains("open")) {
     if (e.key === 'Enter') {
@@ -7333,7 +7466,7 @@ document.addEventListener("keydown", (e) => {
 
   const aboutModal = document.getElementById("about-modal");
   if (aboutModal && aboutModal.classList.contains("open")) {
-    if (e.key === 'Escape' || e.key === 'Enter') {
+    if (e.key === 'Escape') {
       e.preventDefault();
       closeAboutModal();
       return;
@@ -7374,6 +7507,30 @@ document.addEventListener("keydown", (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
       closeCustomThemeModal();
+      return;
+    }
+  }
+
+  const localOnboardingModal = document.getElementById("local-onboard-modal");
+  if (localOnboardingModal && localOnboardingModal.classList.contains("open")) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      closeLocalOnboardingModal();
+      return;
+    }
+  }
+
+  const additionalModalClosers = [
+    ["instructions-modal", closeInstructionsModal],
+    ["tokenizer-modal", closeTokenizerModal],
+    ["glossary-modal", closeGlossaryModal],
+    ["doc-preview-modal", closeDocPreviewModal]
+  ];
+  for (const [id, close] of additionalModalClosers) {
+    const modal = document.getElementById(id);
+    if (modal && modal.classList.contains("open") && e.key === 'Escape') {
+      e.preventDefault();
+      close();
       return;
     }
   }
@@ -7580,44 +7737,50 @@ async function refreshTelemetry() {
 function showLocalOnboardingModal() {
   const existing = document.getElementById("local-onboard-modal");
   if (existing) {
-    existing.classList.add("open");
+    openManagedModal(existing, "#local-onboard-continue");
     return;
   }
   
   const modalHTML = `
-    <div id="local-onboard-modal" class="modal-overlay open" style="z-index: 100000; align-items: center; justify-content: center; backdrop-filter: blur(8px);">
-      <div class="modal-content" style="max-width: 550px; padding: 2rem; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 16px; box-shadow: 0 24px 60px rgba(0,0,0,0.4);">
-        <h2 style="color: var(--accent-primary); display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; margin-top: 0;">
+    <div id="local-onboard-modal" class="dialog-backdrop open" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="local-onboard-title" aria-describedby="local-onboard-desc" tabindex="-1" style="z-index: 100000;">
+      <div class="about-dialog-box" style="max-width: 550px; max-height: calc(100dvh - 40px); overflow-y: auto;">
+        <h2 id="local-onboard-title" class="dialog-title" style="color: var(--accent-primary); display: flex; align-items: center; gap: 0.75rem; font-size: 1.5rem; margin: 0;">
           <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
           Connect Local Engine
         </h2>
-        <p style="color: var(--text-muted); margin-top: 1rem; line-height: 1.6;">
+        <p id="local-onboard-desc" class="dialog-desc" style="margin: 0;">
           This public Cloudflare page is a static browser studio. It does not access your device automatically.
           To use a local BOB gateway, start it first, then choose <b>Gateway Offline → Test Ping</b>.
           Your browser may ask for permission at that moment; it is only for this explicit local connection.
         </p>
         
-        <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 1.5rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem;">
+        <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 0.25rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem; overflow-wrap: anywhere; word-break: break-word; overflow: auto;">
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
-          <code style="color: #10b981; user-select: all;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</code>
+          <code style="color: #10b981; user-select: all; overflow-wrap: anywhere;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</code>
           <br><br>
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Inspect, then run the local installer</span>
-          <code style="color: #10b981; user-select: all;">less install.sh &amp;&amp; bash install.sh</code>
+          <code style="color: #10b981; user-select: all; overflow-wrap: anywhere;">less install.sh &amp;&amp; bash install.sh</code>
           <br><br>
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the installed CLI engine</span>
-          <code style="color: #3b82f6; user-select: all;">bob-gemini-free --port 9610</code>
+          <code style="color: #3b82f6; user-select: all; overflow-wrap: anywhere;">bob-gemini-free --port 9610</code>
           <br><br>
           <span style="color: var(--text-muted); display: block; line-height: 1.45;">Use the exact path printed by the installer. From a source checkout, use <code>./bob-gemini-free --port 9610</code> instead.</span>
         </div>
 
-        <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 2rem;">
-          <button class="btn btn-outline" onclick="document.getElementById('local-onboard-modal').classList.remove('open')" style="padding: 0.75rem 1.5rem; border-radius: 8px;">Continue in Browser</button>
-          <button class="btn btn-primary" onclick="openExternalURL('https://github.com/div197/BOB-Gemini-Free/releases')" style="padding: 0.75rem 1.5rem; border-radius: 8px; background: var(--accent-primary); color: #000; font-weight: bold;">View Releases</button>
+        <div class="about-actions" style="margin-top: 0.25rem;">
+          <button type="button" class="dialog-btn-cancel" id="local-onboard-continue" onclick="closeLocalOnboardingModal()">Continue in Browser</button>
+          <button type="button" class="btn-pill-primary-action" onclick="openExternalURL('https://github.com/div197/BOB-Gemini-Free/releases')">View Releases</button>
         </div>
       </div>
     </div>
   `;
   document.body.insertAdjacentHTML('beforeend', modalHTML);
+  openManagedModal(document.getElementById("local-onboard-modal"), "#local-onboard-continue");
+}
+
+function closeLocalOnboardingModal() {
+  const modal = document.getElementById("local-onboard-modal");
+  closeManagedModal(modal);
 }
 setInterval(refreshTelemetry, 2500);
 refreshTelemetry();
@@ -8108,7 +8271,7 @@ function openArtifactCanvas(artId) {
   if (typeof code !== 'string' || code.length > MAX_ARTIFACT_SOURCE_CHARS) {
     showArtifactRuntimeError(`Artifact source exceeds the ${Number(MAX_ARTIFACT_SOURCE_CHARS).toLocaleString()} character preview limit.`);
     const modal = document.getElementById("artifact-modal");
-    if (modal) modal.classList.add("open");
+    openManagedModal(modal, "#btn-art-back");
     switchArtifactTab('preview');
     return;
   }
@@ -8354,7 +8517,7 @@ function openArtifactCanvas(artId) {
   switchArtifactTab(art.isInteractive ? 'preview' : 'code');
   const modal = document.getElementById("artifact-modal");
   if (modal) {
-    modal.classList.add("open");
+    openManagedModal(modal, "#btn-art-back");
     setTimeout(() => {
       const iframe = document.getElementById("art-sandbox-iframe");
       if (iframe && iframe.contentWindow) {
@@ -8366,7 +8529,7 @@ function openArtifactCanvas(artId) {
 
 function closeArtifactCanvas() {
   const modal = document.getElementById("artifact-modal");
-  if (modal) modal.classList.remove("open");
+  closeManagedModal(modal);
   hideArtifactRuntimeError();
   const iframe = document.getElementById("art-sandbox-iframe");
   if (iframe) iframe.srcdoc = "";
@@ -8771,12 +8934,12 @@ function openInstructionsModal() {
       document.getElementById('instr-response-style').value = parsed.style || '';
     }
   } catch(e) {}
-  modal.classList.add('open');
+  openManagedModal(modal, '#instr-user-persona');
 }
 
 function closeInstructionsModal() {
   const modal = document.getElementById('instructions-modal');
-  if (modal) modal.classList.remove('open');
+  closeManagedModal(modal);
 }
 
 function saveCustomInstructions() {
@@ -8890,12 +9053,12 @@ function openTokenizerModal() {
     }
     visualizeTokens(inputEl.value);
   }
-  modal.classList.add('open');
+  openManagedModal(modal, '#tokenizer-input');
 }
 
 function closeTokenizerModal() {
   const modal = document.getElementById('tokenizer-modal');
-  if (modal) modal.classList.remove('open');
+  closeManagedModal(modal);
 }
 
 function loadTokenizerPreset(presetKey) {
@@ -9042,7 +9205,7 @@ function visualizeTokens(text) {
     ids.push(tokId);
     const color = getTokenColors(i);
     const displayTok = tok === ' ' ? '·' : (tok === '\n' ? '↵\n' : tok);
-    html += `<span onmouseenter="inspectToken(${i})" onmouseleave="resetInspector()" onclick="inspectToken(${i})" style="background:${color.bg}; border:1.5px solid ${color.border}; color:${color.text}; border-radius:6px; padding:3px 8px; margin:2px; font-weight:600; cursor:pointer; white-space:pre; transition:transform 0.15s ease; display:inline-block;" onmouseover="this.style.transform='scale(1.08)';" onmouseout="this.style.transform='scale(1)';">${escapeHtml(displayTok)}</span>`;
+    html += `<span class="token-pill" role="button" tabindex="0" aria-label="Inspect token ${i + 1}" onmouseenter="inspectToken(${i})" onmouseleave="resetInspector()" onclick="inspectToken(${i})" style="background:${color.bg}; border:1.5px solid ${color.border}; color:${color.text}; border-radius:6px; padding:3px 8px; margin:2px; font-weight:600; cursor:pointer; white-space:pre; transition:transform 0.15s ease; display:inline-block;" onmouseover="this.style.transform='scale(1.08)';" onmouseout="this.style.transform='scale(1)';">${escapeHtml(displayTok)}</span>`;
   }
 
   currentTokenizedIDs = ids;
@@ -9206,12 +9369,12 @@ function openGlossaryModal() {
   const modal = document.getElementById('glossary-modal');
   if (!modal) return;
   renderGlossaryCards();
-  modal.classList.add('open');
+  openManagedModal(modal, '#glossary-search-input');
 }
 
 function closeGlossaryModal() {
   const modal = document.getElementById('glossary-modal');
-  if (modal) modal.classList.remove('open');
+  closeManagedModal(modal);
 }
 
 function filterGlossaryCategory(cat) {
@@ -9626,12 +9789,12 @@ function openDocPreviewModal(fileId) {
   const estTok = estimateTokensJS(previewText);
   if (metrics) metrics.innerText = `${words.toLocaleString()} words • ~${estTok.toLocaleString()} tokens • ${(file.size/1024).toFixed(1)} KB`;
 
-  if (modal) modal.classList.add('open');
+  openManagedModal(modal, 'button');
 }
 
 function closeDocPreviewModal() {
   const modal = document.getElementById('doc-preview-modal');
-  if (modal) modal.classList.remove('open');
+  closeManagedModal(modal);
 }
 
 /* Window-Wide Drag-and-Drop Ingestion */
@@ -10714,22 +10877,22 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" onclick="selectStarter('snake')">
+        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('snake')">
           <div class="badge-chip"><span class="mini-orb">🎮</span><span>${ui.starterCards.snake[0]}</span></div>
           <div class="starter-card-title">${ui.starterCards.snake[1]}</div>
           <div class="starter-card-desc">${ui.starterCards.snake[2]}</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('py_finance')">
+        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('py_finance')">
           <div class="badge-chip"><span class="mini-orb">🐍</span><span>${ui.starterCards.py_finance[0]}</span></div>
           <div class="starter-card-title">${ui.starterCards.py_finance[1]}</div>
           <div class="starter-card-desc">${ui.starterCards.py_finance[2]}</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('orbit')">
+        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('orbit')">
           <div class="badge-chip"><span class="mini-orb">🪐</span><span>${ui.starterCards.orbit[0]}</span></div>
           <div class="starter-card-title">${ui.starterCards.orbit[1]}</div>
           <div class="starter-card-desc">${ui.starterCards.orbit[2]}</div>
         </div>
-        <div class="starter-card" onclick="selectStarter('grader')">
+        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('grader')">
           <div class="badge-chip"><span class="mini-orb">🎓</span><span>${ui.starterCards.grader[0]}</span></div>
           <div class="starter-card-title">${ui.starterCards.grader[1]}</div>
           <div class="starter-card-desc">${ui.starterCards.grader[2]}</div>
@@ -10776,7 +10939,7 @@ function renderMessages() {
         }
       }
 
-      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(userText || "Prompt")}</div><button class="btn-user-action" onclick="openEditUserMessage(${i})" title="Edit prompt and re-run from here">✏️</button>`;
+      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(userText || "Prompt")}</div><button class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${i})" title="Edit prompt and re-run from here">✏️</button>`;
       content.appendChild(userDiv);
     } else {
       const asstText = getSafeMessageContent(m.content);
@@ -10818,8 +10981,8 @@ function renderMessages() {
           <span class="story-meta-stats">${inputStr}Out: ~${estTokens.toLocaleString()} tok • Total: ~${totalTokens.toLocaleString()} tok${tpsStr}</span>
         </div>
         <div class="story-header-actions">
-          <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
-          <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
+          <button class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
+          <button class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
         </div>
       `;
       storyDiv.appendChild(header);
@@ -10828,7 +10991,7 @@ function renderMessages() {
         const thoughtTokens = estimateTokensJS(m.thought);
         const tb = document.createElement("div");
         tb.className = "thought-card active";
-        tb.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought, `history-${i}-thought`)}</div>`;
+        tb.innerHTML = `<div class="thought-card-header" role="button" tabindex="0" aria-label="Toggle reasoning details" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning} (${thoughtTokens} tokens)</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content">${renderMarkdown(m.thought, `history-${i}-thought`)}</div>`;
         storyDiv.appendChild(tb);
       }
 
@@ -11007,7 +11170,7 @@ async function sendMessage() {
     attachmentsHtml = `<img src="${escapeHtml(attachedImgCopy.dataUrl)}" class="user-attached-thumb" alt="Attached user image" onclick="window.open(this.src)">`;
   }
 
-  userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(text || (attachedFilesCopy.length > 0 ? "Attached " + attachedFilesCopy.length + " file(s)" : "Please analyze this image."))}</div><button class="btn-user-action" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
+      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(text || (attachedFilesCopy.length > 0 ? "Attached " + attachedFilesCopy.length + " file(s)" : "Please analyze this image."))}</div><button class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
   contentEl.appendChild(userDiv);
 
   let inputPromptTokens = 0;
@@ -11049,15 +11212,15 @@ async function sendMessage() {
         <span class="story-meta-stats" id="live-stream-stats">${inLiveStr}${ui.streaming}</span>
     </div>
     <div class="story-header-actions">
-      <button class="btn-pill-subtle btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
-      <button class="btn-pill-subtle" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
+      <button class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
+      <button class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
     </div>
   `;
   storyDiv.appendChild(header);
 
   const thoughtBox = document.createElement("div");
   thoughtBox.className = "thought-card";
-  thoughtBox.innerHTML = `<div class="thought-card-header" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning}</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content"></div>`;
+  thoughtBox.innerHTML = `<div class="thought-card-header" role="button" tabindex="0" aria-label="Toggle reasoning details" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning}</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content"></div>`;
   storyDiv.appendChild(thoughtBox);
 
   const contentSpan = document.createElement("div");

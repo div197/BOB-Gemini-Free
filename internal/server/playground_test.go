@@ -1,6 +1,10 @@
 package server
 
 import (
+	"fmt"
+	"math"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -511,4 +515,162 @@ func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	if strings.Contains(html, "enabling 100% free local access") || strings.Contains(html, "100% मुफ़्त स्थानीय उपयोग संभव") {
 		t.Fatal("playground still presents provider access as universally free")
 	}
+}
+
+func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">`,
+		`button:focus-visible`,
+		`@media (prefers-reduced-motion: reduce)`,
+		`const MANAGED_MODAL_SELECTOR = '.dialog-backdrop.open, .cmd-modal-backdrop.open';`,
+		`const modalReturnFocus = new WeakMap();`,
+		`function openManagedModal(modal, initialSelector)`,
+		`function closeManagedModal(modal)`,
+		`function trapManagedModalFocus(e, modal)`,
+		`if (openModal && trapManagedModalFocus(e, openModal)) return;`,
+		`target.click();`,
+		`function enhanceCommandPaletteAccessibility()`,
+		`list.setAttribute("role", "listbox");`,
+		`aria-activedescendant`,
+		`class="brand-anchor" role="button" tabindex="0"`,
+		`class="inline-help-trigger" role="button" tabindex="0"`,
+		`class="token-pill" role="button" tabindex="0"`,
+		`class="active-model-chip" role="button" tabindex="0" aria-label="Change model"`,
+		`id="prompt-token-estimate" class="token-live-chip" role="button" tabindex="0"`,
+		`aria-labelledby="about-modal-title"`,
+		`id="about-modal-title"`,
+		`id="local-onboard-modal" class="dialog-backdrop open" role="dialog" aria-modal="true"`,
+		`function closeLocalOnboardingModal()`,
+		`aria-label="Chat prompt"`,
+		`aria-label="Attach or paste an image"`,
+		`aria-label="Gateway endpoint URL"`,
+		`aria-label="Gemini Developer API key"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing accessibility marker %q", marker)
+		}
+	}
+
+	for _, id := range []string{
+		"doc-preview-modal",
+		"confirm-modal",
+		"custom-theme-modal",
+		"about-modal",
+		"gateway-modal",
+		"artifact-modal",
+		"instructions-modal",
+		"tokenizer-modal",
+		"glossary-modal",
+		"cmd-modal",
+	} {
+		marker := `id="` + id + `"`
+		start := strings.Index(html, marker)
+		if start < 0 {
+			t.Fatalf("modal %q is missing", id)
+		}
+		end := strings.Index(html[start:], ">")
+		if end < 0 {
+			t.Fatalf("modal %q opening tag is incomplete", id)
+		}
+		openingTag := html[start : start+end]
+		if !strings.Contains(openingTag, `role="dialog"`) ||
+			!strings.Contains(openingTag, `aria-modal="true"`) ||
+			!strings.Contains(openingTag, `aria-hidden="true"`) {
+			t.Fatalf("modal %q is missing explicit dialog semantics", id)
+		}
+	}
+
+	if strings.Contains(html, `maximum-scale=1.0`) || strings.Contains(html, `user-scalable=no`) {
+		t.Fatal("the page must not disable browser text scaling")
+	}
+	if strings.Contains(html, `class="modal-overlay`) || strings.Contains(html, `class="modal-content`) {
+		t.Fatal("onboarding must use the shared dialog surface, not undefined modal classes")
+	}
+
+	aboutStart := strings.Index(html, "const aboutModal = document.getElementById(\"about-modal\")")
+	if aboutStart < 0 {
+		t.Fatal("about modal keyboard handler boundaries are missing")
+	}
+	aboutEnd := strings.Index(html[aboutStart:], "const gatewayModal = document.getElementById(\"gateway-modal\")")
+	if aboutEnd < 0 {
+		t.Fatal("about modal keyboard handler boundaries are missing")
+	}
+	if strings.Contains(html[aboutStart:aboutStart+aboutEnd], `e.key === 'Escape' || e.key === 'Enter'`) {
+		t.Fatal("pressing Enter inside the About dialog must not dismiss it")
+	}
+}
+
+func TestPlaygroundThemeTextContrast(t *testing.T) {
+	html := string(playgroundHTML)
+	blockPattern := regexp.MustCompile(`(?s)(:root|\[data-theme="([^"]+)"\]) \{(.*?)\n\}`)
+	variablePattern := regexp.MustCompile(`--([a-z-]+):\s*(#[0-9a-fA-F]{6})`)
+	blocks := blockPattern.FindAllStringSubmatch(html, -1)
+	if len(blocks) == 0 {
+		t.Fatal("playground theme token blocks are missing")
+	}
+
+	for _, block := range blocks {
+		name := block[2]
+		if name == "" {
+			name = "bob-builder"
+		}
+		vars := make(map[string]string)
+		for _, match := range variablePattern.FindAllStringSubmatch(block[3], -1) {
+			vars[match[1]] = match[2]
+		}
+		for _, foreground := range []string{"text-main", "text-muted", "text-subdued"} {
+			for _, background := range []string{"bg-app", "bg-card", "bg-modal", "bg-input"} {
+				fg, okFG := vars[foreground]
+				bg, okBG := vars[background]
+				if !okFG || !okBG {
+					continue
+				}
+				contrast, err := cssHexContrast(fg, bg)
+				if err != nil {
+					t.Fatalf("theme %s has invalid contrast tokens %s/%s: %v", name, fg, bg, err)
+				}
+				if contrast < 4.5 {
+					t.Errorf("theme %s has %s on %s contrast %.2f; normal text requires at least 4.5:1", name, foreground, background, contrast)
+				}
+			}
+		}
+	}
+}
+
+func cssHexContrast(foreground, background string) (float64, error) {
+	parse := func(value string) (float64, error) {
+		if len(value) != 7 || value[0] != '#' {
+			return 0, fmt.Errorf("invalid CSS hex color %q", value)
+		}
+		channels := make([]float64, 3)
+		for i := range channels {
+			parsed, err := strconv.ParseUint(value[1+i*2:3+i*2], 16, 8)
+			if err != nil {
+				return 0, err
+			}
+			channels[i] = float64(parsed) / 255
+		}
+		for i, channel := range channels {
+			if channel <= 0.03928 {
+				channels[i] = channel / 12.92
+			} else {
+				channels[i] = math.Pow((channel+0.055)/1.055, 2.4)
+			}
+		}
+		return 0.2126*channels[0] + 0.7152*channels[1] + 0.0722*channels[2], nil
+	}
+
+	fg, err := parse(foreground)
+	if err != nil {
+		return 0, err
+	}
+	bg, err := parse(background)
+	if err != nil {
+		return 0, err
+	}
+	if fg < bg {
+		fg, bg = bg, fg
+	}
+	return (fg + 0.05) / (bg + 0.05), nil
 }
