@@ -99,9 +99,9 @@ The public GitHub state was also checked:
   signature are present and were re-downloaded and verified;
 - the reviewed source hardening was published to `main` through PR #31 as
   merge commit `c5fa74f`;
-- the release-source coherence and installer trust-anchor follow-ups were
-  subsequently merged through PRs #33 and #36; current `origin/main` is
-  `627e73c`;
+- the release-source coherence, installer trust-anchor, and session-only
+  gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
+  #38; current `origin/main` is `f3a0a8c`;
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
@@ -122,6 +122,14 @@ checkout was fast-forwarded to that merge and the post-merge source, test,
 race, vet, module, build, and release-preflight gates passed. This is a
 source-coherence result only; the stable release, platform trust, clean-device
 update, provider, and 30-device rollout gates remain separate.
+
+Protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38) then
+merged the Web Studio credential-persistence fix into `main` at `f3a0a8c`.
+Optional BOB gateway-auth tokens are now page-session-only, and the legacy
+`bob_api_key` browser-storage entry is purged on load. This improves shared
+classroom-device hygiene but does not change the requirement to re-enter a
+protected gateway token after reload, nor does it close the separate signed
+artifact, platform-trust, clean-device, provider, or fleet gates.
 
 ## Signing and trust gates
 
