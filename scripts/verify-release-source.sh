@@ -56,6 +56,28 @@ if [[ "$INSTALL_PUBLIC_KEY_HEX" != "$PUBLIC_KEY_HEX" ]]; then
 	echo "install.sh update public key does not match $PUBLIC_KEY_FILE" >&2
 	exit 1
 fi
+INSTALL_PUBLIC_KEY_SPKI_B64="$(awk -F'"' '$1 == "UPDATE_PUBLIC_KEY_SPKI_B64=" { count++; value=$2 } END { if (count != 1) exit 1; print value }' "$ROOT_DIR/install.sh")" || {
+	echo "install.sh must contain exactly one UPDATE_PUBLIC_KEY_SPKI_B64 assignment" >&2
+	exit 1
+}
+if [[ ! "$INSTALL_PUBLIC_KEY_SPKI_B64" =~ ^[A-Za-z0-9+/]+=*$ ]]; then
+	echo "install.sh UPDATE_PUBLIC_KEY_SPKI_B64 is not valid Base64" >&2
+	exit 1
+fi
+if ! command -v base64 >/dev/null 2>&1; then
+	echo "base64 is required to verify the install.sh Ed25519 SPKI" >&2
+	exit 1
+fi
+EXPECTED_PUBLIC_KEY_SPKI_B64="$({
+	printf '%b' '\x30\x2a\x30\x05\x06\x03\x2b\x65\x70\x03\x21\x00'
+	for ((offset = 0; offset < ${#PUBLIC_KEY_HEX}; offset += 2)); do
+		printf '%b' "\\x${PUBLIC_KEY_HEX:offset:2}"
+	done
+} | base64 | tr -d '[:space:]')"
+if [[ "$INSTALL_PUBLIC_KEY_SPKI_B64" != "$EXPECTED_PUBLIC_KEY_SPKI_B64" ]]; then
+	echo "install.sh Ed25519 SPKI does not match $PUBLIC_KEY_FILE" >&2
+	exit 1
+fi
 WINDOWS_PUBLIC_KEY_HEX="$(awk -F'"' '$1 ~ /^\$UpdatePublicKeyHex[[:space:]]*=[[:space:]]*$/ { count++; value=tolower($2) } END { if (count != 1) exit 1; print value }' "$ROOT_DIR/install.ps1")" || {
 	echo "install.ps1 must contain exactly one UpdatePublicKeyHex assignment" >&2
 	exit 1

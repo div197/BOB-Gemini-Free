@@ -127,7 +127,9 @@ commit it, put it in a shell command, or print it in a terminal transcript.
    version). It fails closed on a non-Git, dirty, or untracked source tree, a
    stale generated `web/index.html`, an invalid version matrix, or drift
    between the canonical updater key and the Makefile, package scripts, Docker
-   metadata, or standalone installers.
+   metadata, or standalone installers. It also derives the Ed25519 Subject
+   Public Key Info (SPKI) encoding used by the Bash installer and compares it
+   with the canonical raw key.
 3. Confirm the release version in the tag, `CHANGELOG.md`, `Makefile`, and
    release notes. Do not use a tag as evidence that Google upstream behavior was
    live-tested.

@@ -542,3 +542,13 @@ closed, while stable and preview fixtures passed. This closes source-input
 drift as a locally testable failure path; it does not establish private-key
 custody, a signed public release, Apple trust, or installed-device update
 acceptance.
+
+### Release trust-anchor encoding follow-up — 2026-08-30
+
+The release-source gate now also derives the Ed25519 SPKI value used by
+`install.sh` from the canonical raw public key and rejects a mismatch. This
+closes a packaging-input gap where the installer’s hexadecimal key could match
+while its separately embedded SPKI Base64 value—the value consumed by
+OpenSSL—could drift. Stable and preview source fixtures passed, and a
+controlled SPKI tamper fixture failed closed. This still proves only local
+source coherence; it does not sign, publish, or verify public release assets.
