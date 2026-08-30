@@ -62,6 +62,9 @@ to an earlier implementation. The current contract supersedes those phrases:
   health checks, update checks, logs, or release assets.
 - Added deterministic transport, translation, SSE, routing, tool-call,
   configuration, and secret-redaction tests without using a live Google account.
+- Release-source preflight now derives and verifies the Bash installer's
+  Ed25519 SPKI encoding against the canonical public key, preventing an
+  alternate installer key encoding from passing packaging checks.
 
 #### Changed
 - Added `BOB_GEMINI_FREE_GEMINI_API_KEY` as a single process-environment
