@@ -594,6 +594,17 @@ policy in both rendering and navigation paths. This does not change Gemini
 wire behavior or make generated content trusted; artifact HTML remains
 sandboxed and browser acceptance is still required.
 
+### Studio artifact-action follow-up — 2026-08-31
+
+The interactive artifact card had both a click-only container action and a
+nested launch button. That was ambiguous for keyboard users and made the
+whole card look actionable even though the real operation is the launch
+control. The container is now a named group with neutral hover treatment, and
+only an explicit `type="button"` launch button carries `data-action`. The
+artifact registry, sandbox, editor hydration, and preview lifecycle are
+unchanged; this is a focused interaction/accessibility correction protected by
+`TestArtifactLaunchChipUsesOneKeyboardAction`.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -605,7 +616,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `3d3fe84`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `c1f66ca`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and
