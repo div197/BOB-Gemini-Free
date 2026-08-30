@@ -354,6 +354,18 @@ func TestFetchImageBytesRejectsSpoofedImageHeader(t *testing.T) {
 	}
 }
 
+func TestFetchImageBytesRejectsImagesOutsideDecodeBudget(t *testing.T) {
+	// The encoded PNG is small because it is a solid image, but its dimensions
+	// would still force a downstream decoder to allocate an unsafe bitmap.
+	oversized := createSolidTestImage(MaxImageSourceDimension+1, 1)
+	_, err := fetchImageBytes(imageFixtureRequester{body: oversized}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "dimensions exceed") {
+		t.Fatalf("oversized decoded image result = %v, want dimension-bound rejection", err)
+	}
+}
+
 func TestTokenCache(t *testing.T) {
 	cfg := config.Default()
 	cookie := gemini.NewCookieCache(cfg.CookieFile)
