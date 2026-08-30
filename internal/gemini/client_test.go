@@ -173,6 +173,41 @@ func TestGenerateRetriesPreRequestDialFailure(t *testing.T) {
 	}
 }
 
+func TestGenerateRetryWithNilLoggerDoesNotPanic(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+	}}
+	client := testClientWithRequester(requester, 2)
+	client.Logf = nil
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "connection refused") {
+		t.Fatalf("GenerateContext error = %v, want the final dial failure", err)
+	}
+}
+
+func TestGenerateStreamRetryWithNilLoggerDoesNotPanic(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+		{response: goldenOK(io.NopCloser(strings.NewReader(goldenBoQLine("recovered stream"))))},
+	}}
+	client := testClientWithRequester(requester, 2)
+	client.Logf = nil
+
+	var got []string
+	err := client.GenerateStreamContext(context.Background(), "fixture", 1, 4, nil, nil, func(delta string) error {
+		got = append(got, delta)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("GenerateStreamContext: %v", err)
+	}
+	if strings.Join(got, "") != "recovered stream" {
+		t.Fatalf("stream output = %q, want recovered stream", strings.Join(got, ""))
+	}
+}
+
 func TestGenerateDoesNotRetryAmbiguousTransportFailure(t *testing.T) {
 	requester := &goldenRequester{responses: []goldenHTTPResponse{
 		{err: errors.New("connection reset after request write")},
