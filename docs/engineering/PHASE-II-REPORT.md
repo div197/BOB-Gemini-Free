@@ -630,6 +630,17 @@ contract. `TestDeveloperAPIRouteRequiresSafeGatewayTransport` protects the
 decision boundary; rendered native/hosted behavior remains a browser/device
 acceptance gate.
 
+### Studio gateway-status follow-up — 2026-08-31
+
+The generation catch path previously set the local gateway indicator to
+offline for every non-abort error, including HTTP 401/502 responses and
+provider or stream failures that arrived after the gateway had already
+responded. The client now records response receipt, marks the gateway online
+at that point, and only marks it offline when no response was received. The
+visible provider/session error remains intact while local connectivity state
+stays truthful. `TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure`
+protects this distinction; live browser/provider behavior remains external.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -641,7 +652,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `38b5970`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `b398c0d`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and

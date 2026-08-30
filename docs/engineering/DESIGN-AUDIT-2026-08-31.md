@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `38b5970` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `b398c0d` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -112,6 +112,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Reduced artifact launch to one accessible action | The visual artifact card is now a named group; only its explicit `type="button"` launch control activates the preview, so the card no longer advertises a second click-only action or misleading pointer affordance. | `internal/server/playground.html:1966-1982,8684-8717`; `TestArtifactLaunchChipUsesOneKeyboardAction` |
 | Made the optional Developer API route fail closed | Enabling the route without a key no longer leaves a misleading checked state, and clearing a key during an active provider session explicitly returns to the default route. | `internal/server/playground.html:6377-6412`; `TestDeveloperAPIRouteToggleFailsClosedWithoutKey` |
 | Required safe transport for provider keys | Loopback HTTP remains available for the local gateway, while non-loopback endpoints require an explicit save and HTTPS; native context no longer bypasses that transport rule. | `internal/server/playground.html:6323-6348`; `TestDeveloperAPIRouteRequiresSafeGatewayTransport` |
+| Preserved gateway status after upstream responses | The Studio now marks the gateway online as soon as it receives an HTTP response and only shows it offline when the request fails before a response; provider/HTTP/stream errors no longer erase accurate local connectivity state. | `internal/server/playground.html:11168,11373-11376,11643`; `TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure` |
 
 The design audit deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
