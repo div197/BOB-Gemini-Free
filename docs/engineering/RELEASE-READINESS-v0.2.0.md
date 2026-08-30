@@ -99,6 +99,9 @@ The public GitHub state was also checked:
   signature are present and were re-downloaded and verified;
 - the reviewed source hardening was published to `main` through PR #31 as
   merge commit `c5fa74f`;
+- the release-source coherence and installer trust-anchor follow-ups were
+  subsequently merged through PRs #33 and #36; current `origin/main` is
+  `627e73c`;
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
@@ -110,6 +113,15 @@ fast-forwarded to that commit and the reviewed branch was not force-pushed.
 This closes source publication/provenance for the audited hardening work; it
 does not close the separate signed-artifact, platform-trust, clean-device,
 provider, or 30-device rollout gates below.
+
+## Publication refresh — 2026-08-30
+
+Protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36) merged the
+installer trust-anchor encoding check into `main` at `627e73c`. The local
+checkout was fast-forwarded to that merge and the post-merge source, test,
+race, vet, module, build, and release-preflight gates passed. This is a
+source-coherence result only; the stable release, platform trust, clean-device
+update, provider, and 30-device rollout gates remain separate.
 
 ## Signing and trust gates
 
