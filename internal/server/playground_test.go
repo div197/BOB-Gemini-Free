@@ -126,6 +126,32 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	}
 }
 
+func TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure(t *testing.T) {
+	html := string(playgroundHTML)
+	functionStart := strings.Index(html, "async function sendMessage()")
+	if functionStart < 0 {
+		t.Fatal("sendMessage function start is missing")
+	}
+	functionEndOffset := strings.Index(html[functionStart:], "\n}\n\n// Progressive Web App (PWA) Offline Service Worker Registration")
+	if functionEndOffset < 0 {
+		t.Fatal("sendMessage function boundary is missing")
+	}
+	source := html[functionStart : functionStart+functionEndOffset]
+	for _, marker := range []string{
+		`let gatewayResponseReceived = false;`,
+		`const res = await fetch(baseUrl + "/v1/chat/completions",`,
+		`gatewayResponseReceived = true;`,
+		`if (!gatewayResponseReceived) updateGatewayStatusIndicator(false, null);`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("generation status lifecycle is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "\n      updateGatewayStatusIndicator(false, null);\n      let mixedContentHint") {
+		t.Fatal("generation catch still marks a reachable gateway offline for provider or HTTP errors")
+	}
+}
+
 func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

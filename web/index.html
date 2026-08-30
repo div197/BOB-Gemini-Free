@@ -11168,6 +11168,7 @@ async function sendMessage() {
   const sendIcon = document.getElementById("send-btn-icon");
   const dict = I18N[currentLang] || I18N.en;
   const ui = dict.ui || I18N.en.ui;
+  let gatewayResponseReceived = false;
 
   isGenerating = true;
   try {
@@ -11372,6 +11373,8 @@ async function sendMessage() {
       }),
       signal: activeAbortController.signal
     });
+    gatewayResponseReceived = true;
+    updateGatewayStatusIndicator(true, null);
 
     if (!res.ok) {
       let errMsg = "HTTP " + res.status;
@@ -11386,8 +11389,6 @@ async function sendMessage() {
       }
       throw new Error(errMsg);
     }
-
-    updateGatewayStatusIndicator(true, null);
 
     const reader = res.body.getReader();
     const decoder = new TextDecoder("utf-8");
@@ -11642,7 +11643,7 @@ async function sendMessage() {
       // equivalent to vision and an automatic replay can spend another quota
       // unit while changing the user's requested semantics. Keep the failed
       // turn visible and let an explicit user retry decide what happens next.
-      updateGatewayStatusIndicator(false, null);
+      if (!gatewayResponseReceived) updateGatewayStatusIndicator(false, null);
       let mixedContentHint = "";
       if (window.location.protocol === 'https:' && getGatewayBaseUrl().startsWith('http://')) {
         mixedContentHint = `
