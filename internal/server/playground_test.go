@@ -225,6 +225,32 @@ func TestArtifactRenderingHasBoundedSourceAndRegistryState(t *testing.T) {
 	}
 }
 
+func TestClipboardActionsHaveExplicitFailureState(t *testing.T) {
+	html := string(playgroundHTML)
+
+	if strings.Count(html, "navigator.clipboard.writeText(") != 1 {
+		t.Fatalf("clipboard writes must be centralized in one guarded helper, got %d call sites", strings.Count(html, "navigator.clipboard.writeText("))
+	}
+	for _, marker := range []string{
+		"async function copyTextToClipboard(text, successMessage, failureMessage)",
+		"Clipboard access is unavailable.",
+		"Could not copy to clipboard.",
+		"return false;",
+		"return true;",
+		"return copyTextToClipboard(cmd, \"Command copied to clipboard!\")",
+		"return copyTextToClipboard(element.innerText, \"Code snippet copied to clipboard!\")",
+		"await copyTextToClipboard(source, 'Editor source copied to clipboard!', 'Could not copy editor source.')",
+		"return copyTextToClipboard(getArtifactSource(currentActiveArtifact), \"Artifact code copied to clipboard!\")",
+		"await copyTextToClipboard(code, 'Code block copied to clipboard!')",
+		"await copyTextToClipboard(text, \"Message copied to clipboard!\")",
+		"return copyTextToClipboard(transcript, \"Complete conversation copied to clipboard!\")",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("clipboard failure-safety marker %q is missing", marker)
+		}
+	}
+}
+
 func TestDeepRefinerDoesNotSilentlyReplacePromptOnFailure(t *testing.T) {
 	html := string(playgroundHTML)
 	start := strings.Index(html, "async function refineCurrentPromptDeep()")

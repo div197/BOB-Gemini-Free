@@ -6521,9 +6521,25 @@ function updateGatewayStatusIndicator(online, latency) {
   }
 }
 
-function copyLaunchCommand(cmd) {
-  navigator.clipboard.writeText(cmd);
-  showToast("Command copied to clipboard!", "📋");
+async function copyTextToClipboard(text, successMessage, failureMessage) {
+  const success = successMessage || "Copied to clipboard!";
+  const failure = failureMessage || "Could not copy to clipboard.";
+  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== "function") {
+    showToast("Clipboard access is unavailable.", "⚠️");
+    return false;
+  }
+  try {
+    await navigator.clipboard.writeText(String(text ?? ""));
+  } catch (err) {
+    showToast(failure, "⚠️");
+    return false;
+  }
+  showToast(success, "📋");
+  return true;
+}
+
+async function copyLaunchCommand(cmd) {
+  return copyTextToClipboard(cmd, "Command copied to clipboard!");
 }
 
 function closeAllSidebars() {
@@ -7754,10 +7770,10 @@ claude`;
 updateSnippet();
 updateActiveModelBadge();
 
-function copySnippet(id) {
-  const text = document.getElementById(id).innerText;
-  navigator.clipboard.writeText(text);
-  showToast("Code snippet copied to clipboard!", "📋");
+async function copySnippet(id) {
+  const element = document.getElementById(id);
+  if (!element) return false;
+  return copyTextToClipboard(element.innerText, "Code snippet copied to clipboard!");
 }
 
 function escapeHtml(str) {
@@ -8533,19 +8549,13 @@ function resetArtifactEditorCode() {
   showToast('Artifact source reset.', '↺');
 }
 
-function copyArtifactEditorCode() {
+async function copyArtifactEditorCode() {
   if (!currentActiveArtifact) return;
   const editor = document.getElementById('art-code-editor');
   if (!editor) return;
   prepareArtifactEditor(currentActiveArtifact);
   const source = editor.value || '';
-  if (!navigator.clipboard || typeof navigator.clipboard.writeText !== 'function') {
-    showToast('Clipboard access is unavailable.', '⚠️');
-    return;
-  }
-  navigator.clipboard.writeText(source)
-    .then(() => showToast('Editor source copied to clipboard!', '📋'))
-    .catch(() => showToast('Could not copy editor source.', '⚠️'));
+  await copyTextToClipboard(source, 'Editor source copied to clipboard!', 'Could not copy editor source.');
 }
 
 function toggleArtifactEditorWrap() {
@@ -8566,10 +8576,9 @@ function reloadArtifactSandbox() {
   showToast("Sandbox reloaded", "🔄");
 }
 
-function copyArtifactCode() {
+async function copyArtifactCode() {
   if (!currentActiveArtifact) return;
-  navigator.clipboard.writeText(getArtifactSource(currentActiveArtifact));
-  showToast("Artifact code copied to clipboard!", "📋");
+  return copyTextToClipboard(getArtifactSource(currentActiveArtifact), "Artifact code copied to clipboard!");
 }
 
 function downloadArtifactFile() {
@@ -9141,20 +9150,16 @@ function visualizeTokens(text) {
   if (idsContainer) idsContainer.innerText = '[' + ids.join(', ') + ']';
 }
 
-function copyTokenIDs() {
+async function copyTokenIDs() {
   const dict = I18N[currentLang] || I18N.en;
   if (!currentTokenizedIDs || currentTokenizedIDs.length === 0) {
     const noTokMsg = (dict.ui && dict.ui.tokenizer && dict.ui.tokenizer.noTokensToast) || 'No token IDs to copy';
     showToast(noTokMsg, '⚠️');
     return;
   }
-  navigator.clipboard.writeText(JSON.stringify(currentTokenizedIDs)).then(() => {
-    const copiedTemplate = (dict.ui && dict.ui.tokenizer && dict.ui.tokenizer.copiedToast) || 'Copied {n} token IDs!';
-    const msg = copiedTemplate.replace('{n}', currentTokenizedIDs.length);
-    showToast(msg, '📋');
-  }).catch(() => {
-    showToast('Failed to copy token IDs', '✕');
-  });
+  const copiedTemplate = (dict.ui && dict.ui.tokenizer && dict.ui.tokenizer.copiedToast) || 'Copied {n} token IDs!';
+  const msg = copiedTemplate.replace('{n}', currentTokenizedIDs.length);
+  await copyTextToClipboard(JSON.stringify(currentTokenizedIDs), msg, 'Failed to copy token IDs');
 }
 
 // ==========================================
@@ -10292,32 +10297,36 @@ function newChat() {
   if (input) input.focus();
 }
 
-function copyCode(btn) {
-  const code = btn.closest('pre').querySelector('code').innerText;
-  navigator.clipboard.writeText(code);
+async function copyCode(btn) {
+  const code = btn && btn.closest('pre')?.querySelector('code')?.innerText;
+  if (!code) {
+    showToast('No code block is available to copy.', '⚠️');
+    return false;
+  }
+  if (!await copyTextToClipboard(code, 'Code block copied to clipboard!')) return false;
   const old = btn.innerText;
   btn.innerText = 'COPIED';
-  showToast("Code block copied to clipboard!", "📋");
   setTimeout(() => btn.innerText = old, 1500);
+  return true;
 }
 
-function copyMessageText(btn) {
+async function copyMessageText(btn) {
   const msgEl = btn.closest('.story-card');
   if (!msgEl) return;
   const text = msgEl.getAttribute('data-raw') || msgEl.innerText;
-  navigator.clipboard.writeText(text);
+  if (!await copyTextToClipboard(text, "Message copied to clipboard!")) return false;
   const label = btn.querySelector('.btn-label') || btn.querySelector('span:last-child') || btn;
   const old = label.innerText;
   label.innerText = 'Copied!';
   btn.classList.add('copied');
-  showToast("Message copied to clipboard!", "📋");
   setTimeout(() => {
     label.innerText = old;
     btn.classList.remove('copied');
   }, 1500);
+  return true;
 }
 
-function copyFullTranscript() {
+async function copyFullTranscript() {
   if (!chatHistory || chatHistory.length === 0) return;
   const transcript = chatHistory.map(m => {
     const roleLabel = m.role === 'user' ? 'User' : 'Assistant';
@@ -10328,8 +10337,7 @@ function copyFullTranscript() {
     }
     return `### ${roleLabel}:\n${thoughtBlock}\n${text}\n`;
   }).join('\n---\n\n');
-  navigator.clipboard.writeText(transcript);
-  showToast("Complete conversation copied to clipboard!", "📋");
+  return copyTextToClipboard(transcript, "Complete conversation copied to clipboard!");
 }
 
 function exportMarkdown() {
