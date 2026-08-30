@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -227,7 +228,7 @@ func TestStreamFlightFollowerContextCancellation(t *testing.T) {
 	}
 }
 
-func TestStreamFlightLeaderContextCancellationPropagatesToStream(t *testing.T) {
+func TestStreamFlightLeaderContextCancellationDoesNotCancelFollower(t *testing.T) {
 	flight := NewStreamFlight()
 	key := flight.Key("cancel-leader", 1, 4, nil)
 	upstreamStarted := make(chan struct{})
@@ -266,11 +267,126 @@ func TestStreamFlightLeaderContextCancellationPropagatesToStream(t *testing.T) {
 	}
 	select {
 	case err := <-followerDone:
-		if !errors.Is(err, context.Canceled) {
-			t.Fatalf("follower error = %v, want context.Canceled", err)
+		if err != nil {
+			t.Fatalf("follower error = %v, want nil", err)
 		}
 	case <-time.After(2 * time.Second):
-		t.Fatal("follower did not receive the cancelled stream result")
+		t.Fatal("follower did not receive the shared stream result")
+	}
+}
+
+func TestStreamFlightLeaderCancellationDoesNotAbortFollower(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("leader-cancel-keeps-follower", 1, 4, nil)
+	leaderCtx, cancelLeader := context.WithCancel(context.Background())
+	defer cancelLeader()
+	upstreamStarted := make(chan struct{})
+	releaseUpstream := make(chan struct{})
+	leaderDone := make(chan error, 1)
+
+	runUpstream := func(sharedCtx context.Context, emit func(string) error) error {
+		close(upstreamStarted)
+		select {
+		case <-releaseUpstream:
+			return emit("final")
+		case <-sharedCtx.Done():
+			return sharedCtx.Err()
+		}
+	}
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContextWithRunner(leaderCtx, key, runUpstream, func(string) error {
+			return nil
+		})
+	}()
+	<-upstreamStarted
+
+	followerDone := make(chan error, 1)
+	go func() {
+		followerDone <- flight.ExecuteStreamContextWithRunner(context.Background(), key, func(context.Context, func(string) error) error {
+			return errors.New("follower unexpectedly became upstream leader")
+		}, func(delta string) error {
+			if delta != "final" {
+				return fmt.Errorf("follower received %q, want final", delta)
+			}
+			return nil
+		})
+	}()
+	waitForFlightSubscriberCount(t, flight, key, 2)
+
+	cancelLeader()
+	select {
+	case err := <-leaderDone:
+		if !errors.Is(err, context.Canceled) {
+			t.Fatalf("leader error = %v, want context.Canceled", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("cancelled leader did not detach")
+	}
+
+	close(releaseUpstream)
+	select {
+	case err := <-followerDone:
+		if err != nil {
+			t.Fatalf("follower error = %v, want nil", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("follower did not receive the shared stream after leader cancellation")
+	}
+}
+
+func TestStreamFlightLeaderDeadlineDoesNotBoundFollower(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.Key("leader-deadline-keeps-follower", 1, 4, nil)
+	leaderCtx, cancelLeader := context.WithTimeout(context.Background(), 20*time.Millisecond)
+	defer cancelLeader()
+	upstreamStarted := make(chan struct{})
+	releaseUpstream := make(chan struct{})
+	leaderDone := make(chan error, 1)
+
+	go func() {
+		leaderDone <- flight.ExecuteStreamContextWithRunner(leaderCtx, key, func(sharedCtx context.Context, emit func(string) error) error {
+			close(upstreamStarted)
+			select {
+			case <-releaseUpstream:
+				return emit("deadline-safe")
+			case <-sharedCtx.Done():
+				return sharedCtx.Err()
+			}
+		}, func(string) error { return nil })
+	}()
+	<-upstreamStarted
+
+	followerDone := make(chan error, 1)
+	go func() {
+		followerDone <- flight.ExecuteStreamContextWithRunner(context.Background(), key, func(context.Context, func(string) error) error {
+			return errors.New("follower unexpectedly became upstream leader")
+		}, func(delta string) error {
+			if delta != "deadline-safe" {
+				return fmt.Errorf("follower received %q, want deadline-safe", delta)
+			}
+			return nil
+		})
+	}()
+	waitForFlightSubscriberCount(t, flight, key, 2)
+
+	select {
+	case err := <-leaderDone:
+		if !errors.Is(err, context.DeadlineExceeded) {
+			t.Fatalf("leader error = %v, want context.DeadlineExceeded", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("leader deadline did not detach")
+	}
+
+	close(releaseUpstream)
+	select {
+	case err := <-followerDone:
+		if err != nil {
+			t.Fatalf("follower error = %v, want nil", err)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("follower did not outlive the leader deadline")
 	}
 }
 
@@ -300,6 +416,7 @@ func TestStreamFlightRejectsNewSubscriberAfterHistoryLimit(t *testing.T) {
 				if err := emit("x"); err != nil {
 					return err
 				}
+				runtime.Gosched()
 			}
 			close(historyLimitReached)
 			<-releaseUpstream
@@ -327,6 +444,10 @@ func TestStreamFlightRejectsNewSubscriberAfterHistoryLimit(t *testing.T) {
 }
 
 func waitForFlightSubscriber(t *testing.T, flight *StreamFlight, key string) {
+	waitForFlightSubscriberCount(t, flight, key, 1)
+}
+
+func waitForFlightSubscriberCount(t *testing.T, flight *StreamFlight, key string, want int) {
 	t.Helper()
 	deadline := time.Now().Add(2 * time.Second)
 	for time.Now().Before(deadline) {
@@ -337,13 +458,13 @@ func waitForFlightSubscriber(t *testing.T, flight *StreamFlight, key string) {
 			stream.mu.Lock()
 			subscribers := len(stream.subscribers)
 			stream.mu.Unlock()
-			if subscribers > 0 {
+			if subscribers >= want {
 				return
 			}
 		}
 		time.Sleep(time.Millisecond)
 	}
-	t.Fatal("timed out waiting for StreamFlight follower subscription")
+	t.Fatalf("timed out waiting for %d StreamFlight subscribers", want)
 }
 
 func TestStreamFlight1000GoroutineChaosFuzz(t *testing.T) {

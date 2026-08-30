@@ -550,8 +550,8 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	if c.Flight != nil {
 		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
-		return c.Flight.ExecuteStreamContext(ctx, flightKey, func(streamEmit func(string) error) error {
-			return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
+		return c.Flight.ExecuteStreamContextWithRunner(ctx, flightKey, func(sharedCtx context.Context, streamEmit func(string) error) error {
+			return c.generateStreamContextDirect(sharedCtx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
 		}, emit)
 	}
 	return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, emit)
