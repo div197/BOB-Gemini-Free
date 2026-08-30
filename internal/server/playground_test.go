@@ -621,6 +621,23 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 	}
 }
 
+func TestErrorRecoveryConfigActionsAvoidJavaScriptURLs(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`data-action="open-gateway-modal"`,
+		`action === 'open-gateway-modal'`,
+		`openGatewayModal();`,
+		`class="inline-action-link"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("error recovery config action is missing safe delegated marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `href="javascript:void(0)"`) {
+		t.Fatal("error recovery UI must not use javascript: URLs as button actions")
+	}
+}
+
 func TestMarkdownLinksUseStrictProtocolWhitelist(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

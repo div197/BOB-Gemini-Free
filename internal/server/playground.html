@@ -1167,6 +1167,21 @@ input[type="range"] {
   background: var(--bg-card);
   font-size: 0.76rem;
 }
+.inline-action-link {
+  padding: 0;
+  border: 0;
+  color: var(--accent-primary);
+  background: transparent;
+  font: inherit;
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.inline-action-link:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
 
 /* Thought Card */
 .thought-card {
@@ -7637,6 +7652,9 @@ document.addEventListener('click', (e) => {
   } else if (action === 'preview-attachment-image') {
     e.preventDefault();
     openAttachmentImagePreview(target);
+  } else if (action === 'open-gateway-modal') {
+    e.preventDefault();
+    openGatewayModal();
   } else if (action === 'save-image') {
     e.preventDefault();
     downloadImage(target);
@@ -11730,7 +11748,7 @@ async function sendMessage() {
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">🔒 API Key Authentication Required (HTTP 401)</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
             The running gateway has API key protection enabled.<br>
-            Click <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">Open Config</a> to enter your API key (e.g. <code>sk-gemini</code>), or clear <code>api_keys</code> in your <code>~/.config/bob-gemini-free/config.json</code> file to use BOB without authentication.
+              Click <button type="button" class="inline-action-link" data-action="open-gateway-modal">Open Config</button> to enter your API key (e.g. <code>sk-gemini</code>), or clear <code>api_keys</code> in your <code>~/.config/bob-gemini-free/config.json</code> file to use BOB without authentication.
           </div>
         `;
       } else {
@@ -11748,7 +11766,7 @@ async function sendMessage() {
             <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Gateway Connection Error: ${escapeHtml(safeErrorMessage)}</div>
             <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
               Unable to reach BOB Gateway at <code>${escapeHtml(getGatewayBaseUrl())}</code>.<br>
-              Ensure the CLI engine is running (<code>bob-gemini-free</code>), or use a native package only when one is listed on the <a href="https://github.com/div197/BOB-Gemini-Free/releases" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">official release page</a>. You can also <a href="javascript:void(0)" onclick="openGatewayModal()" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">configure the gateway endpoint</a>.
+              Ensure the CLI engine is running (<code>bob-gemini-free</code>), or use a native package only when one is listed on the <a href="https://github.com/div197/BOB-Gemini-Free/releases" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:600;">official release page</a>. You can also <button type="button" class="inline-action-link" data-action="open-gateway-modal">configure the gateway endpoint</button>.
             </div>
             ${mixedContentHint}
           `;
