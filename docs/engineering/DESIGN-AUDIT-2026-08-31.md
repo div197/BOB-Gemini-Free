@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed branch tip is `88d68dd` on `codex/release-readiness-v0.2.0`
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `88d68dd` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 

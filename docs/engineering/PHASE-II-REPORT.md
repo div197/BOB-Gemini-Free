@@ -591,8 +591,9 @@ the final error and a successful stream recovery with no logger. This change
 does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
-The current source is on the pushed branch
-`codex/release-readiness-v0.2.0` at `88d68dd`; `origin/main` remains a separate
+The current source-hardening tip is on the pushed branch
+`codex/release-readiness-v0.2.0` at `88d68dd`; subsequent commits on that
+branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and
 clean-device/provider/release-asset gates remain open.
