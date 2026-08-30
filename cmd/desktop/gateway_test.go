@@ -32,11 +32,7 @@ func TestStartDesktopGatewayChoosesFallbackWhenPortBelongsToAnotherProcess(t *te
 	if gateway.Endpoint() == "http://127.0.0.1:"+strconv.Itoa(occupiedPort) {
 		t.Fatalf("gateway reused occupied endpoint %s", gateway.Endpoint())
 	}
-	client := &http.Client{Timeout: time.Second}
-	resp, err := client.Get(gateway.Endpoint())
-	if err != nil {
-		t.Fatalf("fallback endpoint request: %v", err)
-	}
+	resp := waitForGatewayEndpoint(t, gateway.Endpoint())
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusNoContent {
 		t.Fatalf("fallback status = %d", resp.StatusCode)
@@ -63,6 +59,8 @@ func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
 	})}
 	go server.Serve(listener)
 	defer server.Shutdown(context.Background())
+	ready := waitForGatewayEndpoint(t, "http://127.0.0.1:"+strconv.Itoa(port)+"/healthz")
+	ready.Body.Close()
 
 	gateway, err := startDesktopGateway(port, http.NotFoundHandler())
 	if err != nil {
@@ -76,6 +74,24 @@ func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
 	}
 	if err := gateway.Shutdown(context.Background()); err != nil {
 		t.Fatalf("reused shutdown: %v", err)
+	}
+}
+
+func waitForGatewayEndpoint(t *testing.T, endpoint string) *http.Response {
+	t.Helper()
+	client := &http.Client{Timeout: 100 * time.Millisecond}
+	deadline := time.Now().Add(2 * time.Second)
+	var lastErr error
+	for {
+		resp, err := client.Get(endpoint)
+		if err == nil {
+			return resp
+		}
+		lastErr = err
+		if time.Now().After(deadline) {
+			t.Fatalf("gateway endpoint %s did not become ready: %v", endpoint, lastErr)
+		}
+		time.Sleep(10 * time.Millisecond)
 	}
 }
 
