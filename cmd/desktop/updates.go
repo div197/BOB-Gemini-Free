@@ -133,6 +133,16 @@ func (a *App) checkDesktopUpdate(ctx context.Context, automatic bool) {
 		// Help action still explains this case to a user who asks for details.
 		return
 	}
+	if update.AssetAvailable && update.ManifestAvailable {
+		if installErr := updater.CheckDesktopInstallTarget(); installErr != nil {
+			if automatic {
+				log.Printf("automatic desktop update deferred: %v", installErr)
+				return
+			}
+			a.showDesktopError(ctx, "Update location not ready", desktopUpdateErrorMessage("Move BOB Gemini Free to a writable application location, relaunch it, and try again", installErr))
+			return
+		}
+	}
 	a.showDesktopUpdateDialog(ctx, update, automatic)
 }
 

@@ -101,6 +101,31 @@ func TestDesktopStagingDirectoryErrorExplainsPermissionDeniedInstall(t *testing.
 	}
 }
 
+func TestCheckDesktopInstallTargetAcceptsWritableBundle(t *testing.T) {
+	target := filepath.Join(t.TempDir(), desktopAppBundleName)
+	if err := os.MkdirAll(filepath.Join(target, "Contents"), 0755); err != nil {
+		t.Fatalf("create app target: %v", err)
+	}
+	if err := checkDesktopInstallTarget(target, "darwin"); err != nil {
+		t.Fatalf("checkDesktopInstallTarget: %v", err)
+	}
+}
+
+func TestCheckDesktopInstallTargetExplainsAppTranslocation(t *testing.T) {
+	target := filepath.Join("/private/var/folders", "xx", "AppTranslocation", "abc", "d", desktopAppBundleName)
+	err := checkDesktopInstallTarget(target, "darwin")
+	if err == nil || !strings.Contains(err.Error(), "App Translocation") || !strings.Contains(err.Error(), "Applications") {
+		t.Fatalf("App Translocation preflight error = %v", err)
+	}
+}
+
+func TestCheckDesktopInstallTargetRejectsUnsupportedOS(t *testing.T) {
+	err := checkDesktopInstallTarget(filepath.Join(t.TempDir(), "bob"), "linux")
+	if err == nil || !strings.Contains(err.Error(), "not implemented for linux") {
+		t.Fatalf("unsupported install target error = %v", err)
+	}
+}
+
 func TestDesktopUpdateLockSerializesConcurrentHelpersAndReleases(t *testing.T) {
 	installTarget := filepath.Join(t.TempDir(), "BOB Gemini Free.app")
 	first, err := acquireDesktopUpdateLock(installTarget)

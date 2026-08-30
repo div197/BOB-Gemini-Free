@@ -60,6 +60,21 @@ func StageDesktopUpdate(result *DesktopCheckResult) (*DesktopUpdatePlan, error) 
 	return stageDesktopUpdate(client, result, "", runtime.GOOS, runtime.GOARCH)
 }
 
+// CheckDesktopInstallTarget performs the local portion of the native update
+// preflight without contacting the release server. The desktop UI uses this
+// before offering an install action so a DMG/App Translocation or permission
+// failure is explained before the user starts a large download. StageDesktopUpdate
+// repeats the check because filesystem permissions can change between the
+// metadata check and the explicit install action.
+func CheckDesktopInstallTarget() error {
+	targetOS := runtime.GOOS
+	targetPath, err := currentDesktopInstallTarget(targetOS)
+	if err != nil {
+		return err
+	}
+	return checkDesktopInstallTarget(targetPath, targetOS)
+}
+
 func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetPath, targetOS, targetArch string) (*DesktopUpdatePlan, error) {
 	if client == nil {
 		return nil, fmt.Errorf("desktop update staging requires an HTTP client")
@@ -108,6 +123,9 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 		return nil, fmt.Errorf("resolve desktop install target: %w", err)
 	}
 	if err := validateInstallTarget(targetPath, targetOS); err != nil {
+		return nil, err
+	}
+	if err := checkDesktopInstallTarget(targetPath, targetOS); err != nil {
 		return nil, err
 	}
 	cleanupStaleDesktopStaging(targetPath)
@@ -168,6 +186,33 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	}
 	keepStage = true
 	return plan, nil
+}
+
+func checkDesktopInstallTarget(targetPath, targetOS string) error {
+	if targetOS != "darwin" && targetOS != "windows" {
+		return fmt.Errorf("automatic native updates are not implemented for %s", targetOS)
+	}
+	targetPath, err := filepath.Abs(targetPath)
+	if err != nil {
+		return fmt.Errorf("resolve desktop install target: %w", err)
+	}
+	if targetOS == "darwin" {
+		path := strings.ToLower(filepath.ToSlash(filepath.Clean(targetPath)))
+		if strings.Contains(path, "/apptranslocation/") {
+			return fmt.Errorf("the app is running from macOS App Translocation; move BOB Gemini Free.app to Applications, relaunch it, and try again")
+		}
+	}
+	if err := validateInstallTarget(targetPath, targetOS); err != nil {
+		return err
+	}
+	probe, err := os.MkdirTemp(filepath.Dir(targetPath), desktopStagingPrefix+"preflight-")
+	if err != nil {
+		return desktopStagingDirectoryError(err)
+	}
+	if err := os.Remove(probe); err != nil {
+		return fmt.Errorf("remove desktop update staging preflight directory: %w", err)
+	}
+	return nil
 }
 
 func desktopStagingDirectoryError(err error) error {
