@@ -97,6 +97,11 @@ official upstream `x-goog-api-key` header. It is not sent on health, metrics,
 model-list, update-check, or ping requests. The custom header is separate from
 BOB's local gateway `Authorization`/`x-api-key` authentication.
 
+The optional BOB gateway-auth token is held only in the current page session as
+well. It is never written to browser storage and must be entered again after a
+reload; this deliberately avoids leaving a reusable local-gateway credential
+on a shared student computer.
+
 For the same reason, a hosted public Studio cannot send this header until the
 user explicitly saves a trusted gateway endpoint. A loopback-served Studio or
 the native Wails app may use the local gateway directly. Saving a LAN or remote

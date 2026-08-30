@@ -5313,6 +5313,14 @@ let pendingRetry = false;
 const MAX_MANUAL_RETRIES = 2;
 const MANUAL_RETRY_COOLDOWN_MS = 4000;
 let currentAttachedImage = null; // Base64 data URL
+// Gateway authentication is a page-session credential too. Never persist it
+// in localStorage: any script with same-origin access could read a durable
+// token, and a shared classroom computer could retain it for the next user.
+let gatewayApiKey = "";
+const LEGACY_GATEWAY_KEY_STORAGE_KEY = "bob_api_key";
+try {
+  localStorage.removeItem(LEGACY_GATEWAY_KEY_STORAGE_KEY);
+} catch (_) {}
 // Provider credentials are intentionally session-memory only. The separate
 // toggle prevents an accidentally pasted key from changing the route.
 let geminiProviderKey = "";
@@ -6376,7 +6384,7 @@ function openGatewayModal() {
   const providerKeyInput = document.getElementById("gemini-provider-key-input");
   const providerToggle = document.getElementById("gemini-provider-toggle");
   if (input) input.value = getGatewayBaseUrl();
-  if (keyInput) keyInput.value = localStorage.getItem('bob_api_key') || '';
+  if (keyInput) keyInput.value = gatewayApiKey;
   if (providerKeyInput) providerKeyInput.value = geminiProviderKey;
   if (providerToggle) providerToggle.checked = useGeminiProvider;
   if (modal) modal.classList.add("open");
@@ -6391,11 +6399,7 @@ function closeGatewayModal() {
 
 function saveApiKeyFromInput(val) {
   const clean = (val || "").trim();
-  if (clean) {
-    localStorage.setItem('bob_api_key', clean);
-  } else {
-    localStorage.removeItem('bob_api_key');
-  }
+  gatewayApiKey = clean;
   refreshTelemetry();
   if (!backendModelsLoaded) syncBackendModels();
 }
@@ -6482,7 +6486,7 @@ async function pingGatewayManual() {
     pill.style.color = "#f59e0b";
   }
   const start = performance.now();
-  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const apiKey = gatewayApiKey;
   const headers = {};
   if (apiKey) {
     headers["Authorization"] = "Bearer " + apiKey;
@@ -7039,6 +7043,7 @@ window.addEventListener("resize", () => {
 });
 
 window.addEventListener("beforeunload", () => {
+  gatewayApiKey = "";
   geminiProviderKey = "";
   useGeminiProvider = false;
 });
@@ -7083,7 +7088,7 @@ function updatePromptTokenEstimate(text) {
 let backendModelsLoaded = false;
 async function syncBackendModels() {
   const baseUrl = getGatewayBaseUrl();
-  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const apiKey = gatewayApiKey;
   const headers = {};
   if (apiKey) headers["Authorization"] = "Bearer " + apiKey;
 
@@ -7537,7 +7542,7 @@ async function refreshTelemetry() {
     return;
   }
   const baseUrl = getGatewayBaseUrl();
-  const apiKey = localStorage.getItem('bob_api_key') || '';
+  const apiKey = gatewayApiKey;
   const headers = {};
   if (apiKey) {
     headers["Authorization"] = "Bearer " + apiKey;
@@ -11108,7 +11113,7 @@ async function sendMessage() {
   let lastMathRenderTime = 0;
 
     const baseUrl = getGatewayBaseUrl();
-    const apiKey = localStorage.getItem('bob_api_key') || '';
+    const apiKey = gatewayApiKey;
     if (useGeminiProvider && !geminiProviderKey) {
       throw new Error("Gemini Developer API is selected, but no session key has been entered. Open Config and paste your own Google AI Studio key.");
     }
