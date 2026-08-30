@@ -617,6 +617,19 @@ fix only: it does not rotate keys, bypass provider limits, or change the
 server-side header boundary. `TestDeveloperAPIRouteToggleFailsClosedWithoutKey`
 protects the ordering and visible reset behavior.
 
+### Studio provider-key transport follow-up — 2026-08-31
+
+Native Wails context was previously treated as sufficient trust for sending a
+student-owned Developer API key, even when the configured gateway endpoint had
+been changed to a remote plain-HTTP address. The client now permits HTTP only
+for loopback endpoints; remote endpoints must be explicitly saved and use
+HTTPS, and endpoints containing credentials or no hostname are rejected. This
+does not prevent the default local gateway or intentionally configured HTTPS
+deployments, and it does not change the server-side provider-key header
+contract. `TestDeveloperAPIRouteRequiresSafeGatewayTransport` protects the
+decision boundary; rendered native/hosted behavior remains a browser/device
+acceptance gate.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -628,7 +641,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `18ee0ff`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `38b5970`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and
