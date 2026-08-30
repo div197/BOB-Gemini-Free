@@ -278,16 +278,16 @@ func SelfUpdate(currentVersion string, logFn func(string, ...any)) error {
 }
 
 func findMatchingAsset(assets []ReleaseAsset, targetOS, targetArch string) *ReleaseAsset {
-	var expectedSuffix string
+	var expectedName string
 	if targetOS == "windows" {
-		expectedSuffix = fmt.Sprintf("windows-%s.exe", targetArch)
+		expectedName = fmt.Sprintf("bob-gemini-free-windows-%s.exe", targetArch)
 	} else {
-		expectedSuffix = fmt.Sprintf("%s-%s", targetOS, targetArch)
+		expectedName = fmt.Sprintf("bob-gemini-free-%s-%s", targetOS, targetArch)
 	}
 
-	for _, asset := range assets {
-		if strings.HasSuffix(asset.Name, expectedSuffix) {
-			return &asset
+	for i := range assets {
+		if assets[i].Name == expectedName {
+			return &assets[i]
 		}
 	}
 	return nil

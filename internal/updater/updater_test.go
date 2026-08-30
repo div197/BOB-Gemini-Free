@@ -94,6 +94,25 @@ func TestFindMatchingAsset(t *testing.T) {
 	}
 }
 
+func TestFindMatchingAssetRequiresCanonicalName(t *testing.T) {
+	lookalike := []ReleaseAsset{{
+		Name:               "mirror-bob-gemini-free-darwin-arm64",
+		BrowserDownloadURL: "https://example.com/lookalike",
+	}}
+	if match := findMatchingAsset(lookalike, "darwin", "arm64"); match != nil {
+		t.Fatalf("lookalike asset was accepted: %#v", match)
+	}
+
+	assets := append(lookalike, ReleaseAsset{
+		Name:               "bob-gemini-free-darwin-arm64",
+		BrowserDownloadURL: "https://example.com/canonical",
+	})
+	match := findMatchingAsset(assets, "darwin", "arm64")
+	if match == nil || match.BrowserDownloadURL != "https://example.com/canonical" {
+		t.Fatalf("canonical asset was not selected: %#v", match)
+	}
+}
+
 func TestFindMatchingDesktopAssetPrefersUniversalMacArchive(t *testing.T) {
 	assets := []ReleaseAsset{
 		{Name: "bob-gemini-free-macos-arm64.zip", BrowserDownloadURL: "https://example.com/branded-arm64"},
