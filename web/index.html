@@ -71,6 +71,9 @@
   --radius-card: 10px;
   --radius-modal: 18px;
   --radius-pill: 9999px;
+  /* Semantic aliases kept in sync with the active theme surface tokens. */
+  --bg-hover: var(--bg-card-hover);
+  --bg-main: var(--bg-app);
   --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   --reading-zoom: 1;
@@ -490,6 +493,33 @@
 }
 
 * { box-sizing: border-box; margin: 0; padding: 0; }
+button { font-family: inherit; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  transform: translateY(-160%);
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent-primary);
+  color: var(--accent-primary-text);
+  font-weight: 800;
+  text-decoration: none;
+  transition: transform 0.15s ease;
+}
+.skip-link:focus { transform: translateY(0); }
 html, body {
   height: 100%;
   height: 100vh;
@@ -542,6 +572,11 @@ header {
   gap: 8px;
   text-decoration: none;
   cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
   padding: 2px 6px;
   border-radius: 6px;
   transition: all 0.15s ease;
@@ -912,6 +947,8 @@ input[type="range"] {
   font-weight: 700;
   color: var(--text-main);
   cursor: pointer;
+  font-family: inherit;
+  text-align: left;
   white-space: nowrap;
   flex-shrink: 0;
   transition: all 0.15s ease;
@@ -1311,6 +1348,8 @@ input[type="range"] {
   gap: 6px;
   min-height: clamp(114px, 9vw, 136px);
   min-width: 0;
+  font-family: inherit;
+  text-align: left;
 }
 .starter-card:hover {
   border-color: var(--accent-primary);
@@ -1627,6 +1666,8 @@ input[type="range"] {
   border: 1px solid transparent;
   width: clamp(32px, 2.4vw, 36px);
   height: clamp(32px, 2.4vw, 36px);
+  min-width: 36px;
+  min-height: 36px;
   border-radius: 8px;
   cursor: pointer;
   display: inline-flex;
@@ -1705,6 +1746,7 @@ input[type="range"] {
   letter-spacing: 0.5px;
   padding: 0 clamp(16px, 1.4vw, 22px);
   height: clamp(32px, 2.4vw, 36px);
+  min-height: 44px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   display: inline-flex;
@@ -2099,6 +2141,11 @@ input[type="range"] {
   opacity: 0.55;
   transition: opacity 0.2s ease, transform 0.2s ease;
   user-select: none;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
 }
 .artifact-side-rail.left { left: 0; }
 .artifact-side-rail.right { right: 0; }
@@ -2729,6 +2776,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   flex-direction: column;
   gap: 16px;
   animation: scaleIn 0.18s cubic-bezier(0.25, 1, 0.5, 1);
+  max-height: min(90dvh, calc(100dvh - 32px));
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.94); }
@@ -2817,7 +2867,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   gap: 16px;
   animation: scaleIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
-  overflow: hidden;
+  max-height: min(90dvh, calc(100dvh - 32px));
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 .about-dialog-box::before {
   content: "";
@@ -3965,6 +4017,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </head>
 <body>
 
+<a class="skip-link" href="#user-input">Skip to prompt</a>
+
 <!-- Floating Toast Container -->
 <div class="toast-stack" id="toast-stack"></div>
 
@@ -3998,7 +4052,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
     <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; border-top:1px solid var(--border-color); background:var(--bg-card);">
       <span id="doc-preview-metrics" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">0 words • ~0 tokens</span>
-      <button class="btn-pill-subtle" onclick="closeDocPreviewModal()">Close</button>
+      <button type="button" class="btn-pill-subtle" onclick="closeDocPreviewModal()">Close</button>
     </div>
   </div>
 </div>
@@ -4017,8 +4071,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       Are you sure you want to clear your current conversation history? This will reset the workspace canvas and cannot be undone.
     </div>
     <div class="dialog-actions">
-      <button class="dialog-btn-cancel" id="dialog-cancel-btn" onclick="closeConfirmModal()">Cancel</button>
-      <button class="dialog-btn-danger" id="dialog-confirm-btn" onclick="executeConfirmAction()">Clear History</button>
+      <button type="button" class="dialog-btn-cancel" id="dialog-cancel-btn" onclick="closeConfirmModal()">Cancel</button>
+      <button type="button" class="dialog-btn-danger" id="dialog-confirm-btn" onclick="executeConfirmAction()">Clear History</button>
     </div>
   </div>
 </div>
@@ -4040,11 +4094,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     <div style="padding:16px 20px;">
       <div class="preset-theme-palette" style="display:flex; gap:8px; margin-bottom:16px; flex-wrap:wrap;">
         <span style="font-size:0.75rem; font-weight:700; color:var(--text-muted); width:100%;" id="custom-theme-presets-label">⚡ Quick Presets:</span>
-        <button class="btn-pill-subtle" onclick="applyCustomThemePreset('cyberpunk')">🌆 Cyberpunk</button>
-        <button class="btn-pill-subtle" onclick="applyCustomThemePreset('dracula')">🧛 Dracula</button>
-        <button class="btn-pill-subtle" onclick="applyCustomThemePreset('synthwave')">🌴 Synthwave</button>
-        <button class="btn-pill-subtle" onclick="applyCustomThemePreset('matrix')">🟢 Matrix</button>
-        <button class="btn-pill-subtle" onclick="applyCustomThemePreset('gold-luxe')">👑 Gold Luxe</button>
+        <button type="button" class="btn-pill-subtle" onclick="applyCustomThemePreset('cyberpunk')">🌆 Cyberpunk</button>
+        <button type="button" class="btn-pill-subtle" onclick="applyCustomThemePreset('dracula')">🧛 Dracula</button>
+        <button type="button" class="btn-pill-subtle" onclick="applyCustomThemePreset('synthwave')">🌴 Synthwave</button>
+        <button type="button" class="btn-pill-subtle" onclick="applyCustomThemePreset('matrix')">🟢 Matrix</button>
+        <button type="button" class="btn-pill-subtle" onclick="applyCustomThemePreset('gold-luxe')">👑 Gold Luxe</button>
       </div>
 
       <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px;">
@@ -4083,13 +4137,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <div id="ct-preview-dot" style="width:12px; height:12px; border-radius:50%; background:var(--accent-primary);"></div>
           <span style="font-size:0.8rem; font-weight:700; color:var(--text-main);" id="ct-preview-text">Live Theme Preview</span>
         </div>
-        <button class="btn-pill-cta" style="height:28px; font-size:0.72rem;" id="ct-preview-btn">Preview Button</button>
+        <button type="button" class="btn-pill-cta" style="height:28px; font-size:0.72rem;" id="ct-preview-btn">Preview Button</button>
       </div>
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
-        <button class="btn-pill-subtle" onclick="resetCustomTheme()" id="ct-reset-btn">↺ Reset Default</button>
-        <button class="btn-pill-subtle" onclick="closeCustomThemeModal()" id="ct-cancel-btn">Cancel</button>
-        <button class="btn-pill-action" onclick="saveCustomThemeAndApply()" id="ct-save-btn">💾 Save & Apply</button>
+        <button type="button" class="btn-pill-subtle" onclick="resetCustomTheme()" id="ct-reset-btn">↺ Reset Default</button>
+        <button type="button" class="btn-pill-subtle" onclick="closeCustomThemeModal()" id="ct-cancel-btn">Cancel</button>
+        <button type="button" class="btn-pill-action" onclick="saveCustomThemeAndApply()" id="ct-save-btn">💾 Save & Apply</button>
       </div>
     </div>
   </div>
@@ -4147,7 +4201,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <span>GitHub Repo</span>
         <span style="font-size:0.75rem;">⭐</span>
       </a>
-      <button class="btn-pill-action" id="about-close-btn" onclick="closeAboutModal()">Close</button>
+      <button type="button" class="btn-pill-action" id="about-close-btn" onclick="closeAboutModal()">Close</button>
     </div>
   </div>
 </div>
@@ -4174,8 +4228,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="gateway-url-input" aria-label="Gateway endpoint URL" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
-          <button class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
+          <button type="button" class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
+          <button type="button" class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
           Default: <code>http://127.0.0.1:9610</code>. Connect to custom ports, LAN IP (e.g. <code>http://192.168.1.100:9610</code>), or local Docker.
@@ -4189,7 +4243,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </label>
         <div style="display:flex; gap:8px;">
           <input type="text" id="gateway-api-key-input" aria-label="Gateway API key" name="bearer_auth_token_string" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="sk-gemini or leave empty for none" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-subtle" aria-label="Show or hide gateway API key" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
+          <button type="button" class="btn-pill-subtle" aria-label="Show or hide gateway API key" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
         </div>
       </div>
 
@@ -4203,7 +4257,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
         <div style="display:flex; gap:8px;">
           <input type="password" id="gemini-provider-key-input" aria-label="Gemini Developer API key" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button class="btn-pill-subtle" aria-label="Show or hide Gemini Developer API key" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
+          <button type="button" class="btn-pill-subtle" aria-label="Show or hide Gemini Developer API key" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">
           <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
@@ -4231,11 +4285,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
         <div style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</span>
-          <button class="btn-pill-subtle" onclick="copyLaunchCommand(&quot;curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh&quot;)" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
+          <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand(&quot;curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh&quot;)" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
         </div>
         <div style="margin-top:6px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1</span>
-          <button class="btn-pill-subtle" onclick="copyLaunchCommand('curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
+          <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand('curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
         </div>
         <div style="margin-top:6px; color:var(--text-muted);">Inspect the downloaded file, then run <code>bash install.sh</code> on macOS/Linux or <code>.\install.ps1</code> on Windows.</div>
       </div>
@@ -4246,10 +4300,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="about-actions">
-      <button class="btn-pill-primary-action" onclick="pingGatewayManual()">
+      <button type="button" class="btn-pill-primary-action" onclick="pingGatewayManual()">
         <span id="gateway-test-ping-label">⚡ Test Ping</span>
       </button>
-      <button class="btn-pill-action" id="gateway-close-btn" onclick="closeGatewayModal()">Close</button>
+      <button type="button" class="btn-pill-action" id="gateway-close-btn" onclick="closeGatewayModal()">Close</button>
     </div>
   </div>
 </div>
@@ -4257,17 +4311,17 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 <!-- Interactive Native Artifact Studio Canvas Modal -->
 <div class="dialog-backdrop artifact-modal-backdrop" id="artifact-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="art-modal-title" tabindex="-1" onclick="if(event.target===this) closeArtifactCanvas()">
   <!-- Side Click Dismiss Rails -->
-  <div class="artifact-side-rail left" onclick="closeArtifactCanvas()" title="Click to return to chat (Esc)">
-    <div class="rail-hint-pill"><span>←</span> <span id="art-rail-left-label">Back to Chat</span></div>
-  </div>
-  <div class="artifact-side-rail right" onclick="closeArtifactCanvas()" title="Click to return to chat (Esc)">
-    <div class="rail-hint-pill"><span id="art-rail-right-label">Back to Chat</span> <span>→</span></div>
-  </div>
+  <button type="button" class="artifact-side-rail left" onclick="closeArtifactCanvas()" title="Click to return to chat (Esc)" aria-label="Back to chat">
+    <span class="rail-hint-pill"><span>←</span> <span id="art-rail-left-label">Back to Chat</span></span>
+  </button>
+  <button type="button" class="artifact-side-rail right" onclick="closeArtifactCanvas()" title="Click to return to chat (Esc)" aria-label="Back to chat">
+    <span class="rail-hint-pill"><span id="art-rail-right-label">Back to Chat</span> <span>→</span></span>
+  </button>
 
   <div class="artifact-studio-box" onclick="event.stopPropagation()">
     <div class="artifact-studio-header">
       <div class="artifact-header-left">
-        <button class="btn-pill-action btn-art-back" id="btn-art-back" onclick="closeArtifactCanvas()" title="Back to Chat (Esc)">
+        <button type="button" class="btn-pill-action btn-art-back" id="btn-art-back" onclick="closeArtifactCanvas()" title="Back to Chat (Esc)">
           <span>←</span> <span id="art-back-label">Back to Chat</span> <kbd class="kbd-subtle">Esc</kbd>
         </button>
         <div class="artifact-type-orb" id="art-type-orb">⚡</div>
@@ -4278,20 +4332,20 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </div>
 
       <div class="artifact-view-tabs">
-        <button class="art-tab-btn active" id="art-tab-preview" onclick="switchArtifactTab('preview')">
+        <button type="button" class="art-tab-btn active" id="art-tab-preview" onclick="switchArtifactTab('preview')">
           <span>▶</span> <span id="art-tab-preview-label">Preview</span>
         </button>
-        <button class="art-tab-btn" id="art-tab-code" onclick="switchArtifactTab('code')">
+        <button type="button" class="art-tab-btn" id="art-tab-code" onclick="switchArtifactTab('code')">
           <span>⟨/⟩</span> <span id="art-tab-code-label">Code</span>
         </button>
       </div>
 
       <div class="artifact-header-actions">
-        <button class="btn-pill-subtle" onclick="reloadArtifactSandbox()" title="Reload Sandbox Execution"><span id="art-reload-label">⟳ Reload</span></button>
-        <button class="btn-pill-subtle" onclick="copyArtifactCode()" title="Copy Artifact Source"><span id="art-copy-label">📋 Copy</span></button>
-        <button class="btn-pill-subtle" onclick="downloadArtifactFile()" title="Download as File"><span id="art-save-label">💾 Save</span></button>
-        <button class="btn-pill-subtle" onclick="popOutArtifact()" title="Open in New Fullscreen Browser Tab"><span id="art-popout-label">⛶ Pop Out</span></button>
-        <button class="btn-pill-subtle btn-art-close" id="btn-art-close" onclick="closeArtifactCanvas()" title="Close Canvas (Esc)">
+        <button type="button" class="btn-pill-subtle" onclick="reloadArtifactSandbox()" title="Reload Sandbox Execution"><span id="art-reload-label">⟳ Reload</span></button>
+        <button type="button" class="btn-pill-subtle" onclick="copyArtifactCode()" title="Copy Artifact Source"><span id="art-copy-label">📋 Copy</span></button>
+        <button type="button" class="btn-pill-subtle" onclick="downloadArtifactFile()" title="Download as File"><span id="art-save-label">💾 Save</span></button>
+        <button type="button" class="btn-pill-subtle" onclick="popOutArtifact()" title="Open in New Fullscreen Browser Tab"><span id="art-popout-label">⛶ Pop Out</span></button>
+        <button type="button" class="btn-pill-subtle btn-art-close" id="btn-art-close" onclick="closeArtifactCanvas()" title="Close Canvas (Esc)">
           <span>✕</span> <span id="art-close-label">Close</span>
         </button>
       </div>
@@ -4316,16 +4370,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <div class="artifact-pane" id="art-pane-code">
         <div class="art-code-toolbar">
           <div class="art-code-toolbar-left">
-            <button class="btn-art-run" id="btn-art-run-code" onclick="runArtifactEditorCode()" title="Run & Apply Changes (Cmd+Enter or Ctrl+Enter)">
+            <button type="button" class="btn-art-run" id="btn-art-run-code" onclick="runArtifactEditorCode()" title="Run & Apply Changes (Cmd+Enter or Ctrl+Enter)">
               <span>▶</span> <span id="art-run-label">Run / Apply (⌘↵)</span>
             </button>
-            <button class="btn-art-tool" id="btn-art-reset-code" onclick="resetArtifactEditorCode()" title="Revert to original generated code">
+            <button type="button" class="btn-art-tool" id="btn-art-reset-code" onclick="resetArtifactEditorCode()" title="Revert to original generated code">
               <span>↺</span> <span id="art-reset-label">Reset</span>
             </button>
-            <button class="btn-art-tool" id="btn-art-copy-editor" onclick="copyArtifactEditorCode()" title="Copy editor source">
+            <button type="button" class="btn-art-tool" id="btn-art-copy-editor" onclick="copyArtifactEditorCode()" title="Copy editor source">
               <span>📋</span> <span id="art-copy-editor-label">Copy</span>
             </button>
-            <button class="btn-art-tool" id="btn-art-wrap-toggle" onclick="toggleArtifactEditorWrap()" title="Toggle word wrap">
+            <button type="button" class="btn-art-tool" id="btn-art-wrap-toggle" onclick="toggleArtifactEditorWrap()" title="Toggle word wrap">
               <span>⇄</span> <span id="art-wrap-label">Wrap: ON</span>
             </button>
           </div>
@@ -4343,13 +4397,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <!-- Custom Instructions & User Persona Modal -->
-<div class="dialog-backdrop" id="instructions-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="instr-user-persona-label" tabindex="-1" onclick="if(event.target===this) closeInstructionsModal()">
+<div class="dialog-backdrop" id="instructions-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="instr-modal-title" tabindex="-1" onclick="if(event.target===this) closeInstructionsModal()">
   <div class="about-dialog-box" style="max-width:620px;">
     <div class="about-header-band">
       <div class="about-header-top">
         <div class="about-brand-wrap">
           <span class="about-star">🧠</span>
-          <span class="about-title">CUSTOM INSTRUCTIONS & PERSONA</span>
+          <span class="about-title" id="instr-modal-title">CUSTOM INSTRUCTIONS & PERSONA</span>
         </div>
         <span class="about-version-badge">MEMORY PROFILE</span>
       </div>
@@ -4360,10 +4414,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; background:rgba(0,0,0,0.12); padding:6px 10px; border-radius:8px; border:1px solid var(--border-color);">
         <span id="persona-presets-label" style="font-size:0.72rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">⚡ Student Presets:</span>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button class="btn-pill-subtle" id="btn-persona-socratic" onclick="loadPersonaPreset('socratic')" style="padding:2px 8px; font-size:0.68rem;">🕉️ Socratic Tutor</button>
-          <button class="btn-pill-subtle" id="btn-persona-go" onclick="loadPersonaPreset('go_arch')" style="padding:2px 8px; font-size:0.68rem;">⚡ Go Architect</button>
-          <button class="btn-pill-subtle" id="btn-persona-ui" onclick="loadPersonaPreset('ui_master')" style="padding:2px 8px; font-size:0.68rem;">🎨 UI Master</button>
-          <button class="btn-pill-subtle" id="btn-persona-auditor" onclick="loadPersonaPreset('auditor')" style="padding:2px 8px; font-size:0.68rem;">🔬 Code Auditor</button>
+          <button type="button" class="btn-pill-subtle" id="btn-persona-socratic" onclick="loadPersonaPreset('socratic')" style="padding:2px 8px; font-size:0.68rem;">🕉️ Socratic Tutor</button>
+          <button type="button" class="btn-pill-subtle" id="btn-persona-go" onclick="loadPersonaPreset('go_arch')" style="padding:2px 8px; font-size:0.68rem;">⚡ Go Architect</button>
+          <button type="button" class="btn-pill-subtle" id="btn-persona-ui" onclick="loadPersonaPreset('ui_master')" style="padding:2px 8px; font-size:0.68rem;">🎨 UI Master</button>
+          <button type="button" class="btn-pill-subtle" id="btn-persona-auditor" onclick="loadPersonaPreset('auditor')" style="padding:2px 8px; font-size:0.68rem;">🔬 Code Auditor</button>
         </div>
       </div>
 
@@ -4387,10 +4441,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="about-actions">
-      <button class="btn-pill-primary-action" onclick="saveCustomInstructions()">
+      <button type="button" class="btn-pill-primary-action" onclick="saveCustomInstructions()">
         <span id="instr-save-btn">💾 Save Instructions</span>
       </button>
-      <button class="btn-pill-action" id="instr-cancel-btn" onclick="closeInstructionsModal()">Cancel</button>
+      <button type="button" class="btn-pill-action" id="instr-cancel-btn" onclick="closeInstructionsModal()">Cancel</button>
     </div>
   </div>
 </div>
@@ -4413,10 +4467,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
         <label id="tok-input-label" for="tokenizer-input" style="font-weight:700; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.5px; color:var(--text-main);">Test Input Text</label>
         <div style="display:flex; gap:6px;">
-          <button class="btn-pill-subtle" onclick="loadTokenizerPreset('mantra')" style="padding:2px 8px; font-size:0.68rem;">🕉️ Mantra</button>
-          <button class="btn-pill-subtle" onclick="loadTokenizerPreset('code')" style="padding:2px 8px; font-size:0.68rem;">💻 Python</button>
-          <button class="btn-pill-subtle" onclick="loadTokenizerPreset('puzzle')" style="padding:2px 8px; font-size:0.68rem;">🍓 Strawberry</button>
-          <button class="btn-pill-subtle" onclick="loadTokenizerPreset('latex')" style="padding:2px 8px; font-size:0.68rem;">📐 LaTeX</button>
+          <button type="button" class="btn-pill-subtle" onclick="loadTokenizerPreset('mantra')" style="padding:2px 8px; font-size:0.68rem;">🕉️ Mantra</button>
+          <button type="button" class="btn-pill-subtle" onclick="loadTokenizerPreset('code')" style="padding:2px 8px; font-size:0.68rem;">💻 Python</button>
+          <button type="button" class="btn-pill-subtle" onclick="loadTokenizerPreset('puzzle')" style="padding:2px 8px; font-size:0.68rem;">🍓 Strawberry</button>
+          <button type="button" class="btn-pill-subtle" onclick="loadTokenizerPreset('latex')" style="padding:2px 8px; font-size:0.68rem;">📐 LaTeX</button>
         </div>
       </div>
       <textarea id="tokenizer-input" rows="2" placeholder="Type or paste any text, code, or mathematics here..." oninput="visualizeTokens(this.value)" style="width:100%; min-height:56px; height:58px; background:var(--bg-input); border:1.5px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:ui-monospace, 'JetBrains Mono', 'Fira Code', 'Noto Sans Devanagari', -apple-system, sans-serif; font-size:0.86rem; line-height:1.5; outline:none; resize:vertical; box-sizing:border-box; transition:border-color 0.2s, box-shadow 0.2s;" onfocus="this.style.borderColor='var(--accent-primary)'; this.style.boxShadow='0 0 0 3px rgba(245,158,11,0.15)';" onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none';"></textarea>
@@ -4475,10 +4529,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="about-actions" style="padding:10px 18px;">
-      <button class="btn-pill-primary-action" onclick="copyTokenIDs()">
+      <button type="button" class="btn-pill-primary-action" onclick="copyTokenIDs()">
         <span id="tok-copy-btn-text">📋 Copy Token IDs</span>
       </button>
-      <button class="btn-pill-action" id="tok-close-btn" onclick="closeTokenizerModal()">Close</button>
+      <button type="button" class="btn-pill-action" id="tok-close-btn" onclick="closeTokenizerModal()">Close</button>
     </div>
   </div>
 </div>
@@ -4504,10 +4558,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <span style="position:absolute; left:10px; top:50%; transform:translateY(-50%); font-size:0.85rem; color:var(--text-muted);">🔍</span>
       </div>
       <div style="display:flex; gap:4px; flex-wrap:wrap;" id="glossary-filter-chips">
-        <button class="btn-pill-subtle active" id="filter-cat-all" onclick="filterGlossaryCategory('all')" style="padding:3px 10px; font-size:0.7rem;">All / सभी</button>
-        <button class="btn-pill-subtle" id="filter-cat-llm" onclick="filterGlossaryCategory('llm')" style="padding:3px 10px; font-size:0.7rem;">LLM Core</button>
-        <button class="btn-pill-subtle" id="filter-cat-systems" onclick="filterGlossaryCategory('systems')" style="padding:3px 10px; font-size:0.7rem;">Systems & RPC</button>
-        <button class="btn-pill-subtle" id="filter-cat-economics" onclick="filterGlossaryCategory('economics')" style="padding:3px 10px; font-size:0.7rem;">Economics & Cloud</button>
+        <button type="button" class="btn-pill-subtle active" id="filter-cat-all" onclick="filterGlossaryCategory('all')" style="padding:3px 10px; font-size:0.7rem;">All / सभी</button>
+        <button type="button" class="btn-pill-subtle" id="filter-cat-llm" onclick="filterGlossaryCategory('llm')" style="padding:3px 10px; font-size:0.7rem;">LLM Core</button>
+        <button type="button" class="btn-pill-subtle" id="filter-cat-systems" onclick="filterGlossaryCategory('systems')" style="padding:3px 10px; font-size:0.7rem;">Systems & RPC</button>
+        <button type="button" class="btn-pill-subtle" id="filter-cat-economics" onclick="filterGlossaryCategory('economics')" style="padding:3px 10px; font-size:0.7rem;">Economics & Cloud</button>
       </div>
     </div>
 
@@ -4518,14 +4572,15 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
     <div class="about-actions" style="padding:10px 20px; display:flex; justify-content:space-between; align-items:center;">
       <span style="font-size:0.72rem; color:var(--text-muted);" id="glossary-footer-hint">💡 Tip: Click <b>"💬 Ask Teacher"</b> on any card to formulate deep proofs in chat!</span>
-      <button class="btn-pill-action" id="glossary-close-btn" onclick="closeGlossaryModal()">Close</button>
+      <button type="button" class="btn-pill-action" id="glossary-close-btn" onclick="closeGlossaryModal()">Close</button>
     </div>
   </div>
 </div>
 
 <!-- Command Palette Modal (Spotlight / Raycast Categorized) -->
-<div class="cmd-modal-backdrop" id="cmd-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cmd-search" tabindex="-1" onclick="if(event.target===this) toggleCmdPalette()">
+<div class="cmd-modal-backdrop" id="cmd-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="cmd-modal-title" tabindex="-1" onclick="if(event.target===this) toggleCmdPalette()">
   <div class="cmd-palette">
+    <span id="cmd-modal-title" class="sr-only">Command palette</span>
     <div class="cmd-input-box">
       <span style="color:var(--accent-primary); font-size:1.1rem;">✦</span>
       <input type="text" id="cmd-search" aria-label="Search commands, models, and themes" placeholder="Type a command or search models, themes..." oninput="filterCmds(this.value)" onkeydown="handleCmdKeyDown(event)">
@@ -5010,18 +5065,18 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 </div>
 
 <header>
-  <div class="brand-anchor" role="button" tabindex="0" aria-label="View About and Credits" onclick="openAboutModal()" title="View About & Credits">
+  <button type="button" class="brand-anchor" aria-label="View About and Credits" onclick="openAboutModal()" title="View About & Credits">
     <!-- Pure Typographic Wordmark -->
-    <div class="brand-headings">
-      <div class="brand-title">
+    <span class="brand-headings">
+      <span class="brand-title">
         <span class="brand-bob">BOB</span>
         <span class="brand-sep">✦</span>
         <span class="brand-gemini">GEMINI</span>
         <span class="brand-free">FREE</span>
-      </div>
-      <div class="brand-tagline">BREAK ORDINARY BOUNDARIES • BY ABCSTEPS</div>
-    </div>
-  </div>
+      </span>
+      <span class="brand-tagline">BREAK ORDINARY BOUNDARIES • BY ABCSTEPS</span>
+    </span>
+  </button>
   
   <div class="telemetry-bar">
     <span class="stat-item"><span class="stat-label">Uptime:</span> <b id="stat-uptime">0s</b></span>
@@ -5034,29 +5089,29 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   </div>
 
   <div class="header-controls">
-    <button class="nav-pill-btn gateway-status-btn" id="btn-gateway-status" onclick="openGatewayModal()" title="Gateway Connection Status (Click to configure)">
-      <div class="status-indicator-dot" id="gateway-status-dot"></div>
+    <button type="button" class="nav-pill-btn gateway-status-btn" id="btn-gateway-status" onclick="openGatewayModal()" title="Gateway Connection Status (Click to configure)">
+      <span class="status-indicator-dot" id="gateway-status-dot"></span>
       <span class="nav-btn-text" id="gateway-status-text">127.0.0.1:9610</span>
     </button>
     <div class="nav-segmented-group">
-      <button class="nav-segment-btn" id="btn-toggle-left" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
+      <button type="button" class="nav-segment-btn" id="btn-toggle-left" aria-controls="sidebar-left" aria-expanded="false" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
         <span>◧</span> <span class="nav-btn-text" id="nav-config-label">Config</span>
       </button>
-      <button class="nav-segment-btn" id="btn-toggle-right" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
+      <button type="button" class="nav-segment-btn" id="btn-toggle-right" aria-controls="sidebar-right" aria-expanded="false" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
         <span class="nav-btn-text" id="nav-code-label">Code</span> <span>◨</span>
       </button>
     </div>
-    <button class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
+    <button type="button" class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
       <span id="cmd-menu-label" style="white-space:nowrap;">⌘K Menu</span>
     </button>
     <a href="https://github.com/div197/BOB-Gemini-Free" target="_blank" rel="noopener noreferrer" class="nav-pill-btn github-pill" title="View & Star Repository on GitHub" style="text-decoration:none; color:inherit;">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
     </a>
-    <button class="nav-pill-btn" id="btn-glossary" onclick="openGlossaryModal()" title="AI & Systems Glossary / शब्दावली (Ask Teacher)">
+    <button type="button" class="nav-pill-btn" id="btn-glossary" onclick="openGlossaryModal()" title="AI & Systems Glossary / शब्दावली (Ask Teacher)">
       <span>📚</span> <span class="nav-btn-text" id="nav-glossary-label">Glossary</span>
     </button>
 
-    <select class="theme-selector" id="theme-selector" onchange="handleThemeSelectChange(this.value)" title="Color Theme">
+    <select class="theme-selector" id="theme-selector" aria-label="Color theme" onchange="handleThemeSelectChange(this.value)" title="Color Theme">
       <option value="bob-builder" selected>🏗️ BOB Builder (Obsidian)</option>
       <option value="apple">🍎 Apple Cupertino (Parchment)</option>
       <option value="vodafone">🔴 Vodafone (Scarlet)</option>
@@ -5069,7 +5124,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <option value="custom">🎨 Custom Theme Studio...</option>
     </select>
 
-    <select class="theme-selector lang-selector" id="lang-selector" onchange="setLanguage(this.value)" title="UI Language">
+    <select class="theme-selector lang-selector" id="lang-selector" aria-label="UI language" onchange="setLanguage(this.value)" title="UI Language">
       <option value="en" selected>🌐 English</option>
       <option value="hi">🌐 हिन्दी</option>
     </select>
@@ -5078,10 +5133,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
 <main>
   <!-- Left Model Configuration & Studio Controls -->
-  <aside class="sidebar-panel left collapsed" id="sidebar-left">
+  <aside class="sidebar-panel left collapsed" id="sidebar-left" aria-hidden="true" inert>
     <div class="panel-header">
       <span id="left-panel-title">Studio Configuration</span>
-      <button class="btn-pill-subtle" id="left-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
+      <button type="button" class="btn-pill-subtle" id="left-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
     </div>
 
     <div class="control-card">
@@ -5169,7 +5224,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     </div>
 
     <div class="control-card" style="margin-top:12px; border-color:var(--accent-primary);">
-      <button class="btn-pill-action" onclick="openInstructionsModal()" style="width:100%; justify-content:center; gap:6px;">
+      <button type="button" class="btn-pill-action" onclick="openInstructionsModal()" style="width:100%; justify-content:center; gap:6px;">
         <span>🧠</span> <span id="custom-instructions-label">Custom Instructions & Persona</span>
       </button>
     </div>
@@ -5179,26 +5234,26 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   <section class="chat-workspace" id="workspace-drop-zone">
     <div class="sub-bar">
       <div class="sub-bar-left">
-        <button class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">
+        <button type="button" class="btn-pill-subtle" onclick="newChat()" title="Start a new chat canvas">
           <span>✦</span> <span class="sub-btn-text">New</span>
         </button>
-        <div class="active-model-chip" role="button" tabindex="0" aria-label="Change model" onclick="toggleCmdPalette()" title="Click to change model">
+        <button type="button" class="active-model-chip" aria-label="Change model" onclick="toggleCmdPalette()" title="Click to change model">
           <div class="live-dot"></div>
           <span id="active-model-label">gemini-3.7-flash</span>
           <span style="font-size:0.65rem; color:var(--text-muted);">▾</span>
-        </div>
+        </button>
       </div>
       <div class="sub-bar-actions">
-        <button class="btn-pill-subtle sub-desktop-only" id="btn-reading-zoom" onclick="cycleReadingZoom()" title="Reading Text Zoom (⌘+ / ⌘-) — Click to toggle text size">
+        <button type="button" class="btn-pill-subtle sub-desktop-only" id="btn-reading-zoom" onclick="cycleReadingZoom()" title="Reading Text Zoom (⌘+ / ⌘-) — Click to toggle text size">
           <span>🔍</span> <span class="sub-btn-text" id="zoom-level-label">100%</span>
         </button>
-        <button class="btn-pill-subtle sub-desktop-only" onclick="copyFullTranscript()" title="Copy entire chat transcript">
+        <button type="button" class="btn-pill-subtle sub-desktop-only" onclick="copyFullTranscript()" title="Copy entire chat transcript">
           <span>📋</span> <span class="sub-btn-text" id="sub-copy-label">Copy</span>
         </button>
-        <button class="btn-pill-subtle sub-desktop-only" onclick="exportMarkdown()" title="Download conversation as Markdown">
+        <button type="button" class="btn-pill-subtle sub-desktop-only" onclick="exportMarkdown()" title="Download conversation as Markdown">
           <span>💾</span> <span class="sub-btn-text" id="sub-export-label">Export</span>
         </button>
-        <button class="btn-pill-subtle btn-clear-pill" onclick="clearChat()" title="Reset conversation">
+        <button type="button" class="btn-pill-subtle btn-clear-pill" onclick="clearChat()" title="Reset conversation">
           <span>🗑️</span> <span class="sub-clear-text" id="sub-clear-label">Clear</span>
         </button>
       </div>
@@ -5216,38 +5271,38 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
             </div>
           </div>
           <div class="starters-grid">
-            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('snake')">
-              <div class="badge-chip">
+            <button type="button" class="starter-card" onclick="selectStarter('snake')">
+              <span class="badge-chip">
                 <span class="mini-orb">🎮</span>
                 <span>ARTIFACT CANVAS</span>
-              </div>
-              <div class="starter-card-title">2D Cyberpunk Snake Game</div>
-              <div class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</div>
-            </div>
-            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('py_finance')">
-              <div class="badge-chip">
+              </span>
+              <span class="starter-card-title">2D Cyberpunk Snake Game</span>
+              <span class="starter-card-desc">Complete standalone HTML5 Canvas arcade game with neon effects and 60fps game loop.</span>
+            </button>
+            <button type="button" class="starter-card" onclick="selectStarter('py_finance')">
+              <span class="badge-chip">
                 <span class="mini-orb">🐍</span>
                 <span>PYTHON WASM SANDBOX</span>
-              </div>
-              <div class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</div>
-              <div class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</div>
-            </div>
-            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('orbit')">
-              <div class="badge-chip">
+              </span>
+              <span class="starter-card-title">Quantitative Finance & Risk (Black-Scholes)</span>
+              <span class="starter-card-desc">Black-Scholes option pricing, 5 Greeks sensitivity, and 10,000-path Monte Carlo Value at Risk in NumPy.</span>
+            </button>
+            <button type="button" class="starter-card" onclick="selectStarter('orbit')">
+              <span class="badge-chip">
                 <span class="mini-orb">🪐</span>
                 <span>THREE.JS WEBGL</span>
-              </div>
-              <div class="starter-card-title">3D Solar System & Orbit Lab</div>
-              <div class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</div>
-            </div>
-            <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('grader')">
-              <div class="badge-chip">
+              </span>
+              <span class="starter-card-title">3D Solar System & Orbit Lab</span>
+              <span class="starter-card-desc">Photorealistic N-body gravitational simulator with 360° OrbitControls and orbital trails.</span>
+            </button>
+            <button type="button" class="starter-card" onclick="selectStarter('grader')">
+              <span class="badge-chip">
                 <span class="mini-orb">🎓</span>
                 <span>FIRST PRINCIPLES</span>
-              </div>
-              <div class="starter-card-title">Explain to a 5th Grader</div>
-              <div class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</div>
-            </div>
+              </span>
+              <span class="starter-card-title">Explain to a 5th Grader</span>
+              <span class="starter-card-desc">Grounded intuitive mental models & physical analogies with Mermaid visual diagrams.</span>
+            </button>
           </div>
         </div>
       </div>
@@ -5272,9 +5327,9 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
       </div>
       <div class="audio-bar-controls">
-        <button class="audio-ctrl-btn" id="audio-pause-btn" aria-label="Play or pause audio" onclick="toggleAudioPause()" title="Play / Pause">⏸️</button>
-        <button class="audio-ctrl-btn" id="audio-speed-btn" aria-label="Change audio playback speed" onclick="cycleAudioSpeed()" title="Cycle playback speed">1.0x</button>
-        <button class="audio-ctrl-btn" aria-label="Stop audio" onclick="stopAudioPlayback()" title="Stop audio">⏹️</button>
+        <button type="button" class="audio-ctrl-btn" id="audio-pause-btn" aria-label="Play or pause audio" onclick="toggleAudioPause()" title="Play / Pause">⏸️</button>
+        <button type="button" class="audio-ctrl-btn" id="audio-speed-btn" aria-label="Change audio playback speed" onclick="cycleAudioSpeed()" title="Cycle playback speed">1.0x</button>
+        <button type="button" class="audio-ctrl-btn" aria-label="Stop audio" onclick="stopAudioPlayback()" title="Stop audio">⏹️</button>
       </div>
     </div>
 
@@ -5291,14 +5346,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <!-- Integrated Action Dock inside the capsule -->
           <div class="capsule-bottom-bar">
             <div class="capsule-tools-left">
-              <button class="capsule-tool-btn" aria-label="Attach or paste an image" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
-              <button class="capsule-tool-btn btn-translit-pill" id="btn-translit" aria-label="Toggle Indic phonetic typing" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
-              <button class="capsule-tool-btn btn-mic-pill" id="btn-mic" aria-label="Voice input" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
-              <button class="capsule-tool-btn btn-wand-pill" id="btn-wand" aria-label="Improve prompt with AI" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
-              <span id="prompt-token-estimate" class="token-live-chip" role="button" tabindex="0" aria-label="Open token estimate" onclick="openTokenizerModal()" title="Click to open Interactive Tokenizer & BPE Visualizer Lab">0 chars • ~0 tok</span>
+              <button type="button" class="capsule-tool-btn" aria-label="Attach or paste an image" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
+              <button type="button" class="capsule-tool-btn btn-translit-pill" id="btn-translit" aria-label="Toggle Indic phonetic typing" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
+              <button type="button" class="capsule-tool-btn btn-mic-pill" id="btn-mic" aria-label="Voice input" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
+              <button type="button" class="capsule-tool-btn btn-wand-pill" id="btn-wand" aria-label="Improve prompt with AI" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
+              <button type="button" id="prompt-token-estimate" class="token-live-chip" aria-label="Open token estimate" onclick="openTokenizerModal()" title="Click to open Interactive Tokenizer & BPE Visualizer Lab">0 chars • ~0 tok</button>
             </div>
             <div class="capsule-tools-right">
-              <button class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
+              <button type="button" class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
                 <span id="send-btn-label">Send</span>
                 <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
               </button>
@@ -5330,16 +5385,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   </section>
 
   <!-- Right Drop-in Integration Studio -->
-  <aside class="sidebar-panel right collapsed" id="sidebar-right">
+  <aside class="sidebar-panel right collapsed" id="sidebar-right" aria-hidden="true" inert>
     <div class="panel-header">
       <span id="right-panel-title">Drop-in Integration</span>
-      <button class="btn-pill-subtle" id="right-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
+      <button type="button" class="btn-pill-subtle" id="right-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
     </div>
 
     <div class="code-card-box">
       <div class="code-card-header">
         <span id="code-python-title">Python SDK</span>
-        <button class="btn-pill-subtle" id="code-python-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
+        <button type="button" class="btn-pill-subtle" id="code-python-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-python')">Copy</button>
       </div>
       <div class="code-card-body" id="code-python"></div>
     </div>
@@ -5347,7 +5402,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     <div class="code-card-box">
       <div class="code-card-header">
         <span id="code-claude-title">Claude Code CLI</span>
-        <button class="btn-pill-subtle" id="code-claude-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
+        <button type="button" class="btn-pill-subtle" id="code-claude-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-claude')">Copy</button>
       </div>
       <div class="code-card-body" id="code-claude"></div>
     </div>
@@ -5355,7 +5410,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     <div class="code-card-box">
       <div class="code-card-header">
         <span id="code-curl-title">cURL Stream</span>
-        <button class="btn-pill-subtle" id="code-curl-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
+        <button type="button" class="btn-pill-subtle" id="code-curl-copy" style="padding:0 8px; height:22px; font-size:0.65rem;" onclick="copySnippet('code-curl')">Copy</button>
       </div>
       <div class="code-card-body" id="code-curl"></div>
     </div>
@@ -6662,6 +6717,7 @@ function setSidebarState(side, isOpen) {
   const panel = document.getElementById('sidebar-' + side);
   const btn = document.getElementById('btn-toggle-' + side);
   const backdrop = document.getElementById('drawer-backdrop');
+  if (!panel) return;
   
   if (isOpen) {
     panel.classList.remove('collapsed');
@@ -6672,6 +6728,10 @@ function setSidebarState(side, isOpen) {
     if (btn) btn.classList.remove('active');
     localStorage.setItem(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "false");
   }
+
+  panel.setAttribute("aria-hidden", isOpen ? "false" : "true");
+  panel.toggleAttribute("inert", !isOpen);
+  if (btn) btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
 
   // Mobile drawer overlay management
   if (window.innerWidth <= 1080) {
@@ -7485,7 +7545,7 @@ function trapManagedModalFocus(e, modal) {
 function activateKeyboardButton(e) {
   if (e.key !== 'Enter' && e.key !== ' ') return false;
   const target = e.target && e.target.closest
-    ? e.target.closest('.brand-anchor, .inline-help-trigger, .token-pill, .starter-card, .active-model-chip, #prompt-token-estimate, .thought-card-header')
+    ? e.target.closest('.inline-help-trigger, .token-pill, .thought-card-header')
     : null;
   if (!target) return false;
   e.preventDefault();
@@ -8460,8 +8520,8 @@ function openArtifactCanvas(artId) {
       <span id="py-status-text">Initializing CPython 3.11 WASM Sandbox...</span>
     </div>
     <div class="py-actions">
-      <button class="py-btn btn-run" id="btn-run-code" onclick="runPythonCode()">▶ Run Script</button>
-      <button class="py-btn" onclick="clearTerminal()">↺ Clear</button>
+      <button type="button" class="py-btn btn-run" id="btn-run-code" onclick="runPythonCode()">▶ Run Script</button>
+      <button type="button" class="py-btn" onclick="clearTerminal()">↺ Clear</button>
     </div>
   </div>
 
@@ -8810,7 +8870,7 @@ if (window.marked) {
       }
     }
 
-    return `${artifactChip}<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns">${canvasBtn}<button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-code" data-lang="${escapeHtml(langLabel)}">💾 Save</button><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="copy-code">📋 Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
+    return `${artifactChip}<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns">${canvasBtn}<button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-code" data-lang="${escapeHtml(langLabel)}">💾 Save</button><button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="copy-code">📋 Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
 
   customRenderer.image = function(href, title, text) {
@@ -8819,7 +8879,7 @@ if (window.marked) {
     let rawText = typeof href === 'object' && href !== null ? (href.text || '') : (text || '');
     const cleanAlt = escapeHtml(rawText || rawTitle || 'Image Reference');
     const safeHref = escapeHtml(rawHref);
-    return `<div class="assistant-image-card"><img src="${safeHref}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-image">💾 Save</button></div></div>`;
+    return `<div class="assistant-image-card"><img src="${safeHref}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-image">💾 Save</button></div></div>`;
   };
 
   customRenderer.table = function(header, body) {
@@ -9476,7 +9536,7 @@ function renderGlossaryCards() {
           </div>
         </div>
         <div style="display:flex; justify-content:flex-end;">
-          <button class="btn-pill-primary-action" onclick="askTeacher('${item.key}')" style="padding:4px 10px; font-size:0.72rem; border-radius:6px;">
+          <button type="button" class="btn-pill-primary-action" onclick="askTeacher('${item.key}')" style="padding:4px 10px; font-size:0.72rem; border-radius:6px;">
             <span>${askBtnText}</span>
           </button>
         </div>
@@ -10323,8 +10383,8 @@ function openEditUserMessage(idx) {
     <div class="inline-edit-container">
       <textarea class="inline-edit-textarea" id="inline-edit-input-${idx}">${escapeHtml(text)}</textarea>
       <div class="inline-edit-actions">
-        <button class="btn-pill-subtle" onclick="cancelEditUserMessage()" style="padding:4px 12px; font-size:0.75rem;">Cancel</button>
-        <button class="btn-pill-action" onclick="saveAndSubmitEdit(${idx})" style="padding:4px 14px; font-size:0.75rem; font-weight:700;">Save & Submit</button>
+        <button type="button" class="btn-pill-subtle" onclick="cancelEditUserMessage()" style="padding:4px 12px; font-size:0.75rem;">Cancel</button>
+        <button type="button" class="btn-pill-action" onclick="saveAndSubmitEdit(${idx})" style="padding:4px 14px; font-size:0.75rem; font-weight:700;">Save & Submit</button>
       </div>
     </div>
   `;
@@ -11028,26 +11088,26 @@ function renderMessages() {
         </div>
       </div>
       <div class="starters-grid">
-        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('snake')">
-          <div class="badge-chip"><span class="mini-orb">🎮</span><span>${ui.starterCards.snake[0]}</span></div>
-          <div class="starter-card-title">${ui.starterCards.snake[1]}</div>
-          <div class="starter-card-desc">${ui.starterCards.snake[2]}</div>
-        </div>
-        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('py_finance')">
-          <div class="badge-chip"><span class="mini-orb">🐍</span><span>${ui.starterCards.py_finance[0]}</span></div>
-          <div class="starter-card-title">${ui.starterCards.py_finance[1]}</div>
-          <div class="starter-card-desc">${ui.starterCards.py_finance[2]}</div>
-        </div>
-        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('orbit')">
-          <div class="badge-chip"><span class="mini-orb">🪐</span><span>${ui.starterCards.orbit[0]}</span></div>
-          <div class="starter-card-title">${ui.starterCards.orbit[1]}</div>
-          <div class="starter-card-desc">${ui.starterCards.orbit[2]}</div>
-        </div>
-        <div class="starter-card" role="button" tabindex="0" onclick="selectStarter('grader')">
-          <div class="badge-chip"><span class="mini-orb">🎓</span><span>${ui.starterCards.grader[0]}</span></div>
-          <div class="starter-card-title">${ui.starterCards.grader[1]}</div>
-          <div class="starter-card-desc">${ui.starterCards.grader[2]}</div>
-        </div>
+        <button type="button" class="starter-card" onclick="selectStarter('snake')">
+          <span class="badge-chip"><span class="mini-orb">🎮</span><span>${ui.starterCards.snake[0]}</span></span>
+          <span class="starter-card-title">${ui.starterCards.snake[1]}</span>
+          <span class="starter-card-desc">${ui.starterCards.snake[2]}</span>
+        </button>
+        <button type="button" class="starter-card" onclick="selectStarter('py_finance')">
+          <span class="badge-chip"><span class="mini-orb">🐍</span><span>${ui.starterCards.py_finance[0]}</span></span>
+          <span class="starter-card-title">${ui.starterCards.py_finance[1]}</span>
+          <span class="starter-card-desc">${ui.starterCards.py_finance[2]}</span>
+        </button>
+        <button type="button" class="starter-card" onclick="selectStarter('orbit')">
+          <span class="badge-chip"><span class="mini-orb">🪐</span><span>${ui.starterCards.orbit[0]}</span></span>
+          <span class="starter-card-title">${ui.starterCards.orbit[1]}</span>
+          <span class="starter-card-desc">${ui.starterCards.orbit[2]}</span>
+        </button>
+        <button type="button" class="starter-card" onclick="selectStarter('grader')">
+          <span class="badge-chip"><span class="mini-orb">🎓</span><span>${ui.starterCards.grader[0]}</span></span>
+          <span class="starter-card-title">${ui.starterCards.grader[1]}</span>
+          <span class="starter-card-desc">${ui.starterCards.grader[2]}</span>
+        </button>
       </div>
     `;
     content.appendChild(welcome);
@@ -11090,7 +11150,7 @@ function renderMessages() {
         }
       }
 
-      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(userText || "Prompt")}</div><button class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${i})" title="Edit prompt and re-run from here">✏️</button>`;
+      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(userText || "Prompt")}</div><button type="button" class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${i})" title="Edit prompt and re-run from here">✏️</button>`;
       content.appendChild(userDiv);
     } else {
       const asstText = getSafeMessageContent(m.content);
@@ -11132,8 +11192,8 @@ function renderMessages() {
           <span class="story-meta-stats">${inputStr}Out: ~${estTokens.toLocaleString()} tok • Total: ~${totalTokens.toLocaleString()} tok${tpsStr}</span>
         </div>
         <div class="story-header-actions">
-          <button class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
-          <button class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
+          <button type="button" class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
+          <button type="button" class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
         </div>
       `;
       storyDiv.appendChild(header);
@@ -11165,11 +11225,11 @@ function renderMessages() {
       footer.className = "story-card-footer";
       footer.innerHTML = `
         <div class="story-footer-actions">
-          <button class="story-footer-btn" onclick="copyMessageText(this)" title="${ui.copyMessage}"><span>📋</span> <span>${ui.copyMessage}</span></button>
-          <button class="story-footer-btn btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
-          <button class="story-footer-btn" onclick="retryWithModel('default', ${retryUserIndex})" title="Retry this response with the current model"><span>↻</span> <span>${ui.retry}</span></button>
-          <button class="story-footer-btn" onclick="retryWithModel('thinking', ${retryUserIndex})" title="Retry this response with Deep Thinking (@think=0)"><span>🧠</span> <span>${ui.think}</span></button>
-          <button class="story-footer-btn" onclick="retryWithModel('flash', ${retryUserIndex})" title="Retry this response with Fast Flash (@think=4)"><span>⚡</span> <span>${ui.flash}</span></button>
+          <button type="button" class="story-footer-btn" onclick="copyMessageText(this)" title="${ui.copyMessage}"><span>📋</span> <span>${ui.copyMessage}</span></button>
+          <button type="button" class="story-footer-btn btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
+          <button type="button" class="story-footer-btn" onclick="retryWithModel('default', ${retryUserIndex})" title="Retry this response with the current model"><span>↻</span> <span>${ui.retry}</span></button>
+          <button type="button" class="story-footer-btn" onclick="retryWithModel('thinking', ${retryUserIndex})" title="Retry this response with Deep Thinking (@think=0)"><span>🧠</span> <span>${ui.think}</span></button>
+          <button type="button" class="story-footer-btn" onclick="retryWithModel('flash', ${retryUserIndex})" title="Retry this response with Fast Flash (@think=4)"><span>⚡</span> <span>${ui.flash}</span></button>
         </div>
         <div class="story-footer-stats">
           <span>${wordCount} words • ${inputStr}Out: ~${estTokens.toLocaleString()} tok • Total: ~${totalTokens.toLocaleString()} tok${tpsStr}</span>
@@ -11322,7 +11382,7 @@ async function sendMessage() {
     attachmentsHtml = renderUserAttachmentImage(attachedImgCopy.dataUrl, 'Attached user image');
   }
 
-      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(text || (attachedFilesCopy.length > 0 ? "Attached " + attachedFilesCopy.length + " file(s)" : "Please analyze this image."))}</div><button class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
+      userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(text || (attachedFilesCopy.length > 0 ? "Attached " + attachedFilesCopy.length + " file(s)" : "Please analyze this image."))}</div><button type="button" class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
   contentEl.appendChild(userDiv);
 
   let inputPromptTokens = 0;
@@ -11364,8 +11424,8 @@ async function sendMessage() {
         <span class="story-meta-stats" id="live-stream-stats">${inLiveStr}${ui.streaming}</span>
     </div>
     <div class="story-header-actions">
-      <button class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
-      <button class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
+      <button type="button" class="btn-pill-subtle btn-tts-action" aria-label="Listen to response" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span></button>
+      <button type="button" class="btn-pill-subtle" aria-label="Copy message" onclick="copyMessageText(this)" title="Copy message"><span>📋</span></button>
     </div>
   `;
   storyDiv.appendChild(header);
@@ -11384,11 +11444,11 @@ async function sendMessage() {
   footer.style.display = "none";
   footer.innerHTML = `
     <div class="story-footer-actions">
-      <button class="story-footer-btn" onclick="copyMessageText(this)" title="${ui.copyMessage}"><span>📋</span> <span>${ui.copyMessage}</span></button>
-      <button class="story-footer-btn btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
-      <button class="story-footer-btn" onclick="retryWithModel('default', ${msgIdx})" title="Retry this response with the current model"><span>↻</span> <span>${ui.retry}</span></button>
-      <button class="story-footer-btn" onclick="retryWithModel('thinking', ${msgIdx})" title="Retry this response with Deep Thinking (@think=0)"><span>🧠</span> <span>${ui.think}</span></button>
-      <button class="story-footer-btn" onclick="retryWithModel('flash', ${msgIdx})" title="Retry this response with Fast Flash (@think=4)"><span>⚡</span> <span>${ui.flash}</span></button>
+      <button type="button" class="story-footer-btn" onclick="copyMessageText(this)" title="${ui.copyMessage}"><span>📋</span> <span>${ui.copyMessage}</span></button>
+      <button type="button" class="story-footer-btn btn-tts-action" onclick="toggleReadAloud(this)" title="Listen to response (TTS)"><span>🔊</span> <span>${ui.listen}</span></button>
+      <button type="button" class="story-footer-btn" onclick="retryWithModel('default', ${msgIdx})" title="Retry this response with the current model"><span>↻</span> <span>${ui.retry}</span></button>
+      <button type="button" class="story-footer-btn" onclick="retryWithModel('thinking', ${msgIdx})" title="Retry this response with Deep Thinking (@think=0)"><span>🧠</span> <span>${ui.think}</span></button>
+      <button type="button" class="story-footer-btn" onclick="retryWithModel('flash', ${msgIdx})" title="Retry this response with Fast Flash (@think=4)"><span>⚡</span> <span>${ui.flash}</span></button>
     </div>
     <div class="story-footer-stats">
       <span class="story-footer-token-stats">~0 tokens</span>

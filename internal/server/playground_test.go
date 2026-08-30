@@ -818,11 +818,11 @@ func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
 		`function enhanceCommandPaletteAccessibility()`,
 		`list.setAttribute("role", "listbox");`,
 		`aria-activedescendant`,
-		`class="brand-anchor" role="button" tabindex="0"`,
+		`<button type="button" class="brand-anchor"`,
 		`class="inline-help-trigger" role="button" tabindex="0"`,
 		`class="token-pill" role="button" tabindex="0"`,
-		`class="active-model-chip" role="button" tabindex="0" aria-label="Change model"`,
-		`id="prompt-token-estimate" class="token-live-chip" role="button" tabindex="0"`,
+		`<button type="button" class="active-model-chip"`,
+		`<button type="button" id="prompt-token-estimate"`,
 		`aria-labelledby="about-modal-title"`,
 		`id="about-modal-title"`,
 		`id="local-onboard-modal" class="dialog-backdrop open" role="dialog" aria-modal="true"`,
@@ -883,6 +883,62 @@ func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
 	}
 	if strings.Contains(html[aboutStart:aboutStart+aboutEnd], `e.key === 'Escape' || e.key === 'Enter'`) {
 		t.Fatal("pressing Enter inside the About dialog must not dismiss it")
+	}
+}
+
+func TestPlaygroundUsesNativeControlAndDrawerSemantics(t *testing.T) {
+	html := string(playgroundHTML)
+
+	buttonPattern := regexp.MustCompile(`(?s)<button\b[^>]*>`)
+	for _, openingTag := range buttonPattern.FindAllString(html, -1) {
+		if !strings.Contains(openingTag, `type="button"`) {
+			t.Errorf("button is missing an explicit non-submit type: %s", openingTag)
+		}
+	}
+
+	for _, marker := range []string{
+		`<a class="skip-link" href="#user-input">Skip to prompt</a>`,
+		`id="theme-selector" aria-label="Color theme"`,
+		`id="lang-selector" aria-label="UI language"`,
+		`id="btn-toggle-left" aria-controls="sidebar-left" aria-expanded="false"`,
+		`id="btn-toggle-right" aria-controls="sidebar-right" aria-expanded="false"`,
+		`id="sidebar-left" aria-hidden="true" inert`,
+		`id="sidebar-right" aria-hidden="true" inert`,
+		`id="instr-modal-title"`,
+		`aria-labelledby="instr-modal-title"`,
+		`id="cmd-modal-title"`,
+		`aria-labelledby="cmd-modal-title"`,
+		`panel.setAttribute("aria-hidden", isOpen ? "false" : "true")`,
+		`panel.toggleAttribute("inert", !isOpen)`,
+		`btn.setAttribute("aria-expanded", isOpen ? "true" : "false")`,
+		`--bg-hover: var(--bg-card-hover);`,
+		`--bg-main: var(--bg-app);`,
+		`max-height: min(90dvh, calc(100dvh - 32px));`,
+		`min-height: 44px;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing native-control or responsive-semantics marker %q", marker)
+		}
+	}
+
+	for _, marker := range []string{
+		`<button type="button" class="brand-anchor"`,
+		`<button type="button" class="active-model-chip"`,
+		`<button type="button" class="starter-card"`,
+		`<button type="button" id="prompt-token-estimate"`,
+		`<button type="button" class="artifact-side-rail left"`,
+		`<button type="button" class="artifact-side-rail right"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("click-only core control was not promoted to a native button: %q", marker)
+		}
+	}
+
+	if strings.Contains(html, `class="brand-anchor" role="button"`) ||
+		strings.Contains(html, `class="active-model-chip" role="button"`) ||
+		strings.Contains(html, `class="starter-card" role="button"`) ||
+		strings.Contains(html, `class="token-live-chip" role="button"`) {
+		t.Fatal("core click-only controls still rely on generic role=button semantics")
 	}
 }
 
