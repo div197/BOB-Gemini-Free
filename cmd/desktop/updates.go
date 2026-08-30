@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	cryptorand "crypto/rand"
+	"encoding/binary"
 	"fmt"
 	"log"
 	"time"
@@ -13,11 +15,33 @@ import (
 
 const (
 	// A short startup delay keeps an update check from competing with the
-	// gateway/bootstrap path. The long interval avoids turning a classroom
-	// fleet restart into a burst of GitHub API traffic.
+	// gateway/bootstrap path. Per-process jitter spreads a classroom fleet's
+	// metadata requests without changing provider routing or update consent.
 	desktopAutoUpdateInitialDelay = 30 * time.Second
 	desktopAutoUpdateInterval     = 24 * time.Hour
+	desktopAutoUpdateMaxJitter    = 5 * time.Minute
 )
+
+var desktopAutoUpdateJitterFn = randomDesktopAutoUpdateJitter
+
+func randomDesktopAutoUpdateJitter() time.Duration {
+	var raw [8]byte
+	if _, err := cryptorand.Read(raw[:]); err != nil {
+		return 0
+	}
+	return time.Duration(binary.BigEndian.Uint64(raw[:]) % (uint64(desktopAutoUpdateMaxJitter) + 1))
+}
+
+func desktopAutoUpdateInitialWait() time.Duration {
+	jitter := desktopAutoUpdateJitterFn()
+	if jitter < 0 {
+		jitter = 0
+	}
+	if jitter > desktopAutoUpdateMaxJitter {
+		jitter = desktopAutoUpdateMaxJitter
+	}
+	return desktopAutoUpdateInitialDelay + jitter
+}
 
 func desktopUpdateChecksEnabled() bool {
 	if !updater.IsDesktopVersionCheckable(desktopVersion) {
@@ -43,7 +67,7 @@ func (a *App) startAutomaticDesktopUpdateChecks(ctx context.Context) {
 	a.updateMu.Unlock()
 
 	go func() {
-		initialTimer := time.NewTimer(desktopAutoUpdateInitialDelay)
+		initialTimer := time.NewTimer(desktopAutoUpdateInitialWait())
 		defer initialTimer.Stop()
 		select {
 		case <-updateCtx.Done():
