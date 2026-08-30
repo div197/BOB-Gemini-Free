@@ -159,7 +159,7 @@ func TestStreamFlightReportsSlowSubscriberInsteadOfDropping(t *testing.T) {
 		})
 	}()
 
-	waitForFlightSubscriber(t, flight, key)
+	waitForFlightSubscriberCount(t, flight, key, 2)
 	close(startEmitting)
 
 	select {
