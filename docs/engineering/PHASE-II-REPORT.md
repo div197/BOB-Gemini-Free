@@ -665,6 +665,14 @@ from crafted local history. `TestPersistedAttachmentIconsAreEscapedBeforeHistory
 and `TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls` protect the
 boundary.
 
+### Studio gateway-recovery follow-up — 2026-08-31
+
+Generation error copy used `javascript:void(0)` anchors for the Config
+recovery action. Those affordances are now real named buttons routed through
+the existing delegated action handler, preserving keyboard behavior and
+keeping failure UI free of executable URL schemes. `TestErrorRecoveryConfigActionsAvoidJavaScriptURLs`
+protects the construction.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -676,7 +684,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `4f151cd`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `e6ca945`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and

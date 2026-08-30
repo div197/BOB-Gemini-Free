@@ -13,10 +13,11 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `2adf914`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `e6ca945`, ahead of `origin/main`; the
   branch also contains subsequent audit-documentation commits.
 - The current branch contains the later 100-path hardening follow-ups,
-  including nil-safe server and Gemini-client optional logging, but those
+  including nil-safe server and Gemini-client optional logging, accessible
+  attachment/image controls, and JavaScript-URL-free gateway recovery, but those
   commits are not merged into `main`.
 - No stable `v0.2.0` tag or release was created here, and no GitHub Actions
   workflow was added or run.
