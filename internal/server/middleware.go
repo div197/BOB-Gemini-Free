@@ -38,8 +38,8 @@ func authorize(r *http.Request, apiKeys []string, allowQueryAPIKey bool) bool {
 	}
 
 	authHeader := r.Header.Get("Authorization")
-	if strings.HasPrefix(authHeader, "Bearer ") {
-		token := authHeader[7:]
+	if len(authHeader) >= len("Bearer ") && strings.EqualFold(authHeader[:len("Bearer ")], "Bearer ") {
+		token := authHeader[len("Bearer "):]
 		for _, key := range apiKeys {
 			if subtle.ConstantTimeCompare([]byte(token), []byte(key)) == 1 {
 				return true

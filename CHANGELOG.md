@@ -143,6 +143,8 @@ This remains an ad-hoc-signed, non-notarized controlled preview. Stable
 ### The Sovereign World Gateway source milestone
 
 #### Added
+- Accept case-insensitive HTTP `Bearer` authentication schemes for gateway
+  API-key clients, with a regression test for lower-case client implementations.
 - **Mobile Engine & In-Process Gateway Bridge (`pkg/mobile`)**:
   - Added an experimental Go bridge substrate for future mobile bindings; no native Android/iOS application, AAR, or XCFramework is shipped by this repository.
   - The current bridge starts a local HTTP listener and uses the existing Google web upstream; it is not an in-process, zero-socket, zero-latency mobile runtime.

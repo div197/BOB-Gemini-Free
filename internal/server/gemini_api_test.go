@@ -205,6 +205,134 @@ func TestDeveloperAPIKeyValidationDoesNotEchoCredential(t *testing.T) {
 	}
 }
 
+func TestCredentialRoutingMatrixKeepsGatewayAndProviderKeysSeparate(t *testing.T) {
+	const (
+		localKey    = "local-gateway-key"
+		providerKey = "test-provider-key"
+	)
+
+	tests := []struct {
+		name             string
+		path             string
+		body             string
+		gatewayAuth      string
+		configuredKey    string
+		requestProvider  bool
+		wantStatus       int
+		wantProviderCall bool
+		wantUnsupported  bool
+	}{
+		{
+			name:             "chat explicit provider with local gateway auth",
+			path:             "/v1/chat/completions",
+			body:             `{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`,
+			gatewayAuth:      localKey,
+			requestProvider:  true,
+			wantStatus:       http.StatusOK,
+			wantProviderCall: true,
+		},
+		{
+			name:             "native Google explicit provider with local gateway auth",
+			path:             "/v1beta/models/gemini-3.7-flash:generateContent",
+			body:             `{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`,
+			gatewayAuth:      localKey,
+			requestProvider:  true,
+			wantStatus:       http.StatusOK,
+			wantProviderCall: true,
+		},
+		{
+			name:            "anthropic rejects explicit provider",
+			path:            "/v1/messages",
+			body:            `{"model":"claude-3-7-sonnet","messages":[]}`,
+			gatewayAuth:     localKey,
+			requestProvider: true,
+			wantStatus:      http.StatusBadRequest,
+			wantUnsupported: true,
+		},
+		{
+			name:            "responses rejects explicit provider",
+			path:            "/v1/responses",
+			body:            `{"model":"gpt-5.6-sol","input":"hello"}`,
+			gatewayAuth:     localKey,
+			requestProvider: true,
+			wantStatus:      http.StatusBadRequest,
+			wantUnsupported: true,
+		},
+		{
+			name:            "images rejects explicit provider",
+			path:            "/v1/images/generations",
+			body:            `{"prompt":"draw a lotus"}`,
+			gatewayAuth:     localKey,
+			requestProvider: true,
+			wantStatus:      http.StatusBadRequest,
+			wantUnsupported: true,
+		},
+		{
+			name:             "configured provider key selects direct chat route",
+			path:             "/v1/chat/completions",
+			body:             `{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`,
+			gatewayAuth:      localKey,
+			configuredKey:    providerKey,
+			wantStatus:       http.StatusOK,
+			wantProviderCall: true,
+		},
+		{
+			name:            "provider key alone cannot satisfy gateway auth",
+			path:            "/v1/chat/completions",
+			body:            `{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`,
+			gatewayAuth:     "",
+			requestProvider: true,
+			wantStatus:      http.StatusUnauthorized,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			cfg := config.Default()
+			cfg.APIKeys = []string{localKey}
+			cfg.GeminiAPIKey = tt.configuredKey
+			app := New(cfg, "test-version")
+			providerCalls := 0
+			var upstreamKey string
+			app.GeminiAPI.HTTP = &http.Client{Transport: developerRoundTripFunc(func(req *http.Request) (*http.Response, error) {
+				providerCalls++
+				upstreamKey = req.Header.Get("x-goog-api-key")
+				return developerResponse(http.StatusOK, "application/json", `{"candidates":[{"content":{"parts":[{"text":"provider response"}]}}]}`), nil
+			})}
+			app.GeminiAPI.BaseURL = "https://provider.test"
+
+			req := httptest.NewRequest(http.MethodPost, tt.path, strings.NewReader(tt.body))
+			if tt.gatewayAuth != "" {
+				req.Header.Set("Authorization", "Bearer "+tt.gatewayAuth)
+			}
+			if tt.requestProvider {
+				req.Header.Set(geminiProviderKeyHeader, providerKey)
+			}
+			rec := httptest.NewRecorder()
+			app.Handler().ServeHTTP(rec, req)
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+			}
+			if got := providerCalls > 0; got != tt.wantProviderCall {
+				t.Fatalf("provider call = %v, want %v; calls=%d", got, tt.wantProviderCall, providerCalls)
+			}
+			if tt.wantProviderCall && upstreamKey != providerKey {
+				t.Fatalf("upstream provider key = %q, want %q", upstreamKey, providerKey)
+			}
+			if !tt.wantProviderCall && upstreamKey != "" {
+				t.Fatalf("unexpected upstream provider key = %q", upstreamKey)
+			}
+			if tt.wantUnsupported && !strings.Contains(rec.Body.String(), "not supported on") {
+				t.Fatalf("unsupported provider route did not return sanitized error: %s", rec.Body.String())
+			}
+			if strings.Contains(rec.Body.String(), providerKey) {
+				t.Fatalf("provider key leaked in response: %s", rec.Body.String())
+			}
+		})
+	}
+}
+
 func TestGoogleDeveloperAPIRouteForwardsNativeJSON(t *testing.T) {
 	var gotURL string
 	provider := &http.Client{Transport: developerRoundTripFunc(func(req *http.Request) (*http.Response, error) {

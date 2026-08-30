@@ -248,6 +248,21 @@ func TestAuthMatrix(t *testing.T) {
 	}
 }
 
+func TestAuthBearerSchemeIsCaseInsensitive(t *testing.T) {
+	cfg := config.Default()
+	cfg.APIKeys = []string{"sk-secret-key"}
+	app := New(cfg, "test-version")
+
+	req := httptest.NewRequest(http.MethodGet, "/v1/models", nil)
+	req.Header.Set("Authorization", "bearer sk-secret-key")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("lowercase Bearer scheme status = %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestQueryAPIKeyCompatibilityIsExplicitlyOptIn(t *testing.T) {
 	cfg := config.Default()
 	cfg.APIKeys = []string{"sk-secret-key"}
