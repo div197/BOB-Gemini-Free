@@ -13,7 +13,7 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `e6ca945`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `77032e2`, ahead of `origin/main`; the
   branch also contains subsequent audit-documentation commits.
 - The current branch contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
@@ -120,7 +120,9 @@ The public GitHub state was also checked:
   merge commit `c5fa74f`;
 - the release-source coherence, installer trust-anchor, and session-only
   gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
-  #38; current `origin/main` is `f3a0a8c`;
+  #38; that historical snapshot recorded `origin/main` as `f3a0a8c`; the
+  current authoritative `origin/main` is `523ceeb` (PR #41, which contains
+  those earlier merge ancestors);
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
@@ -299,7 +301,7 @@ artifacts or measurements:
 Until those gates are complete, the truthful label is **release candidate under
 controlled validation**, not “fully ready” or “automatic rollout completed.”
 
-## Publication refresh — 2026-08-31
+## Publication refresh — 2026-08-31 (historical source record)
 
 Protected PR [#40](https://github.com/div197/BOB-Gemini-Free/pull/40) merged the
 CLI updater asset-selection hardening into `main` at `a80f08d`. The updater now
@@ -309,4 +311,5 @@ selection already used exact branded/legacy migration names. Focused, full,
 race, vet, module, build, and release-source checks passed. This closes a
 locally testable selector ambiguity; it does not prove public asset completeness,
 signed stable publication, platform trust, or installed-device update
-acceptance.
+acceptance. The current authoritative remote main ref is `523ceeb`; use the
+repository refresh at the top of this document for present-state decisions.
