@@ -652,6 +652,19 @@ removing an avoidable local-history injection boundary.
 `TestAttachmentControlsDoNotEmbedUntrustedIDsInInlineJavaScript` protects the
 construction and rejects the old handlers.
 
+### Studio attachment-image follow-up — 2026-08-31
+
+The same history/rendering path also allowed persisted attachment icons to be
+inserted as raw HTML and made image thumbnails pointer-only inline handlers.
+Attachment icons are now escaped before HTML insertion. Image previews are
+keyboard/touch buttons backed by a delegated action, accept only bounded
+base64 raster data URLs, use `noopener,noreferrer` for the preview window, and
+show an explicit unavailable state for unsupported formats. This preserves
+normal PNG/JPEG/WebP-style previews while avoiding active SVG/data navigation
+from crafted local history. `TestPersistedAttachmentIconsAreEscapedBeforeHistoryHTML`
+and `TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls` protect the
+boundary.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -663,7 +676,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `2adf914`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `4f151cd`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and

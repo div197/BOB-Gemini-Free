@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `2adf914` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `4f151cd` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -114,6 +114,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Required safe transport for provider keys | Loopback HTTP remains available for the local gateway, while non-loopback endpoints require an explicit save and HTTPS; native context no longer bypasses that transport rule. | `internal/server/playground.html:6323-6348`; `TestDeveloperAPIRouteRequiresSafeGatewayTransport` |
 | Preserved gateway status after upstream responses | The Studio now marks the gateway online as soon as it receives an HTTP response and only shows it offline when the request fails before a response; provider/HTTP/stream errors no longer erase accurate local connectivity state. | `internal/server/playground.html:11168,11373-11376,11643`; `TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure` |
 | Removed inline attachment-ID handlers | Attachment preview/remove actions now use escaped data attributes and delegated listeners, so restored local-history IDs cannot become JavaScript source during shelf rendering; both controls have explicit button types and names. | `internal/server/playground.html:7582-7603,9800-9804`; `TestAttachmentControlsDoNotEmbedUntrustedIDsInInlineJavaScript` |
+| Escaped attachment metadata and hardened image previews | Persisted attachment icons are escaped before history HTML insertion. User image previews are now keyboard/touch buttons, accept only base64 raster data URLs, and present an explicit unavailable state for unsupported formats; preview navigation uses `noopener,noreferrer`. | `internal/server/playground.html:5448-5462,7634-7640,9911-9922,11054-11298`; `TestPersistedAttachmentIconsAreEscapedBeforeHistoryHTML`, `TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls` |
 
 The design audit deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
@@ -271,12 +272,12 @@ stored in this document or source change.
 Changed:
 
 - `internal/server/playground.html` — L1 accessibility, modal, keyboard,
-  reduced-motion, onboarding, contrast-token, attachment-dispatch, and
-  duplicate-handler corrections.
+  reduced-motion, onboarding, contrast-token, attachment-dispatch, image
+  preview, and duplicate-handler corrections.
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, single-dispatch attachment, clipboard failure-safety, Markdown
   link-protocol, artifact-action, and Developer API route-state regression
-  tests.
+  tests, including persisted-attachment and image-preview boundaries.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
   error classification.
 - `internal/updater/desktop_stage_test.go` — read-only and permission-denied
