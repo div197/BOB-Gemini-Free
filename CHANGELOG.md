@@ -60,6 +60,11 @@ to an earlier implementation. The current contract supersedes those phrases:
   rate-limit guidance. The browser keeps the provider key in memory for the
   current page session only; it does not persist or include it in telemetry,
   health checks, update checks, logs, or release assets.
+- Added the same page-session boundary to optional BOB gateway authentication:
+  gateway tokens are no longer persisted in browser storage, and the legacy
+  `bob_api_key` storage entry is purged on page load. Protected gateway users
+  must re-enter the token after a reload, preventing shared classroom devices
+  from retaining a reusable credential.
 - Added deterministic transport, translation, SSE, routing, tool-call,
   configuration, and secret-redaction tests without using a live Google account.
 - Release-source preflight now derives and verifies the Bash installer's

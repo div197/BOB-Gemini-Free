@@ -233,6 +233,12 @@ student explicitly saves a local or trusted gateway endpoint. Do not enter a
 provider key into a public demo whose gateway ownership and transport are not
 known.
 
+If a gateway has optional BOB API-key protection enabled, its separate
+gateway-auth token is also held only in the current page session and must be
+entered again after a reload. BOB does not persist either credential in browser
+storage; browser storage is reserved for explicit UI preferences and bounded
+chat history.
+
 The direct route forwards provider-shaped `gemini-*` model IDs (including
 future IDs) for native Google `generateContent` and streaming routes. The two
 documented local aliases `gemini-3.5-flash` and `gemini-flash` map to

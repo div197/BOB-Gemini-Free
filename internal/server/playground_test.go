@@ -31,6 +31,33 @@ func TestHostedStudioDoesNotProbeLoopbackOnStartup(t *testing.T) {
 	}
 }
 
+func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`let gatewayApiKey = "";`,
+		`const LEGACY_GATEWAY_KEY_STORAGE_KEY = "bob_api_key";`,
+		`localStorage.removeItem(LEGACY_GATEWAY_KEY_STORAGE_KEY);`,
+		`if (keyInput) keyInput.value = gatewayApiKey;`,
+		`gatewayApiKey = clean;`,
+		`const apiKey = gatewayApiKey;`,
+		`gatewayApiKey = "";`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing session-only gateway-auth marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`localStorage.setItem('bob_api_key'`,
+		`localStorage.getItem('bob_api_key'`,
+		`localStorage.setItem("bob_api_key"`,
+		`localStorage.getItem("bob_api_key"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("gateway auth key is persisted or restored from localStorage: %q", forbidden)
+		}
+	}
+}
+
 func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	html := string(playgroundHTML)
 	functionStart := strings.Index(html, "async function sendMessage()")
