@@ -25,7 +25,10 @@ that stable-first behavior and checks only the preview listing. The updater:
 
 - contacts the fixed official GitHub release API after the user selects
   **Help → Check for Updates**, or through one delayed and once-daily
-  background metadata check while a published desktop build is running;
+  background metadata check while a published desktop build is running; the
+  first background check waits 30 seconds plus a per-process random jitter of
+  up to five minutes so a classroom restart does not synchronize every
+  metadata request;
 - selects the newer stable package, or the highest published `preview.N`
   package when no stable update exists, for the current platform;
 - verifies the embedded Ed25519 public key, `SHA256SUMS`, signature, asset name,

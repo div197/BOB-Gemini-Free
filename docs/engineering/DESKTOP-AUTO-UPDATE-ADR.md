@@ -47,6 +47,11 @@ Build a user-consented, transaction-based native updater in these stages:
    backup and leave a human-readable failure record. The manual GitHub release
    path remains available at every stage.
 
+The native background metadata check waits 30 seconds after startup plus a
+per-process random jitter capped at five minutes, and then runs at most once
+per day. This spreads release metadata traffic from a classroom restart while
+keeping the check non-installing and user-consented.
+
 ## Trust model
 
 - The GitHub API URL, release URL, and asset hosts are fixed in source.

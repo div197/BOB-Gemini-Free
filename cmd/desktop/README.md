@@ -70,8 +70,10 @@ are recorded in
 The native Help menu provides an explicit update check against the official
 GitHub release metadata. A desktop build produced from the current source also
 performs a low-frequency background metadata check after startup and at most
-once per day while it remains open. The check can present the same update
-dialog, but it never silently downloads, replaces, or restarts the running app.
+once per day while it remains open. Its first check waits 30 seconds plus a
+bounded per-process jitter of up to five minutes to avoid synchronized
+classroom bursts. The check can present the same update dialog, but it never
+silently downloads, replaces, or restarts the running app.
 Already-published binaries keep the behavior compiled into that release. The public
 Preview 7 binary checks its preview channel; newly built current-source
 previews check stable first and can use a same-key bridge for existing Preview
