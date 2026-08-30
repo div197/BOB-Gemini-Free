@@ -511,6 +511,30 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 	}
 }
 
+func TestMarkdownLinksUseStrictProtocolWhitelist(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const SAFE_EXTERNAL_LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);`,
+		`function sanitizeMarkdownHref(rawHref)`,
+		`return SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol) ? href : "#";`,
+		`rawHref = sanitizeMarkdownHref(rawHref);`,
+		`SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing strict Markdown-link protocol marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`trimmedHref.startsWith('javascript:')`,
+		`trimmedHref.startsWith('vbscript:')`,
+		`trimmedHref.startsWith('data:text/html')`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("playground still relies on blacklist-only Markdown-link filtering %q", forbidden)
+		}
+	}
+}
+
 func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

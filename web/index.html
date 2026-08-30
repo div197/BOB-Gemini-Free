@@ -5348,9 +5348,27 @@ try {
 let geminiProviderKey = "";
 let useGeminiProvider = false;
 
+const SAFE_EXTERNAL_LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
+
+function sanitizeMarkdownHref(rawHref) {
+  const href = typeof rawHref === "string" ? rawHref.trim() : "";
+  if (!href) return "#";
+  if (href.startsWith("#")) return href;
+
+  let parsedURL;
+  try {
+    parsedURL = new URL(href, window.location.href);
+  } catch (_) {
+    return "#";
+  }
+
+  return SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol) ? href : "#";
+}
+
 // Native Wails WebViews do not reliably navigate target=_blank links. Route
-// real HTTP(S) links through the host's default browser when the Wails runtime
-// is present, while preserving ordinary new-tab behavior for hosted browsers.
+// allow-listed external links through the host's default browser when the
+// Wails runtime is present, while preserving ordinary new-tab behavior for
+// hosted browsers.
 function openExternalURL(rawURL) {
   let parsedURL;
   try {
@@ -5358,7 +5376,7 @@ function openExternalURL(rawURL) {
   } catch (_) {
     return false;
   }
-  if (parsedURL.protocol !== "http:" && parsedURL.protocol !== "https:") {
+  if (!SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol)) {
     return false;
   }
 
@@ -5382,7 +5400,7 @@ document.addEventListener("click", (event) => {
   }
 
   const opensExternally = target.target === "_blank" || linkURL.origin !== window.location.origin;
-  if (!opensExternally || (linkURL.protocol !== "http:" && linkURL.protocol !== "https:")) return;
+  if (!opensExternally || !SAFE_EXTERNAL_LINK_PROTOCOLS.has(linkURL.protocol)) return;
 
   event.preventDefault();
   openExternalURL(linkURL.href);
@@ -8721,11 +8739,7 @@ if (window.marked) {
     let rawTitle = typeof href === 'object' && href !== null ? (href.title || '') : (title || '');
     let rawText = typeof href === 'object' && href !== null ? (href.text || '') : (text || '');
     
-    // Strict protocol whitelist: allow only http, https, mailto, tel, or hash links
-    const trimmedHref = (rawHref || '').trim().toLowerCase();
-    if (trimmedHref.startsWith('javascript:') || trimmedHref.startsWith('vbscript:') || trimmedHref.startsWith('data:text/html')) {
-      rawHref = '#';
-    }
+    rawHref = sanitizeMarkdownHref(rawHref);
     const titleAttr = rawTitle ? ` title="${escapeHtml(rawTitle)}"` : '';
     const safeHref = escapeHtml(rawHref);
     return `<a href="${safeHref}"${titleAttr} target="_blank" rel="noopener noreferrer">${rawText}</a>`;
