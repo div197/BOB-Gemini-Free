@@ -225,6 +225,24 @@ func TestArtifactRenderingHasBoundedSourceAndRegistryState(t *testing.T) {
 	}
 }
 
+func TestArtifactLaunchChipUsesOneKeyboardAction(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`<div class="artifact-card-chip" role="group"`,
+		`<button type="button" class="btn-launch-art"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("artifact launch chip is missing accessible-action marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `<div class="artifact-card-chip" data-action="launch-art"`) {
+		t.Fatal("artifact launch chip still exposes a duplicate click-only container action")
+	}
+	if strings.Contains(html, `<button class="btn-launch-art"`) {
+		t.Fatal("artifact launch button must declare an explicit button type")
+	}
+}
+
 func TestClipboardActionsHaveExplicitFailureState(t *testing.T) {
 	html := string(playgroundHTML)
 

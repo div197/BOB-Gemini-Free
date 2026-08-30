@@ -1974,14 +1974,11 @@ input[type="range"] {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  cursor: pointer;
-  transition: all 0.18s ease;
+  transition: background-color 0.18s ease, border-color 0.18s ease;
 }
 .artifact-card-chip:hover {
   background: var(--bg-card-hover);
   border-color: var(--accent-primary);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-main);
 }
 .artifact-chip-left {
   display: flex;
@@ -8687,31 +8684,31 @@ if (window.marked) {
     }
     const prismClass = cleanLang ? 'language-' + cleanLang : 'language-none';
     
-    const canvasBtn = interactive ? `<button class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
+    const canvasBtn = interactive ? `<button type="button" class="btn-canvas-pill" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="launch-art" data-art-id="${artId}">⚡ Canvas</button>` : '';
 
     let artifactChip = '';
     if (interactive) {
       if (meta.type === 'python') {
-        artifactChip = `<div class="artifact-card-chip" data-action="launch-art" data-art-id="${artId}">
+        artifactChip = `<div class="artifact-card-chip" role="group" aria-label="${escapeHtml(meta.title)}">
           <div class="artifact-chip-left">
             <span class="artifact-chip-icon">🐍</span>
             <div class="artifact-chip-info">
               <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
-              <span class="artifact-chip-sub">Python WebAssembly Sandbox • Click to run code live</span>
+              <span class="artifact-chip-sub">Python WebAssembly Sandbox • Run the code in a safe preview</span>
             </div>
           </div>
-          <button class="btn-launch-art" data-action="launch-art" data-art-id="${artId}">Run WASM ⚡</button>
+          <button type="button" class="btn-launch-art" data-action="launch-art" data-art-id="${artId}">Run WASM ⚡</button>
         </div>`;
       } else if (meta.type === 'html' || meta.type === 'svg') {
-        artifactChip = `<div class="artifact-card-chip" data-action="launch-art" data-art-id="${artId}">
+        artifactChip = `<div class="artifact-card-chip" role="group" aria-label="${escapeHtml(meta.title)}">
           <div class="artifact-chip-left">
             <span class="artifact-chip-icon">${meta.icon}</span>
             <div class="artifact-chip-info">
               <span class="artifact-chip-title">${escapeHtml(meta.title)}</span>
-              <span class="artifact-chip-sub">Live Interactive Web Application • Click to launch Canvas</span>
+              <span class="artifact-chip-sub">Live Interactive Web Application • Open the sandboxed Canvas</span>
             </div>
           </div>
-          <button class="btn-launch-art" data-action="launch-art" data-art-id="${artId}">Launch ⚡</button>
+          <button type="button" class="btn-launch-art" data-action="launch-art" data-art-id="${artId}">Launch ⚡</button>
         </div>`;
       }
     }
