@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `cbfd75e` on `codex/release-readiness-v0.2.0`
+**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `9ac2d87` on `codex/release-readiness-v0.2.0`
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -101,11 +101,15 @@ signals than the aspirational adjectives in the CSS comments.
 | Removed duplicate legacy attachment dispatch | A file drop no longer enters both the old unbounded `FileReader` path and the bounded universal extractor; one event now gets one bounded parse lifecycle. | `internal/server/playground.html:6221-6230`, `9477-9868`; `TestAttachmentParsingIsBoundedAndCancellable` |
 | Removed duplicate code-copy declaration | The Studio now has one authoritative `copyCode` implementation, preventing silent function shadowing in the monolithic script. | `internal/server/playground.html:10295-10302`; `TestPlaygroundHasOneCodeCopyHandler` |
 | Centralized clipboard writes with failure feedback | Restricted WebViews, `file://` contexts, denied permissions, and transient clipboard failures no longer produce silent exceptions or false success toasts; all Copy actions use one guarded helper. | `internal/server/playground.html:6524-6545`; `TestClipboardActionsHaveExplicitFailureState` |
+| Explained permission-denied desktop staging failures | A managed Mac or protected install location now receives recovery guidance to move BOB to a writable location or grant the current user access, instead of an opaque `permission denied` error. | `internal/updater/desktop_stage.go:173-181`; `TestDesktopStagingDirectoryErrorExplainsPermissionDeniedInstall` |
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 
-The L1 pass deliberately did not change the Gemini wire protocol, provider
+This pass deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
-sandbox permissions, updater behavior, or desktop packaging.
+sandbox permissions, updater selection or replacement semantics, or desktop
+packaging. The updater change is limited to the user-facing classification of
+permission-denied staging errors; real managed-device permissions remain an
+external acceptance gate.
 
 ## 5. L2 work: isolated redesigns that need browser evidence
 
@@ -259,6 +263,10 @@ Changed:
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, single-dispatch attachment, and clipboard failure-safety
   regression tests.
+- `internal/updater/desktop_stage.go` — actionable permission-denied staging
+  error classification.
+- `internal/updater/desktop_stage_test.go` — read-only and permission-denied
+  staging error regression tests.
 - `web/index.html` — generated static distribution synchronized by `make web`.
 - `docs/engineering/FAILURE-REGISTER-100.md` — refreshed branch/main evidence
   and the attachment failure-path status.
@@ -270,8 +278,9 @@ Deliberately untouched:
   streaming deduplication, thinking extraction, Scotty upload, and model-mode
   mapping.
 - OpenAI, Anthropic, and Google adapter wire formats.
-- Gateway CORS/PNA policy, provider routing, API-key handling, updater,
-  Wails/Tauri history, release assets, and GitHub publication state.
+- Gateway CORS/PNA policy, provider routing, API-key handling, updater
+  selection/replacement behavior, Wails/Tauri history, release assets, and
+  GitHub publication state.
 - Navigation model, feature removal, theme catalog, and component/build
   restructuring; these are L2/L3 decisions requiring evidence or explicit
   approval.
