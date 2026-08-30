@@ -15,6 +15,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/messages") {
 		return
 	}
+	a.observeRoute(routeAnthropicWebRPC)
 	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{

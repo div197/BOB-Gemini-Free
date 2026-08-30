@@ -171,9 +171,11 @@ defines the evidence required before revisiting the boundary.
 Added `internal/metrics` with bounded counters and latency histograms for
 requests, in-flight work, upstream attempts/errors/429s, stream retries,
 session-pool state/failovers, image uploads/cache, and estimated tokens.
-Authenticated `GET /v1/metrics` exposes safe aggregate JSON; `/` includes the
-same aggregate view; `/healthz` remains minimal. Metrics reset on restart and
-are never sent externally.
+Authenticated `GET /v1/metrics` exposes safe aggregate JSON, including a
+fixed-cardinality route breakdown for web-RPC versus the explicit Gemini
+Developer API path; `/` includes the same aggregate view; `/healthz` remains
+minimal. Metrics reset on restart and are never sent externally. Per-request
+capability correlation is deliberately not exposed.
 
 ### Mission 8 — Real benchmark baseline
 

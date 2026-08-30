@@ -37,6 +37,7 @@ func (a *App) handleRefine(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error":{"message":"Invalid JSON or missing 'prompt' field","type":"invalid_request_error"}}`, http.StatusBadRequest)
 		return
 	}
+	a.observeRoute(routeRefineWebRPC)
 
 	modelName := req.Model
 	if modelName == "" {

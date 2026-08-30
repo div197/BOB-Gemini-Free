@@ -52,9 +52,11 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if useDeveloperAPI {
+		a.observeRoute(routeGeminiDeveloperAPI)
 		a.handleDirectGoogleGenerate(w, r, modelName, action, bodyBytes, providerKey)
 		return
 	}
+	a.observeRoute(routeGoogleWebRPC)
 
 	var req models.GoogleGenerateRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {

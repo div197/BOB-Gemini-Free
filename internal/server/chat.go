@@ -34,9 +34,11 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if useDeveloperAPI {
+		a.observeRoute(routeGeminiDeveloperAPI)
 		a.handleDirectGeminiChat(w, r, req, providerKey)
 		return
 	}
+	a.observeRoute(routeOpenAIChatWebRPC)
 
 	modelStr := req.Model
 	if modelStr == "" {
