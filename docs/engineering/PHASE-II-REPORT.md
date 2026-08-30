@@ -552,3 +552,15 @@ while its separately embedded SPKI Base64 value—the value consumed by
 OpenSSL—could drift. Stable and preview source fixtures passed, and a
 controlled SPKI tamper fixture failed closed. This still proves only local
 source coherence; it does not sign, publish, or verify public release assets.
+
+### Studio credential persistence follow-up — 2026-08-30
+
+Protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38) merged the
+Web Studio gateway-auth persistence fix into `main` at `f3a0a8c`. The optional
+BOB gateway-auth token now remains in page memory, the legacy `bob_api_key`
+browser-storage entry is purged on load, and health/model/generation requests
+use only the current session value. Focused, full, race, vet, build, module,
+and release-source checks passed. This reduces credential retention on shared
+student devices; it does not make same-page scripts trustworthy, and it does
+not close provider, platform-trust, signed-artifact, clean-device, or fleet
+acceptance gates.

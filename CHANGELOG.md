@@ -37,7 +37,7 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ---
 
-## [Unreleased] — 2026-08-29
+## [Unreleased] — 2026-08-30
 
 ### Explicit Gemini Developer API route (local preview work)
 

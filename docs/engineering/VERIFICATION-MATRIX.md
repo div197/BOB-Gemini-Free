@@ -286,8 +286,9 @@ The earlier release-readiness snapshot referenced source commit `e019cf8`.
 The reviewed hardening work was merged through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
 and is preserved in the current `main` history. The release-coherence
 follow-up was merged through protected PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33);
-the current public `main` tip is merge commit `627e73c`, which also includes
-the installer trust-anchor follow-up from protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36).
+the installer trust-anchor follow-up was merged through protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36),
+and the session-only gateway-auth follow-up through protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38).
+The current public `main` tip is merge commit `f3a0a8c`.
 The fresh native package evidence in this section was produced from clean
 source commit `d318b4f`, an ancestor of the reviewed source.
 The signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has
