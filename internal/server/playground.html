@@ -7582,6 +7582,14 @@ document.addEventListener('click', (e) => {
     e.preventDefault();
     const artId = target.getAttribute('data-art-id');
     if (artId) openArtifactCanvas(artId);
+  } else if (action === 'preview-attachment') {
+    e.preventDefault();
+    const fileId = target.getAttribute('data-file-id');
+    if (fileId) openDocPreviewModal(fileId);
+  } else if (action === 'remove-attachment') {
+    e.preventDefault();
+    const fileId = target.getAttribute('data-file-id');
+    if (fileId) removeAttachedFile(fileId);
   } else if (action === 'save-image') {
     e.preventDefault();
     downloadImage(target);
@@ -9792,8 +9800,8 @@ function renderAttachmentsShelf() {
     const actionsDiv = document.createElement('div');
     actionsDiv.className = 'chip-actions';
     actionsDiv.innerHTML = `
-      ${file.markdown || file.rawText || file.ocrText ? `<button class="chip-btn-preview" onclick="openDocPreviewModal('${file.id}')" title="Preview Extracted Markdown">👁️ Preview</button>` : ''}
-      <button class="chip-btn-remove" onclick="removeAttachedFile('${file.id}')" title="Remove attachment">✕</button>
+      ${file.markdown || file.rawText || file.ocrText ? `<button type="button" class="chip-btn-preview" data-action="preview-attachment" data-file-id="${escapeHtml(file.id)}" aria-label="Preview extracted content" title="Preview Extracted Markdown">👁️ Preview</button>` : ''}
+      <button type="button" class="chip-btn-remove" data-action="remove-attachment" data-file-id="${escapeHtml(file.id)}" aria-label="Remove attachment" title="Remove attachment">✕</button>
     `;
     chip.appendChild(actionsDiv);
 

@@ -436,6 +436,31 @@ func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 	}
 }
 
+func TestAttachmentControlsDoNotEmbedUntrustedIDsInInlineJavaScript(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`data-action="preview-attachment"`,
+		`data-action="remove-attachment"`,
+		`data-file-id="${escapeHtml(file.id)}"`,
+		`action === 'preview-attachment'`,
+		`action === 'remove-attachment'`,
+		`openDocPreviewModal(fileId)`,
+		`removeAttachedFile(fileId)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("attachment controls are missing safe delegated-action marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`onclick="openDocPreviewModal('${file.id}')"`,
+		`onclick="removeAttachedFile('${file.id}')"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("attachment control still embeds an untrusted ID in inline JavaScript %q", forbidden)
+		}
+	}
+}
+
 func TestPlaygroundHasOneCodeCopyHandler(t *testing.T) {
 	html := string(playgroundHTML)
 	if got := strings.Count(html, "function copyCode("); got != 1 {
