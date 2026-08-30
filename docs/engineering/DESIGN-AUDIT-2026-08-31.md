@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `88d68dd` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `3d3fe84` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -108,6 +108,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 | Kept partially embedded logging safe | A host that enables request logging before attaching an optional logger no longer panics on a health request. | `internal/server/middleware.go:220-228`; `TestPartialAppWithRequestLoggingDoesNotPanic` |
 | Kept optional Gemini retry logging safe | A partially constructed upstream client now returns the original retry failure instead of panicking when a retry logger is absent, for both buffered and streaming generation. | `internal/gemini/client.go:75-81,533,673`; `TestGenerateRetryWithNilLoggerDoesNotPanic`, `TestGenerateStreamRetryWithNilLoggerDoesNotPanic` |
+| Enforced one Markdown-link protocol policy | Generated assistant links now pass through an explicit `http:`, `https:`, `mailto:`, or `tel:` allow-list; unsupported schemes become inert before rendering, and native/hosted external-link routing uses the same policy. | `internal/server/playground.html:5351-5368,5372-5406,8739-8748`; `TestMarkdownLinksUseStrictProtocolWhitelist` |
 
 The design audit deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
@@ -212,7 +213,7 @@ unavailable.
 | Artifact Preview/Code | All | Empty/error/loading/source-limit states and generated game launch | High | **Open for rendered acceptance**; source-level sandbox/recovery tests pass |
 | Language selector and Hindi UI | All | Translation coverage and text expansion | Medium | **Open**; docs correctly classify coverage as English/Hindi plus partial targets |
 | Theme surfaces | All built-in themes | Subdued/muted text contrast | High | **Source-fixed** with numeric contrast regression; browser visual sampling pending |
-| External GitHub/release links and Copy actions | All | Default-browser handoff and clipboard success/failure feedback | Low | **Source-supported** by real anchors/`noopener` and guarded clipboard writes; click behavior not browser-verified here |
+| External GitHub/release links, generated Markdown links, and Copy actions | All | Default-browser handoff, link protocol safety, and clipboard success/failure feedback | Low | **Source-supported** by explicit link allow-listing, real anchors/`noopener`, and guarded clipboard writes; click behavior not browser-verified here |
 | Hosted Studio → localhost gateway | N/A | Origin/PNA trust is a security boundary, not a visual feature | High | **Separate release gate**; not changed by this design pass |
 
 ## 8. Required browser acceptance run
@@ -268,8 +269,8 @@ Changed:
   reduced-motion, onboarding, contrast-token, attachment-dispatch, and
   duplicate-handler corrections.
 - `internal/server/playground_test.go` — source-level accessibility, theme
-  contrast, single-dispatch attachment, and clipboard failure-safety
-  regression tests.
+  contrast, single-dispatch attachment, clipboard failure-safety, and Markdown
+  link-protocol regression tests.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
   error classification.
 - `internal/updater/desktop_stage_test.go` — read-only and permission-denied

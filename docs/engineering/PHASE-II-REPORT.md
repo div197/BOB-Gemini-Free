@@ -581,6 +581,19 @@ matches the old suffix-based rule. Focused, full, race, vet, module, build, and
 release-source checks passed. This is a defense-in-depth source guarantee; it
 does not establish public release completeness or clean-device updater proof.
 
+### Studio Markdown-link protocol follow-up — 2026-08-31
+
+The Studio previously described its Markdown links as allow-listed but only
+blocked three dangerous-looking string prefixes. That left the renderer's
+security decision dependent on downstream sanitization details. A shared
+protocol allow-list now accepts only `http:`, `https:`, `mailto:`, and `tel:`
+(plus same-document hash links), converts unsupported or malformed targets to
+`#`, and is reused by the native/hosted external-link bridge. The focused
+source regression rejects the old blacklist markers and requires the shared
+policy in both rendering and navigation paths. This does not change Gemini
+wire behavior or make generated content trusted; artifact HTML remains
+sandboxed and browser acceptance is still required.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -592,7 +605,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `88d68dd`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `3d3fe84`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and
