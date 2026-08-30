@@ -99,6 +99,12 @@ exists only as an explicit legacy compatibility opt-in
 should remain disabled for remote deployments because URLs are more likely to
 be logged or copied.
 
+Public error responses add a separate defense-in-depth boundary: provider and
+transport messages are reduced to bounded text and reject URLs, credential
+header markers, and common credential-shaped tokens before they reach a client
+or optional local log. This does not protect reverse proxies, browser history,
+or third-party provider logs from values outside the gateway's control.
+
 ## Chosen minimum change
 
 Implement strict origin filtering now:

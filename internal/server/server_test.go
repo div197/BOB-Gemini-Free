@@ -910,6 +910,37 @@ func TestPublicDeveloperAPIErrorMessageDoesNotExposeTransportDetails(t *testing.
 	}
 }
 
+func TestPublicErrorMessagesRejectCredentialLikeProviderText(t *testing.T) {
+	credentialLikeKey := "AIzaSy" + strings.Repeat("A", 35)
+	secretURL := "https://provider.test/v1beta/models/test:generateContent?key=" + credentialLikeKey
+
+	for _, tt := range []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "developer api error",
+			err:  &geminiapi.APIError{Kind: "provider", Message: "provider rejected " + credentialLikeKey},
+		},
+		{
+			name: "web rpc error",
+			err:  &gemini.UpstreamError{Kind: "http", Msg: "provider returned " + secretURL},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var got string
+			if _, ok := tt.err.(*geminiapi.APIError); ok {
+				got = publicDeveloperAPIErrorMessage(tt.err)
+			} else {
+				got = publicUpstreamErrorMessage(tt.err)
+			}
+			if strings.Contains(got, credentialLikeKey) || strings.Contains(got, "provider.test") {
+				t.Fatalf("credential-like provider text escaped: %q", got)
+			}
+		})
+	}
+}
+
 func TestDirectGeminiStreamWithKeepAliveRejectsNilCallbacks(t *testing.T) {
 	rec := httptest.NewRecorder()
 	if err := streamGeminiWithKeepAlive(context.Background(), rec, time.Hour, nil, func(geminiapi.GenerateContentResponse) error { return nil }); err == nil {
