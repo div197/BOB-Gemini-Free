@@ -7760,14 +7760,6 @@ function copySnippet(id) {
   showToast("Code snippet copied to clipboard!", "📋");
 }
 
-function copyCode(btn) {
-  const pre = btn.closest('pre');
-  const code = pre ? pre.querySelector('code')?.innerText : '';
-  if (!code) return;
-  navigator.clipboard.writeText(code);
-  showToast("Code copied to clipboard!", "📋");
-}
-
 function escapeHtml(str) {
   if (str === null || str === undefined) return "";
   return String(str)

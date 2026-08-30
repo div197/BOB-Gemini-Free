@@ -366,6 +366,13 @@ func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 	}
 }
 
+func TestPlaygroundHasOneCodeCopyHandler(t *testing.T) {
+	html := string(playgroundHTML)
+	if got := strings.Count(html, "function copyCode("); got != 1 {
+		t.Fatalf("playground has %d copyCode declarations, want exactly one", got)
+	}
+}
+
 func TestArtifactSandboxKeepsOpaqueIsolationAndReportsRuntimeFailures(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
