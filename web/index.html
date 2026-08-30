@@ -6320,12 +6320,27 @@ function isNativeDesktopStudio() {
   return Boolean(window.runtime && typeof window.runtime.BrowserOpenURL === "function");
 }
 
+function isSecureGatewayForProviderKey(rawURL) {
+  let parsedURL;
+  try {
+    parsedURL = new URL(rawURL, window.location.href);
+  } catch (e) {
+    return false;
+  }
+  if (!parsedURL.hostname || parsedURL.username || parsedURL.password) return false;
+  if (parsedURL.protocol === "https:") return true;
+  return parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href);
+}
+
 function canSendGeminiProviderKey() {
   // A hosted page must not send a student's provider credential to its own
-  // public origin or probe an unselected local gateway. Native Wails, a
-  // loopback-served Studio, or an endpoint explicitly saved by the user are
-  // the only allowed destinations for this opt-in header.
-  if (isNativeDesktopStudio() || (isLoopbackPage() && isLoopbackGatewayURL(getGatewayBaseUrl()))) {
+  // public origin or probe an unselected local gateway. Loopback HTTP is safe
+  // for a local/native gateway; remote endpoints require an explicit save and
+  // HTTPS before this opt-in header can be sent.
+  const endpoint = getGatewayBaseUrl();
+  const endpointIsLoopback = isLoopbackGatewayURL(endpoint);
+  if (!isSecureGatewayForProviderKey(endpoint)) return false;
+  if ((isNativeDesktopStudio() || isLoopbackPage()) && endpointIsLoopback) {
     return true;
   }
   return hasExplicitGatewayEndpoint();
@@ -6397,7 +6412,7 @@ function toggleGeminiProviderRoute(enabled) {
     useGeminiProvider = false;
     const toggle = document.getElementById("gemini-provider-toggle");
     if (toggle) toggle.checked = false;
-    showToast("For safety, configure a local or explicitly trusted gateway endpoint first", "🔒");
+    showToast("For safety, configure a local or explicitly trusted gateway endpoint first; remote endpoints must use HTTPS", "🔒");
     return;
   }
   useGeminiProvider = Boolean(enabled);

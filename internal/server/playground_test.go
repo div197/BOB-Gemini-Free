@@ -647,6 +647,52 @@ func TestDeveloperAPIRouteToggleFailsClosedWithoutKey(t *testing.T) {
 	}
 }
 
+func TestDeveloperAPIRouteRequiresSafeGatewayTransport(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function canSendGeminiProviderKey()")
+	if start < 0 {
+		t.Fatal("Developer API transport guard is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction isLoopbackGatewayURL")
+	if endOffset < 0 {
+		t.Fatal("Developer API transport guard boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`const endpoint = getGatewayBaseUrl();`,
+		`const endpointIsLoopback = isLoopbackGatewayURL(endpoint);`,
+		`if (!isSecureGatewayForProviderKey(endpoint)) return false;`,
+		`(isNativeDesktopStudio() || isLoopbackPage()) && endpointIsLoopback`,
+		`return hasExplicitGatewayEndpoint();`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Developer API transport guard is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "if (isNativeDesktopStudio() || (isLoopbackPage() && isLoopbackGatewayURL(getGatewayBaseUrl())))") {
+		t.Fatal("native context still bypasses the configured gateway transport policy")
+	}
+
+	secureStart := strings.Index(html, "function isSecureGatewayForProviderKey(rawURL)")
+	if secureStart < 0 {
+		t.Fatal("Developer API secure transport helper is missing")
+	}
+	secureEndOffset := strings.Index(html[secureStart:], "\n}\n\nfunction openGatewayModal")
+	if secureEndOffset < 0 {
+		t.Fatal("Developer API secure transport helper boundary is missing")
+	}
+	secureSource := html[secureStart : secureStart+secureEndOffset]
+	for _, marker := range []string{
+		`parsedURL.protocol === "https:"`,
+		`parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href)`,
+		`if (!parsedURL.hostname || parsedURL.username || parsedURL.password) return false;`,
+	} {
+		if !strings.Contains(secureSource, marker) {
+			t.Fatalf("Developer API secure transport helper is missing marker %q", marker)
+		}
+	}
+}
+
 func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
