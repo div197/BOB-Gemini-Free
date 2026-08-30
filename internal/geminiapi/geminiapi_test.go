@@ -323,6 +323,19 @@ func TestFromOpenAIRejectsRemoteImagesAndInvalidToolArguments(t *testing.T) {
 	}
 }
 
+func TestFromOpenAIRejectsNonObjectGeminiToolArguments(t *testing.T) {
+	for _, arguments := range []string{"null", `["item"]`, `"value"`, "true", "42"} {
+		_, err := FromOpenAI(models.OpenAIChatRequest{Messages: []models.OpenAIMessage{{
+			Role: "assistant", ToolCalls: []models.OpenAIToolCall{{Function: models.OpenAIToolCallFunction{
+				Name: "lookup", Arguments: arguments,
+			}}},
+		}}})
+		if err == nil || !strings.Contains(err.Error(), "must be a JSON object") {
+			t.Fatalf("arguments %s error = %v, want explicit object-shape error", arguments, err)
+		}
+	}
+}
+
 func TestFromOpenAIRejectsDroppedContentParts(t *testing.T) {
 	tests := []struct {
 		name    string

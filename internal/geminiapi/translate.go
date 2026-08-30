@@ -62,15 +62,9 @@ func FromOpenAI(req models.OpenAIChatRequest) (GenerateContentRequest, error) {
 		}
 		content.Parts = append(content.Parts, parts...)
 		for _, call := range message.ToolCalls {
-			args := map[string]any{}
-			arguments := strings.TrimSpace(call.Function.Arguments)
-			if len(arguments) > format.MaxToolArgumentBytes {
-				return GenerateContentRequest{}, fmt.Errorf("tool call %q arguments exceed %d bytes", call.Function.Name, format.MaxToolArgumentBytes)
-			}
-			if arguments != "" {
-				if err := json.Unmarshal([]byte(arguments), &args); err != nil {
-					return GenerateContentRequest{}, fmt.Errorf("tool call %q has invalid JSON arguments: %w", call.Function.Name, err)
-				}
+			args, err := decodeToolArguments(call.Function.Name, call.Function.Arguments)
+			if err != nil {
+				return GenerateContentRequest{}, err
 			}
 			content.Parts = append(content.Parts, Part{FunctionCall: &FunctionCall{Name: call.Function.Name, Args: args}})
 		}
@@ -159,6 +153,26 @@ func FromOpenAI(req models.OpenAIChatRequest) (GenerateContentRequest, error) {
 		result.GenerationConfig = config
 	}
 	return result, nil
+}
+
+func decodeToolArguments(name, raw string) (map[string]any, error) {
+	arguments := strings.TrimSpace(raw)
+	if arguments == "" {
+		return map[string]any{}, nil
+	}
+	if len(arguments) > format.MaxToolArgumentBytes {
+		return nil, fmt.Errorf("tool call %q arguments exceed %d bytes", name, format.MaxToolArgumentBytes)
+	}
+
+	var decoded any
+	if err := json.Unmarshal([]byte(arguments), &decoded); err != nil {
+		return nil, fmt.Errorf("tool call %q has invalid JSON arguments: %w", name, err)
+	}
+	args, ok := decoded.(map[string]any)
+	if !ok || args == nil {
+		return nil, fmt.Errorf("tool call %q arguments must be a JSON object for Gemini Developer API", name)
+	}
+	return args, nil
 }
 
 func partsFromContent(content any) ([]Part, error) {
