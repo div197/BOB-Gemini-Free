@@ -218,7 +218,7 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 }
 
 func (a *App) logRequest(r *http.Request, statusCode int, duration time.Duration) {
-	if !a.Cfg.LogRequests {
+	if a == nil || !a.Cfg.LogRequests || a.Logf == nil || r == nil {
 		return
 	}
 	clientIP, _, err := net.SplitHostPort(r.RemoteAddr)

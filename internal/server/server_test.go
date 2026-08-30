@@ -188,6 +188,19 @@ func TestNilAppHandlerFailsClosed(t *testing.T) {
 	}
 }
 
+func TestPartialAppWithRequestLoggingDoesNotPanic(t *testing.T) {
+	// An embedder may enable request logging before wiring an optional logger.
+	// Serving a local health request must remain safe in that partial state.
+	app := &App{Cfg: config.Config{LogRequests: true}}
+	rec := httptest.NewRecorder()
+
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("partial logged app healthz status = %d, want 200", rec.Code)
+	}
+}
+
 func TestAuthMatrix(t *testing.T) {
 	cfg := config.Default()
 	cfg.APIKeys = []string{"sk-secret-key"}
