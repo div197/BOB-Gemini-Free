@@ -20,7 +20,7 @@ Markdown, tool choices, tool results, and semantic adapter conversion.
 | OpenAI tool declaration transport | EMULATED_PARTIALLY | `internal/format/openai.go:45-176` injects JSON definitions into the prompt; no native Google declaration field is proven |
 | Anthropic `tool_use` / `tool_result` conversion | EMULATED_PARTIALLY | `internal/format/anthropic.go:11-170` maps request structures, but generation still flows through prompt extraction |
 | Google function declarations | EMULATED_PARTIALLY | `internal/format/google.go:19-146` serializes declarations and function responses as text |
-| Nested object/array/enum/nullable schemas | EMULATED_RELIABLY for serialization | Deterministic prompt and JSON-parser fixtures pass; upstream model compliance remains unknown |
+| Nested object/array/enum/nullable schemas | EMULATED_RELIABLY for serialization | Deterministic prompt and JSON-parser fixtures pass; upstream model compliance remains unknown. The explicit Gemini Developer API tool-call boundary is stricter: its documented `FunctionCall.args` field is a JSON object, so scalar/array/null arguments are rejected rather than silently coerced or omitted. See the [GenerateContent schema](https://ai.google.dev/api/generate-content). |
 | Unicode and large JSON arguments | EMULATED_RELIABLY for parser fixtures | Parser preserves valid JSON in tested bounds; no provider maximum has been measured |
 | Multiple or parallel tool requests | EMULATED_PARTIALLY | Multiple fenced blocks parse; execution/parallel scheduling is outside this gateway |
 | `none` choice | EMULATED_RELIABLY as an instruction | The model receives a normalized prohibition; malformed values are rejected, but native enforcement is absent |
@@ -45,6 +45,14 @@ Assistant tool-call prompt blocks are JSON-encoded rather than assembled by
 interpolating names. This keeps bounded quotes, backslashes, and newlines from
 corrupting the adapter's own control document; it is a serialization safeguard,
 not a trust boundary for model-generated tool requests.
+
+The direct Gemini Developer API translator now fails closed when an incoming
+OpenAI-shaped tool call uses scalar, array, or `null` JSON arguments. The
+previous map-only unmarshal accepted `null` as an absent map and returned a
+different error for other non-object values, making the boundary inconsistent.
+This is an intentional target-schema constraint, not a claim that OpenAI's
+prompt adapter or the web-RPC emulation has native non-object function-call
+support.
 
 Do not rewrite tool calling in Phase II. The lab now makes the actual behavior
 executable and prevents accidental “native/full” wording. A future native
