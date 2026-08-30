@@ -564,3 +564,12 @@ and release-source checks passed. This reduces credential retention on shared
 student devices; it does not make same-page scripts trustworthy, and it does
 not close provider, platform-trust, signed-artifact, clean-device, or fleet
 acceptance gates.
+
+### CLI updater asset-selection follow-up — 2026-08-31
+
+Protected PR [#40](https://github.com/div197/BOB-Gemini-Free/pull/40) merged the
+CLI updater filename hardening into `main` at `a80f08d`. The selector now
+requires the canonical platform asset name and rejects a lookalike that only
+matches the old suffix-based rule. Focused, full, race, vet, module, build, and
+release-source checks passed. This is a defense-in-depth source guarantee; it
+does not establish public release completeness or clean-device updater proof.

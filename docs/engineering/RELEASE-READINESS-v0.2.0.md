@@ -279,3 +279,15 @@ artifacts or measurements:
 
 Until those gates are complete, the truthful label is **release candidate under
 controlled validation**, not “fully ready” or “automatic rollout completed.”
+
+## Publication refresh — 2026-08-31
+
+Protected PR [#40](https://github.com/div197/BOB-Gemini-Free/pull/40) merged the
+CLI updater asset-selection hardening into `main` at `a80f08d`. The updater now
+requires the canonical platform filename instead of accepting an arbitrary
+lookalike filename that merely shares a platform suffix; desktop package
+selection already used exact branded/legacy migration names. Focused, full,
+race, vet, module, build, and release-source checks passed. This closes a
+locally testable selector ambiguity; it does not prove public asset completeness,
+signed stable publication, platform trust, or installed-device update
+acceptance.
