@@ -6375,9 +6375,24 @@ function toggleApiKeyVisibility() {
 
 function saveGeminiProviderKey(val) {
   geminiProviderKey = (val || "").trim();
+  if (!geminiProviderKey && useGeminiProvider) {
+    useGeminiProvider = false;
+    const toggle = document.getElementById("gemini-provider-toggle");
+    if (toggle) toggle.checked = false;
+    showToast("Developer API route disabled; using the default web-session route", "🌐");
+  }
 }
 
 function toggleGeminiProviderRoute(enabled) {
+  if (enabled && !geminiProviderKey) {
+    useGeminiProvider = false;
+    const toggle = document.getElementById("gemini-provider-toggle");
+    if (toggle) toggle.checked = false;
+    showToast("Paste your own Google AI Studio key first", "🔑");
+    const input = document.getElementById("gemini-provider-key-input");
+    if (input) input.focus();
+    return;
+  }
   if (enabled && !canSendGeminiProviderKey()) {
     useGeminiProvider = false;
     const toggle = document.getElementById("gemini-provider-toggle");
@@ -6390,12 +6405,6 @@ function toggleGeminiProviderRoute(enabled) {
     const input = document.getElementById("gemini-provider-key-input");
     if (input) input.value = geminiProviderKey;
     showToast("Using the default web-session route", "🌐");
-    return;
-  }
-  if (!geminiProviderKey) {
-    showToast("Paste your own Google AI Studio key first", "🔑");
-    const input = document.getElementById("gemini-provider-key-input");
-    if (input) input.focus();
     return;
   }
   showToast("Using your Gemini Developer API project for this session", "⚡");

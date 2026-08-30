@@ -620,6 +620,33 @@ func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	}
 }
 
+func TestDeveloperAPIRouteToggleFailsClosedWithoutKey(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function toggleGeminiProviderRoute(enabled)")
+	if start < 0 {
+		t.Fatal("Developer API route toggle is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction toggleGeminiProviderKeyVisibility")
+	if endOffset < 0 {
+		t.Fatal("Developer API route toggle boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`if (enabled && !geminiProviderKey)`,
+		`useGeminiProvider = false;`,
+		`if (toggle) toggle.checked = false;`,
+		`Paste your own Google AI Studio key first`,
+		`if (enabled && !canSendGeminiProviderKey())`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Developer API route toggle is missing fail-closed marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "useGeminiProvider = Boolean(enabled);\n  if (!geminiProviderKey)") {
+		t.Fatal("Developer API route toggle enables an unusable provider state before validating the key")
+	}
+}
+
 func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
