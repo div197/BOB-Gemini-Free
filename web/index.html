@@ -6218,13 +6218,7 @@ function showToast(message, icon = "✦") {
   }, 2200);
 }
 
-/* Multimodal Image Attachment Handlers */
-function handleImageFileSelect(e) {
-  const file = e.target.files[0];
-  if (!file) return;
-  attachImageFile(file);
-}
-
+/* Multimodal attachment validation */
 function validateLocalAttachment(file) {
   if (!file) return false;
   const size = Number(file.size);
@@ -6234,72 +6228,6 @@ function validateLocalAttachment(file) {
   }
   return true;
 }
-
-function attachImageFile(file) {
-  if (!validateLocalAttachment(file)) return;
-  if (!file.type.startsWith("image/")) {
-    const isDoc = file.type.startsWith("text/") || 
-                  /\.(txt|md|markdown|json|csv|py|js|ts|tsx|jsx|go|rs|cpp|c|h|hpp|java|html|css|scss|sh|yaml|yml|xml|sql|pdf)$/i.test(file.name);
-    if (isDoc) {
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        const text = evt.target.result;
-        const input = document.getElementById("user-input");
-        const docFence = `\n\n\`\`\`[Document: ${file.name}]\n${text}\n\`\`\`\n`;
-        input.value = (input.value ? input.value + "\n" : "") + docFence;
-        autoResize(input);
-        showToast("Imported document: " + file.name, "📄");
-      };
-      reader.readAsText(file);
-      return;
-    }
-    showToast("Please attach an image or text/code document", "⚠️");
-    return;
-  }
-  const reader = new FileReader();
-  reader.onload = function(evt) {
-    currentAttachedImage = {
-      dataUrl: evt.target.result,
-      name: file.name
-    };
-    const bar = document.getElementById("attachment-preview");
-    document.getElementById("attachment-img").src = currentAttachedImage.dataUrl;
-    document.getElementById("attachment-name").innerText = currentAttachedImage.name;
-    bar.classList.add("active");
-    showToast("Image attached: " + file.name, "📎");
-  };
-  reader.readAsDataURL(file);
-}
-
-function removeAttachedImage() {
-  currentAttachedImage = null;
-  const bar = document.getElementById("attachment-preview");
-  bar.classList.remove("active");
-  document.getElementById("image-file-input").value = "";
-}
-
-function handleClipboardPaste(e) {
-  const items = (e.clipboardData || e.originalEvent.clipboardData).items;
-  for (let index in items) {
-    const item = items[index];
-    if (item.kind === 'file' && item.type.startsWith('image/')) {
-      const blob = item.getAsFile();
-      attachImageFile(blob);
-      e.preventDefault();
-      break;
-    }
-  }
-}
-
-// Drag & Drop onto Workspace
-const dropZone = document.getElementById("workspace-drop-zone");
-dropZone.addEventListener("dragover", (e) => { e.preventDefault(); });
-dropZone.addEventListener("drop", (e) => {
-  e.preventDefault();
-  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-    attachImageFile(e.dataTransfer.files[0]);
-  }
-});
 
 /* Modern 2026 Confirm Modal with Auto-Focus and Key Binding */
 function openConfirmModal(opts) {

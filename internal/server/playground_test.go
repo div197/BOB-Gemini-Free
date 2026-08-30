@@ -351,10 +351,18 @@ func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 		`entry.cancelled = true;`,
 		`await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();`,
 		`fileEntry.extractionTruncated = true;`,
+		`window.addEventListener('drop'`,
+		`extractDocumentToMarkdown(dt.files[i]);`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("playground is missing bounded attachment marker %q", marker)
 		}
+	}
+	if strings.Contains(html, "function attachImageFile(file)") {
+		t.Fatal("legacy attachment reader must not remain alongside the universal extractor")
+	}
+	if strings.Contains(html, "dropZone.addEventListener(\"drop\"") {
+		t.Fatal("workspace drop handler must not duplicate the universal window drop handler")
 	}
 }
 

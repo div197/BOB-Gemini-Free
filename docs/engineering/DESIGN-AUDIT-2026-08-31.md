@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`)
+**Git baseline:** `523ceeb` (`origin/main`); current audited branch head is `7a7106d` plus the local attachment-path fix being validated
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -98,6 +98,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Added accessible names and label associations | Composer tools, gateway fields, provider key controls, model settings, tokenizer search, audio actions, and message actions no longer rely on emoji or title text alone. | `internal/server/playground.html:5043-5254`, dynamic message renderers |
 | Removed accidental Enter-to-close behavior in About | Enter should activate the focused control, not dismiss an unrelated dialog. | `internal/server/playground.html:7436-7443` |
 | Corrected all built-in subdued-text tokens | Small labels and metadata retain hierarchy while meeting a 4.5:1 normal-text contrast threshold on declared app/card/modal/input surfaces. | `internal/server/playground.html:46-300`; `TestPlaygroundThemeTextContrast` |
+| Removed duplicate legacy attachment dispatch | A file drop no longer enters both the old unbounded `FileReader` path and the bounded universal extractor; one event now gets one bounded parse lifecycle. | `internal/server/playground.html:6221-6265`, `9481-9950`; `TestAttachmentParsingIsBoundedAndCancellable` |
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 
 The L1 pass deliberately did not change the Gemini wire protocol, provider
@@ -250,9 +251,9 @@ stored in this document or source change.
 Changed:
 
 - `internal/server/playground.html` — L1 accessibility, modal, keyboard,
-  reduced-motion, onboarding, and contrast-token corrections.
-- `internal/server/playground_test.go` — source-level accessibility and theme
-  contrast regression tests.
+  reduced-motion, onboarding, contrast-token, and attachment-dispatch corrections.
+- `internal/server/playground_test.go` — source-level accessibility, theme
+  contrast, and single-dispatch attachment regression tests.
 - `web/index.html` — generated static distribution synchronized by `make web`.
 - `docs/engineering/DESIGN-AUDIT-2026-08-31.md` — this audit.
 
