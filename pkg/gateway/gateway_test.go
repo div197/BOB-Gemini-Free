@@ -94,6 +94,17 @@ func TestNewEngine(t *testing.T) {
 	}
 }
 
+func TestNewEngineIgnoresNilOption(t *testing.T) {
+	engine := NewEngine(nil, WithVersion("v1.0.0-nil-option"))
+	if engine == nil || engine.app == nil {
+		t.Fatal("NewEngine with a nil option returned an uninitialized engine")
+	}
+	defer engine.Close()
+	if engine.app.Version != "v1.0.0-nil-option" {
+		t.Fatalf("engine version = %q, want v1.0.0-nil-option", engine.app.Version)
+	}
+}
+
 func TestNewEngineClampsRetryAttempts(t *testing.T) {
 	engine := NewEngine(WithRetry(0, 0))
 	if engine == nil {

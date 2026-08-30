@@ -171,6 +171,9 @@ func (h *managedHandler) Close() error {
 func NewEngine(opts ...Option) *Engine {
 	cfg := config.Default()
 	for _, opt := range opts {
+		if opt == nil {
+			continue
+		}
 		opt(&cfg)
 	}
 	version := resolveEngineVersion(cfg.Version)
