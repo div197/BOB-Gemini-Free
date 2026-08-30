@@ -88,6 +88,19 @@ func TestDesktopStagingDirectoryErrorExplainsReadOnlyMacInstall(t *testing.T) {
 	}
 }
 
+func TestDesktopStagingDirectoryErrorExplainsPermissionDeniedInstall(t *testing.T) {
+	for _, sourceErr := range []error{syscall.EACCES, syscall.EPERM} {
+		err := desktopStagingDirectoryError(sourceErr)
+		message := err.Error()
+		if !strings.Contains(message, "write an update staging directory") {
+			t.Fatalf("permission staging error for %v = %q", sourceErr, message)
+		}
+		if !strings.Contains(message, "writable location") {
+			t.Fatalf("permission staging error for %v lacks recovery guidance: %q", sourceErr, message)
+		}
+	}
+}
+
 func TestDesktopUpdateLockSerializesConcurrentHelpersAndReleases(t *testing.T) {
 	installTarget := filepath.Join(t.TempDir(), "BOB Gemini Free.app")
 	first, err := acquireDesktopUpdateLock(installTarget)

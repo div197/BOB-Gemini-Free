@@ -174,6 +174,9 @@ func desktopStagingDirectoryError(err error) error {
 	if errors.Is(err, syscall.EROFS) {
 		return fmt.Errorf("the app is running from a read-only disk image or macOS App Translocation; move BOB Gemini Free.app to Applications, relaunch it, and try again")
 	}
+	if errors.Is(err, syscall.EACCES) || errors.Is(err, syscall.EPERM) {
+		return fmt.Errorf("BOB cannot write an update staging directory beside the installed app; move BOB Gemini Free to a writable location (for example ~/Applications on macOS), or grant the current user write access, then relaunch and try again")
+	}
 	return fmt.Errorf("create same-filesystem update staging directory: %w", err)
 }
 
