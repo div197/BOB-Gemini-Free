@@ -348,6 +348,8 @@ risks as complete. The local implementation continuation added:
 - bounded upstream response bodies/stream lines and nil/status/timeout guards;
 - secure cookie-file hashing/reload and pool deduplication/cooldown behavior;
 - bounded image/upload input and strict Scotty URL/response validation;
+- dimension normalization for highly compressible images that are small on disk
+  but exceed the downstream working-size limit;
 - final remote-image DNS revalidation with a direct literal-public-IP dial and
   rejection of unguardable HTTP-client seams;
 - updater redirect, metadata, asset-size, exact-byte, and staged-package
@@ -363,6 +365,9 @@ risks as complete. The local implementation continuation added:
 - bounded, single-cookie-scoped Scotty reference caching with explicit
   multi-account-pool disablement and concurrent upload single-flight; provider
   reference expiry remains open and upstream-dependent.
+- bounded browser attachment extraction with a two-job queue, capped text and
+  PDF work, cooperative cancellation after removal, and explicit error-state
+  styling; OCR worker termination and device CPU evidence remain open.
 - bounded operational retry configuration plus capped exponential jitter and
   `Retry-After` handling for transient upstream failures, while retaining
   immediate failure for 429, policy, and provider rejection responses.

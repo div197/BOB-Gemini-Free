@@ -48,6 +48,18 @@ func createTestImage(width, height int) []byte {
 	return buf.Bytes()
 }
 
+func createSolidTestImage(width, height int) []byte {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.RGBA{R: 20, G: 40, B: 80, A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, img)
+	return buf.Bytes()
+}
+
 func TestCompressImageBytesIfNeeded(t *testing.T) {
 	// Small image should not be compressed
 	smallImg := createTestImage(50, 50)
@@ -78,6 +90,31 @@ func TestCompressImageBytesIfNeeded(t *testing.T) {
 	}
 	if decodedImg.Bounds().Dx() > MaxImageDimension || decodedImg.Bounds().Dy() > MaxImageDimension {
 		t.Errorf("Expected dimensions <= %d, got %dx%d", MaxImageDimension, decodedImg.Bounds().Dx(), decodedImg.Bounds().Dy())
+	}
+}
+
+func TestCompressionNormalizesLargeDimensionsWithinByteBudget(t *testing.T) {
+	input := createSolidTestImage(2048, 1536)
+	if len(input) >= MaxImageByteSize {
+		t.Fatalf("test fixture unexpectedly exceeds byte budget: %d", len(input))
+	}
+
+	out, mime, err := CompressImageBytesIfNeeded(input, "image/png", MaxImageByteSize)
+	if err != nil {
+		t.Fatalf("compression error: %v", err)
+	}
+	if mime != "image/jpeg" {
+		t.Fatalf("mime = %q, want image/jpeg", mime)
+	}
+	decoded, _, err := image.Decode(bytes.NewReader(out))
+	if err != nil {
+		t.Fatalf("failed to decode normalized image: %v", err)
+	}
+	if decoded.Bounds().Dx() > MaxImageDimension || decoded.Bounds().Dy() > MaxImageDimension {
+		t.Fatalf("normalized dimensions = %dx%d, want each <= %d", decoded.Bounds().Dx(), decoded.Bounds().Dy(), MaxImageDimension)
+	}
+	if bytes.Equal(out, input) {
+		t.Fatal("oversized-dimension image was returned unchanged")
 	}
 }
 

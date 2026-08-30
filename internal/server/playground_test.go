@@ -338,6 +338,26 @@ func TestHistoryStorageBoundsAttachmentsWithoutCorruptingPayloads(t *testing.T) 
 	}
 }
 
+func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const MAX_ATTACHMENT_EXTRACTED_CHARS = 1000000;`,
+		`const MAX_ATTACHMENT_PDF_PAGES = 200;`,
+		`const MAX_ATTACHMENT_PARSE_CONCURRENCY = 2;`,
+		`function acquireAttachmentParseSlot()`,
+		`function isAttachmentEntryActive(entry)`,
+		`const releaseParseSlot = await acquireAttachmentParseSlot();`,
+		`if (!isAttachmentEntryActive(fileEntry)) return;`,
+		`entry.cancelled = true;`,
+		`await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();`,
+		`fileEntry.extractionTruncated = true;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing bounded attachment marker %q", marker)
+		}
+	}
+}
+
 func TestArtifactSandboxKeepsOpaqueIsolationAndReportsRuntimeFailures(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

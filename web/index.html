@@ -1418,6 +1418,11 @@ input[type="range"] {
   color: #a78bfa;
   border: 1px solid rgba(139, 92, 246, 0.3);
 }
+.chip-status-badge.error {
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
 
 .chip-actions {
   display: flex;
@@ -5390,6 +5395,9 @@ const PANEL_RIGHT_KEY = "bob_gemini_panel_right";
 const LANG_KEY = "bob_gemini_free_lang";
 const TRANSLIT_KEY = "bob_gemini_free_translit";
 const MAX_LOCAL_ATTACHMENT_BYTES = 32 * 1024 * 1024;
+const MAX_ATTACHMENT_EXTRACTED_CHARS = 1000000;
+const MAX_ATTACHMENT_PDF_PAGES = 200;
+const MAX_ATTACHMENT_PARSE_CONCURRENCY = 2;
 const MAX_HISTORY_IMAGE_DATA_URL_CHARS = 750000;
 const MAX_HISTORY_ATTACHMENT_TEXT_CHARS = 200000;
 const MAX_HISTORY_ATTACHMENTS = 12;
@@ -9477,6 +9485,41 @@ function openGlossaryTerm(termKey) {
 let attachedFilesList = [];
 currentAttachedImage = null; // Backwards-compatible reference
 currentAttachedDoc = null;   // Backwards-compatible reference
+let activeAttachmentParses = 0;
+const pendingAttachmentParseSlots = [];
+
+function acquireAttachmentParseSlot() {
+  return new Promise(resolve => {
+    const grant = () => {
+      activeAttachmentParses++;
+      let released = false;
+      resolve(() => {
+        if (released) return;
+        released = true;
+        activeAttachmentParses = Math.max(0, activeAttachmentParses - 1);
+        const next = pendingAttachmentParseSlots.shift();
+        if (next) next();
+      });
+    };
+    if (activeAttachmentParses < MAX_ATTACHMENT_PARSE_CONCURRENCY) {
+      grant();
+    } else {
+      pendingAttachmentParseSlots.push(grant);
+    }
+  });
+}
+
+function isAttachmentEntryActive(entry) {
+  return !!entry && entry.cancelled !== true && attachedFilesList.includes(entry);
+}
+
+function clipAttachmentExtraction(value) {
+  const text = typeof value === 'string' ? value : String(value || '');
+  if (text.length <= MAX_ATTACHMENT_EXTRACTED_CHARS) {
+    return { value: text, truncated: false };
+  }
+  return { value: text.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), truncated: true };
+}
 
 function getFileCategory(filename, mimeType) {
   const safeName = filename || 'attachment';
@@ -9526,23 +9569,34 @@ async function extractDocumentToMarkdown(file) {
     pageCount: 0,
     status: 'parsing',
     statusText: 'Extracting...',
-    estTokens: 0
+    estTokens: 0,
+    cancelled: false,
+    extractionTruncated: false
   };
   
   attachedFilesList.push(fileEntry);
   renderAttachmentsShelf();
 
+  const releaseParseSlot = await acquireAttachmentParseSlot();
+  let activePDF = null;
+  let activePDFLoadingTask = null;
   try {
+    if (!isAttachmentEntryActive(fileEntry)) return;
     if (meta.cat === 'pdf') {
       const arrayBuffer = await file.arrayBuffer();
+      if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.pdfjsLib) {
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
+        activePDFLoadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        const pdf = await activePDFLoadingTask.promise;
+        activePDF = pdf;
         fileEntry.pageCount = pdf.numPages;
         let fullMd = `### Document: ${fileName} (${pdf.numPages} Pages)\n\n`;
 
-        for (let i = 1; i <= pdf.numPages; i++) {
+        const pageLimit = Math.min(pdf.numPages, MAX_ATTACHMENT_PDF_PAGES);
+        for (let i = 1; i <= pageLimit; i++) {
+          if (!isAttachmentEntryActive(fileEntry)) return;
           const page = await pdf.getPage(i);
+          if (!isAttachmentEntryActive(fileEntry)) return;
           const textContent = await page.getTextContent();
           let lastY = null;
           let pageText = '';
@@ -9560,14 +9614,25 @@ async function extractDocumentToMarkdown(file) {
           } else {
             fullMd += `${pageText.trim()}\n\n`;
           }
+          if (fullMd.length >= MAX_ATTACHMENT_EXTRACTED_CHARS) {
+            fileEntry.extractionTruncated = true;
+            break;
+          }
         }
-        fileEntry.markdown = fullMd.trim();
-        fileEntry.rawText = fullMd;
+        if (pdf.numPages > pageLimit) {
+          fileEntry.extractionTruncated = true;
+          fullMd += `\n[Extraction stopped after ${MAX_ATTACHMENT_PDF_PAGES} pages.]`;
+        }
+        const clippedMarkdown = clipAttachmentExtraction(fullMd.trim());
+        fileEntry.markdown = clippedMarkdown.value;
+        fileEntry.rawText = clippedMarkdown.value;
+        fileEntry.extractionTruncated = fileEntry.extractionTruncated || clippedMarkdown.truncated;
       } else {
         fileEntry.markdown = `[PDF document attached: ${fileName} (${(fileEntry.size/1024).toFixed(1)} KB)]`;
       }
     } else if (meta.cat === 'docx') {
       const arrayBuffer = await file.arrayBuffer();
+      if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.mammoth) {
         const result = await mammoth.convertToHtml({ arrayBuffer });
         const html = result.value || '';
@@ -9581,29 +9646,43 @@ async function extractDocumentToMarkdown(file) {
           .replace(/<li>(.*?)<\/li>/gi, '- $1\n')
           .replace(/<br\s*[\/]?>/gi, '\n')
           .replace(/<[^>]+>/g, '');
-        fileEntry.markdown = `### Document: ${fileName}\n\n` + md.trim();
-        fileEntry.rawText = md;
+        const clippedMarkdown = clipAttachmentExtraction(`### Document: ${fileName}\n\n` + md.trim());
+        const clippedRawText = clipAttachmentExtraction(md);
+        fileEntry.markdown = clippedMarkdown.value;
+        fileEntry.rawText = clippedRawText.value;
+        fileEntry.extractionTruncated = clippedMarkdown.truncated || clippedRawText.truncated;
       } else {
         fileEntry.markdown = `[Word document attached: ${fileName}]`;
       }
     } else if (meta.cat === 'spreadsheet') {
       const arrayBuffer = await file.arrayBuffer();
+      if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.XLSX) {
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
         let fullMd = `### Spreadsheet: ${fileName}\n\n`;
-        workbook.SheetNames.forEach(sheetName => {
+        for (const sheetName of workbook.SheetNames) {
+          if (!isAttachmentEntryActive(fileEntry)) return;
           const sheet = workbook.Sheets[sheetName];
           const csv = XLSX.utils.sheet_to_csv(sheet);
           if (csv.trim()) {
             fullMd += `#### Sheet: ${sheetName}\n\`\`\`csv\n${csv.trim()}\n\`\`\`\n\n`;
           }
-        });
-        fileEntry.markdown = fullMd.trim();
-        fileEntry.rawText = fullMd;
+          if (fullMd.length >= MAX_ATTACHMENT_EXTRACTED_CHARS) {
+            fileEntry.extractionTruncated = true;
+            break;
+          }
+        }
+        const clippedMarkdown = clipAttachmentExtraction(fullMd.trim());
+        fileEntry.markdown = clippedMarkdown.value;
+        fileEntry.rawText = clippedMarkdown.value;
+        fileEntry.extractionTruncated = fileEntry.extractionTruncated || clippedMarkdown.truncated;
       } else {
-        const text = await file.text();
-        fileEntry.markdown = `### Spreadsheet: ${fileName}\n\`\`\`csv\n${text.trim()}\n\`\`\``;
-        fileEntry.rawText = text;
+        const text = await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();
+        if (!isAttachmentEntryActive(fileEntry)) return;
+        const clippedText = clipAttachmentExtraction(text);
+        fileEntry.markdown = `### Spreadsheet: ${fileName}\n\`\`\`csv\n${clippedText.value.trim()}\n\`\`\``;
+        fileEntry.rawText = clippedText.value;
+        fileEntry.extractionTruncated = fileEntry.size > MAX_ATTACHMENT_EXTRACTED_CHARS || clippedText.truncated;
       }
     } else if (meta.cat === 'image') {
       const dataUrl = await new Promise((res, rej) => {
@@ -9612,6 +9691,7 @@ async function extractDocumentToMarkdown(file) {
         reader.onerror = rej;
         reader.readAsDataURL(file);
       });
+      if (!isAttachmentEntryActive(fileEntry)) return;
       fileEntry.dataUrl = dataUrl;
       currentAttachedImage = { dataUrl, name: fileName, type: file.type, size: file.size, id: fileId };
 
@@ -9619,51 +9699,72 @@ async function extractDocumentToMarkdown(file) {
       if (window.Tesseract) {
         fileEntry.statusText = 'Running OCR...';
         renderAttachmentsShelf();
-        Tesseract.recognize(dataUrl, 'eng', { logger: () => {} })
-          .then(result => {
-            const extracted = (result && result.data && result.data.text) ? result.data.text.trim() : '';
-            if (extracted) {
-              fileEntry.ocrText = extracted;
-              if (currentAttachedImage && currentAttachedImage.id === fileId) {
-                currentAttachedImage.ocrText = extracted;
-              }
-              fileEntry.markdown = `### Extracted Visual OCR Text (${fileName}):\n\`\`\`\n${extracted}\n\`\`\``;
-              const words = extracted.trim().split(/\s+/).filter(w => w).length;
-              fileEntry.estTokens = estimateTokensJS(extracted);
-              fileEntry.statusText = `✓ OCR Ready (${words} words)`;
-            } else {
-              fileEntry.statusText = '✓ Vision Ready';
+        try {
+          const result = await Tesseract.recognize(dataUrl, 'eng', { logger: () => {} });
+          if (!isAttachmentEntryActive(fileEntry)) return;
+          const extracted = (result && result.data && result.data.text) ? result.data.text.trim() : '';
+          if (extracted) {
+            const clippedOCR = clipAttachmentExtraction(extracted);
+            fileEntry.ocrText = clippedOCR.value;
+            fileEntry.extractionTruncated = clippedOCR.truncated;
+            if (currentAttachedImage && currentAttachedImage.id === fileId) {
+              currentAttachedImage.ocrText = clippedOCR.value;
             }
-            fileEntry.status = 'ready';
-            renderAttachmentsShelf();
-          })
-          .catch(() => {
-            fileEntry.status = 'ready';
+            fileEntry.markdown = `### Extracted Visual OCR Text (${fileName}):\n\`\`\`\n${clippedOCR.value}\n\`\`\``;
+            const words = clippedOCR.value.trim().split(/\s+/).filter(w => w).length;
+            fileEntry.estTokens = estimateTokensJS(clippedOCR.value);
+            fileEntry.statusText = fileEntry.extractionTruncated
+              ? `✓ OCR Ready (partial • ${words} words)`
+              : `✓ OCR Ready (${words} words)`;
+          } else {
             fileEntry.statusText = '✓ Vision Ready';
-            renderAttachmentsShelf();
-          });
+          }
+          fileEntry.status = 'ready';
+          renderAttachmentsShelf();
+        } catch (_) {
+          if (!isAttachmentEntryActive(fileEntry)) return;
+          fileEntry.status = 'ready';
+          fileEntry.statusText = '✓ Vision Ready';
+          renderAttachmentsShelf();
+        }
       } else {
         fileEntry.statusText = '✓ Vision Ready';
       }
     } else {
       // Plain text, Code, JSON, Logs, Markdown
-      const text = await file.text();
+      const text = await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();
+      if (!isAttachmentEntryActive(fileEntry)) return;
       const codeLang = meta.ext || 'text';
-      fileEntry.markdown = `### Attached File: ${fileName} (${codeLang.toUpperCase()})\n\`\`\`${codeLang}\n${text}\n\`\`\``;
-      fileEntry.rawText = text;
+      const clippedText = clipAttachmentExtraction(text);
+      fileEntry.markdown = `### Attached File: ${fileName} (${codeLang.toUpperCase()})\n\`\`\`${codeLang}\n${clippedText.value}\n\`\`\``;
+      fileEntry.rawText = clippedText.value;
+      fileEntry.extractionTruncated = fileEntry.size > MAX_ATTACHMENT_EXTRACTED_CHARS || clippedText.truncated;
     }
 
     if (meta.cat !== 'image' || !window.Tesseract) {
       fileEntry.estTokens = estimateTokensJS(fileEntry.markdown || fileEntry.rawText || '');
       fileEntry.status = 'ready';
-      fileEntry.statusText = `✓ Ready (~${fileEntry.estTokens.toLocaleString()} tok)`;
+      fileEntry.statusText = fileEntry.extractionTruncated
+        ? `✓ Ready (partial • ~${fileEntry.estTokens.toLocaleString()} tok)`
+        : `✓ Ready (~${fileEntry.estTokens.toLocaleString()} tok)`;
     }
   } catch (err) {
+    if (!isAttachmentEntryActive(fileEntry)) return;
     fileEntry.status = 'error';
     fileEntry.statusText = 'Failed to parse';
     console.error('File parsing error:', err);
+  } finally {
+    try {
+      if (activePDF && typeof activePDF.destroy === 'function') {
+        await activePDF.destroy();
+      } else if (activePDFLoadingTask && typeof activePDFLoadingTask.destroy === 'function') {
+        await activePDFLoadingTask.destroy();
+      }
+    } catch (_) {}
+    releaseParseSlot();
   }
 
+  if (!isAttachmentEntryActive(fileEntry)) return;
   // Update legacy pointers
   if (attachedFilesList.length > 0) {
     const lastDoc = attachedFilesList.filter(f => !f.isImage).pop();
@@ -9715,7 +9816,7 @@ function renderAttachmentsShelf() {
     }
 
     const kb = (file.size / 1024).toFixed(1);
-    const statusClass = file.status === 'parsing' ? 'parsing' : (file.ocrText ? 'ocr' : 'ready');
+    const statusClass = file.status === 'parsing' ? 'parsing' : (file.status === 'error' ? 'error' : (file.ocrText ? 'ocr' : 'ready'));
 
     const infoDiv = document.createElement('div');
     infoDiv.className = 'chip-info';
@@ -9743,6 +9844,8 @@ function renderAttachmentsShelf() {
 }
 
 function removeAttachedFile(fileId) {
+  const entry = attachedFilesList.find(f => f.id === fileId);
+  if (entry) entry.cancelled = true;
   attachedFilesList = attachedFilesList.filter(f => f.id !== fileId);
   if (currentAttachedImage && currentAttachedImage.id === fileId) {
     currentAttachedImage = null;
@@ -9753,6 +9856,7 @@ function removeAttachedFile(fileId) {
 }
 
 function removeAttachedAttachment() {
+  attachedFilesList.forEach(file => { file.cancelled = true; });
   attachedFilesList = [];
   currentAttachedImage = null;
   currentAttachedDoc = null;
