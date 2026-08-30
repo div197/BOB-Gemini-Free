@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed branch tip is `7cea002` on `codex/release-readiness-v0.2.0`
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed branch tip is `88d68dd` on `codex/release-readiness-v0.2.0`
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -28,10 +28,11 @@ tokens now pass the normal-text contrast check against their declared surfaces.
 
 No navigation model or design language was changed by the design audit. Later
 release-readiness follow-ups separately added updater permission diagnostics,
-Developer API tool-argument validation, desktop update-check jitter, and
-credential-safe public error handling. Those changes are recorded in the
-failure register and release docs. The result is not yet a visual release
-sign-off because the real browser session required for desktop, tablet, phone,
+Developer API tool-argument validation, desktop update-check jitter,
+credential-safe public error handling, and nil-safe logging for partial server
+and Gemini-client construction. Those changes are recorded in the failure
+register and release docs. The result is not yet a visual release sign-off
+because the real browser session required for desktop, tablet, phone,
 keyboard, focus, and artifact walkthroughs was unavailable.
 
 ## 1. Product intent in three lines
@@ -106,6 +107,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Explained permission-denied desktop staging failures | A managed Mac or protected install location now receives recovery guidance to move BOB to a writable location or grant the current user access, instead of an opaque `permission denied` error. | `internal/updater/desktop_stage.go:173-181`; `TestDesktopStagingDirectoryErrorExplainsPermissionDeniedInstall` |
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 | Kept partially embedded logging safe | A host that enables request logging before attaching an optional logger no longer panics on a health request. | `internal/server/middleware.go:220-228`; `TestPartialAppWithRequestLoggingDoesNotPanic` |
+| Kept optional Gemini retry logging safe | A partially constructed upstream client now returns the original retry failure instead of panicking when a retry logger is absent, for both buffered and streaming generation. | `internal/gemini/client.go:75-81,533,673`; `TestGenerateRetryWithNilLoggerDoesNotPanic`, `TestGenerateStreamRetryWithNilLoggerDoesNotPanic` |
 
 The design audit deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
@@ -275,6 +277,9 @@ Changed:
 - `internal/server/middleware.go` — optional request-logger nil guard for
   partial embedded apps.
 - `internal/server/server_test.go` — partial-app request-logging regression.
+- `internal/gemini/client.go` — nil-safe optional retry logger for buffered and
+  streaming upstream retries.
+- `internal/gemini/client_test.go` — retry regressions for an absent logger.
 - `web/index.html` — generated static distribution synchronized by `make web`.
 - `docs/engineering/FAILURE-REGISTER-100.md` — refreshed branch/main evidence
   and the attachment failure-path status.

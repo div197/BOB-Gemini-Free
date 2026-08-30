@@ -6,6 +6,23 @@
 **Current public migration bridge:** `v0.2.0-preview.1`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
+## Current repository refresh — 2026-08-31
+
+The historical publication entries below are retained as provenance. The
+current local truth is:
+
+- `origin/main` is `523ceeb`.
+- The reviewed continuation is pushed to
+  `codex/release-readiness-v0.2.0` at `88d68dd`, ahead of `origin/main`.
+- The current branch contains the later 100-path hardening follow-ups,
+  including nil-safe server and Gemini-client optional logging, but those
+  commits are not merged into `main`.
+- No stable `v0.2.0` tag or release was created here, and no GitHub Actions
+  workflow was added or run.
+- This refresh does not close signed-asset publication, Apple/Windows
+  platform trust, clean-device updater, live provider, browser, or 30-device
+  rollout gates.
+
 This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,
 platform trust, an update migration, and a 30-device acceptance run are four

@@ -580,3 +580,19 @@ requires the canonical platform asset name and rejects a lookalike that only
 matches the old suffix-based rule. Focused, full, race, vet, module, build, and
 release-source checks passed. This is a defense-in-depth source guarantee; it
 does not establish public release completeness or clean-device updater proof.
+
+### Optional logging boundary follow-up — 2026-08-31
+
+The upstream Gemini client had the same partial-construction hazard that was
+previously found in the server: a retry after a pre-request transport failure
+called an optional logger directly. The new `Client.logf` helper makes both
+buffered and streaming retry logging nil-safe. Deterministic regressions cover
+the final error and a successful stream recovery with no logger. This change
+does not alter retry classification, delay, payload construction, session
+routing, or stream deduplication.
+
+The current source is on the pushed branch
+`codex/release-readiness-v0.2.0` at `88d68dd`; `origin/main` remains a separate
+branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
+created by this continuation. The browser viewport acceptance matrix and
+clean-device/provider/release-asset gates remain open.
