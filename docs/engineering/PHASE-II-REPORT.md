@@ -605,6 +605,18 @@ artifact registry, sandbox, editor hydration, and preview lifecycle are
 unchanged; this is a focused interaction/accessibility correction protected by
 `TestArtifactLaunchChipUsesOneKeyboardAction`.
 
+### Studio Developer API route-state follow-up — 2026-08-31
+
+The optional student-owned Gemini Developer API toggle could previously remain
+checked after an empty key was submitted, or after an active key was cleared;
+the next generation then failed instead of the UI reflecting the route change.
+The route now validates key presence before enabling, resets the checkbox and
+focuses the key field when absent, and explicitly returns to the default
+web-session route when an active key is cleared. This is a client-state safety
+fix only: it does not rotate keys, bypass provider limits, or change the
+server-side header boundary. `TestDeveloperAPIRouteToggleFailsClosedWithoutKey`
+protects the ordering and visible reset behavior.
+
 ### Optional logging boundary follow-up — 2026-08-31
 
 The upstream Gemini client had the same partial-construction hazard that was
@@ -616,7 +628,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `c1f66ca`; subsequent commits on that
+`codex/release-readiness-v0.2.0` at `18ee0ff`; subsequent commits on that
 branch reconcile the audit documents, while `origin/main` remains a separate
 branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
 created by this continuation. The browser viewport acceptance matrix and

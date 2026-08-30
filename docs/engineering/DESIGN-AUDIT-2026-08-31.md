@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `c1f66ca` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
+**Git baseline:** `523ceeb` (`origin/main`); design-audit source snapshot is `9ac2d87`; current reviewed source-hardening tip is `18ee0ff` on `codex/release-readiness-v0.2.0` (the branch also contains subsequent audit-documentation commits)
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -110,6 +110,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Kept optional Gemini retry logging safe | A partially constructed upstream client now returns the original retry failure instead of panicking when a retry logger is absent, for both buffered and streaming generation. | `internal/gemini/client.go:75-81,533,673`; `TestGenerateRetryWithNilLoggerDoesNotPanic`, `TestGenerateStreamRetryWithNilLoggerDoesNotPanic` |
 | Enforced one Markdown-link protocol policy | Generated assistant links now pass through an explicit `http:`, `https:`, `mailto:`, or `tel:` allow-list; unsupported schemes become inert before rendering, and native/hosted external-link routing uses the same policy. | `internal/server/playground.html:5351-5368,5372-5406,8739-8748`; `TestMarkdownLinksUseStrictProtocolWhitelist` |
 | Reduced artifact launch to one accessible action | The visual artifact card is now a named group; only its explicit `type="button"` launch control activates the preview, so the card no longer advertises a second click-only action or misleading pointer affordance. | `internal/server/playground.html:1966-1982,8684-8717`; `TestArtifactLaunchChipUsesOneKeyboardAction` |
+| Made the optional Developer API route fail closed | Enabling the route without a key no longer leaves a misleading checked state, and clearing a key during an active provider session explicitly returns to the default route. | `internal/server/playground.html:6377-6412`; `TestDeveloperAPIRouteToggleFailsClosedWithoutKey` |
 
 The design audit deliberately did not change the Gemini wire protocol, provider
 routing, authentication, gateway CORS policy, streaming behavior, artifact
@@ -271,7 +272,8 @@ Changed:
   duplicate-handler corrections.
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, single-dispatch attachment, clipboard failure-safety, Markdown
-  link-protocol, and artifact-action regression tests.
+  link-protocol, artifact-action, and Developer API route-state regression
+  tests.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
   error classification.
 - `internal/updater/desktop_stage_test.go` — read-only and permission-denied
