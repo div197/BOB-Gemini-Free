@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `a330e17` on `codex/release-readiness-v0.2.0`
+**Git baseline:** `523ceeb` (`origin/main`); current audited source commit is `cbfd75e` on `codex/release-readiness-v0.2.0`
 
 **Audit status:** source and served-runtime checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -100,6 +100,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Corrected all built-in subdued-text tokens | Small labels and metadata retain hierarchy while meeting a 4.5:1 normal-text contrast threshold on declared app/card/modal/input surfaces. | `internal/server/playground.html:46-300`; `TestPlaygroundThemeTextContrast` |
 | Removed duplicate legacy attachment dispatch | A file drop no longer enters both the old unbounded `FileReader` path and the bounded universal extractor; one event now gets one bounded parse lifecycle. | `internal/server/playground.html:6221-6230`, `9477-9868`; `TestAttachmentParsingIsBoundedAndCancellable` |
 | Removed duplicate code-copy declaration | The Studio now has one authoritative `copyCode` implementation, preventing silent function shadowing in the monolithic script. | `internal/server/playground.html:10295-10302`; `TestPlaygroundHasOneCodeCopyHandler` |
+| Centralized clipboard writes with failure feedback | Restricted WebViews, `file://` contexts, denied permissions, and transient clipboard failures no longer produce silent exceptions or false success toasts; all Copy actions use one guarded helper. | `internal/server/playground.html:6524-6545`; `TestClipboardActionsHaveExplicitFailureState` |
 | Regenerated the static distribution | The served/static artifact remains source-parity with the edited studio. | `web/index.html`; `make web`; parity check passed |
 
 The L1 pass deliberately did not change the Gemini wire protocol, provider
@@ -200,7 +201,7 @@ unavailable.
 | Artifact Preview/Code | All | Empty/error/loading/source-limit states and generated game launch | High | **Open for rendered acceptance**; source-level sandbox/recovery tests pass |
 | Language selector and Hindi UI | All | Translation coverage and text expansion | Medium | **Open**; docs correctly classify coverage as English/Hindi plus partial targets |
 | Theme surfaces | All built-in themes | Subdued/muted text contrast | High | **Source-fixed** with numeric contrast regression; browser visual sampling pending |
-| External GitHub/release links | All | Default-browser handoff | Low | **Source-supported** by real anchors/`noopener`; click behavior not browser-verified here |
+| External GitHub/release links and Copy actions | All | Default-browser handoff and clipboard success/failure feedback | Low | **Source-supported** by real anchors/`noopener` and guarded clipboard writes; click behavior not browser-verified here |
 | Hosted Studio → localhost gateway | N/A | Origin/PNA trust is a security boundary, not a visual feature | High | **Separate release gate**; not changed by this design pass |
 
 ## 8. Required browser acceptance run
@@ -235,6 +236,7 @@ go test -count=1 ./...                        PASS
 go vet ./...                                  PASS
 git diff --check                              PASS
 inline playground JavaScript syntax check    PASS
+clipboard failure-safety regression          PASS
 GET /playground on 127.0.0.1:19614           200 OK
 GET /healthz on 127.0.0.1:19614              200 OK
 ```
@@ -255,7 +257,8 @@ Changed:
   reduced-motion, onboarding, contrast-token, attachment-dispatch, and
   duplicate-handler corrections.
 - `internal/server/playground_test.go` — source-level accessibility, theme
-  contrast, and single-dispatch attachment regression tests.
+  contrast, single-dispatch attachment, and clipboard failure-safety
+  regression tests.
 - `web/index.html` — generated static distribution synchronized by `make web`.
 - `docs/engineering/FAILURE-REGISTER-100.md` — refreshed branch/main evidence
   and the attachment failure-path status.
