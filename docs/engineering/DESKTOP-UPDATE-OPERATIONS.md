@@ -53,7 +53,9 @@ restoring the previous app; startup recovery does the same after its cleanup
 transitions. This reduces the window in which a power interruption can lose the
 transaction decision, but it is not a recursive fsync of every file in a macOS
 app bundle, and Windows does not have a portable directory-fsync contract.
-`b136724` and its updater tests protect this boundary.
+Windows updater metadata instead uses native `MoveFileExW` replace-existing and
+write-through semantics. `b136724`, `fd279aa`, and their updater tests protect
+this boundary.
 
 The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still

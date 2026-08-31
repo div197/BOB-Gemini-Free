@@ -64,7 +64,8 @@ rollback, and startup-recovery directory transitions flush on Unix; a focused
 fault-injection test proves candidate activation is rolled back when that flush
 fails. This is local source/test evidence, not a physical power-loss or clean
 installed-bundle acceptance result, and it does not alter the no-Actions or
-user-consent requirements.
+user-consent requirements. The follow-up Windows-specific metadata path uses
+native `MoveFileExW` replace-existing/write-through semantics in `fd279aa`.
 
 The public bridge ZIP reports `CFBundleShortVersionString` and
 `CFBundleVersion` as `0.2.0`; the full preview channel/version is carried by

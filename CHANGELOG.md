@@ -230,7 +230,9 @@ This remains an ad-hoc-signed, non-notarized controlled preview. Stable
   synchronized after swap/recovery transitions, and an injected activation-sync
   failure is regression-tested to restore the previous install. This reduces
   interrupted-update ambiguity but does not claim recursive app-bundle fsync,
-  Windows directory-fsync semantics, or real power-cut proof.
+  Windows directory-fsync semantics, or real power-cut proof. Windows metadata
+  replacement now uses native `MoveFileExW` replace-existing/write-through
+  semantics instead of a delete-then-rename fallback.
 - Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
   documented release-key custody, platform signing, clean-device acceptance,
   and the 30-device rollout gate.
