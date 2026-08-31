@@ -702,6 +702,31 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 	}
 }
 
+func TestRootCDNDependenciesHaveIntegrityPins(t *testing.T) {
+	html := string(playgroundHTML)
+	headEnd := strings.Index(html, "<body")
+	if headEnd < 0 {
+		t.Fatal("playground is missing a document body boundary")
+	}
+	for _, line := range strings.Split(html[:headEnd], "\n") {
+		line = strings.TrimSpace(line)
+		isExternalScript := strings.HasPrefix(line, "<script ") && strings.Contains(line, `src="http`)
+		isExternalStylesheet := strings.HasPrefix(line, "<link ") && strings.Contains(line, `href="http`)
+		if !isExternalScript && !isExternalStylesheet {
+			continue
+		}
+		if !strings.Contains(line, `integrity="sha384-`) || !strings.Contains(line, `crossorigin="anonymous"`) {
+			t.Fatalf("root CDN dependency is missing SRI/cross-origin attributes: %s", line)
+		}
+	}
+	if !strings.Contains(html, `tesseract.js@5.1.1/dist/tesseract.min.js`) {
+		t.Fatal("Tesseract.js must remain pinned to the verified v5.1.1 asset")
+	}
+	if strings.Contains(html, `tesseract.js@5/dist/tesseract.min.js`) {
+		t.Fatal("Tesseract.js must not use a floating major-version CDN URL")
+	}
+}
+
 func TestErrorRecoveryConfigActionsAvoidJavaScriptURLs(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
