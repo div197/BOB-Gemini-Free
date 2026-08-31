@@ -103,18 +103,35 @@ The private key must never be placed in the repository, shell history, command
 output, issue comments, or a local fixture. Rotate both values together if the
 private key is exposed.
 
+## Preview 2 publication evidence — 2026-08-31
+
+The controlled macOS `v0.2.0-preview.2` release is now published from public
+main commit `6d3a0cfc0a7a0bf05a3c136baf96a48f503b45ef`:
+
+[`github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2)
+
+The local Keychain-backed signer produced the detached signature for the exact
+DMG, ZIP, and release notice. A fresh download of all five public assets passed
+`scripts/verify-release-assets.sh`, and every downloaded file matched its local
+publication input byte-for-byte. The release is macOS universal only and is a
+prerelease; it is not Apple Developer ID signed or notarized.
+
+The public release makes the Preview 7 → Preview 2 discovery path real, but it
+does not prove an installed-bundle replacement. A device must still be in a
+writable application location, the user must explicitly approve installation,
+and a clean-device/pilot run must observe restart, confirmation, rollback
+preservation, and local configuration survival.
+
 ## Remaining release gate
 
-The owner-controlled macOS Keychain signer was exercised for a local
+The owner-controlled macOS Keychain signer was exercised for the published
 `v0.2.0-preview.2` candidate: the exact release directory received a detached
 Ed25519 signature, passed `scripts/verify-release-assets.sh`, and produced a
-0600 evidence receipt outside the worktree. The public `v0.2.0-preview.1`
-bridge was also downloaded and re-verified from GitHub. This proves local
-signing and verification, not a successful installed-app replacement.
+0600 evidence receipt outside the worktree. All five public assets were then
+downloaded, re-verified, and byte-compared with the local inputs. This proves
+publication integrity, not a successful installed-app replacement.
 
-No `v0.2.0-preview.2` or stable `v0.2.0` release was published in this audit.
-A live successful update cannot be claimed until the owner publishes a new
-candidate through the chosen channel, re-verifies the exact uploaded bytes
-from a clean machine, and completes clean-device replacement, rollback, and
-pilot acceptance. The private key remains outside the repository and must
-stay in the local secret store.
+Stable `v0.2.0` remains unpublished. A live successful update cannot be
+claimed until the owner completes clean-device replacement, rollback, and pilot
+acceptance for the published Preview 2 candidate. The private key remains
+outside the repository and must stay in the local secret store.

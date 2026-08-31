@@ -18,15 +18,15 @@ operator, device, release, or Google-provider action.
 
 The project is safer to evolve than the earlier Preview 7 snapshot, but it is
 not yet a universally verified, unattended, cross-platform student release.
-The largest remaining gates are clean release provenance, native artifacts for
+The largest remaining gates are stable-release provenance, native artifacts for
 every named platform, updater acceptance from the actual installed bundle,
 bounded browser/client state, and live provider/session behavior. A successful
 local build or a working one-Mac preview does not close those gates.
 
 The GitHub credential and provider keys pasted in the conversation are treated
 as compromised input. They were not copied into this register, source, Git, or
-the release process. Revoke/rotate them before any publication or classroom
-use; do not paste replacement secrets into chat.
+the release process. Revoke/rotate them immediately and before any further
+publication or classroom use; do not paste replacement secrets into chat.
 
 Latest local evidence: the real 15-check CLI run against the audit gateway on
 2026-08-29 passed 13 checks and failed strict web-route JSON output plus image
@@ -40,9 +40,9 @@ generation remains provider/session dependent.
 |---:|---|---|---|
 | 1 | A dirty worktree produces an artifact containing unreviewed local changes. | PROTECTED | `scripts/verify-release-source.sh` fails stable CLI/desktop packaging on any modified or untracked path; the final release still requires a reviewed clean commit. |
 | 2 | Untracked API, desktop, PWA, or test files are omitted from the release commit. | PROTECTED | The same verifier requires a Git worktree with no untracked files before release packaging; staged-file review remains an operator gate. |
-| 3 | The working branch, `main`, and `origin/main` do not represent the same source. | PROTECTED | Protected PRs #42, #43, and #44 publish the reviewed runtime/docs state to `main`; the local release-readiness branch may carry a later isolated documentation commit, so recheck the exact remote ref and tree before each release and never infer state from a local branch name. |
+| 3 | The working branch, `main`, and `origin/main` do not represent the same source. | PROTECTED | Protected PRs #42–#47 publish the reviewed runtime/docs state to `main`; the local release-readiness branch may carry a later isolated documentation commit, so recheck the exact remote ref and tree before each release and never infer state from a local branch name. |
 | 4 | `internal/server/playground.html` and generated `web/index.html` diverge. | PROTECTED | `scripts/verify-release-source.sh` compares the rendered source to the checked-in bundle without rewriting either file; `make web` remains the explicit generation step. |
-| 5 | Version, channel, app metadata, Docker metadata, and release assets disagree. | PARTIAL | `scripts/verify-release-source.sh` validates the stable Makefile/Docker version and all preview packager defaults before packaging; the final public asset matrix still requires operator reconciliation. |
+| 5 | Version, channel, app metadata, Docker metadata, and release assets disagree. | PARTIAL | `scripts/verify-release-source.sh` validates the stable Makefile/Docker version and all preview packager defaults before packaging; Preview 2 is reconciled, and every future public asset matrix still requires operator verification. |
 | 6 | The package embeds a different updater public key from the manifest signer, an installer key encoding drifts, or a preview target omits the public key at packaging time. | PARTIAL | The release-source gate extracts the explicit canonical key block, derives and checks the Bash installer SPKI encoding, and compares the raw key with Makefile/package inputs and both standalone installers; the private/public fingerprint match and signed release remain operator gates. |
 | 7 | A local install requests `/manifest.json` or `/sw.js` and receives 404. | PROTECTED | Local routes, embedded assets, content types, version injection, and endpoint tests now cover the contract. |
 | 8 | An old service worker serves stale HTML or caches API responses. | PROTECTED | The worker uses versioned local caches, network-first static fetches, and excludes `/v1/` and `/v1beta/`; test a real browser activation before release. |
@@ -55,8 +55,8 @@ generation remains provider/session dependent.
 | 15 | README/changelog advertises “full,” “native,” “unlimited,” or “zero dependency” behavior not proven by source/tests. | PARTIAL | Current README, Hindi README, and changelog now carry an explicit evidence boundary and historical-claim correction; review user-facing copy and the public release page before every release. |
 | 16 | A build is made from uncommitted source or an unrecorded toolchain. | PROTECTED | `verify-release-source.sh` blocks dirty or untracked release packaging; `record-release-evidence.sh` re-runs source and asset checks and records commit, branch, Go version, host, UTC time, manifest/signature hashes, and asset hashes outside the release tree. |
 | 17 | macOS quarantine, permissions, App Translocation, or Gatekeeper blocks a package despite valid project checksums. | PARTIAL | The native updater now preflights the current bundle before download and gives Applications/writable-location guidance for App Translocation and staging permission failures. Gatekeeper/quarantine and clean-device `/Applications` acceptance remain external; do not ask users to disable Gatekeeper. |
-| 18 | A binary cannot be tied to an immutable source commit and exact manifest bytes. | PROTECTED | The local release receipt records the reviewed commit/toolchain/host and exact manifest, signature, and asset hashes; publication/tag reconciliation is still an operator gate. |
-| 19 | The signed manifest is syntactically valid but does not contain every published asset. | PARTIAL | `scripts/verify-release-assets.sh` now verifies the detached signature and one-to-one local directory/manifest mapping; rerun it after downloading the public release because upload state remains external. |
+| 18 | A binary cannot be tied to an immutable source commit and exact manifest bytes. | PROTECTED | The local release receipt records the reviewed commit/toolchain/host and exact manifest, signature, and asset hashes; Preview 2's tag/public-byte reconciliation is recorded, and the same operator gate applies to future releases. |
+| 19 | The signed manifest is syntactically valid but does not contain every published asset. | PARTIAL | `scripts/verify-release-assets.sh` now verifies the detached signature and one-to-one local directory/manifest mapping; Preview 2 was re-downloaded and reconciled, and the check must be rerun after every future public upload. |
 | 20 | Exposed GitHub/provider credentials are reused, logged, or committed. | EXTERNAL | Revoke/rotate the previously pasted credentials immediately; keep all replacement secrets outside the repository and chat. |
 
 ## 2. Updater and package replacement
@@ -82,7 +82,7 @@ generation remains provider/session dependent.
 | 37 | The helper restarts the wrong executable, loses arguments, or exits before health confirmation. | PARTIAL | The helper launches the validated installed candidate with only the bounded confirmation argument; updater-owned plan/rollback/confirmation/helper names are checked, native startup recovery handles helper interruption, and the startup error window surfaces ambiguous recovery. Fixture tests cover confirmation/rollback states; clean-device process and endpoint evidence remain external. |
 | 38 | Prerelease comparison treats `preview.10` as older than `preview.9`, or stable is downgraded. | PROTECTED | Version ordering and channel tests cover numeric previews and stable/preview directionality. |
 | 39 | Legacy bundle names are not recognized, causing a false “no update” result. | PROTECTED | Branded and legacy asset-name tests cover the migration candidates. |
-| 40 | Uploaded DMG, ZIP, manifest, signature, release note, and README describe different bytes or versions. | PARTIAL | The local signer, one-to-one verifier, and release receipt catch byte/manifest drift before and after download; the public GitHub asset set and release-page prose still require a fresh-directory operator reconciliation. |
+| 40 | Uploaded DMG, ZIP, manifest, signature, release note, and README describe different bytes or versions. | PARTIAL | The local signer, one-to-one verifier, release receipt, and Preview 2 fresh-directory reconciliation catch the published case; the same public-asset and release-page review remains required for every future release. |
 
 ## 3. Google provider, sessions, and quota boundaries
 

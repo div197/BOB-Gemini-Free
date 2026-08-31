@@ -2,10 +2,13 @@
 
 ## Decision
 
-The next package from the current source must be a new preview candidate:
-`v0.2.0-preview.2`. It must not reuse the immutable published
-`v0.2.0-preview.1` tag or release. Stable `v0.2.0` remains a later release
-candidate, not a release to publish from this audit.
+The immutable `v0.2.0-preview.1` tag was not reused. Controlled macOS
+`v0.2.0-preview.2` is now published from public-main commit `6d3a0cfc` and is
+the current preview candidate. Stable `v0.2.0` remains a later release
+candidate, not a release to publish until the device and pilot gates pass.
+
+The exact publication and byte-reconciliation evidence is recorded in
+[`PREVIEW-2-PUBLICATION-2026-08-31.md`](PREVIEW-2-PUBLICATION-2026-08-31.md).
 
 The updater is working as a staged, user-consented migration mechanism. It is
 not a silent fleet push: a running app may perform a delayed metadata check,
@@ -43,15 +46,16 @@ SHA256SUMS                           56b1d9d4bcb005caa300f5221de9d90c4a5a030003d
 SHA256SUMS.sig                       18b969bad7d3de108d135e34d845a6f98385ff92c00e510a0a26423565c3e79d
 ```
 
-## Post-merge reconciliation — 2026-08-31
+## Post-merge reconciliation — 2026-08-31 (before Preview 2 publication)
 
 Protected PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42) merged
 the reviewed source and release-readiness documentation into public `main` at
 `ba1b56228f999bcded0fc6539ddb8ccca1935a11`. The reviewed code tip `cec4c8e`
 and the final documentation-only reconciliation commits are therefore part of
-the public source history. This merge did not create a tag or GitHub Release:
-public `v0.2.0-preview.1` remains immutable, Preview 2 remains a locally
-verified but unpublished candidate, and stable `v0.2.0` remains unpublished.
+the public source history. At that point this merge did not create a tag or
+GitHub Release: public `v0.2.0-preview.1` remained immutable, Preview 2 was a
+locally verified but unpublished candidate, and stable `v0.2.0` remained
+unpublished.
 No GitHub Actions workflow was added or run.
 
 ## Follow-up updater durability hardening — 2026-08-31
@@ -73,26 +77,39 @@ the provenance reconciliation and Windows updater hardening on public
 `main`. The local branch was rechecked against the public file tree before
 this document refresh. No new tag or release was created by those merges.
 
-The public bridge ZIP reports `CFBundleShortVersionString` and
+## Preview 2 publication reconciliation — 2026-08-31
+
+The owner-controlled local release operation built the universal macOS
+package from public-main commit `6d3a0cfc0a7a0bf05a3c136baf96a48f503b45ef`,
+signed its exact manifest through the macOS Keychain, and published
+`v0.2.0-preview.2` as a prerelease without GitHub Actions. GitHub's five
+uploaded assets were downloaded again; the detached signature verified and
+the downloaded files matched the local inputs byte-for-byte. The release is
+macOS-only, ad-hoc signed, and not notarized.
+
+This closes publication and public-byte reconciliation for Preview 2. It does
+not close the clean-device replacement, rollback, Apple trust, provider, or
+30-device rollout gates.
+
+The public Preview 2 ZIP reports `CFBundleShortVersionString` and
 `CFBundleVersion` as `0.2.0`; the full preview channel/version is carried by
 the injected desktop updater version and release metadata. This is expected
 macOS bundle-version normalization, but the Help/About surface and release
-notice must continue to show the full `v0.2.0-preview.1` identity.
+notice must continue to show the full `v0.2.0-preview.2` identity.
 
 ## Migration matrix
 
 | Installed build | Metadata path | Candidate it can discover | What is actually proven |
 |---|---|---|---|
-| Public `v0.1.7-preview.7` | Preview list only | `v0.2.0-preview.1` now; the highest later `preview.N` after publication | Released source behavior, current selection fixtures, public bridge manifest, and public key are verified. A real installed update/restart remains a device gate. |
-| Public `v0.1.7-preview.7` | Preview list only | Future `v0.2.0-preview.2` directly, if it is published with the same key and compatible macOS asset | Current regression fixture proves highest-preview selection; exact future public bytes do not exist yet. |
+| Public `v0.1.7-preview.7` | Preview list only | Published `v0.2.0-preview.2` directly, with the same key and compatible macOS asset | Current regression fixture, public manifest/signature, and public-byte reconciliation are verified; installed replacement remains a device gate. |
 | Public `v0.2.0-preview.1` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise a newer preview such as `v0.2.0-preview.2` | Stable-first and preview-continuation selection are covered by updater tests. Clean-device replacement is still open. |
-| Candidate `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | A final local Keychain-signed package from clean source `3140b7a` passed manifest, signature, checksum, bundle, launch, health, and shutdown checks; later Windows-only updater hardening is merged but that macOS candidate is not tagged or published. |
+| Published `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | Public-main package passed manifest/signature/checksum, bundle, launch, health, shutdown, fresh-download, and byte-reconciliation checks; clean-device replacement remains open. |
 | Stable `v0.2.0` | Stable endpoint only | A newer stable release | Stable builds do not move backward into preview. |
 
 The safe operator sequence for a device currently on Preview 7 is therefore:
 
 ```text
-Preview 7 → published Preview 1 bridge (or a later same-key Preview 2)
+Preview 7 → published same-key Preview 2 (or Preview 1 bridge if already selected)
           → stable v0.2.0 after stable publication and acceptance
 ```
 
@@ -130,16 +147,15 @@ power interruption, passed Gatekeeper without user approval, or completed a
 
 Do not publish stable yet. Before a stable tag, the owner still needs to:
 
-1. build `v0.2.0-preview.2` from a clean commit and sign its exact manifest
-   locally with the existing owner-controlled key;
-2. re-download and verify the public candidate from a clean writable Mac;
-3. exercise Preview 7 → Preview 2 (or the already-published Preview 1 bridge)
+1. re-download and verify the published Preview 2 candidate from a clean
+   writable Mac;
+2. exercise Preview 7 → Preview 2 (or the already-published Preview 1 bridge)
    and Preview 1 → Preview 2 on real installed bundles;
-4. exercise Preview 2/Preview 1 → stable with a controlled stable candidate;
-5. deliberately invalidate/interruption-test rollback without losing config,
+3. exercise Preview 2/Preview 1 → stable with a controlled stable candidate;
+4. deliberately invalidate/interruption-test rollback without losing config,
    cookies, preferences, or history;
-6. repeat on two or three pilot Macs before any 20–30 device wave; and
-7. keep Apple Developer ID/notarization and Windows publisher signing as
+5. repeat on two or three pilot Macs before any 20–30 device wave; and
+6. keep Apple Developer ID/notarization and Windows publisher signing as
    separate platform-trust gates.
 
 The project signing key authenticates release bytes. It does not remove the

@@ -1,7 +1,8 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS/Windows preview is published; production trust,
-Linux acceptance, and broad student rollout remain pending.
+**Status:** public macOS Preview 2 and an older Windows preview artifact are
+published; production trust, Linux acceptance, and broad student rollout
+remain pending.
 
 This document separates the working native application shown in the local
 screenshots from a product release that students can download and trust.
@@ -18,9 +19,11 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
-  is the current same-key updater step for existing Preview 7 Macs. Stable
-  `v0.2.0` remains gated on clean-device and pilot acceptance.
+- The public [`v0.2.0-preview.2` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2)
+  is the current same-key updater candidate for existing Preview 7 Macs. The
+  immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
+  remains available. Stable `v0.2.0` remains gated on clean-device and pilot
+  acceptance.
 
 ## Student artifact matrix
 
@@ -178,7 +181,7 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.2.0-preview.1` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1):
+[`v0.2.0-preview.2` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2):
 macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
 one-time manual migration described in the release notes. Windows Preview 3
 remains available separately; Linux is not included in Preview 7.
