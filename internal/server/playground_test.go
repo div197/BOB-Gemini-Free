@@ -41,7 +41,7 @@ func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
 		`let gatewayApiKey = "";`,
 		`const LEGACY_GATEWAY_KEY_STORAGE_KEY = "bob_api_key";`,
 		`localStorage.removeItem(LEGACY_GATEWAY_KEY_STORAGE_KEY);`,
-		`if (keyInput) keyInput.value = gatewayApiKey;`,
+		`keyInput.value = gatewayApiKey;`,
 		`gatewayApiKey = clean;`,
 		`const apiKey = gatewayApiKey;`,
 		`gatewayApiKey = "";`,
@@ -948,11 +948,11 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
-		`Gemini Developer API (optional)`,
+		`Google Gemini Developer API (optional)`,
 		`https://aistudio.google.com/app/apikey`,
 		`https://ai.google.dev/gemini-api/docs/rate-limits`,
 		`https://ai.google.dev/gemini-api/docs/models`,
-		`Use for this session`,
+		`Use your Google key for this session`,
 		`is never saved by BOB`,
 		`Google project quotas, free-tier limits, and any billing settings still apply`,
 		`BOB does not rotate keys or automatically retry a request through a second provider`,
@@ -969,6 +969,56 @@ func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	}
 	if strings.Contains(html, `if (safeErrorMessage.includes("401"))`) {
 		t.Fatal("provider HTTP 401 must not be mislabeled as gateway API-key authentication")
+	}
+}
+
+func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="gateway-credential-map"`,
+		`Credential map — these are different`,
+		`Default web-session route:`,
+		`Google Developer API route:`,
+		`BOB endpoint access:`,
+		`Cookies belong to the engine; never paste cookies into either field.`,
+		`BOB Gateway Access Key (optional)`,
+		`Only when the gateway owner enabled api_keys`,
+		`This protects access to the BOB endpoint; it is not a Google key.`,
+		`type="password" id="gateway-api-key-input"`,
+		`aria-describedby="gateway-auth-help"`,
+		`Google Gemini Developer API key`,
+		`aria-describedby="gemini-provider-help gemini-provider-route-note"`,
+		`This is not the BOB Gateway Access Key.`,
+		`Use your Google key for this session`,
+		`function toggleApiKeyVisibility()`,
+		`input.type = input.type === "password" ? "text" : "password";`,
+		`keyInput.type = "password";`,
+		`providerKeyInput.type = "password";`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing credential-boundary marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`API Key (Bearer Auth)`,
+		`placeholder="sk-gemini or leave empty for none"`,
+		`title="Show / Hide API Key"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("playground still uses ambiguous gateway credential wording %q", forbidden)
+		}
+	}
+
+	for _, marker := range []string{
+		`gatewayCredentialMapTitle:`,
+		`gatewayAuthTitle:`,
+		`gatewayRouteWebHelp:`,
+		`gatewayRouteProviderHelp:`,
+		`gatewayRouteAccessHelp:`,
+	} {
+		if strings.Count(html, marker) < 2 {
+			t.Fatalf("credential-boundary translation marker %q is not present in English and Hindi dictionaries", marker)
+		}
 	}
 }
 
@@ -1073,7 +1123,7 @@ func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
 		`aria-label="Chat prompt"`,
 		`aria-label="Attach or paste an image"`,
 		`aria-label="Gateway endpoint URL"`,
-		`aria-label="Gemini Developer API key"`,
+		`aria-label="Google Gemini Developer API key"`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("playground is missing accessibility marker %q", marker)

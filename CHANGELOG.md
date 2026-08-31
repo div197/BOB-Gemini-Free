@@ -56,6 +56,15 @@ to an earlier implementation. The current contract supersedes those phrases:
   signed installed-bundle replacement and rollback still require device
   acceptance. See [`current release audit`](docs/engineering/RELEASE-AUDIT-2026-08-31.md).
 
+### Credential-boundary clarity
+
+- Renames the Studio gateway field to **BOB Gateway Access Key** and masks it by
+  default so it cannot be confused with a student's Google Gemini Developer API
+  key.
+- Adds a localized credential map explaining the separate BOB access, Google
+  Developer API, web-session/cookie, and endpoint scopes without changing route
+  selection, headers, or session-only storage behavior.
+
 ## [0.2.0-preview.4] - 2026-08-31
 
 ### Controlled macOS preview publication

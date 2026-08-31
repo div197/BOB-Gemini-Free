@@ -314,6 +314,11 @@ publication gate for this milestone.
 
 ## Current Gemini Developer API routing update (2026-08-29)
 
+The 2026-08-31 settings review added an explicit credential map to the Studio
+Config modal. This improves operator/student comprehension without changing the
+wire contract: BOB access authentication, the optional Developer API key, and
+the web-session cookie state remain separate boundaries.
+
 This section records the explicit student-owned-key route added after the
 earlier web-RPC audit. It does not change the default cookie/guest path and it
 does not turn provider documentation into a product guarantee.

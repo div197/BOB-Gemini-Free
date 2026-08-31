@@ -4302,31 +4302,41 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
       </div>
 
+      <div class="legal-notice-box" id="gateway-credential-map" role="note" aria-labelledby="gateway-credential-map-title" style="margin-top:10px; line-height:1.5;">
+        <strong id="gateway-credential-map-title">Credential map — these are different</strong>
+        <div style="margin-top:6px; display:grid; gap:4px;">
+          <div><b id="gateway-route-web-label">Default web-session route:</b> <span id="gateway-route-web-help">uses the running engine's guest/account session when available; no Google AI Studio key is required here.</span></div>
+          <div><b id="gateway-route-provider-label">Google Developer API route:</b> <span id="gateway-route-provider-help">uses the student's own Google AI Studio project and its quotas/billing when explicitly enabled below.</span></div>
+          <div><b id="gateway-route-access-label">BOB endpoint access:</b> <span id="gateway-route-access-help">the optional BOB access key protects this gateway and is separate from any Google key. Cookies belong to the engine; never paste cookies into either field.</span></div>
+        </div>
+      </div>
+
       <div class="control-card" style="margin-top:10px;">
         <label for="gateway-api-key-input" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">API Key (Bearer Auth)</span>
-          <span style="font-size:0.72rem; color:var(--text-muted);">Optional for unauthenticated local instances</span>
+          <span id="gateway-auth-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">BOB Gateway Access Key (optional)</span>
+          <span id="gateway-auth-optional" style="font-size:0.72rem; color:var(--text-muted);">Only when the gateway owner enabled api_keys</span>
         </label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="gateway-api-key-input" aria-label="Gateway API key" name="bearer_auth_token_string" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="sk-gemini or leave empty for none" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
-          <button type="button" class="btn-pill-subtle" aria-label="Show or hide gateway API key" onclick="toggleApiKeyVisibility()" title="Show / Hide API Key" style="padding:0 10px;">👁️</button>
+          <input type="password" id="gateway-api-key-input" aria-label="BOB Gateway Access Key" aria-describedby="gateway-auth-help" name="bearer_auth_token_string" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Only if the gateway owner gave you one" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <button type="button" class="btn-pill-subtle" aria-label="Show or hide BOB Gateway Access Key" onclick="toggleApiKeyVisibility()" title="Show / Hide BOB Gateway Access Key" style="padding:0 10px;">👁️</button>
         </div>
+        <div id="gateway-auth-help" style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no <code>api_keys</code> configured.</div>
       </div>
 
       <div class="control-card" style="margin-top:10px; border-color:rgba(250,204,21,0.45);">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
-          <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gemini Developer API (optional)</span>
+          <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Google Gemini Developer API (optional)</span>
           <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); text-transform:none; letter-spacing:0; cursor:pointer;">
-            <input type="checkbox" id="gemini-provider-toggle" onchange="toggleGeminiProviderRoute(this.checked)" style="accent-color:var(--accent-primary);">
-            <span id="gemini-provider-session-label">Use for this session</span>
+            <input type="checkbox" id="gemini-provider-toggle" aria-describedby="gemini-provider-help gemini-provider-route-note" onchange="toggleGeminiProviderRoute(this.checked)" style="accent-color:var(--accent-primary);">
+            <span id="gemini-provider-session-label">Use your Google key for this session</span>
           </label>
         </div>
         <div style="display:flex; gap:8px;">
-          <input type="password" id="gemini-provider-key-input" aria-label="Gemini Developer API key" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+          <input type="password" id="gemini-provider-key-input" aria-label="Google Gemini Developer API key" aria-describedby="gemini-provider-help gemini-provider-route-note" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-subtle" aria-label="Show or hide Gemini Developer API key" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">
-          <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
+          <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. This is not the BOB Gateway Access Key. The key stays in this page's memory, is sent only when this route is enabled, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
           <a id="gemini-provider-link" href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700;">Create or manage a key in Google AI Studio ↗</a>
           <a id="gemini-provider-limits-link" href="https://ai.google.dev/gemini-api/docs/rate-limits" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700; margin-left:6px;">View current limits ↗</a>
           <a id="gemini-provider-models-link" href="https://ai.google.dev/gemini-api/docs/models" target="_blank" rel="noopener noreferrer" style="color:var(--accent-primary); text-decoration:underline; font-weight:700; margin-left:6px;">View current models ↗</a>
@@ -5735,6 +5745,17 @@ const I18N = {
     modalGatewayLabel: "Gateway Endpoint URL",
     modalGatewaySave: "Save",
     modalGatewayReset: "Reset",
+    gatewayCredentialMapTitle: "Credential map — these are different",
+    gatewayRouteWebLabel: "Default web-session route:",
+    gatewayRouteWebHelp: "uses the running engine's guest/account session when available; no Google AI Studio key is required here.",
+    gatewayRouteProviderLabel: "Google Developer API route:",
+    gatewayRouteProviderHelp: "uses the student's own Google AI Studio project and its quotas/billing when explicitly enabled below.",
+    gatewayRouteAccessLabel: "BOB endpoint access:",
+    gatewayRouteAccessHelp: "the optional BOB access key protects this gateway and is separate from any Google key. Cookies belong to the engine; never paste cookies into either field.",
+    gatewayAuthTitle: "BOB Gateway Access Key (optional)",
+    gatewayAuthOptional: "Only when the gateway owner enabled api_keys",
+    gatewayAuthPlaceholder: "Only if the gateway owner gave you one",
+    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no api_keys configured.",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "Universal Local AI Gateway Engine • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "Close",
@@ -5759,9 +5780,9 @@ const I18N = {
       close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
       artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Pop Out",
       gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
-      geminiProviderTitle: "Gemini Developer API (optional)", geminiProviderSession: "Use for this session",
+      geminiProviderTitle: "Google Gemini Developer API (optional)", geminiProviderSession: "Use your Google key for this session",
       geminiProviderPlaceholder: "Paste your own Google AI Studio key",
-      geminiProviderHelp: "Optional direct route for your own Google AI Studio project. The key stays in this page's memory, is sent only when the session toggle is on, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.",
+      geminiProviderHelp: "Optional direct route for your own Google AI Studio project. This is not the BOB Gateway Access Key. The key stays in this page's memory, is sent only when this route is enabled, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.",
       geminiProviderLink: "Create or manage a key in Google AI Studio ↗",
       geminiProviderLimitsLink: "View current limits ↗",
       geminiProviderModelsLink: "View current models ↗",
@@ -5907,6 +5928,17 @@ const I18N = {
     modalGatewayLabel: "गेटवे एंडपॉइंट URL",
     modalGatewaySave: "सहेजें",
     modalGatewayReset: "रीसेट",
+    gatewayCredentialMapTitle: "क्रेडेंशियल मानचित्र — ये अलग-अलग हैं",
+    gatewayRouteWebLabel: "डिफ़ॉल्ट web-session route:",
+    gatewayRouteWebHelp: "उपलब्ध होने पर चल रहे इंजन का guest/account session उपयोग करता है; यहाँ Google AI Studio key की आवश्यकता नहीं है।",
+    gatewayRouteProviderLabel: "Google Developer API route:",
+    gatewayRouteProviderHelp: "नीचे स्पष्ट रूप से चालू करने पर छात्र के अपने Google AI Studio project और उसके quota/billing का उपयोग करता है।",
+    gatewayRouteAccessLabel: "BOB endpoint access:",
+    gatewayRouteAccessHelp: "वैकल्पिक BOB access key इस gateway की सुरक्षा करती है और किसी भी Google key से अलग है। Cookies इंजन के पास रहती हैं; किसी भी field में cookie paste न करें।",
+    gatewayAuthTitle: "BOB Gateway Access Key (वैकल्पिक)",
+    gatewayAuthOptional: "केवल तब जब gateway owner ने api_keys चालू किया हो",
+    gatewayAuthPlaceholder: "केवल gateway owner द्वारा दी गई key होने पर",
+    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें।",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "बंद करें",
@@ -5931,9 +5963,9 @@ const I18N = {
       close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
       artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "नई विंडो",
       gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
-      geminiProviderTitle: "Gemini Developer API (वैकल्पिक)", geminiProviderSession: "इस सत्र के लिए उपयोग करें",
+      geminiProviderTitle: "Google Gemini Developer API (वैकल्पिक)", geminiProviderSession: "इस session के लिए अपनी Google key उपयोग करें",
       geminiProviderPlaceholder: "अपनी Google AI Studio key paste करें",
-      geminiProviderHelp: "आपके अपने Google AI Studio project के लिए वैकल्पिक direct route। Key इसी page की memory में रहती है, session toggle चालू होने पर ही भेजी जाती है और BOB में save नहीं होती। Google project quota, free-tier limits और billing settings लागू रहती हैं।",
+      geminiProviderHelp: "आपके अपने Google AI Studio project के लिए वैकल्पिक direct route। यह BOB Gateway Access Key नहीं है। Key इसी page की memory में रहती है, यह route चालू होने पर ही भेजी जाती है और BOB में save नहीं होती। Google project quota, free-tier limits और billing settings लागू रहती हैं।",
       geminiProviderLink: "Google AI Studio में key बनाएं या प्रबंधित करें ↗",
       geminiProviderLimitsLink: "वर्तमान सीमाएं देखें ↗",
       geminiProviderModelsLink: "वर्तमान मॉडल देखें ↗",
@@ -6292,6 +6324,16 @@ function applyLanguageUI(dict) {
     "about-close-btn": ui.close,
     "gateway-modal-title": ui.gatewayTitle,
     "gateway-modal-subtitle": ui.gatewaySubtitle,
+    "gateway-credential-map-title": ui.gatewayCredentialMapTitle,
+    "gateway-route-web-label": ui.gatewayRouteWebLabel,
+    "gateway-route-web-help": ui.gatewayRouteWebHelp,
+    "gateway-route-provider-label": ui.gatewayRouteProviderLabel,
+    "gateway-route-provider-help": ui.gatewayRouteProviderHelp,
+    "gateway-route-access-label": ui.gatewayRouteAccessLabel,
+    "gateway-route-access-help": ui.gatewayRouteAccessHelp,
+    "gateway-auth-title": ui.gatewayAuthTitle,
+    "gateway-auth-optional": ui.gatewayAuthOptional,
+    "gateway-auth-help": ui.gatewayAuthHelp,
     "gemini-provider-title": ui.geminiProviderTitle,
     "gemini-provider-session-label": ui.geminiProviderSession,
     "gemini-provider-help": ui.geminiProviderHelp,
@@ -6374,6 +6416,8 @@ function applyLanguageUI(dict) {
   if (inputEl) inputEl.placeholder = dict.inputPlaceholder;
   const systemPrompt = document.getElementById("system-prompt");
   if (systemPrompt) systemPrompt.placeholder = ui.systemPromptPlaceholder;
+  const gatewayKeyInput = document.getElementById("gateway-api-key-input");
+  if (gatewayKeyInput) gatewayKeyInput.placeholder = ui.gatewayAuthPlaceholder;
   const providerKeyInput = document.getElementById("gemini-provider-key-input");
   if (providerKeyInput) providerKeyInput.placeholder = ui.geminiProviderPlaceholder;
   const sendLabel = document.getElementById("send-btn-label");
@@ -6630,8 +6674,14 @@ function openGatewayModal() {
   const providerKeyInput = document.getElementById("gemini-provider-key-input");
   const providerToggle = document.getElementById("gemini-provider-toggle");
   if (input) input.value = getGatewayBaseUrl();
-  if (keyInput) keyInput.value = gatewayApiKey;
-  if (providerKeyInput) providerKeyInput.value = geminiProviderKey;
+  if (keyInput) {
+    keyInput.type = "password";
+    keyInput.value = gatewayApiKey;
+  }
+  if (providerKeyInput) {
+    providerKeyInput.type = "password";
+    providerKeyInput.value = geminiProviderKey;
+  }
   if (providerToggle) providerToggle.checked = useGeminiProvider;
   openManagedModal(modal, "#gateway-url-input");
 }
@@ -6651,8 +6701,7 @@ function saveApiKeyFromInput(val) {
 function toggleApiKeyVisibility() {
   const input = document.getElementById("gateway-api-key-input");
   if (!input) return;
-  const isDisc = input.style.webkitTextSecurity === "disc" || getComputedStyle(input).webkitTextSecurity === "disc";
-  input.style.webkitTextSecurity = isDisc ? "none" : "disc";
+  input.type = input.type === "password" ? "text" : "password";
 }
 
 function saveGeminiProviderKey(val) {
