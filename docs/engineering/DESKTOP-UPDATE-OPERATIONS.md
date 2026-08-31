@@ -20,6 +20,13 @@ per 24 hours; this background path only discovers and presents an update, and
 never installs without the same explicit user confirmation. Existing binaries
 keep the behavior compiled into their release.
 
+Before an installable update dialog is shown, the current source performs a
+local, no-network preflight of the running bundle. It rejects macOS App
+Translocation and read-only or non-writable same-filesystem locations with
+recovery guidance before downloading the release package. The staging step
+repeats this check because permissions can change after discovery; this is an
+error-prevention improvement, not a bypass of the signed-manifest boundary.
+
 If the helper or machine is interrupted after the transaction starts, the next
 native launch inspects only a validated plan belonging to that exact install.
 A healthy confirmation finalizes the candidate and removes the rollback copy; a

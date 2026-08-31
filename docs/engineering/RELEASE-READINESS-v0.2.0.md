@@ -13,8 +13,9 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `7efb6b7`, ahead of `origin/main`; the
-  branch also contains subsequent audit-documentation commits.
+  `codex/release-readiness-v0.2.0` at `8651eba`, ahead of `origin/main`; the
+  branch contains the subsequent audit documentation, coalesced-stream,
+  remote-image, and updater-preflight hardening commits.
 - The current branch contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
   attachment/image controls, and JavaScript-URL-free gateway recovery, but those
@@ -24,6 +25,10 @@ current local truth is:
 - This refresh does not close signed-asset publication, Apple/Windows
   platform trust, clean-device updater, live provider, browser, or 30-device
   rollout gates.
+- The native updater now preflights the current install location before any
+  release artifact download and explains App Translocation/read-only paths;
+  the preflight is source- and fixture-tested but still needs a real
+  `/Applications` installed-bundle run.
 - The current tip also contains the isolated Studio correctness pass: native
   button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
   surfaces, accessible selector names, a prompt skip link, and synchronized

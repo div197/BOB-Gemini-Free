@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed at `7efb6b7` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
+**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed through `8651eba` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
 
 **Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -264,7 +264,8 @@ states, and no lost New Chat or Send action.
 
 ## 9. Verification run
 
-Completed on the clean source commit `7efb6b7` before this report update:
+The initial design-correctness pass completed on clean source commit
+`7efb6b7`; the continuation hardening was then completed through `8651eba`:
 
 ```text
 make web                                      PASS
@@ -305,9 +306,19 @@ Changed:
   tests, including persisted-attachment, image-preview, and native-control /
   drawer-state boundaries.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
-  error classification.
-- `internal/updater/desktop_stage_test.go` — read-only and permission-denied
-  staging error regression tests.
+  error classification plus a no-download install-location preflight.
+- `internal/updater/desktop_stage_test.go` — read-only, permission-denied,
+  writable-bundle, App Translocation, and unsupported-platform preflight tests.
+- `cmd/desktop/updates.go` — defer automatic prompts and explain an
+  unwriteable/translocated install before staging an artifact.
+- `internal/gemini/flight.go` — isolate subscriber cancellation, bound
+  subscriber queues/history, and cancel abandoned shared runners.
+- `internal/gemini/flight_test.go` — leader/follower cancellation,
+  deadline, overflow, history-limit, and deterministic race regressions.
+- `internal/multimodal/upload.go` — validate fetched image decode dimensions
+  before remote bytes reach upload or image-generation paths.
+- `internal/multimodal/multimodal_test.go` — highly-compressible oversized
+  image decode-budget regression.
 - `internal/server/middleware.go` — optional request-logger nil guard for
   partial embedded apps.
 - `internal/server/server_test.go` — partial-app request-logging regression.
@@ -316,18 +327,17 @@ Changed:
 - `internal/gemini/client_test.go` — retry regressions for an absent logger.
 - `web/index.html` — generated static distribution synchronized by `make web`.
 - `docs/engineering/FAILURE-REGISTER-100.md` — refreshed branch/main evidence
-  and the attachment failure-path status.
+  and the stream/multimodal failure-path status.
 - `docs/engineering/DESIGN-AUDIT-2026-08-31.md` — this audit.
 
 Deliberately untouched:
 
 - Gemini payload construction, SAPISID authentication, cookie/session routing,
-  streaming deduplication, thinking extraction, Scotty upload, and model-mode
-  mapping.
+  thinking extraction, Scotty wire upload, and model-mode mapping.
 - OpenAI, Anthropic, and Google adapter wire formats.
-- Gateway CORS/PNA policy, provider routing, API-key handling, updater
-  selection/replacement behavior, Wails/Tauri history, release assets, and
-  GitHub publication state.
+- Gateway CORS/PNA policy, provider routing, API-key handling, updater release
+  selection/replacement semantics beyond the new local staging preflight,
+  Wails/Tauri history, release assets, and GitHub publication state.
 - Navigation model, feature removal, theme catalog, and component/build
   restructuring; these are L2/L3 decisions requiring evidence or explicit
   approval.
@@ -335,8 +345,7 @@ Deliberately untouched:
 ## 11. Next decision
 
 The next responsible step is not more visual polish. Recover the real browser
-runtime, run section 8, capture the evidence, and then choose exactly one L2
-experiment. If that run is clean, the product has a strong correctness base for
-the next design phase. If it exposes drawer, artifact, or touch failures, fix
+runtime, run section 8, and complete the clean `/Applications` updater proof.
+If either run exposes drawer, artifact, touch, or transaction failures, fix
 those as independent regression-locked changes before considering the L3
 design-language or monolith split proposals.
