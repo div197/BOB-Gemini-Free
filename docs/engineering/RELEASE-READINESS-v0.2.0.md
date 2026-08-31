@@ -11,18 +11,18 @@
 The historical publication entries below are retained as provenance. The
 current local truth is:
 
-- `origin/main` is `523ceeb`.
-- The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `cec4c8e`, ahead of `origin/main`; the
-  branch contains the subsequent audit documentation, coalesced-stream,
-  remote-image, and updater-preflight hardening commits.
+- The pre-merge audit baseline was `523ceeb`; PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42)
+  has now merged the reviewed source into public `main` at `ba1b562`.
+- The reviewed source-hardening code tip is `cec4c8e`, and the final
+  documentation reconciliation follows it on the preserved
+  `codex/release-readiness-v0.2.0` branch; no runtime source remains only on
+  the branch.
 - The next source package identity is `v0.2.0-preview.2`. The immutable public
   `v0.2.0-preview.1` bridge must not be rebuilt or overwritten, and no Preview 2
   tag or release exists yet.
-- The current branch contains the later 100-path hardening follow-ups,
+- The merged source contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
-  attachment/image controls, and JavaScript-URL-free gateway recovery, but those
-  commits are not merged into `main`.
+  attachment/image controls, and JavaScript-URL-free gateway recovery.
 - No stable `v0.2.0` tag or release was created here, and no GitHub Actions
   workflow was added or run.
 - This refresh does not close signed-asset publication, Apple/Windows
