@@ -4446,19 +4446,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <span id="gateway-ping-badge" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Latency: --</span>
         </label>
         <div class="gateway-field-row">
-          <input type="text" id="gateway-url-input" aria-label="Gateway endpoint URL" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
+        <input type="text" id="gateway-url-input" aria-label="Gateway endpoint URL" aria-describedby="gateway-endpoint-help" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
           <button type="button" class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
         </div>
-        <div style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
+        <div id="gateway-endpoint-help" style="font-size:0.72rem; color:var(--text-muted); margin-top:6px;">
           Default: <code>http://127.0.0.1:9610</code>. Connect to custom ports, LAN IP (e.g. <code>http://192.168.1.100:9610</code>), or local Docker.
         </div>
       </div>
 
       <div class="legal-notice-box" id="gateway-credential-map" role="note" aria-labelledby="gateway-credential-map-title" style="margin-top:10px; line-height:1.5;">
         <strong id="gateway-credential-map-title">Credential map — these are different</strong>
-        <div id="gateway-credential-map-lead" style="margin-top:6px; color:var(--text-main);">Start here: most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.</div>
-        <div id="gateway-desktop-boundary" style="margin-top:6px; color:var(--text-muted);">Native desktop note: the embedded gateway stays on loopback and disables BOB <code>api_keys</code>; enter the access key only when this Studio connects to a separate protected BOB endpoint.</div>
+        <div id="gateway-credential-map-lead" style="margin-top:6px; color:var(--text-main);">Start here: the endpoint URL says where Studio connects; it is not a key. Most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.</div>
+        <div id="gateway-desktop-boundary" style="margin-top:6px; color:var(--text-muted);">Native desktop note: the embedded gateway stays on loopback and does not require a BOB access key by default; enter one only when this Studio connects to a separate protected BOB endpoint.</div>
         <div style="margin-top:6px; display:grid; gap:4px;">
           <div><b id="gateway-route-web-label">Default web-session route:</b> <span id="gateway-route-web-help">uses the running engine's guest/account session when available; no Google AI Studio key is required here.</span></div>
           <div><b id="gateway-route-provider-label">Google Developer API route:</b> <span id="gateway-route-provider-help">uses the student's own Google AI Studio project and its quotas/billing when explicitly enabled below.</span></div>
@@ -4499,19 +4499,19 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <div class="control-card" style="margin-top:10px;">
         <label for="gateway-api-key-input" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span id="gateway-auth-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">BOB Gateway Access Key (optional)</span>
-          <span id="gateway-auth-optional" style="font-size:0.72rem; color:var(--text-muted);">Only when the gateway owner enabled api_keys</span>
+          <span id="gateway-auth-optional" style="font-size:0.72rem; color:var(--text-muted);">Only if this endpoint asks for a BOB key</span>
         </label>
         <div class="gateway-field-row">
           <input type="password" id="gateway-api-key-input" aria-label="BOB Gateway Access Key" aria-describedby="gateway-auth-help" name="bearer_auth_token_string" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Only if the gateway owner gave you one" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-subtle" aria-label="Show or hide BOB Gateway Access Key" onclick="toggleApiKeyVisibility()" title="Show / Hide BOB Gateway Access Key" style="padding:0 10px;">👁️</button>
           <button type="button" class="btn-pill-subtle" id="gateway-api-key-clear" onclick="clearGatewayApiKey()" title="Clear BOB Gateway Access Key" style="padding:0 10px;">Clear</button>
         </div>
-        <div id="gateway-auth-help" style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no <code>api_keys</code> configured.</div>
+        <div id="gateway-auth-help" style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">This key is only for opening a protected BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only over HTTPS, or to a local loopback gateway. Leave it empty for the normal embedded desktop gateway. If Test Ping says an access key is required, use the key provided by that gateway's owner. Cleartext HTTP is allowed only without this key.</div>
       </div>
 
       <div class="control-card" style="margin-top:10px; border-color:rgba(250,204,21,0.45);">
         <div style="display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px;">
-          <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Google Gemini Developer API (optional)</span>
+          <span id="gemini-provider-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Google Gemini Developer API key (optional)</span>
           <label style="display:flex; align-items:center; gap:6px; font-size:0.72rem; color:var(--text-muted); text-transform:none; letter-spacing:0; cursor:pointer;">
             <input type="checkbox" id="gemini-provider-toggle" aria-describedby="gemini-provider-help gemini-provider-route-note" onchange="toggleGeminiProviderRoute(this.checked)" style="accent-color:var(--accent-primary);">
             <span id="gemini-provider-session-label">Use your Google key for this session</span>
@@ -5939,8 +5939,8 @@ const I18N = {
     modalGatewaySave: "Save",
     modalGatewayReset: "Reset",
     gatewayCredentialMapTitle: "Credential map — these are different",
-    gatewayCredentialMapLead: "Start here: most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.",
-    gatewayDesktopBoundary: "Native desktop note: the embedded gateway stays on loopback and disables BOB api_keys; enter the access key only when this Studio connects to a separate protected BOB endpoint.",
+    gatewayCredentialMapLead: "Start here: the endpoint URL says where Studio connects; it is not a key. Most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.",
+    gatewayDesktopBoundary: "Native desktop note: the embedded gateway stays on loopback and does not require a BOB access key by default; enter one only when this Studio connects to a separate protected BOB endpoint.",
     gatewayRouteWebLabel: "Default web-session route:",
     gatewayRouteWebHelp: "uses the running engine's guest/account session when available; no Google AI Studio key is required here.",
     gatewayRouteProviderLabel: "Google Developer API route:",
@@ -5948,9 +5948,9 @@ const I18N = {
     gatewayRouteAccessLabel: "BOB endpoint access:",
     gatewayRouteAccessHelp: "the optional BOB access key protects this gateway and is separate from any Google key. Cookies belong to the engine; never paste cookies into either field.",
     gatewayAuthTitle: "BOB Gateway Access Key (optional)",
-    gatewayAuthOptional: "Only when the gateway owner enabled api_keys",
+    gatewayAuthOptional: "Only if this endpoint asks for a BOB key",
     gatewayAuthPlaceholder: "Only if the gateway owner gave you one",
-    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only over HTTPS, or to a local loopback gateway. Leave it empty when the local gateway has no api_keys configured. Cleartext HTTP is allowed only without this key. After entering a key, choose Test Ping to verify the endpoint.",
+    gatewayAuthHelp: "This key is only for opening a protected BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only over HTTPS, or to a local loopback gateway. Leave it empty for the normal embedded desktop gateway. If Test Ping says an access key is required, use the key provided by that gateway's owner. Cleartext HTTP is allowed only without this key. After entering a key, choose Test Ping to verify the endpoint.",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "Universal Local AI Gateway Engine • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "Close",
@@ -5975,7 +5975,7 @@ const I18N = {
       close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
       artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Pop Out",
       gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
-      geminiProviderTitle: "Google Gemini Developer API (optional)", geminiProviderSession: "Use your Google key for this session",
+      geminiProviderTitle: "Google Gemini Developer API key (optional)", geminiProviderSession: "Use your Google key for this session",
       geminiProviderPlaceholder: "Paste your own Google AI Studio key",
       geminiProviderHelp: "Optional direct route for your own Google AI Studio project. This is not the BOB Gateway Access Key. The key stays in this page's memory, is sent only when this route is enabled, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.",
       geminiProviderLink: "Create or manage a key in Google AI Studio ↗",
@@ -6155,8 +6155,8 @@ const I18N = {
     modalGatewaySave: "सहेजें",
     modalGatewayReset: "रीसेट",
     gatewayCredentialMapTitle: "क्रेडेंशियल मानचित्र — ये अलग-अलग हैं",
-    gatewayCredentialMapLead: "यहाँ से शुरू करें: अधिकांश छात्रों को दोनों key field खाली रखकर default web-session route उपयोग करना चाहिए। BOB Gateway Access Key केवल gateway owner के देने पर दर्ज करें। Google Developer API route तभी चालू करें जब आप जानबूझकर अपना AI Studio project और उसकी सीमाएँ उपयोग करना चाहते हों।",
-    gatewayDesktopBoundary: "Native desktop note: embedded gateway loopback पर रहता है और BOB api_keys बंद रखता है; access key केवल तब दर्ज करें जब यह Studio किसी अलग protected BOB endpoint से जुड़े।",
+    gatewayCredentialMapLead: "यहाँ से शुरू करें: endpoint URL बताता है कि Studio कहाँ जुड़ेगा; यह कोई key नहीं है। अधिकांश छात्रों को दोनों key field खाली रखकर default web-session route उपयोग करना चाहिए। BOB Gateway Access Key केवल gateway owner के देने पर दर्ज करें। Google Developer API route तभी चालू करें जब आप जानबूझकर अपना AI Studio project और उसकी सीमाएँ उपयोग करना चाहते हों।",
+    gatewayDesktopBoundary: "Native desktop note: embedded gateway loopback पर रहता है और सामान्यतः BOB access key नहीं माँगता; access key केवल तब दर्ज करें जब यह Studio किसी अलग protected BOB endpoint से जुड़े।",
     gatewayRouteWebLabel: "डिफ़ॉल्ट web-session route:",
     gatewayRouteWebHelp: "उपलब्ध होने पर चल रहे इंजन का guest/account session उपयोग करता है; यहाँ Google AI Studio key की आवश्यकता नहीं है।",
     gatewayRouteProviderLabel: "Google Developer API route:",
@@ -6164,9 +6164,9 @@ const I18N = {
     gatewayRouteAccessLabel: "BOB endpoint access:",
     gatewayRouteAccessHelp: "वैकल्पिक BOB access key इस gateway की सुरक्षा करती है और किसी भी Google key से अलग है। Cookies इंजन के पास रहती हैं; किसी भी field में cookie paste न करें।",
     gatewayAuthTitle: "BOB Gateway Access Key (वैकल्पिक)",
-    gatewayAuthOptional: "केवल तब जब gateway owner ने api_keys चालू किया हो",
+    gatewayAuthOptional: "केवल तब जब यह endpoint BOB key माँगे",
     gatewayAuthPlaceholder: "केवल gateway owner द्वारा दी गई key होने पर",
-    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल HTTPS या local loopback gateway पर BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें। Cleartext HTTP पर यह key नहीं भेजी जाएगी। Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
+    gatewayAuthHelp: "यह key केवल protected BOB endpoint खोलने के लिए है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल HTTPS या local loopback gateway पर BOB authorization के रूप में भेजी जाती है। सामान्य embedded desktop gateway के लिए इसे खाली रखें। यदि Test Ping access key माँगे, तो उसी gateway owner द्वारा दी गई key उपयोग करें। Cleartext HTTP पर यह key नहीं भेजी जाएगी। Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "बंद करें",
@@ -6191,7 +6191,7 @@ const I18N = {
       close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
       artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "नई विंडो",
       gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
-      geminiProviderTitle: "Google Gemini Developer API (वैकल्पिक)", geminiProviderSession: "इस session के लिए अपनी Google key उपयोग करें",
+      geminiProviderTitle: "Google Gemini Developer API key (वैकल्पिक)", geminiProviderSession: "इस session के लिए अपनी Google key उपयोग करें",
       geminiProviderPlaceholder: "अपनी Google AI Studio key paste करें",
       geminiProviderHelp: "आपके अपने Google AI Studio project के लिए वैकल्पिक direct route। यह BOB Gateway Access Key नहीं है। Key इसी page की memory में रहती है, यह route चालू होने पर ही भेजी जाती है और BOB में save नहीं होती। Google project quota, free-tier limits और billing settings लागू रहती हैं।",
       geminiProviderLink: "Google AI Studio में key बनाएं या प्रबंधित करें ↗",

@@ -4,8 +4,8 @@
 controlled candidate; Preview 5, Preview 4, and Preview 3 remain historical, the
 published `v0.2.0-preview.1` migration bridge remains available, and
 `v0.1.7-preview.7` remains the existing fleet baseline. A locally packaged and
-signed `v0.2.0-preview.7` candidate is the next source version, but is not yet
-published.
+signed `v0.2.0-preview.8` candidate is the next source version, but is not yet
+published; the earlier Preview 7 candidate was superseded before publication.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -94,7 +94,7 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to the explicit next candidate
-`v0.2.0-preview.7`; the published `v0.2.0-preview.6` package remains the
+`v0.2.0-preview.8`; the published `v0.2.0-preview.6` package remains the
 current public baseline. The signed `v0.2.0-preview.1` migration bridge is
 already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public

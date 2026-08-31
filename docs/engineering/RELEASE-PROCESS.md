@@ -22,7 +22,7 @@ It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
 Preview versioning is explicit and fail-closed. `PREVIEW_VERSION` in the
-Makefile names the next uniquely versioned candidate (`v0.2.0-preview.7` in the
+Makefile names the next uniquely versioned candidate (`v0.2.0-preview.8` in the
 current source), and the `desktop-preview-*` targets pass it as
 `BOB_RELEASE_VERSION`.
 The three preview packagers refuse to guess a version when called directly.
@@ -30,11 +30,13 @@ Before any publication, advance `PREVIEW_VERSION` to a new unused
 `-preview.N` value, review the resulting source commit, and never rebuild a
 published tag from a later checkout.
 
-As of the 2026-08-31 audit, `v0.2.0-preview.7` has been packaged and signed
-locally from current `main` but has not been tagged or published. The public
-downloadable macOS preview remains `v0.2.0-preview.6`. macOS bundle metadata
-uses numeric base version `0.2.0`; the injected updater/About/health identity
-retains the full `v0.2.0-preview.7` channel-aware version.
+As of the 2026-08-31 follow-up, the earlier `v0.2.0-preview.7` candidate was
+never published and is superseded by the changed source. The next candidate is
+`v0.2.0-preview.8`; it must be packaged from a clean reviewed commit before
+publication. The public downloadable macOS preview remains
+`v0.2.0-preview.6`. macOS bundle metadata uses numeric base version `0.2.0`;
+the injected updater/About/health identity will retain the full
+`v0.2.0-preview.8` channel-aware version.
 
 The preview packager requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` even though
 the app remains ad-hoc signed. This public value is the updater trust anchor;
@@ -90,8 +92,10 @@ explicit user consent.
 
 The exact Preview 6 public-byte evidence is recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
-the locally verified but unpublished Preview 7 candidate is recorded in
+the superseded locally verified Preview 7 candidate is recorded in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md);
+the current Preview 8 candidate will be recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
 the one-host installed migration evidence remains the earlier Preview 1 →
 Preview 5 observation.
 Platform publisher signing and clean-device verification remain required for a

@@ -3,8 +3,9 @@
 **Current public target:** controlled macOS preview `v0.2.0-preview.6`, for
 controlled evaluation of the existing public `v0.1.7-preview.7` fleet and
 earlier `v0.2.0` previews. Preview 5, Preview 4, and Preview 3 are historical,
-and a locally verified but unpublished `v0.2.0-preview.7` candidate is the
-next source version. The published `v0.2.0-preview.1` migration bridge remains
+and a locally verified but unpublished `v0.2.0-preview.8` candidate is the
+next source version; the earlier Preview 7 candidate was superseded before
+publication. The published `v0.2.0-preview.1` migration bridge remains
 available.
 
 This runbook separates three different questions that are often accidentally
@@ -160,7 +161,7 @@ The published `v0.2.0-preview.1` bridge and controlled macOS
 signature-verified, and byte-reconciled with the local Keychain-backed
 publication input. The earlier Preview 1 → Preview 5 installed migration is
 verified on one writable host; a Preview 7/Preview 5 → Preview 6 installed
-transition remains a device gate. The local Preview 7 candidate is not yet a
+transition remains a device gate. The local Preview 8 candidate is not yet a
 public downloadable release. The remaining
 rollout gates are:
 

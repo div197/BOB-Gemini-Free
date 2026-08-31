@@ -71,20 +71,43 @@ to an earlier implementation. The current contract supersedes those phrases:
   disables BOB `api_keys`; the Config access-key field is for a separately
   running protected gateway.
 
+### Credential settings clarity
+
+- Makes the Config copy explicitly distinguish the endpoint URL (where Studio
+  connects), the optional BOB Gateway Access Key (only for a protected BOB
+  endpoint), and the optional Google Gemini Developer API key (the student's
+  own provider route).
+- Adds an accessible description relationship for the endpoint field and
+  removes the internal `api_keys` configuration name from the student-facing
+  helper text without changing route selection, headers, storage, or security
+  guards.
+
+### Request-flight correctness
+
+- Includes sparse per-request payload overrides in the in-flight request
+  identity so concurrent requests that differ in safety, tools, or other
+  overrides cannot be coalesced accidentally; an unserializable override
+  safely disables coalescing for that request.
+
+### Responsive Studio navigation
+
+- Keeps the phone/tablet configuration drawer below the primary New/model
+  toolbar so opening a drawer cannot intercept those controls; the generated
+  `web/index.html` bundle is synchronized with the embedded Studio source.
+
 ### Release candidate verification
 
-- Packaged and locally verified the next `v0.2.0-preview.7` macOS universal
-  candidate from the main-tip source snapshot (`0c6a6ff`), including the signed manifest, DMG
-  layout, bundle architecture, bundled runtime startup, updater transition
-  matrix, the protected-gateway route guard, and the Studio route pin. The
-  candidate remains unpublished pending installed-base and pilot gates.
+- Advances the explicit next candidate to `v0.2.0-preview.8` after the
+  post-Preview-7 request-flight, responsive-drawer, generated-bundle, and
+  settings-clarity review. The earlier local Preview 7 receipt remains
+  historical and is not reused for changed source bytes.
 - Recorded the current 1/10/20/30-concurrency local benchmark against the
   current source commit. This remains a local-only measurement, not a Google
   quota or classroom-capacity claim.
 - Exercised the generated-artifact lifecycle with a synthetic local SSE
   fixture: preview launch and Code-tab hydration passed with the complete
   source, without a provider request or credential.
-- Kept Preview 7 explicitly unpublished until installed-base, rollback,
+- Keeps Preview 8 explicitly unpublished until installed-base, rollback,
   clean-device, platform-trust, provider, and pilot gates are observed.
 
 ## [0.2.0-preview.6] - 2026-08-31
