@@ -8491,6 +8491,19 @@ function updateActiveModelBadge() {
   }
 }
 
+function clearTelemetryStats() {
+  const values = {
+    "stat-uptime": "—",
+    "stat-requests": "—",
+    "stat-tokens": "—",
+    "stat-savings": "—",
+  };
+  Object.entries(values).forEach(([id, value]) => {
+    const element = document.getElementById(id);
+    if (element) element.innerText = value;
+  });
+}
+
 async function refreshTelemetry() {
   if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
     gatewayAuthRequired = null;
@@ -8505,6 +8518,17 @@ async function refreshTelemetry() {
   }
   try {
     const start = performance.now();
+    // Healthz is intentionally public and reports whether the protected
+    // telemetry route needs the page-session BOB access key. Do not turn a
+    // normal secured-endpoint state into a repeated unauthorised stats poll.
+    const healthRes = await fetch(baseUrl + "/healthz", { method: "GET", headers: headers }).catch(() => null);
+    const healthAuthRequired = Boolean(healthRes && healthRes.ok && healthRes.headers.get("X-BOB-Auth-Required") === "true");
+    if (healthAuthRequired && !apiKey) {
+      gatewayAuthRequired = true;
+      clearTelemetryStats();
+      updateGatewayStatusIndicator(true, Math.round(performance.now() - start));
+      return;
+    }
     let statsUrl = baseUrl + "/";
     if (baseUrl === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
       statsUrl = baseUrl + "/health";
@@ -8521,19 +8545,22 @@ async function refreshTelemetry() {
       updateGatewayStatusIndicator(true, latency);
     } else if (res.status === 401) {
       gatewayAuthRequired = true;
+      clearTelemetryStats();
       updateGatewayStatusIndicator(true, latency);
     } else {
-      const healthRes = await fetch(baseUrl + "/healthz").catch(() => null);
       if (healthRes && healthRes.ok) {
-        gatewayAuthRequired = false;
+        gatewayAuthRequired = healthRes.headers.get("X-BOB-Auth-Required") === "true";
+        clearTelemetryStats();
         updateGatewayStatusIndicator(true, latency);
       } else {
         gatewayAuthRequired = null;
+        clearTelemetryStats();
         updateGatewayStatusIndicator(false, null);
       }
     }
   } catch(e) {
     gatewayAuthRequired = null;
+    clearTelemetryStats();
     updateGatewayStatusIndicator(false, null);
   }
 }

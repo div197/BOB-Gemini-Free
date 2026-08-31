@@ -150,6 +150,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Stopped the Studio from probing the gateway and model list on every partial
   BOB access-key keystroke. The explicit **Test Ping** action now performs the
   network verification, with English and Hindi guidance.
+- Changed recurring Studio telemetry to establish liveness and auth state from
+  the public `/healthz` endpoint before requesting protected aggregate stats;
+  secured endpoints no longer generate a repeated 401 poll when no BOB access
+  key is entered, and stale aggregate values are cleared.
 - These follow-ups are merged into public `main` after Preview 5 publication;
   the immutable Preview 5 assets are unchanged and a new signed preview is
   required to deliver them.

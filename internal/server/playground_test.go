@@ -92,6 +92,34 @@ func TestGatewayAuthInputDoesNotProbeUntilExplicitPing(t *testing.T) {
 	}
 }
 
+func TestTelemetryUsesHealthzBeforeProtectedStats(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "async function refreshTelemetry()")
+	if start < 0 {
+		t.Fatal("telemetry function start is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction showLocalOnboardingModal")
+	if endOffset < 0 {
+		t.Fatal("telemetry function boundaries are missing")
+	}
+	source := html[start : start+endOffset]
+	health := strings.Index(source, `fetch(baseUrl + "/healthz"`)
+	stats := strings.Index(source, `fetch(statsUrl`)
+	if health < 0 || stats < 0 || health >= stats {
+		t.Fatal("telemetry must establish health/auth state before protected stats")
+	}
+	for _, marker := range []string{
+		`healthRes.headers.get("X-BOB-Auth-Required") === "true"`,
+		`if (healthAuthRequired && !apiKey)`,
+		`clearTelemetryStats();`,
+		`updateGatewayStatusIndicator(true, Math.round(performance.now() - start));`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("telemetry auth boundary is missing marker %q", marker)
+		}
+	}
+}
+
 func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	html := string(playgroundHTML)
 	functionStart := strings.Index(html, "async function sendMessage()")

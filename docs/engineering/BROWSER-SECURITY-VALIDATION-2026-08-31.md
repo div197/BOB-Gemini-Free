@@ -1,9 +1,14 @@
 # Browser Security Boundary Validation — 2026-08-31
 
+> Historical evidence record. The browser run below used the source checkpoint
+> recorded in this document; subsequent protected-main follow-ups are recorded
+> in the current release audit. The observed cross-port rejection remains valid
+> evidence, but this file is not a claim about the immutable Preview 5 bytes.
+
 ## Scope
 
 This is a real in-app-browser check of the local HTTP origin boundary at the
-current source checkpoint (`726dd049fe9436bb22a89abcf74f961f86f9996c`). It
+historical source checkpoint (`726dd049fe9436bb22a89abcf74f961f86f9996c`). It
 tests whether a different browser origin can read or drive the loopback
 gateway. It does not claim that a public HTTPS deployment, browser Private
 Network Access policy, or a future capability-token pairing design has been
