@@ -3,7 +3,9 @@ package updater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"runtime"
@@ -28,6 +30,12 @@ const (
 	DesktopPreviewReleaseAPIURL = "https://api.github.com/repos/div197/bob-gemini-free/releases?per_page=30"
 	DesktopReleaseURL           = "https://github.com/div197/BOB-Gemini-Free/releases/latest"
 	DesktopPreviewReleaseURL    = "https://github.com/div197/BOB-Gemini-Free/releases"
+
+	// Metadata checks are safe to retry because they are read-only GETs. Keep
+	// the retry budget deliberately small so a GitHub outage cannot turn a
+	// background check into a long-lived connection storm.
+	updateMetadataAttempts  = 2
+	updateMetadataRetryWait = 150 * time.Millisecond
 )
 
 // DesktopCheckResult describes a native-package update without downloading or
@@ -131,7 +139,7 @@ func checkLatestDesktopChannelContext(ctx context.Context, client *http.Client, 
 	}
 	req.Header.Set("User-Agent", "BOB-Gemini-Free-Desktop-Updater")
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
-	resp, err := client.Do(req)
+	resp, err := doUpdateMetadataRequest(ctx, client, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach desktop update server: %w", err)
 	}
@@ -293,6 +301,66 @@ func newUpdateHTTPClient(timeout time.Duration) *http.Client {
 			return nil
 		},
 	}
+}
+
+// doUpdateMetadataRequest performs the bounded transport retry used by the
+// read-only release metadata paths. It intentionally does not retry response
+// status codes: in particular, a 429 must remain a visible provider-side
+// capacity signal instead of being amplified, and redirect/policy failures
+// must fail closed immediately.
+func doUpdateMetadataRequest(ctx context.Context, client *http.Client, req *http.Request) (*http.Response, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	if client == nil || req == nil {
+		return nil, fmt.Errorf("update metadata request requires an HTTP client and request")
+	}
+
+	var lastErr error
+	for attempt := 0; attempt < updateMetadataAttempts; attempt++ {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+		if attempt > 0 {
+			timer := time.NewTimer(updateMetadataRetryWait)
+			select {
+			case <-ctx.Done():
+				if !timer.Stop() {
+					<-timer.C
+				}
+				return nil, ctx.Err()
+			case <-timer.C:
+			}
+		}
+
+		attemptReq := req.Clone(ctx)
+		resp, err := client.Do(attemptReq)
+		if err == nil {
+			return resp, nil
+		}
+		closeUpdateResponse(resp)
+		lastErr = err
+		if !isRetryableUpdateMetadataError(ctx, err) {
+			break
+		}
+	}
+	return nil, lastErr
+}
+
+func isRetryableUpdateMetadataError(ctx context.Context, err error) bool {
+	if err == nil || (ctx != nil && ctx.Err() != nil) {
+		return false
+	}
+	if errors.Is(err, context.Canceled) {
+		return false
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		// A client-level timeout is retryable while the caller's context is
+		// still alive. A caller deadline is rejected by the ctx check above.
+		return true
+	}
+	var networkErr net.Error
+	return errors.As(err, &networkErr) && (networkErr.Timeout() || networkErr.Temporary())
 }
 
 func withUpdateRedirectPolicy(client *http.Client) *http.Client {

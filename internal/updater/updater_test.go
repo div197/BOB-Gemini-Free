@@ -3,6 +3,7 @@ package updater
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -75,6 +76,109 @@ func TestDesktopUpdateCheckContextCancellationIsHonored(t *testing.T) {
 	if _, err := checkLatestDesktopChannelContext(ctx, http.DefaultClient, "http://127.0.0.1:1/releases", "v0.1.7", DesktopChannelStable, "darwin", "arm64"); err == nil {
 		t.Fatal("canceled desktop update check unexpectedly succeeded")
 	}
+}
+
+func TestUpdateMetadataRetriesOneTransientTransportFailure(t *testing.T) {
+	var calls atomic.Int32
+	client := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		if calls.Add(1) == 1 {
+			return nil, context.DeadlineExceeded
+		}
+		return &http.Response{
+			StatusCode: http.StatusOK,
+			Body:       http.NoBody,
+			Header:     make(http.Header),
+			Request:    req,
+		}, nil
+	})}
+	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/div197/bob-gemini-free/releases/latest", nil)
+	if err != nil {
+		t.Fatalf("create metadata request: %v", err)
+	}
+
+	resp, err := doUpdateMetadataRequest(context.Background(), client, req)
+	if err != nil {
+		t.Fatalf("doUpdateMetadataRequest: %v", err)
+	}
+	closeUpdateResponse(resp)
+	if got := calls.Load(); got != 2 {
+		t.Fatalf("metadata attempts = %d, want exactly one retry", got)
+	}
+}
+
+func TestUpdateMetadataDoesNotRetryCanceledRequest(t *testing.T) {
+	var calls atomic.Int32
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return nil, context.Canceled
+	})}
+	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/div197/bob-gemini-free/releases/latest", nil)
+	if err != nil {
+		t.Fatalf("create metadata request: %v", err)
+	}
+
+	if _, err := doUpdateMetadataRequest(ctx, client, req); err == nil {
+		t.Fatal("canceled metadata request unexpectedly succeeded")
+	}
+	if got := calls.Load(); got != 0 {
+		t.Fatalf("canceled metadata attempts = %d, want 0", got)
+	}
+}
+
+func TestUpdateMetadataDoesNotRetryNonNetworkFailure(t *testing.T) {
+	var calls atomic.Int32
+	client := &http.Client{Transport: roundTripFunc(func(*http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return nil, errors.New("untrusted redirect")
+	})}
+	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/div197/bob-gemini-free/releases/latest", nil)
+	if err != nil {
+		t.Fatalf("create metadata request: %v", err)
+	}
+
+	if _, err := doUpdateMetadataRequest(context.Background(), client, req); err == nil {
+		t.Fatal("non-network metadata failure unexpectedly succeeded")
+	}
+	if got := calls.Load(); got != 1 {
+		t.Fatalf("non-network metadata attempts = %d, want 1", got)
+	}
+}
+
+func TestUpdateMetadataDoesNotRetryHTTPStatusFailure(t *testing.T) {
+	var calls atomic.Int32
+	client := &http.Client{Transport: roundTripFunc(func(req *http.Request) (*http.Response, error) {
+		calls.Add(1)
+		return &http.Response{
+			StatusCode: http.StatusTooManyRequests,
+			Body:       http.NoBody,
+			Header:     make(http.Header),
+			Request:    req,
+		}, nil
+	})}
+	req, err := http.NewRequest(http.MethodGet, "https://api.github.com/repos/div197/bob-gemini-free/releases/latest", nil)
+	if err != nil {
+		t.Fatalf("create metadata request: %v", err)
+	}
+
+	resp, err := doUpdateMetadataRequest(context.Background(), client, req)
+	if err != nil {
+		t.Fatalf("HTTP status response became a transport error: %v", err)
+	}
+	if resp == nil || resp.StatusCode != http.StatusTooManyRequests {
+		t.Fatalf("metadata response = %#v, want HTTP 429", resp)
+	}
+	closeUpdateResponse(resp)
+	if got := calls.Load(); got != 1 {
+		t.Fatalf("HTTP status attempts = %d, want 1", got)
+	}
+}
+
+type roundTripFunc func(*http.Request) (*http.Response, error)
+
+func (f roundTripFunc) RoundTrip(req *http.Request) (*http.Response, error) {
+	return f(req)
 }
 
 func TestFindMatchingAsset(t *testing.T) {

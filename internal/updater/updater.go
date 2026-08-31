@@ -2,6 +2,7 @@ package updater
 
 import (
 	"bufio"
+	"context"
 	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/base64"
@@ -81,7 +82,7 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	req.Header.Set("User-Agent", "BOB-Gemini-Free-Updater")
 	req.Header.Set("Accept", "application/vnd.github.v3+json")
 
-	resp, err := client.Do(req)
+	resp, err := doUpdateMetadataRequest(context.Background(), client, req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to reach update server: %w", err)
 	}

@@ -124,6 +124,10 @@ Actions workflow was used.
 ### Reliability and release hardening
 
 #### Added
+- Made official GitHub release-metadata checks retry one transient transport or
+  client-timeout failure, with a short cancellation-aware budget. HTTP status
+  errors, redirect-policy failures, malformed metadata, and signed asset
+  downloads remain fail-closed and are not retried.
 - Continued the no-Actions hardening campaign with bounded session-bound image
   reference expiry and retryable page-token refresh, visible local-history
   persistence recovery, abortable attachment parsing, fail-closed preference
