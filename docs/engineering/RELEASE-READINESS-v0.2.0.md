@@ -7,6 +7,14 @@
 historical `v0.2.0-preview.3`, and current controlled macOS `v0.2.0-preview.4`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
+> **Current audit superseding this historical compilation:** the authoritative
+> release state is recorded in
+> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). At the audit
+> boundary, public `main` is `558e8609333e`, `v0.2.0-preview.4` is the latest
+> immutable desktop preview, `v0.2.0-preview.5` is only the next candidate,
+> the Preview 7 public assets verify with the checked-in public key, and the
+> private key remains only in the owner-controlled macOS Keychain.
+
 **Current public `main`:** merge commit `cd44b2c` (PRs #62 and #64), containing
 the post-Preview-4 artifact-preview, responsive-header, and multiline-SSE fixes.
 **Next preview

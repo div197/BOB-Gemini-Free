@@ -50,6 +50,11 @@ to an earlier implementation. The current contract supersedes those phrases:
   immutable candidate, `v0.2.0-preview.5`. Preview 4 remains unchanged; no
   Preview 5 package is published until clean-source, local package, Keychain
   signature, public-byte, and installed-bundle gates pass.
+- Added a deterministic updater matrix for the published Preview 7 fleet,
+  migration-bridge previews, Preview 4, and the next Preview 5 candidate. The
+  matrix records the real boundary: selection is fixture-tested, while a
+  signed installed-bundle replacement and rollback still require device
+  acceptance. See [`current release audit`](docs/engineering/RELEASE-AUDIT-2026-08-31.md).
 
 ## [0.2.0-preview.4] - 2026-08-31
 
