@@ -222,6 +222,29 @@ func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 	}
 }
 
+func TestResponsiveHeaderCompactsTabletControls(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`@media (max-width: 860px) {`,
+		`min-width: 0;`,
+		`flex-shrink: 1;`,
+		`.header-controls .nav-btn-text,`,
+		`#cmd-menu-label {`,
+		`display: none !important;`,
+		`#theme-selector {`,
+		`.header-controls .lang-selector {`,
+		`min-width: 82px;`,
+		`.header-controls .github-pill {`,
+		`min-width: 34px;`,
+		`width: 46px;`,
+		`flex-basis: 46px;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing tablet header compaction marker %q", marker)
+		}
+	}
+}
+
 func TestArtifactEditorPreservesGeneratedSource(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
@@ -653,6 +676,27 @@ func TestArtifactSandboxKeepsOpaqueIsolationAndReportsRuntimeFailures(t *testing
 	}
 	if strings.Contains(html, `sandbox="allow-scripts allow-same-origin`) {
 		t.Fatal("artifact sandbox must not combine scripts with same-origin access")
+	}
+}
+
+func TestArtifactPreviewOpensBeforeIframeHydration(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function openArtifactCanvas(artId)")
+	if start < 0 {
+		t.Fatal("openArtifactCanvas function is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction closeArtifactCanvas()")
+	if endOffset < 0 {
+		t.Fatal("openArtifactCanvas function boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	openIndex := strings.Index(source, `if (modal) openManagedModal(modal, "#btn-art-back");`)
+	iframeIndex := strings.Index(source, `const iframe = document.getElementById("art-sandbox-iframe");`)
+	if openIndex < 0 || iframeIndex < 0 {
+		t.Fatal("artifact preview modal and iframe markers are missing")
+	}
+	if openIndex > iframeIndex {
+		t.Fatal("artifact modal must be visible before assigning iframe srcdoc")
 	}
 }
 
