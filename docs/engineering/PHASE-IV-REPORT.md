@@ -215,10 +215,13 @@ claim is made that browser quota or long-session performance is uniform.
 All external scripts and stylesheets in the document head now carry exact
 SHA-384 Subresource Integrity pins and anonymous cross-origin loading. The
 floating Tesseract.js major URL was replaced with the verified `5.1.1` asset.
-This protects the root page from an unexpected change at a pinned CDN URL; it
-does not make the app offline. Dynamic artifact `srcdoc` libraries, PDF worker
-and language assets, Prism autoloader language files, and network availability
-remain separately open and browser-dependent.
+The dynamic Mermaid and Pyodide artifact bootstraps are also pinned to exact
+versions with SRI, so an artifact does not silently execute a changed
+top-level library from a mutable URL. This protects the root page and these
+two artifact bootstraps from unexpected CDN changes; it does not make the app
+offline. Pyodide package/worker subresources, PDF worker and language assets,
+Prism autoloader language files, and network availability remain separately
+open and browser-dependent.
 
 ### 13. Dedicated service health contract — `d598721`
 

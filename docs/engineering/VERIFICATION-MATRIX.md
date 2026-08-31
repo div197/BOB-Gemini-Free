@@ -395,12 +395,13 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `d598721`; the current checkout contains the
+The source-hardening tip is `a3ed1da`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
-root-CDN-integrity, queued-attachment-cancellation, and dedicated service
-health-probe follow-ups after the evidence documents. The local branch is
+root-CDN-integrity, queued-attachment-cancellation, dedicated service
+health-probe, and dynamic-artifact-CDN follow-ups after the evidence documents.
+The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.
@@ -415,5 +416,6 @@ workflow was added or invoked, and no provider or release secret was used.
 | Removing an attachment can leave a FileReader or supported OCR worker running and later mutate removed UI state | VERIFIED_IN_SOURCE | `internal/server/playground.html` binds each attachment to an `AbortController`, removes cancelled queued parses, aborts `FileReader` reads on removal, suppresses stale fallback results, and terminates a Tesseract.js v5 worker when available; `internal/server/playground_test.go` locks the cancellation markers | Main-thread PDF/DOCX/XLSX work, older browser fallbacks, OCR CPU cost, and rendered device behavior remain partial. |
 | Denied browser storage can break preference initialization or click handlers | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` routes language, transliteration, panel, theme, endpoint, speech, reading-zoom, and custom-instruction preferences through fail-closed helpers; `internal/server/playground_test.go` rejects direct preference-storage bypasses | Preferences intentionally remain session/default-only when storage is unavailable; chat-history quota and long-session CPU remain separate browser gates. |
 | A changed root CDN script or stylesheet can execute without an integrity check | VERIFIED_BY_UNIT_TEST | The playground head pins every external script/stylesheet with SHA-384 SRI and anonymous CORS, and pins Tesseract.js to `5.1.1`; `playground_test.go` rejects root dependencies without integrity attributes or a floating Tesseract major URL | Dynamic artifact `srcdoc` libraries, PDF worker/language assets, CDN availability, CSP behavior, and offline acceptance remain separate browser/runtime gates. |
+| A dynamic artifact preview can execute a mutable Mermaid or Pyodide bootstrap | VERIFIED_BY_UNIT_TEST | Mermaid is pinned to `10.9.0` and Pyodide to `0.26.2` with exact SHA-384 SRI and anonymous CORS inside their `srcdoc` bootstraps; `TestDynamicArtifactCDNBootstrapsArePinned` rejects the former floating/missing-integrity URLs | Pyodide package/worker subresources, PDF worker/language assets, CDN availability, CSP behavior, and browser execution remain separate gates. |
 | The optional service-status command reports an unrelated process as the BOB gateway | VERIFIED_BY_UNIT_TEST | `internal/service/service.go` probes the unauthenticated `/healthz` route and requires the BOB gateway identity and protocol headers; `internal/service/service_test.go` covers valid, wrong-status, missing-identity, wrong-identity, wrong-protocol, and unrelated-process responses | The headers are a compatibility signal, not an authentication credential; a real OS service manager and device process remain external. |
 | The visual product is browser-verified at desktop, tablet, and phone widths | UNKNOWN | The browser-control runtime reported no available browser in this session; source tests and generated-bundle parity do not replace rendered interaction evidence | Recover a real browser/device and run the design-audit viewport matrix before calling the design ceiling closed. |
