@@ -165,10 +165,10 @@ reports `immutable: false` for Preview 6; the project's write-once release
 policy therefore requires a new tag and fresh public-byte reconciliation for a
 future candidate.
 
-## Current Preview 8 candidate — 2026-08-31
+## Current Preview 8 candidate — 2026-09-01
 
-The current source candidate is `v0.2.0-preview.8`, built from reviewed
-checkpoint `240b57b72c8575b0f14204b052f40e15385a277c`. It is locally packaged,
+The current source candidate is `v0.2.0-preview.8`, built from current `main`
+tip `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11`. It is freshly packaged,
 signed, and verified; the exact package hashes and local startup evidence are
 recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
