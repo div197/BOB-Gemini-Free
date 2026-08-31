@@ -1,17 +1,19 @@
 # BOB Gemini Free — Current Release Audit
 
 **Audit date:** 2026-08-31 (Asia/Kolkata)  
-**Source baseline:** public `main` at `558e8609333e` before this audit change  
+**Source baseline before this audit change:** public `main` at `558e8609333e`
+**Current audited public code baseline:** commit `4beb1275833c387f3bcf458d99b5743720e84311` (PR #68; credential-boundary fix)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
 ## Decision
 
-The repository is source-ready for the next controlled macOS preview
-candidate, but it is not yet artifact-ready or fleet-ready. The next immutable
-identity is `v0.2.0-preview.5`; it must be built, signed, verified, and tested
-as a new release. The existing `v0.2.0-preview.4` assets must never be
-overwritten.
+The repository is source-ready and now has a locally built, signed, and
+verified `v0.2.0-preview.5` macOS candidate from the current public `main` at
+`4beb127`.
+That candidate is ready for controlled publication review, but it is not yet a
+public release or a fleet-ready update. The existing `v0.2.0-preview.4`
+assets remain immutable and were not overwritten.
 
 Do not call the current state a stable student release. Apple Developer ID,
 notarization, clean-device replacement/rollback, Windows/Linux acceptance,
@@ -21,18 +23,22 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | `origin/main` is clean at `558e8609333e`; PRs #62–#65 are merged | VERIFIED |
+| Public source | Public `main` contains the audited code baseline `4beb1275833c387f3bcf458d99b5743720e84311`; PRs #62–#68 are merged and the release-evidence commit is documentation-only | VERIFIED |
 | Public releases | Latest desktop preview is immutable `v0.2.0-preview.4`; no public Preview 5 exists | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
-| Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` is present for the owner account; private value was not read or exported | PRESENT, MATCH CHECK REQUIRED AT SIGNING |
+| Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
 | Source gate | `scripts/verify-release-source.sh v0.2.0-preview.5` passes | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
+| Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `4beb127` and passed local asset verification | VERIFIED_LOCAL |
+| Preview 5 package smoke | Fresh `open -n` launch owns loopback `127.0.0.1:8081`, returns `{"status":"ok"}` from `/healthz`, serves the credential map, and shuts down cleanly | VERIFIED_LOCAL |
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
 | Current public stable endpoint | GitHub `/releases/latest` resolves to historical `v0.1.5`, not `v0.2.0` | VERIFIED |
 
-The Preview 7 asset verification proves the published package and manifest
-use the current project trust anchor. It does not, by itself, execute the old
-binary's native Help menu or replace an installed application.
+The Preview 7 asset verification proves the published package and manifest use
+the current project trust anchor. The local Preview 5 evidence proves a
+candidate package and one-host startup, not public-byte reconciliation,
+installed-bundle replacement, rollback, Apple platform trust, provider
+availability, or classroom rollout.
 
 ## Version and installed-base matrix
 
@@ -58,23 +64,27 @@ data remain device evidence rather than source-test claims.
 
 Complete these in order, from a clean checkout based on public `main`:
 
-1. Re-run source, full test, race, vet, module, and host-build checks.
-2. Ensure enough local disk for Wails staging and temporary DMG/ZIP copies;
-   this audit host currently has only about 944 MiB free, so packaging is
-   intentionally not started under that condition.
-3. Build exactly `v0.2.0-preview.5` with the checked-in public key embedded.
-4. Inspect the app bundle, version/channel, universal slices, ad-hoc
-   signature, ZIP layout, DMG `/Applications` shortcut, and release notice.
-5. Use `scripts/sign-release-assets.sh` with the owner-controlled Keychain
-   path. Never copy the private key to Git, clipboard, shell history, chat, or
-   a student device.
-6. Run `scripts/verify-release-assets.sh` and record evidence outside the
-   repository and outside the signed release directory.
-7. Publish a new immutable GitHub prerelease manually, including the exact
+1. **COMPLETED locally:** source, full test, race, vet, module, and host-build
+   checks passed.
+2. **COMPLETED locally:** the host currently reports about 7.9 GiB available;
+   Wails staging and temporary DMG/ZIP copies completed without cleanup of
+   project data.
+3. **COMPLETED locally:** built exactly `v0.2.0-preview.5` with the checked-in
+   public key embedded.
+4. **COMPLETED locally:** inspected the app bundle, version/channel, universal
+   slices, ad-hoc signature, ZIP layout, DMG `/Applications` shortcut, and
+   release notice.
+5. **COMPLETED locally:** signed the exact asset directory through the
+   owner-controlled Keychain. The private key was never copied to Git,
+   clipboard, shell history, chat, or a student device.
+6. **COMPLETED locally:** `scripts/verify-release-assets.sh` passed. The
+   detailed candidate receipt is in
+   [`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
+7. **OPEN:** publish a new immutable GitHub prerelease manually, including the exact
    five assets and signed manifest. GitHub Actions are not part of this flow.
-8. Download every public asset into a fresh directory and re-run verification;
+8. **OPEN:** download every public asset into a fresh directory and re-run verification;
    compare public bytes with the signed local input before announcing it.
-9. Test one writable `/Applications` Mac, then two or three pilots, before
+9. **OPEN:** test one writable `/Applications` Mac, then two or three pilots, before
    any 20–30-device wave. Record only version, OS/architecture, health result,
    generation class, and update result.
 
@@ -101,4 +111,3 @@ compromised credentials and must be revoked/rotated by the owner. They were
 not used, printed, stored, or added to this repository during this audit. The
 release private key remains a local secret; only the public trust anchor is
 checked in.
-

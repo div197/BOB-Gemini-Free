@@ -517,3 +517,22 @@ post-publication source fixes. The next source package candidate is explicitly
 `v0.2.0-preview.5`, and it has not been tagged or published. No current release
 claim should imply that Preview 4 already contains either post-release source
 change.
+
+## Current credential and Preview 5 candidate addendum — 2026-08-31
+
+This addendum supersedes older “current” commit labels in the historical
+sections above. Public `main` is now merge commit
+the public code baseline `4beb1275833c387f3bcf458d99b5743720e84311` (PR #68).
+The public Preview 4
+assets remain immutable; Preview 5 is a locally verified candidate and is not
+yet a public release. The complete local package receipt is in
+[`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| Studio users can distinguish the BOB access credential, the Google Developer API key, the web-session cookies, and the gateway endpoint | VERIFIED_IN_SOURCE | `internal/server/playground.html` presents a credential map, separate labels, password masking, scoped help, and explicit session/provider-route wording; `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials` locks the boundary in English and Hindi | The UI cannot tell whether a remote endpoint is trustworthy or whether a student has permission to use a key; the user/operator must make that decision. |
+| A rejected Google Developer API key is mislabeled as a missing BOB gateway access key | VERIFIED_BY_UNIT_TEST | The Studio preserves provider-route HTTP 401 messages, scopes gateway-auth classification away from the provider route, and names **BOB Gateway Access Key** in the gateway error; `TestChatDeveloperAPIAuthFailureNamesProviderNotGateway`, `TestPlaygroundBoundsManualRetriesAndLocksRequestControls`, and `TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute` lock the backend and source behavior | A configured process-level provider key is not visible to the Studio's route toggle; the operator must still identify which route the process is using. |
+| A Google Developer API key cannot silently become a BOB gateway access key or silently fall back to the web-RPC route | VERIFIED_BY_UNIT_TEST | `internal/server/gemini_api_test.go` covers provider-only rejection at an API-key-protected gateway, explicit provider routing, configured provider routing, unsupported endpoints, duplicate-key rejection, and credential redaction | Provider project quotas, billing, model availability, and live 401/403/429 behavior remain Google-dependent. |
+| The local Preview 5 candidate is a signed, structurally valid universal macOS package from current public `main` | VERIFIED_LOCAL | Fresh ZIP/DMG inspection found the branded bundle, `x86_64`/`arm64` slices, expected identifier/name, the `/Applications` DMG alias, ad-hoc signature, and a verified detached manifest signature | This is not Apple Developer ID signing/notarization, public GitHub-byte reconciliation, or a clean-device install/update proof. |
+| The exact Preview 5 candidate bootstraps a healthy local gateway | VERIFIED_LIVE | Fresh `open -n` launch owned `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential-map markers, and shut down cleanly | One-host bootstrap does not prove Google generation, Gatekeeper acceptance, installed-bundle replacement, rollback, Windows/Linux behavior, or 20–30-device rollout. |
+| Existing Preview 4/Preview 7 installations have already been proven to replace themselves with Preview 5 | UNKNOWN | Updater selection and transaction behavior are fixture-tested, and the candidate is locally signed | A real writable `/Applications` update, restart confirmation, deliberate rollback, and public-byte comparison remain open operator gates. |

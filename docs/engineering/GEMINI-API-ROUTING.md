@@ -1,6 +1,8 @@
 # Gemini Developer API Routing and Student Limits
 
-**Status:** local implementation under Preview 1 of the v0.2 milestone
+**Status:** implemented in the v0.2 milestone; current source is public `main`
+at `4beb127` and the public desktop package remains Preview 4 until the
+Preview 5 publication gates pass
 **Audit date:** 2026-08-29 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is

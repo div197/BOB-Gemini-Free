@@ -33,9 +33,11 @@
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
 bridge, historical Preview 3 और current controlled preview `v0.2.0-preview.4`
 शामिल हैं। Public `main` में Preview 4 के बाद का artifact-preview,
-responsive-header और multiline-SSE सुधार भी आ चुका है; प्रकाशित Preview 4 assets अपरिवर्तनीय
-हैं और अगला package candidate `v0.2.0-preview.5` है। Stable
-`v0.2.0` अभी प्रकाशित नहीं है।
+responsive-header, multiline-SSE और credential-boundary सुधार आ चुके हैं।
+`v0.2.0-preview.5` का fresh local signed candidate merged public-main source से
+package/startup smoke में पास है, लेकिन public-byte और installed-update gates
+पूरे होने तक प्रकाशित नहीं है।
+Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
@@ -245,11 +247,10 @@ GitHub की signed release से CLI को एक explicit command में
 
 Public `v0.2.0-preview.4` preview में project update key embedded है। यह
 current same-key controlled preview है और explicit consent मांगता है; stable
-`v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी।
-मौजूदा Preview 7 installations यदि current project key रखती हैं तो preview
-channel में इस candidate को देख सकती हैं; actual replacement और rollback का
-clean-device प्रमाण अभी अलग gate है। Stable release अभी pilot testing के बाद
-प्रकाशित होगी।
+`v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी। Preview 5 का local
+candidate अभी public नहीं है, इसलिए मौजूदा Preview 7 installations से उसका
+वास्तविक replacement अभी प्रमाणित नहीं है। Actual replacement और rollback का
+clean-device प्रमाण अलग gate है।
 
 ---
 
