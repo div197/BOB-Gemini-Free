@@ -445,7 +445,7 @@ func (c *Client) Generate(prompt string, modelID, thinkMode int, fileRefs []stri
 
 func (c *Client) GenerateContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) (string, error) {
 	if c.Flight != nil {
-		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
+		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs, extra)
 		return c.Flight.ExecuteContext(ctx, flightKey, func() (string, error) {
 			return c.generateContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra)
 		})
@@ -569,7 +569,7 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	if c.Flight != nil {
-		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
+		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs, extra)
 		return c.Flight.ExecuteStreamContextWithRunner(ctx, flightKey, func(sharedCtx context.Context, streamEmit func(string) error) error {
 			return c.generateStreamContextDirect(sharedCtx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
 		}, emit)
@@ -582,11 +582,11 @@ func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, model
 // entitlement, experiment, or session state; sharing it across concurrent
 // requests would be a correctness and privacy hazard. Anonymous requests can
 // still use the existing deduplication path to reduce duplicate bursts.
-func (c *Client) requestFlightKey(prompt string, modelID, thinkMode int, fileRefs []string) string {
+func (c *Client) requestFlightKey(prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) string {
 	if c == nil || c.Flight == nil || c.sessionBound() {
 		return ""
 	}
-	return c.Flight.KeyWithScope("anonymous", prompt, modelID, thinkMode, fileRefs)
+	return c.Flight.KeyWithScopeAndExtra("anonymous", prompt, modelID, thinkMode, fileRefs, extra)
 }
 
 func (c *Client) sessionBound() bool {

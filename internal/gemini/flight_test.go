@@ -70,6 +70,29 @@ func TestStreamFlightScopeSeparatesRequestDomains(t *testing.T) {
 	}
 }
 
+func TestStreamFlightKeySeparatesPayloadFieldBoundaries(t *testing.T) {
+	flight := NewStreamFlight()
+	left := flight.KeyWithScope("scope:a", "prompt", 1, 4, []string{"file:b", "file:c"})
+	right := flight.KeyWithScope("scope", "a:prompt", 1, 4, []string{"file:b", "file:c"})
+	if left == right {
+		t.Fatal("field-boundary variants unexpectedly shared a flight key")
+	}
+
+	leftRefs := flight.KeyWithScope("scope", "prompt", 1, 4, []string{"a:b", "c"})
+	rightRefs := flight.KeyWithScope("scope", "prompt", 1, 4, []string{"a", "b:c"})
+	if leftRefs == rightRefs {
+		t.Fatal("file-reference boundary variants unexpectedly shared a flight key")
+	}
+}
+
+func TestStreamFlightKeyDisablesCoalescingForUnserializableOverrides(t *testing.T) {
+	flight := NewStreamFlight()
+	key := flight.KeyWithScopeAndExtra("anonymous", "same prompt", 1, 4, nil, map[int]any{31: func() {}})
+	if key != "" {
+		t.Fatalf("unserializable override received a coalescing key %q", key)
+	}
+}
+
 func TestStreamFlightHandlesEarlySubscriberDisconnect(t *testing.T) {
 	flight := NewStreamFlight()
 	key := flight.Key("game-early-cancel", 1, 4, nil)
