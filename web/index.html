@@ -5735,6 +5735,11 @@ const I18N = {
     inputPlaceholder: "Ask anything, formulate proofs, or paste images/code...",
     btnSend: "Send",
     btnStop: "Stop",
+    gatewayAuthErrorTitle: "🔒 BOB Gateway Access Key Required (HTTP 401)",
+    gatewayAuthErrorHelp: "The running BOB gateway has API-key protection enabled. This is not a Google Gemini Developer API key.",
+    gatewayAuthErrorOpenConfig: "Open Config",
+    gatewayAuthErrorTail: "to enter the BOB Gateway Access Key, or clear",
+    providerAuthError: "Google Gemini Developer API rejected the key or project (HTTP 401)",
     footerNewline: "Newline",
     footerSend: "Send",
     footerCmd: "Quick Menu",
@@ -5918,6 +5923,11 @@ const I18N = {
     inputPlaceholder: "कुछ भी पूछें, समीकरण हल करें, या चित्र/कोड पेस्ट करें...",
     btnSend: "भेजें",
     btnStop: "रोकें",
+    gatewayAuthErrorTitle: "🔒 BOB Gateway Access Key आवश्यक (HTTP 401)",
+    gatewayAuthErrorHelp: "चल रहे BOB gateway में API-key सुरक्षा चालू है। यह Google Gemini Developer API key नहीं है।",
+    gatewayAuthErrorOpenConfig: "Config खोलें और",
+    gatewayAuthErrorTail: "BOB Gateway Access Key दर्ज करें, या साफ़ करें",
+    providerAuthError: "Google Gemini Developer API ने key या project को अस्वीकार किया (HTTP 401)",
     footerNewline: "नई पंक्ति",
     footerSend: "भेजें",
     footerCmd: "त्वरित मेनू",
@@ -12057,7 +12067,10 @@ async function sendMessage() {
         }
       } catch(e) {}
       if (res.status === 401) {
-        throw new Error("401 Unauthorized: Gateway requires an API key");
+        if (useGeminiProvider) {
+          throw new Error(errMsg === "HTTP 401" ? (dict.providerAuthError || "Google Gemini Developer API rejected the key or project (HTTP 401)") : errMsg);
+        }
+        throw new Error("401 Unauthorized: BOB Gateway Access Key required");
       }
       throw new Error(errMsg);
     }
@@ -12379,13 +12392,13 @@ async function sendMessage() {
         .replace(/https?:\/\/[^\s<>"']+/gi, "[redacted-url]")
         .slice(0, MAX_HISTORY_ERROR_CHARS);
       let errorHtml = "";
-      const isGatewayAuthError = /invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);
+      const isGatewayAuthError = !useGeminiProvider && /bob gateway access key required|invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);
       if (isGatewayAuthError) {
         errorHtml = `
-          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">🔒 API Key Authentication Required (HTTP 401)</div>
+          <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">${dict.gatewayAuthErrorTitle || "🔒 BOB Gateway Access Key Required (HTTP 401)"}</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
-            The running gateway has API key protection enabled.<br>
-              Click <button type="button" class="inline-action-link" data-action="open-gateway-modal">Open Config</button> to enter your API key (e.g. <code>sk-gemini</code>), or clear <code>api_keys</code> in your <code>~/.config/bob-gemini-free/config.json</code> file to use BOB without authentication.
+            ${dict.gatewayAuthErrorHelp || "The running BOB gateway has API-key protection enabled. This is not a Google Gemini Developer API key."}<br>
+              <button type="button" class="inline-action-link" data-action="open-gateway-modal">${dict.gatewayAuthErrorOpenConfig || "Open Config"}</button> ${dict.gatewayAuthErrorTail || "to enter the BOB Gateway Access Key, or clear"} <code>api_keys</code> in your <code>~/.config/bob-gemini-free/config.json</code> file to use BOB without authentication.
           </div>
         `;
       } else {
