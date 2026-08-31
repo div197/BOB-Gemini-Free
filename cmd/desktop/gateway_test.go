@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"testing"
 	"time"
+
+	"github.com/div197/bob-gemini-free/internal/server"
 )
 
 func TestStartDesktopGatewayChoosesFallbackWhenPortBelongsToAnotherProcess(t *testing.T) {
@@ -21,7 +23,7 @@ func TestStartDesktopGatewayChoosesFallbackWhenPortBelongsToAnotherProcess(t *te
 
 	gateway, err := startDesktopGateway(occupiedPort, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusNoContent)
-	}))
+	}), "test-version")
 	if err != nil {
 		t.Fatalf("startDesktopGateway: %v", err)
 	}
@@ -51,6 +53,7 @@ func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
 			w.Header().Set("X-BOB-Protocol", "1")
+			w.Header().Set(server.HealthzVersionHeader, "test-version")
 			w.Header().Set("X-BOB-Auth-Required", "false")
 			_, _ = io.WriteString(w, `{"status":"ok"}`)
 			return
@@ -62,7 +65,7 @@ func TestStartDesktopGatewayReusesCompatibleGateway(t *testing.T) {
 	ready := waitForGatewayEndpoint(t, "http://127.0.0.1:"+strconv.Itoa(port)+"/healthz")
 	ready.Body.Close()
 
-	gateway, err := startDesktopGateway(port, http.NotFoundHandler())
+	gateway, err := startDesktopGateway(port, http.NotFoundHandler(), "test-version")
 	if err != nil {
 		t.Fatalf("startDesktopGateway reuse: %v", err)
 	}
@@ -101,7 +104,7 @@ func TestProbeCompatibleGatewayRejectsNonBOBResponse(t *testing.T) {
 		_, _ = io.WriteString(w, `{"status":"other"}`)
 	}))
 	defer server.Close()
-	compatible, err := probeCompatibleGateway(server.URL)
+	compatible, err := probeCompatibleGateway(server.URL, "test-version")
 	if compatible || err == nil {
 		t.Fatalf("probe result = compatible %v, err %v", compatible, err)
 	}
@@ -118,7 +121,7 @@ func TestProbeCompatibleGatewayRejectsStatusOnlyLookalike(t *testing.T) {
 	}))
 	defer server.Close()
 
-	compatible, err := probeCompatibleGateway(server.URL)
+	compatible, err := probeCompatibleGateway(server.URL, "test-version")
 	if compatible || err == nil {
 		t.Fatalf("status-only probe result = compatible %v, err %v", compatible, err)
 	}
@@ -130,6 +133,7 @@ func TestProbeCompatibleGatewayRejectsAuthenticatedGateway(t *testing.T) {
 			w.Header().Set("Content-Type", "application/json")
 			w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
 			w.Header().Set("X-BOB-Protocol", "1")
+			w.Header().Set(server.HealthzVersionHeader, "test-version")
 			w.Header().Set("X-BOB-Auth-Required", "true")
 			_, _ = io.WriteString(w, `{"status":"ok"}`)
 			return
@@ -138,8 +142,49 @@ func TestProbeCompatibleGatewayRejectsAuthenticatedGateway(t *testing.T) {
 	}))
 	defer server.Close()
 
-	compatible, err := probeCompatibleGateway(server.URL)
+	compatible, err := probeCompatibleGateway(server.URL, "test-version")
 	if compatible || err == nil {
 		t.Fatalf("authenticated probe result = compatible %v, err %v", compatible, err)
+	}
+}
+
+func TestStartDesktopGatewayDoesNotReuseDifferentVersion(t *testing.T) {
+	listener, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatalf("listen old gateway: %v", err)
+	}
+	defer listener.Close()
+	port := listener.Addr().(*net.TCPAddr).Port
+	oldGateway := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/healthz" {
+			w.Header().Set("Content-Type", "application/json")
+			w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
+			w.Header().Set("X-BOB-Protocol", server.HealthzProtocolVersion)
+			w.Header().Set(server.HealthzVersionHeader, "old-version")
+			w.Header().Set("X-BOB-Auth-Required", "false")
+			_, _ = io.WriteString(w, `{"status":"ok"}`)
+			return
+		}
+		http.NotFound(w, r)
+	})}
+	go oldGateway.Serve(listener)
+	ready := waitForGatewayEndpoint(t, "http://127.0.0.1:"+strconv.Itoa(port)+"/healthz")
+	ready.Body.Close()
+
+	gateway, err := startDesktopGateway(port, http.NotFoundHandler(), "new-version")
+	if err != nil {
+		t.Fatalf("startDesktopGateway version mismatch: %v", err)
+	}
+	defer gateway.Shutdown(context.Background())
+	if gateway.reused {
+		t.Fatal("older gateway version was incorrectly reused")
+	}
+	if gateway.Endpoint() == "http://127.0.0.1:"+strconv.Itoa(port) {
+		t.Fatalf("gateway reused stale endpoint %s", gateway.Endpoint())
+	}
+	ready = waitForGatewayEndpoint(t, gateway.Endpoint()+"/healthz")
+	ready.Body.Close()
+	if err := oldGateway.Shutdown(context.Background()); err != nil {
+		t.Fatalf("stop old gateway: %v", err)
 	}
 }

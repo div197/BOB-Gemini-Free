@@ -15,12 +15,21 @@ installation, or Rust installation.
 The desktop gateway boundary is deliberately explicit:
 
 - probe the requested loopback port;
-- reuse only a compatible identified BOB gateway;
+- reuse only a compatible identified BOB gateway whose `/healthz` release
+  identity exactly matches the launching desktop build;
 - select a safe loopback port when the requested port is occupied by another
   process;
 - expose the actual endpoint to the frontend;
 - surface startup errors in the native window; and
 - close only a gateway owned by the app during shutdown.
+
+Compatibility is not inferred from an HTTP 200 or a generic `status: ok`
+body. The unauthenticated `/healthz` handshake must identify BOB, speak the
+supported health protocol, be unauthenticated, and return the exact
+`X-BOB-Version` value expected by the desktop build. An older or unversioned
+gateway therefore cannot be silently attached to by a newer app; the app
+selects its own loopback port instead. A same-version gateway may still be
+reused intentionally.
 
 The deleted alternate wrapper provided no capability required by the canonical
 desktop path. It used

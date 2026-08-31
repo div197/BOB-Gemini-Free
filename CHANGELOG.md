@@ -58,6 +58,14 @@ to an earlier implementation. The current contract supersedes those phrases:
   labels, help, and placeholders are rendered from the correct language
   dictionary instead of disappearing after a language switch.
 
+### Desktop coexistence
+
+- Strengthens the native gateway reuse handshake with an exact release-version
+  marker. A new desktop build no longer silently attaches to an older BOB
+  process that happens to own the configured loopback port; it selects a safe
+  fallback port instead. Same-version reuse remains supported and owned
+  gateways still shut down with the desktop lifecycle.
+
 ## [0.2.0-preview.5] - 2026-08-31
 
 ### Browser streaming

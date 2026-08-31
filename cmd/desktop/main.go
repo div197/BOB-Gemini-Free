@@ -61,7 +61,7 @@ func main() {
 		}
 		return
 	}
-	gateway, err := startDesktopGateway(cfg.Port, srv.Handler())
+	gateway, err := startDesktopGateway(cfg.Port, srv.Handler(), desktopVersion)
 	if err != nil {
 		fmt.Printf("Gateway startup failed: %v\n", err)
 		if windowErr := wails.Run(desktopOptions(app, nil, err, srv)); windowErr != nil {
