@@ -36,9 +36,9 @@ Apple/Windows platform trust, and live provider/network validation.
 
 ## Current source continuation — 2026-08-31
 
-Public `main` has since advanced to `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`
-through protected PRs #77–#84. Those source follow-ups are not contained in the
-immutable Preview 5 package. A universal `v0.2.0-preview.6` candidate was
+Public `main` has since advanced to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
+through protected PRs #77–#86. Those source follow-ups are not contained in the
+immutable Preview 5 package. A fresh universal `v0.2.0-preview.6` candidate was
 built, signed, package-verified, and coexistence-smoke-tested locally; it has
 not been uploaded or published. The exact evidence and hashes are recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).

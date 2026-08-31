@@ -702,9 +702,10 @@ evidence for the cross-port localhost origin boundary, and protected PR #78
 stopped the Studio from probing the gateway while a student was still typing a
 partial BOB access key. Public `main` was then advanced through PRs #80–#83 to
 `9f11eef`, and documentation/test reconciliation PR #84 moved it to
-`0cc81b2`; the latest desktop-coexistence follow-up is source-verified and has
-a locally signed Preview 6 candidate, but that candidate requires publication
-before students receive it.
+`0cc81b2`; PR #86 then moved public `main` to `49e0d3b` with the fail-closed
+gateway access-key transport guard. The current-main desktop Preview 6
+candidate is source-verified, freshly signed, and package-verified, but it
+requires publication before students receive it.
 
 The credential model is now documented as four separate boundaries: the BOB
 Gateway Access Key protects entry to an operator-configured gateway; the

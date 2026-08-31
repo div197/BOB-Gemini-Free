@@ -3,7 +3,7 @@
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Current audited packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
-**Current public-main head after Preview 5 publication:** commit `0cc81b2029d5dd467f7c96b26a8b812bee1ab461` (PRs #77–#84; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, and release-state reconciliation; not included in immutable Preview 5 assets)
+**Current public-main head after Preview 5 publication:** commit `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation; not included in immutable Preview 5 assets)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -31,7 +31,7 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `0cc81b2029d5dd467f7c96b26a8b812bee1ab461` through PRs #77–#84 | VERIFIED |
+| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` through PRs #77–#86 | VERIFIED |
 | Public releases | Latest desktop preview is immutable `v0.2.0-preview.5`; Preview 4 remains available as historical input | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
@@ -39,6 +39,8 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
 | Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from clean checkout `88f2881` whose source tree matches the public release target, and passed local asset verification | VERIFIED_LOCAL |
 | Preview 5 package smoke | Fresh `open -n` launch owns loopback `127.0.0.1:8081`, returns `{"status":"ok"}` from `/healthz`, serves the credential map, and shuts down cleanly | VERIFIED_LOCAL |
+| Preview 6 current-main candidate | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `49e0d3b`; bundle, architecture, DMG layout, signed manifest, and updater version checks passed | VERIFIED_LOCAL |
+| Preview 6 coexistence smoke | The `/tmp` candidate selected `127.0.0.1:51802` while the installed app stayed on `127.0.0.1:8081`, served `X-BOB-Version: v0.2.0-preview.6`, and shut down cleanly | VERIFIED_LOCAL |
 | Preview 5 public assets | All five published assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE |
 | Existing writable Preview 1 installation updates to Preview 5 | **Help → Check for Updates** discovered Preview 5; explicit install closed the old app, replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check reported no newer release | VERIFIED_LIVE |
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
@@ -47,14 +49,15 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 ## Preview 6 candidate continuation — 2026-08-31
 
 Public `v0.2.0-preview.5` remains the latest downloadable desktop release.
-The merged public source at `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`
-contains the version-aware desktop gateway handshake. A local universal
-`v0.2.0-preview.6` candidate was rebuilt from the exact merged public-main tree
-at `0cc81b2`, signed with the owner-controlled Keychain path, verified against its detached
+The merged public source at `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
+contains the version-aware desktop gateway handshake and the fail-closed
+gateway access-key transport guard. A fresh local universal
+`v0.2.0-preview.6` candidate was rebuilt from that exact public-main tree,
+signed with the owner-controlled Keychain path, verified against its detached
 manifest, and launched while the older installed gateway continued to own
-`127.0.0.1:8081`. The new app selected `127.0.0.1:63768`, exposed the exact
-`X-BOB-Version: v0.2.0-preview.6` marker, rendered its own version, and passed
-the native maximize/zoom action. Full details and hashes are in
+`127.0.0.1:8081`. The new app selected `127.0.0.1:51802` in the recorded run,
+exposed the exact `X-BOB-Version: v0.2.0-preview.6` marker, rendered its own
+version, and shut down cleanly. Full details and hashes are in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
 
 This is local candidate evidence, not a publication or fleet claim. Preview 6
@@ -88,16 +91,16 @@ helper restart, and preservation of visible local state are now observed; a
 deliberate rollback and broader device acceptance remain device evidence rather
 than source-test claims.
 
-## Preview 5 release gate
+## Preview 6 release gate
 
 Complete these in order, from a clean checkout based on public `main`:
 
-1. **COMPLETED locally:** source, full test, race, vet, module, and host-build
-   checks passed.
+1. **COMPLETED locally:** current-main source, full test, race, vet, module,
+   and host-build checks passed.
 2. **COMPLETED locally:** the host currently reports about 7.9 GiB available;
    Wails staging and temporary DMG/ZIP copies completed without cleanup of
    project data.
-3. **COMPLETED locally:** built exactly `v0.2.0-preview.5` with the checked-in
+3. **COMPLETED locally:** built exactly `v0.2.0-preview.6` with the checked-in
    public key embedded.
 4. **COMPLETED locally:** inspected the app bundle, version/channel, universal
    slices, ad-hoc signature, ZIP layout, DMG `/Applications` shortcut, and
@@ -106,20 +109,21 @@ Complete these in order, from a clean checkout based on public `main`:
    owner-controlled Keychain. The private key was never copied to Git,
    clipboard, shell history, chat, or a student device.
 6. **COMPLETED locally:** `scripts/verify-release-assets.sh` passed. The
-   detailed candidate receipt is in
-   [`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
-7. **COMPLETED:** publish the immutable GitHub prerelease manually, including the
+   detailed current candidate receipt is in
+   [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
+7. **OPEN:** publish the immutable GitHub prerelease manually, including the
    exact five assets and signed manifest. GitHub Actions are not part of this flow.
-8. **COMPLETED:** download every public asset into a fresh directory, re-run
-   verification, and compare public bytes with the signed local input.
-9. **COMPLETED for one host / OPEN for rollout:** test one writable
+8. **OPEN after publication:** download every public asset into a fresh
+   directory, re-run verification, and compare public bytes with the signed local
+   input.
+9. **COMPLETED for coexistence on one host / OPEN for rollout:** test one writable
    `/Applications` Mac; then test two or three pilots before any 20–30-device
    wave. Record only version, OS/architecture, health result, generation
    class, and update result.
 
 If a future gate fails, keep `v0.2.0-preview.5` immutable and do not reuse its
-tag or overwrite its assets. Create a new immutable preview identity after a
-corrected build.
+tag or overwrite its assets. Do not publish a failed Preview 6 candidate; create
+a new immutable preview identity after a corrected build.
 
 ## Remaining external gates
 

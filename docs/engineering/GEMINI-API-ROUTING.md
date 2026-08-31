@@ -1,7 +1,7 @@
 # Gemini Developer API Routing and Student Limits
 
 **Status:** implemented in the v0.2 milestone; immutable Preview 5 was built
-from packaged source baseline `c28d787`. Public `main` is now at `0cc81b2`
+from packaged source baseline `c28d787`. Public `main` is now at `49e0d3b`
 after the post-publication browser-boundary, credential-input, telemetry,
 release-version, settings, and desktop-coexistence follow-ups, while the
 current public desktop package remains macOS `v0.2.0-preview.5`. A signed
