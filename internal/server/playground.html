@@ -11915,7 +11915,8 @@ async function sendMessage() {
         .replace(/https?:\/\/[^\s<>"']+/gi, "[redacted-url]")
         .slice(0, MAX_HISTORY_ERROR_CHARS);
       let errorHtml = "";
-      if (safeErrorMessage.includes("401")) {
+      const isGatewayAuthError = /invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);
+      if (isGatewayAuthError) {
         errorHtml = `
           <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">🔒 API Key Authentication Required (HTTP 401)</div>
           <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5;">
@@ -11924,7 +11925,7 @@ async function sendMessage() {
           </div>
         `;
       } else {
-        const isProviderIssue = /upstream|barderrorinfo|provider|rate limit/i.test(safeErrorMessage);
+        const isProviderIssue = /upstream|barderrorinfo|provider|rate limit|quota|session authentication|Google session|HTTP 401|HTTP 403/i.test(safeErrorMessage);
         if (isProviderIssue) {
           errorHtml = `
             <div style="color:#ef4444; font-weight:700; margin-bottom:6px;">⚠️ Provider / Session Issue</div>

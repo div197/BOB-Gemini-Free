@@ -199,7 +199,7 @@ func publicUpstreamErrorMessage(err error) string {
 	var upstreamErr *gemini.UpstreamError
 	if errors.As(err, &upstreamErr) && upstreamErr != nil {
 		switch upstreamErr.Kind {
-		case "http", "bard", "session":
+		case "http", "auth", "bard", "quota", "session":
 			if message := publicErrorText(upstreamErr.Msg, "upstream request failed"); message != "" {
 				return message
 			}

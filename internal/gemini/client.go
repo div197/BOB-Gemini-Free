@@ -256,11 +256,19 @@ func (c *Client) triageStatus(resp *http.Response) error {
 			RetryAfter: retryAfter,
 		}
 	}
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		return &UpstreamError{
+			Status:     resp.StatusCode,
+			Kind:       "auth",
+			Msg:        fmt.Sprintf("Google session or request authentication was rejected (HTTP %d); refresh the session or verify provider access", resp.StatusCode),
+			RetryAfter: retryAfter,
+		}
+	}
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return &UpstreamError{
 			Status:     resp.StatusCode,
-			Kind:       "http",
-			Msg:        "upstream rate limited (HTTP 429); retry later",
+			Kind:       "quota",
+			Msg:        "Google upstream rate limited (HTTP 429); wait before retrying",
 			RetryAfter: retryAfter,
 		}
 	}

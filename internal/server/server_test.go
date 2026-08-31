@@ -902,6 +902,23 @@ func TestPublicUpstreamErrorMessageDoesNotExposeWebRPCURL(t *testing.T) {
 	}
 }
 
+func TestPublicUpstreamAuthAndQuotaMessagesRemainActionable(t *testing.T) {
+	authMessage := publicUpstreamErrorMessage(&gemini.UpstreamError{
+		Kind: "auth", Status: http.StatusUnauthorized,
+		Msg: "Google session or request authentication was rejected (HTTP 401); refresh the session or verify provider access",
+	})
+	if !strings.Contains(authMessage, "refresh the session") || strings.Contains(authMessage, "API key protection") {
+		t.Fatalf("public auth message = %q", authMessage)
+	}
+	quotaMessage := publicUpstreamErrorMessage(&gemini.UpstreamError{
+		Kind: "quota", Status: http.StatusTooManyRequests,
+		Msg: "Google upstream rate limited (HTTP 429); wait before retrying",
+	})
+	if !strings.Contains(quotaMessage, "wait before retrying") {
+		t.Fatalf("public quota message = %q", quotaMessage)
+	}
+}
+
 func TestPublicAttachmentErrorMessageDoesNotExposeSourceDetails(t *testing.T) {
 	secretURL := "https://images.example.test/download?token=short-lived-secret"
 	err := fmt.Errorf("image fetch failed for %s: dial %s", secretURL, secretURL)

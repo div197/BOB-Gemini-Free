@@ -82,6 +82,28 @@ func TestTriageStatusCapturesBoundedRetryAfter(t *testing.T) {
 	}
 }
 
+func TestTriageStatusClassifiesSessionAndQuotaFailures(t *testing.T) {
+	for _, test := range []struct {
+		status int
+		kind   string
+		text   string
+	}{
+		{status: http.StatusUnauthorized, kind: "auth", text: "session or request authentication"},
+		{status: http.StatusForbidden, kind: "auth", text: "session or request authentication"},
+		{status: http.StatusTooManyRequests, kind: "quota", text: "rate limited"},
+	} {
+		resp := &http.Response{StatusCode: test.status, Header: make(http.Header)}
+		err := (&Client{}).triageStatus(resp)
+		var upstreamErr *UpstreamError
+		if !errors.As(err, &upstreamErr) {
+			t.Fatalf("status %d error = %v, want UpstreamError", test.status, err)
+		}
+		if upstreamErr.Kind != test.kind || !strings.Contains(upstreamErr.Msg, test.text) {
+			t.Fatalf("status %d error = %#v, want kind %q and text %q", test.status, upstreamErr, test.kind, test.text)
+		}
+	}
+}
+
 func TestUpstreamRetryDelayIsCappedAndJittered(t *testing.T) {
 	for attempt := 0; attempt < 8; attempt++ {
 		got := upstreamRetryDelay(attempt, 2)

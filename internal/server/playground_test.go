@@ -725,6 +725,8 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 		`streamProtocolError = "Stream contained an invalid SSE event"`,
 		`if (data && data.error && data.error.message)`,
 		`if (finishReason === "error")`,
+		`const isGatewayAuthError = /invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);`,
+		`session authentication|Google session|HTTP 401|HTTP 403`,
 		`Cookie pools do not bypass quotas or provider policy.`,
 	} {
 		if !strings.Contains(html, marker) {
@@ -754,6 +756,9 @@ func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	}
 	if strings.Contains(html, "enabling 100% free local access") || strings.Contains(html, "100% मुफ़्त स्थानीय उपयोग संभव") {
 		t.Fatal("playground still presents provider access as universally free")
+	}
+	if strings.Contains(html, `if (safeErrorMessage.includes("401"))`) {
+		t.Fatal("provider HTTP 401 must not be mislabeled as gateway API-key authentication")
 	}
 }
 
