@@ -40,7 +40,7 @@ gate is tracked in [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDI
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
 | **Optional provider route** | Web Studio can explicitly use one student-owned Gemini Developer API key for `/v1/chat/completions` and native `/v1beta` generation; this is a separate Google project/quota path, not a quota bypass or key pool |
-| **Native updater status** | The public `v0.2.0-preview.1` bridge, historical Preview 3–5, and current macOS universal `v0.2.0-preview.6` are available. Preview 6 is signed with the checked-in project key, was re-downloaded and byte-reconciled, and passed local coexistence/health smoke. The current source `v0.2.0-preview.7` candidate is locally packaged and verified but not published; the earlier Preview 1 → Preview 5 installed migration remains the only live migration observation. Current previews add explicit Preview → Stable migration. Stable `v0.2.0` remains gated on rollback, clean-device, pilot, and platform-trust acceptance. Older builds with an unrecoverable key still require one manual migration |
+| **Native updater status** | The public `v0.2.0-preview.1` bridge, historical Preview 3–5, and current macOS universal `v0.2.0-preview.6` are available. Preview 6 is signed with the checked-in project key, was re-downloaded and byte-reconciled, and passed local coexistence/health smoke. The current source `v0.2.0-preview.7` candidate from `main@daaea61` includes the protected-gateway route guard and Studio route pin; it is locally packaged and verified but not published. The earlier Preview 1 → Preview 5 installed migration remains the only live migration observation. Current previews add explicit Preview → Stable migration. Stable `v0.2.0` remains gated on rollback, clean-device, pilot, and platform-trust acceptance. Older builds with an unrecoverable key still require one manual migration |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md), [`LOCAL-BENCHMARK-2026-08-25.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-25.md), [`LOCAL-BENCHMARK-2026-08-29.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-29.md), and the current [`LOCAL-BENCHMARK-2026-08-31.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-31.md); they are not Google latency or rate-limit measurements |
@@ -254,6 +254,13 @@ These values have different owners and different consequences:
 | **Web-session cookies** (`cookie_file` / cookie pool) | The person running the local engine | Authenticate BOB's default reverse-engineered Google web-session route when available | Managed by the engine on disk; never paste a cookie into either Config key field |
 | **Gateway Endpoint URL** | The person connecting the Studio | Chooses which BOB process receives the request; a remote endpoint is a separate trust decision | May be saved as a UI preference; use loopback locally or HTTPS with an explicitly trusted remote gateway |
 
+The native desktop wrapper keeps its embedded gateway on loopback and
+deliberately disables BOB `api_keys`. Therefore students normally leave the BOB
+Gateway Access Key empty when using the engine inside the downloaded app. That
+field remains visible because the same Studio can be pointed at a separately
+running protected CLI, Docker, or LAN gateway; it is not a second password for
+the desktop app and it never becomes a Google credential.
+
 The gateway access key is optional on an unauthenticated local install. If it is
 configured, the same BOB access check applies whether the request then uses the
 default web-session route or the explicitly selected Developer API route. The
@@ -281,9 +288,12 @@ required authentication, whether a provider key is present and enabled, that
 cookies remain engine-owned, and whether the selected model/think mode is
 compatible with the direct route. Send is blocked before creating a chat turn
 when the explicit route has no key, an untrusted endpoint, or a web-RPC-only
-model setting. After a connection check identifies a protected gateway, the
-Developer API route is also blocked until its separate BOB Gateway Access Key is
-entered. Closing Config clears secret input values from the hidden modal;
+model setting. The Studio also sends an explicit web-route marker when that
+toggle is off, so a process-level `BOB_GEMINI_FREE_GEMINI_API_KEY` configured for
+other clients cannot silently override the route shown in Config. After a
+connection check identifies a protected gateway, the Developer API route is
+also blocked until its separate BOB Gateway Access Key is entered. Closing
+Config clears secret input values from the hidden modal;
 the page-memory keys are still cleared on page unload and are never persisted.
 
 ---

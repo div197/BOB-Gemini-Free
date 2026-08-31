@@ -2,9 +2,9 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `8c35a11960d2ed9c50c5986e11a5b03beba6777d` (merged `main`
-after PR #95; this fresh receipt supersedes the earlier local same-version
-candidate built from `049ca2fb5927f70a21f6647e5046b9e19679c7a5`)
+**Source snapshot:** `daaea6198ae8a30b4c021fa29ab3e7b581cea187` (merged `main`
+after PR #98; this fresh receipt supersedes the earlier local same-version
+candidate built from `6c27ac88944351e04f08a62d078caed9d6711178`)
 **Public baseline:** `v0.2.0-preview.6` remains the current published macOS
 preview.
 
@@ -39,17 +39,17 @@ The following checks passed:
 The private signing value was not displayed, exported, copied, committed, or
 placed in the package. The signed asset receipt was written outside the
 worktree at audit time; its manifest SHA-256 is
-`a1c6d76a87d4155eacdb147869dec39c2a7dfcb2d4f33c7b8e2136d1be30c81a`.
+`21ee12fd0236f61b622fbdee6127b77a2afd9ff35565b871c14211d704747af9`.
 
 The exact local candidate hashes are:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `8cdf026e0ed515392fea734a839fa010f3e467d6c83396b971c2537a459ba557` |
-| `bob-gemini-free-macos-universal.dmg` | `9bebc0216a32ffb89bb7727dd939259398f17d09cdf25779a7a44dfe5911304a` |
-| `bob-gemini-free-macos-universal.zip` | `a95d0252977bffd50e8759359db82dd30ceff365be1ec83c634c741baf0ca56f` |
-| `SHA256SUMS` | `a1c6d76a87d4155eacdb147869dec39c2a7dfcb2d4f33c7b8e2136d1be30c81a` |
-| `SHA256SUMS.sig` | `5d7d019d2bf9409514d27fe47b03609431da0fd3992f97e95fa75e8613c26acb` |
+| `bob-gemini-free-macos-universal.dmg` | `8b964c2644c16120d84a8e64e1b5952fec3baafb083674f3832f5601b4f0e3a8` |
+| `bob-gemini-free-macos-universal.zip` | `27906833cb5dc48dfe5d63226c59ecbfbf925c8ec6ce714e09cec6f7575a3c7c` |
+| `SHA256SUMS` | `21ee12fd0236f61b622fbdee6127b77a2afd9ff35565b871c14211d704747af9` |
+| `SHA256SUMS.sig` | `bbc5df254733ef625a500b05f2acb0c26283e153877b2699cab1424364c785a8` |
 
 ## Bundle identity and runtime proof
 
@@ -64,7 +64,7 @@ The updater must use the injected channel-aware identity, not Finder's numeric
 bundle field, when deciding whether a preview update exists.
 
 The bundled executable was started directly from the candidate app on an
-isolated loopback port (`127.0.0.1:18083`) while the installed app was left
+isolated loopback port (`127.0.0.1:18088`) while the installed app was left
 untouched. The candidate:
 
 - returned HTTP 200 from `/healthz` with `X-BOB-Version:
@@ -79,6 +79,23 @@ untouched. The candidate:
 No generation request was made and no Google cookie, web session, or Developer
 API key was entered. This proves package startup and local serving, not live
 Google availability.
+
+## Credential-route smoke
+
+The current source was also run as a separate synthetic protected gateway on
+`127.0.0.1:18087`, with a non-production local `api_keys` value and no Google
+credential. In the real Studio browser surface, **Test Ping** identified the
+gateway as `ONLINE (SECURED)`; with the BOB access field empty, the Developer
+API toggle remained off and the route card was `BLOCKED` with the explicit
+separate-gateway-key message. After entering the synthetic BOB key, the same
+page could deliberately select the Developer API route. The signed packaged
+desktop candidate on `127.0.0.1:18088` separately reported
+`X-BOB-Auth-Required: false`, matching the desktop boundary that strips BOB
+`api_keys` from its embedded loopback gateway. No provider request was made.
+
+This proves the settings distinction and pre-send guard in a browser-backed
+source run plus the packaged desktop boundary; it does not prove that any
+Google session, Developer API key, quota, or provider model is available.
 
 ## Hermetic Studio artifact lifecycle smoke
 
