@@ -35,6 +35,18 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
+## [Unreleased]
+
+### Responsive Studio correctness
+
+- Keeps compact phone header actions inside a bounded 44px-tall interaction
+  row while retaining their stable accessible names.
+- Caps responsive configuration and integration drawers at 320px on phones;
+  the previous `min-width: 85vw` rule could override that cap on a 390px
+  viewport.
+- Adds a source regression for the phone-control containment and drawer-width
+  contract, and keeps the generated `web/index.html` bundle synchronized.
+
 ## [0.2.0-preview.6] - 2026-08-31
 
 ### Release safety

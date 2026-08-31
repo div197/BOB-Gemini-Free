@@ -364,3 +364,21 @@ runtime, run section 8, and complete the clean `/Applications` updater proof.
 If either run exposes drawer, artifact, touch, or transaction failures, fix
 those as independent regression-locked changes before considering the L3
 design-language or monolith split proposals.
+
+## 12. Current-source responsive follow-up — 2026-08-31
+
+The recovered in-app browser was used against an isolated current-source
+candidate after the initial audit. It reproduced two concrete L1 geometry
+defects at 390×844: compact header controls were narrower than the documented
+24px containment floor, and the mobile drawer's `min-width:85vw` overrode its
+320px maximum. The surgical fix is now in the source and generated bundle,
+with `TestResponsivePhoneControlsMeetTouchContainmentAndDrawerCap` protecting
+the CSS contract.
+
+Post-fix browser evidence covers 1440×900, 1024×768, and 390×844 with matching
+document/body widths, no page-level horizontal overflow, named visible
+focusables, a 44px-tall compact phone action row, and a 320px mobile drawer.
+Settings-dialog scrolling, credential-field separation, focus trapping, and
+focus return were rechecked. This closes the observed L1 geometry defect; it
+does not close the deliberate L2 header-hierarchy proposal or the remaining
+artifact, provider, 200% zoom, native-WebView, clean-device, and fleet gates.

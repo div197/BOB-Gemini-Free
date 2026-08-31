@@ -74,3 +74,34 @@ advanced to `ade691d` through PR #77 (browser security evidence) and PR #78
 they are included in the published Preview 6 package from `f9b3410`. Native
 macOS, Windows, Linux, CDN/offline, and clean-device acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).
+
+## Current-source responsive follow-up — 2026-08-31
+
+This addendum records a later source-candidate run. It does not rewrite the
+historical fixture above or upgrade the immutable public Preview 6 package.
+
+- Candidate: current source build identifying as `v0.2.0-preview.7`, served at
+  `http://127.0.0.1:18081/playground` from the isolated local candidate.
+- Provider boundary: no generation request was made and no provider key or
+  cookie was entered in the browser; this is shell/settings evidence only.
+- Before the fix, a 390×844 browser viewport measured compact header controls
+  between 18px and 33px wide, and the drawer measured 331.5px because
+  `min-width:85vw` overrode its intended 320px maximum.
+- After the fix, 1440×900, 1024×768, and 390×844 all reported matching
+  document/body widths with no page-level horizontal overflow. At 390×844,
+  compact controls measured at least 24px wide and 44px high; the segmented
+  control row measured 48px high; and the configuration drawer measured
+  320px wide.
+- The mobile configuration drawer still exposed `aria-hidden`/`inert` state,
+  moved focus to its close control, and returned focus to its trigger after
+  closing. The Gateway dialog remained a scrollable `role="dialog"` with
+  `aria-modal="true"`; its endpoint, BOB Gateway Access Key, and Google
+  Gemini Developer API key fields remained distinct and the two credential
+  fields were empty.
+
+The 24px horizontal value is the repository's absolute compact-control
+containment floor, not a claim that every secondary header action is a full
+44×44 touch target. The header hierarchy remains an isolated L2 design
+experiment; no navigation or feature removal was smuggled into this fix.
+Artifact/provider/native-WebView, 200% browser zoom, clean-device, and fleet
+acceptance remain separate gates.
