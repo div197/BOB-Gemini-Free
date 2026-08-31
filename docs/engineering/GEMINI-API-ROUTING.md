@@ -1,8 +1,8 @@
 # Gemini Developer API Routing and Student Limits
 
 **Status:** implemented in the v0.2 milestone; current source is public `main`
-at `1b3472f` before the route-clarity patch in this review, and the public
-desktop package remains Preview 4 until the
+at `a68eb39` after the route-clarity patch was merged, and the public desktop
+package remains Preview 4 until the
 Preview 5 publication gates pass
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 

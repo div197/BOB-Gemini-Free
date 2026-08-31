@@ -2,8 +2,8 @@
 
 ## Scope and decision
 
-This record covers the locally produced macOS `v0.2.0-preview.5` candidate
-from public `main` at commit `4beb1275833c387f3bcf458d99b5743720e84311`.
+This record covers the freshly produced macOS `v0.2.0-preview.5` candidate
+from public `main` at merged commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`.
 It is a local package and startup receipt, not a GitHub publication receipt.
 
 The candidate passed the local source, package, signature, and one-host startup
@@ -26,7 +26,7 @@ The public downloadable desktop release therefore remains the immutable
 
 | Check | Result | Evidence |
 |---|---|---|
-| Public source identity | PASS | Candidate built from the clean public code baseline `4beb1275833c387f3bcf458d99b5743720e84311`; release-evidence documentation is separate and does not alter packaged code |
+| Public source identity | PASS | Candidate built from the clean public code baseline `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`; release-evidence documentation is separate and does not alter packaged code |
 | Release-source preflight | PASS | `scripts/verify-release-source.sh v0.2.0-preview.5` |
 | Full Go suite | PASS | `go test -count=1 ./...` |
 | Race-sensitive suite | PASS | `go test -race -count=1 ./internal/server ./internal/updater ./internal/gemini ./internal/geminiapi ./internal/config ./cmd/desktop` |
@@ -41,8 +41,8 @@ These are the exact SHA-256 entries in the locally signed manifest:
 
 ```text
 d565000fc152deec198714192e14ca7aff6a0b368d1e9079ff3e7b099999e6cb  RELEASE-NOTICE.txt
-556023933cded7f4eaf61fda0ce6c3113b0cc28b3c7b94ec4a0d80ec1c561fa3  bob-gemini-free-macos-universal.dmg
-a5126068bb35d9bbd73f1adb423f9ad806f6e802fcceb8ffd5db0e44572ccaea  bob-gemini-free-macos-universal.zip
+1c99040a6f295b2c285dac26666f2c5da928ffbc2f3aab6634114369da07ed0e  bob-gemini-free-macos-universal.dmg
+4859c9464c8f68ce576e81888442d6442ae5da19004ceff07da29b768d972913  bob-gemini-free-macos-universal.zip
 ```
 
 The manifest intentionally covers the release notice and the two installable

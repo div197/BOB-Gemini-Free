@@ -521,12 +521,14 @@ change.
 ## Current credential and Preview 5 candidate addendum — 2026-08-31
 
 This addendum supersedes older “current” commit labels in the historical
-sections above. The public `main` baseline used for this review is
-`1b3472f1709f12c8cd211447b69a15dd426f370` (the route-clarity patch is being
-verified on a review branch before publication).
+sections above. The public `main` baseline used for this review is the merged
+commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`; the route-clarity patch is
+now public source, while the desktop package remains Preview 4 until the
+fresh Preview 5 publication gates pass.
 The public Preview 4
-assets remain immutable; Preview 5 is a locally verified candidate and is not
-yet a public release. The complete local package receipt is in
+assets remain immutable; a fresh Preview 5 candidate from this merged source
+is locally verified and is not yet a public release. The complete local package
+receipt is in
 [`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
 
 | Current claim | Classification | Evidence | Boundary |
@@ -536,6 +538,6 @@ yet a public release. The complete local package receipt is in
 | A Google Developer API key cannot silently become a BOB gateway access key or silently fall back to the web-RPC route | VERIFIED_BY_UNIT_TEST | `internal/server/gemini_api_test.go` covers provider-only rejection at an API-key-protected gateway, explicit provider routing, configured provider routing, unsupported endpoints, duplicate-key rejection, and credential redaction | Provider project quotas, billing, model availability, and live 401/403/429 behavior remain Google-dependent. |
 | The Studio makes the active credential route and its pre-send constraints visible | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` renders a route-status card with web-session/provider, gateway-auth, cookie-ownership, and model-guard states; `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials` and `TestPlaygroundBlocksIncompatibleDeveloperRouteBeforeSend` lock the source contract in the generated UI | A source test does not replace desktop/tablet/phone browser evidence, nor does it establish that a remote endpoint is trustworthy. |
 | An incompatible explicit Developer API selection creates a chat turn or sends a request before the user can correct it | VERIFIED_BY_UNIT_TEST | `developerRouteSelectionIssue()` checks key presence, endpoint transport trust, and provider-model/default-think constraints before `isGenerating`, chat-history mutation, or `fetch`; clear actions remove the two secret values from the retained modal DOM | Google may still reject a syntactically valid key, model, quota, or request; those are provider outcomes, not silently converted routes. |
-| The local Preview 5 candidate is a signed, structurally valid universal macOS package from current public `main` | VERIFIED_LOCAL | Fresh ZIP/DMG inspection found the branded bundle, `x86_64`/`arm64` slices, expected identifier/name, the `/Applications` DMG alias, ad-hoc signature, and a verified detached manifest signature | This is not Apple Developer ID signing/notarization, public GitHub-byte reconciliation, or a clean-device install/update proof. |
+| The local Preview 5 candidate is a signed, structurally valid universal macOS package from current public `main` | VERIFIED_LOCAL | Fresh candidate from merged source `a68eb39` produced a branded universal `.dmg`/`.zip`, `x86_64`/`arm64` slices, expected identifier/name, the `/Applications` DMG alias, ad-hoc signature, and a verified detached manifest signature | This is not Apple Developer ID signing/notarization, public GitHub-byte reconciliation, or a clean-device install/update proof. |
 | The exact Preview 5 candidate bootstraps a healthy local gateway | VERIFIED_LIVE | Fresh `open -n` launch owned `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential-map markers, and shut down cleanly | One-host bootstrap does not prove Google generation, Gatekeeper acceptance, installed-bundle replacement, rollback, Windows/Linux behavior, or 20–30-device rollout. |
 | Existing Preview 4/Preview 7 installations have already been proven to replace themselves with Preview 5 | UNKNOWN | Updater selection and transaction behavior are fixture-tested, and the candidate is locally signed | A real writable `/Applications` update, restart confirmation, deliberate rollback, and public-byte comparison remain open operator gates. |
