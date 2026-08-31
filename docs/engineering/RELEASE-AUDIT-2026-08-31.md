@@ -9,8 +9,8 @@ credentials, cookies, or private-key export
 ## Decision
 
 The repository is source-ready and has published the signed, verified
-`v0.2.0-preview.5` macOS prerelease from the current public `main` at
-`c28d787`. Its assets were re-downloaded and reconciled byte-for-byte, and one
+`v0.2.0-preview.5` macOS prerelease from packaged source target `c28d787`.
+Its assets were re-downloaded and reconciled byte-for-byte, and one
 writable `/Applications` Preview 1 installation updated and restarted into
 Preview 5 with its visible chat state preserved. The release is not yet a
 fleet-ready update. The existing `v0.2.0-preview.4` assets remain immutable and

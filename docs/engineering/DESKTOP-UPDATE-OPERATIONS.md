@@ -4,9 +4,10 @@
 the public app remains ad-hoc signed and not Apple-notarized.
 
 The current release audit is in
-[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). Public `main` is
-at `c28d787`, and the immutable public `v0.2.0-preview.5` assets have passed
-signature, byte-reconciliation, and one-host installed migration checks.
+[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The immutable
+public `v0.2.0-preview.5` assets use packaged source target `c28d787` and have
+passed signature, byte-reconciliation, and one-host installed migration
+checks.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
 Preview 5 (`v0.2.0-preview.5`) is published from public `main`; Preview 4 and
