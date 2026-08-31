@@ -395,7 +395,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `07579ee`; the current checkout contains the
+The source-hardening tip is `888a7fa`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, and Developer API stream-error follow-ups after the
 evidence documents. The local branch is

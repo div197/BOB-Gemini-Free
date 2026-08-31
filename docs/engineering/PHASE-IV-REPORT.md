@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `07579ee`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `888a7fa`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -155,7 +155,7 @@ closing. This is a user-facing recovery boundary, not a claim that browser
 `localStorage` has a uniform quota or that long-session CPU behavior is
 proven across devices.
 
-### 7. Developer API stream-error classification — `07579ee`
+### 7. Developer API stream-error classification — `888a7fa`
 
 The typed Developer API stream now recognizes a provider error envelope even
 when Google returns it inside an HTTP-200 SSE event. Numeric and string status
