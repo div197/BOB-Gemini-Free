@@ -394,10 +394,11 @@ evidence only.
 
 ## Current local continuation evidence — 2026-08-31
 
-This addendum supersedes older commit labels in the historical sections above
-for the current checkout. The local branch is `codex/release-readiness-v0.2.0`
-at `1cc33d5`, five commits ahead of its remote tracking branch and based on
-`origin/main` `523ceeb`. No stable release was tagged, no GitHub Actions
+This addendum supersedes older commit labels in the historical sections above.
+The source-hardening tip is `1cc33d5`; the current checkout also contains the
+report-only documentation commit that follows it. The local branch is
+`codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
+release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.
 
 | Current claim | Classification | Evidence | Boundary |
