@@ -37,6 +37,9 @@ artifact-preview, responsive-header, multiline-SSE और credential-boundary
 सुधार आ चुके हैं। Preview 5 के public bytes और एक writable Preview 1 →
 Preview 5 installed migration का प्रमाण उपलब्ध है; rollback, clean-device,
 pilot और platform-trust gates अभी खुले हैं।
+Public `main` अब `ade691d` तक आगे बढ़ चुका है, लेकिन immutable Preview 5
+package का signed source baseline `c28d787` है; PR #77/#78 के बाद के बदलावों के
+लिए नया signed preview आवश्यक होगा।
 Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
