@@ -316,7 +316,7 @@ does not turn provider documentation into a product guarantee.
 |---|---|---|---|
 | A student can opt into a separate Gemini Developer API route from the Web Studio | VERIFIED_IN_SOURCE | `internal/server/playground.html` links to `https://aistudio.google.com/app/apikey`, keeps the key in page memory, and sends it only as `X-BOB-Gemini-API-Key` when the session toggle is enabled | This is a local UI/source claim; the student still owns the Google project/key and must follow Google's account, billing, and data-use rules. |
 | The provider key is translated to Google's documented header and never placed in the URL or request body | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/client.go`, `internal/geminiapi/geminiapi_test.go`, and `internal/server/gemini_api_test.go` assert `x-goog-api-key`, no query key, no body key, and redacted provider errors | Runtime proxies or provider-side logging remain outside BOB's control. |
-| Direct Developer API typed streams reject empty semantic events | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/client.go` rejects `{}` and `candidates:[]` events unless prompt feedback or usage metadata is present; `internal/geminiapi/geminiapi_test.go` covers both forms alongside valid comments/data/`[DONE]` framing | Full provider event vocabulary and Web RPC framing remain unverified. |
+| Direct Developer API typed streams reject empty semantic events and classify provider error events | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/client.go` rejects `{}` and `candidates:[]` events unless prompt feedback or usage metadata is present, recognizes numeric/string provider status codes from HTTP-200 error events, and redacts the API key; `internal/geminiapi/geminiapi_test.go` covers unknown SSE fields, ordered multiline data, quota error events, comments/data/`[DONE]` framing | Full provider event vocabulary and Web RPC framing remain unverified. |
 | Direct Developer API tool-choice names are checked against declared tools | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/translate.go:23-25`; shared `internal/format.ValidateToolChoice`; `internal/geminiapi/geminiapi_test.go` covers undeclared named choices | Gemini `AUTO`/`NONE`/`ANY` mapping is source-backed; provider acceptance and exact model semantics remain live-dependent. |
 | Direct Developer API tool-call arguments obey the target object shape | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/translate.go` uses one bounded decoder for tool arguments; `internal/geminiapi/geminiapi_test.go` covers malformed JSON plus scalar, array, and `null` values | The public Gemini `FunctionCall.args` field is documented as a JSON object; the local web-RPC prompt emulation remains a separate partial capability. |
 | Direct Developer API typed text parts cannot disappear on conversion | VERIFIED_BY_UNIT_TEST | `internal/geminiapi/translate.go:196-218`; `internal/geminiapi/geminiapi_test.go` covers missing `type` and non-string `text` | This is a request-validation guarantee, not evidence that every provider content part is supported. |
@@ -395,9 +395,10 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `838b066`; the current checkout contains the
-deterministic stream-regression, session-bound image-reference, and local
-history-persistence follow-ups after the evidence documents. The local branch is
+The source-hardening tip is `07579ee`; the current checkout contains the
+deterministic stream-regression, session-bound image-reference, local
+history-persistence, and Developer API stream-error follow-ups after the
+evidence documents. The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.

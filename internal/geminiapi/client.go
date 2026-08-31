@@ -175,6 +175,13 @@ func parseProviderStreamError(data []byte, key string) *APIError {
 		kind = "auth"
 	case http.StatusTooManyRequests:
 		kind = "quota"
+	default:
+		switch strings.ToUpper(strings.TrimSpace(envelope.Error.Status)) {
+		case "UNAUTHENTICATED", "PERMISSION_DENIED":
+			kind = "auth"
+		case "RESOURCE_EXHAUSTED", "RATE_LIMIT_EXCEEDED":
+			kind = "quota"
+		}
 	}
 	message := strings.TrimSpace(envelope.Error.Message)
 	if message == "" {

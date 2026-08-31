@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `838b066`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `07579ee`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -154,6 +154,17 @@ student when attachment previews may be omitted and when to export work before
 closing. This is a user-facing recovery boundary, not a claim that browser
 `localStorage` has a uniform quota or that long-session CPU behavior is
 proven across devices.
+
+### 7. Developer API stream-error classification — `07579ee`
+
+The typed Developer API stream now recognizes a provider error envelope even
+when Google returns it inside an HTTP-200 SSE event. Numeric and string status
+codes are mapped to quota/auth classifications where known, the provider
+message is sanitized, and the caller's API key is redacted. Unknown SSE fields,
+named events, comments, and ordered multiline `data:` payloads remain
+non-destructive and are covered by fixtures. This improves diagnosis without
+claiming that every future provider event type is known or that the
+reverse-engineered web-RPC stream has public-SSE semantics.
 
 ## Verification completed
 
