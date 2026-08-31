@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"syscall"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -279,7 +281,16 @@ func desktopUpdateErrorMessage(summary string, err error) string {
 	if err == nil {
 		return summary + "."
 	}
-	return fmt.Sprintf("%s.\n\nDetails: %s", summary, err)
+	if errors.Is(err, context.Canceled) {
+		return fmt.Sprintf("%s.\n\nNothing was changed; the update operation was canceled. Try again when ready.", summary)
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return fmt.Sprintf("%s.\n\nNothing was changed; the update operation timed out. Check the network connection and try again.", summary)
+	}
+	if errors.Is(err, syscall.EROFS) || os.IsPermission(err) {
+		return fmt.Sprintf("%s.\n\nBOB could not write in the current application location. Move BOB Gemini Free.app to Applications or another writable location, then try again. Nothing was changed.", summary)
+	}
+	return fmt.Sprintf("%s.\n\nNothing was changed; try again from Help → Check for Updates or open the official Releases page.", summary)
 }
 
 // desktopUpdateCheckErrorMessage keeps low-level network and GitHub response

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"syscall"
 	"testing"
 	"time"
 
@@ -54,6 +55,22 @@ func TestDesktopUpdateCheckErrorMessageHidesTransportDetails(t *testing.T) {
 	policy := desktopUpdateCheckErrorMessage(errors.New("desktop update server returned HTTP 429"))
 	if strings.Contains(policy, "HTTP 429") || strings.Contains(policy, "desktop update server") {
 		t.Fatalf("release metadata details leaked into update dialog: %q", policy)
+	}
+}
+
+func TestDesktopUpdateOperationErrorMessageHidesLocalPaths(t *testing.T) {
+	path := "/private/var/folders/example/bob-gemini-free-update-123"
+	readOnly := desktopUpdateErrorMessage("BOB could not prepare this update", fmt.Errorf("create staging directory %s: %w", path, syscall.EROFS))
+	if strings.Contains(readOnly, path) || strings.Contains(readOnly, "read-only file system") {
+		t.Fatalf("local filesystem details leaked into update dialog: %q", readOnly)
+	}
+	if !strings.Contains(readOnly, "Applications") || !strings.Contains(readOnly, "Nothing was changed") {
+		t.Fatalf("read-only recovery guidance is incomplete: %q", readOnly)
+	}
+
+	generic := desktopUpdateErrorMessage("BOB could not start the verified update", fmt.Errorf("exec %s: permission denied", path))
+	if strings.Contains(generic, path) || !strings.Contains(generic, "Nothing was changed") {
+		t.Fatalf("generic update error was not bounded: %q", generic)
 	}
 }
 
