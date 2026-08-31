@@ -172,6 +172,17 @@ invalid benchmark bodies or fabricated token counts. These controls are
 included in the current source evidence but do not close the open
 branch/publication, provider, or clean-device rows above.
 
+### Current responsive follow-up evidence — 2026-08-31
+
+The local current-source browser run converted the previously observed phone
+geometry risk into a regression-locked result: at 390×844, compact header
+actions now retain at least 24px horizontal containment and 44px height, and
+the responsive drawer resolves to 320px rather than allowing `min-width:85vw`
+to expand it to 331.5px. Desktop/tablet/phone runs reported no page-level
+horizontal overflow. This is source-candidate evidence; it does not claim the
+immutable Preview 6 package, native WebView rendering, provider behavior, or
+clean-device/fleet acceptance.
+
 ## Required execution order
 
 1. Close release/provenance rows 1–6, 11–20, and 40 before another public

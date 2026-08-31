@@ -3464,6 +3464,25 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     max-width: 46px;
     flex-basis: 46px;
   }
+  /* Keep compact header actions comfortable to tap without restoring the
+     hidden desktop labels. The 24px width is the minimum containment for
+     compact controls; primary vertical targets remain 44px high. */
+  .header-controls > .nav-pill-btn,
+  .header-controls .nav-segment-btn,
+  .header-controls .lang-selector {
+    min-width: 24px;
+    min-height: 44px;
+  }
+  .header-controls .nav-segmented-group {
+    height: 48px;
+    min-height: 48px;
+  }
+  .header-controls .nav-segment-btn {
+    height: 44px;
+  }
+  .header-controls .lang-selector {
+    height: 44px;
+  }
   #theme-selector {
     padding: 0 6px;
     font-size: 0.7rem;
@@ -3717,7 +3736,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     height: 100dvh !important;
     z-index: 50 !important;
     width: 85vw !important;
-    min-width: 85vw !important;
+    min-width: 0 !important;
     max-width: 320px !important;
     margin: 0 !important;
     margin-left: 0 !important;

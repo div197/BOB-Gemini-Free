@@ -978,6 +978,36 @@ func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
 	}
 }
 
+func TestResponsivePhoneControlsMeetTouchContainmentAndDrawerCap(t *testing.T) {
+	html := string(playgroundHTML)
+	mediaStart := strings.Index(html, "@media (max-width: 640px) {")
+	if mediaStart < 0 {
+		t.Fatal("phone responsive media block is missing")
+	}
+	mediaEndOffset := strings.Index(html[mediaStart+len("@media (max-width: 640px) {"):], "\n@media ")
+	mediaEnd := len(html)
+	if mediaEndOffset >= 0 {
+		mediaEnd = mediaStart + len("@media (max-width: 640px) {") + mediaEndOffset
+	}
+	phoneCSS := html[mediaStart:mediaEnd]
+	for _, marker := range []string{
+		".header-controls > .nav-pill-btn,\n  .header-controls .nav-segment-btn,\n  .header-controls .lang-selector {\n    min-width: 24px;\n    min-height: 44px;\n  }",
+		".header-controls .nav-segmented-group {\n    height: 48px;\n    min-height: 48px;\n  }",
+		".header-controls .nav-segment-btn {\n    height: 44px;\n  }",
+		".header-controls .lang-selector {\n    height: 44px;\n  }",
+		"width: 85vw !important;",
+		"min-width: 0 !important;",
+		"max-width: 320px !important;",
+	} {
+		if !strings.Contains(phoneCSS, marker) {
+			t.Fatalf("responsive phone contract is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(phoneCSS, "min-width: 85vw !important;") {
+		t.Fatal("responsive drawer min-width must not override its 320px maximum")
+	}
+}
+
 func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
