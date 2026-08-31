@@ -37,6 +37,13 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+### Browser streaming
+
+- The Studio SSE reader now assembles complete events across chunk, CRLF, and
+  multi-line `data:` boundaries, ignores standard comments/fields safely, and
+  records bounded diagnostics for unknown event metadata without changing
+  response ordering.
+
 ### Release versioning
 
 - After Preview 4 publication, all Wails preview packagers default to the next
