@@ -130,6 +130,11 @@ live provider key, or enabled GitHub Actions.
   rebinding during remote-image fetches, cumulative direct-API tool calls,
   tool-result correlation, ambiguous candidates/finish reasons, structured
   stream errors, and invalid configured sessions.
+- Hardened native updater transaction durability with flushed same-directory
+  metadata commits, Unix directory synchronization around swap/recovery
+  transitions, and a fault-injected rollback regression; Windows metadata now
+  uses native `MoveFileExW` replace-existing/write-through semantics rather
+  than a delete-then-rename fallback.
 
 #### Changed
 - The default CLI installers now download a release, verify its signed

@@ -67,6 +67,12 @@ installed-bundle acceptance result, and it does not alter the no-Actions or
 user-consent requirements. The follow-up Windows-specific metadata path uses
 native `MoveFileExW` replace-existing/write-through semantics in `fd279aa`.
 
+Protected PR [#45](https://github.com/div197/BOB-Gemini-Free/pull/45) and PR
+[#46](https://github.com/div197/BOB-Gemini-Free/pull/46) subsequently placed
+the provenance reconciliation and Windows updater hardening on public
+`main`. The local branch was rechecked against the public file tree before
+this document refresh. No new tag or release was created by those merges.
+
 The public bridge ZIP reports `CFBundleShortVersionString` and
 `CFBundleVersion` as `0.2.0`; the full preview channel/version is carried by
 the injected desktop updater version and release metadata. This is expected
@@ -80,7 +86,7 @@ notice must continue to show the full `v0.2.0-preview.1` identity.
 | Public `v0.1.7-preview.7` | Preview list only | `v0.2.0-preview.1` now; the highest later `preview.N` after publication | Released source behavior, current selection fixtures, public bridge manifest, and public key are verified. A real installed update/restart remains a device gate. |
 | Public `v0.1.7-preview.7` | Preview list only | Future `v0.2.0-preview.2` directly, if it is published with the same key and compatible macOS asset | Current regression fixture proves highest-preview selection; exact future public bytes do not exist yet. |
 | Public `v0.2.0-preview.1` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise a newer preview such as `v0.2.0-preview.2` | Stable-first and preview-continuation selection are covered by updater tests. Clean-device replacement is still open. |
-| Candidate `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | A final local Keychain-signed package from clean source `cec4c8e` passed manifest, signature, checksum, bundle, launch, health, and shutdown checks; it is not tagged or published. |
+| Candidate `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | A final local Keychain-signed package from clean source `3140b7a` passed manifest, signature, checksum, bundle, launch, health, and shutdown checks; later Windows-only updater hardening is merged but that macOS candidate is not tagged or published. |
 | Stable `v0.2.0` | Stable endpoint only | A newer stable release | Stable builds do not move backward into preview. |
 
 The safe operator sequence for a device currently on Preview 7 is therefore:

@@ -14,11 +14,15 @@ current local truth is:
 - The pre-merge audit baseline was `523ceeb`; protected PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42)
   merged the reviewed source, PR [#43](https://github.com/div197/BOB-Gemini-Free/pull/43)
   reconciled the post-merge documentation, and PR [#44](https://github.com/div197/BOB-Gemini-Free/pull/44)
-  merged the updater durability follow-up into public `main`.
-- The reviewed source-hardening code tip is `cec4c8e`, and the final
-  documentation reconciliation follows it on the preserved
-  `codex/release-readiness-v0.2.0` branch; no runtime source remains only on
-  the branch.
+  merged the first updater durability follow-up into public `main`. Protected
+  PR [#45](https://github.com/div197/BOB-Gemini-Free/pull/45) reconciled the
+  public-main provenance note, and protected PR
+  [#46](https://github.com/div197/BOB-Gemini-Free/pull/46) merged the native
+  Windows metadata replacement path.
+- The reviewed local tree at this refresh is `c2b575a`; its file tree matches
+  public `main` after PR #46, and no runtime source remains only on the
+  preserved `codex/release-readiness-v0.2.0` branch. The exact public merge
+  commit was rechecked separately before this document refresh.
 - The next source package identity is `v0.2.0-preview.2`. The immutable public
   `v0.2.0-preview.1` bridge must not be rebuilt or overwritten, and no Preview 2
   tag or release exists yet.
@@ -35,11 +39,13 @@ current local truth is:
   the preflight is source- and fixture-tested but still needs a real
   `/Applications` installed-bundle run.
 - The final local macOS Preview 2 package was built from clean commit
-  `cec4c8e`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
+  `3140b7a`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
   contained a visible `/Applications` shortcut, and the package was signed
   and verified through the local Keychain-backed Ed25519 release signer. A
-  0600 local evidence receipt was recorded outside the worktree. This is local
-  package evidence, not a publication or clean-device update proof.
+  0600 local evidence receipt was recorded outside the worktree. The later
+  Windows-only updater hardening does not change those macOS bytes, but any
+  new public package must still be rebuilt from its final clean source. This
+  is local package evidence, not a publication or clean-device update proof.
 - The current tip also contains the isolated Studio correctness pass: native
   button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
   surfaces, accessible selector names, a prompt skip link, and synchronized
@@ -146,8 +152,10 @@ The public GitHub state was also checked:
 - the release-source coherence, installer trust-anchor, and session-only
   gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
   #38; that historical snapshot recorded `origin/main` as `f3a0a8c`; the
-  current authoritative `origin/main` is `523ceeb` (PR #41, which contains
-  those earlier merge ancestors);
+  current authoritative `origin/main` at that historical snapshot was
+  `523ceeb` (PR #41, which contains those earlier merge ancestors); the later
+  protected PRs #42–#46 are recorded in the current-local-truth section above
+  and were rechecked before this refresh;
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
