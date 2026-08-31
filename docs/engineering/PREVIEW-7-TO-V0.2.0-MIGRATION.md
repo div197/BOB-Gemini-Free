@@ -24,15 +24,17 @@ Google cookie, or a student-facing private key.
 
 ## Phase 1: Preview 7 to migration bridge
 
-The signed `v0.2.0-preview.1` bridge is already published:
+The signed same-key `v0.2.0-preview.2` macOS preview is now published. The
+immutable `v0.2.0-preview.1` bridge remains available if a device already
+selected that intermediate release:
 
 1. Open BOB Gemini Free.
 2. Select **Help → Check for Updates**.
-3. Confirm that the dialog names `v0.2.0-preview.1` and a macOS universal
-   package.
+3. Confirm that the dialog names `v0.2.0-preview.2` (or the immutable bridge)
+   and a macOS universal package.
 4. Select **Install Update** and allow BOB to restart.
 5. Reopen BOB and confirm that the displayed version is
-   `v0.2.0-preview.1`.
+   `v0.2.0-preview.2` (or the bridge version selected by the updater).
 6. Send one small, ordinary test prompt and confirm that the local gateway
    still starts and the response state reaches a terminal result.
 
@@ -41,12 +43,11 @@ macOS version, architecture, current version, and exact error. Check the
 official release page and use the documented manual DMG recovery path if the
 device is on a read-only or translocated application path.
 
-If a later same-key preview such as `v0.2.0-preview.2` is published before
-stable, the current-source updater may select the highest valid preview instead
-of the older bridge. The legacy Preview 7 updater can also select that highest
-later preview directly when its signed manifest and platform asset are present.
-The exact published version must always be confirmed in the dialog; never
-assume that a source candidate is already downloadable.
+The legacy Preview 7 updater can select the published Preview 2 directly when
+its signed manifest and compatible macOS asset are present. The current-source
+updater selects stable first and otherwise the highest valid preview. The exact
+published version must always be confirmed in the dialog; never assume that a
+source candidate is already downloadable.
 
 ## Phase 2: Bridge to stable
 

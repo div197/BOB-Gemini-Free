@@ -1,13 +1,12 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 7 enables a signed, user-consented preview updater; the
-public app remains ad-hoc signed and not Apple-notarized.
+**Status:** Preview 2 enables a signed, user-consented macOS preview updater;
+the public app remains ad-hoc signed and not Apple-notarized.
 
-The immutable public migration bridge is `v0.2.0-preview.1`. The current
-source defaults its next preview package to `v0.2.0-preview.2`; a local
-Keychain-backed candidate has been signed and verified, but it is not tagged or
-published yet. Stable `v0.2.0` remains gated on clean-device and pilot
-acceptance.
+The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
+Preview 2 (`v0.2.0-preview.2`) is now published from public-main and its five
+public assets were re-downloaded, signature-verified, and byte-reconciled.
+Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
 This document is the operator and product boundary for the native updater. An
 updater can be correct in source and still be unsafe to announce if the
@@ -61,10 +60,10 @@ The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The
 released Preview 7 binary predates the later stable-first source change and
-therefore discovers only newer previews. If preserving an updater path for
-those installations matters, publish a same-key bridge preview first; the
-bridge can then discover a newer stable release. A direct stable install is
-the simpler alternative. Preview 6 installations require a one-time manual
+therefore discovers only newer previews. The same-key Preview 2 is now the
+published bridge candidate for that path; the bridge can then discover a newer
+stable release. A direct stable install is the simpler alternative. Preview 6
+installations require a one-time manual
 migration because the original Preview 6 project signing key was not
 recoverable. Preview 3 also remains a manual migration path because it
 predates the trust key.

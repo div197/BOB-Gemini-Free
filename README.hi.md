@@ -30,9 +30,9 @@
 
 ## वर्तमान स्थिति और प्रमाण सीमा
 
-वर्तमान सार्वजनिक macOS migration preview `v0.2.0-preview.1` है; इस source की
-अगली अप्रकाशित preview candidate `v0.2.0-preview.2` है और stable `v0.2.0` अभी
-प्रकाशित नहीं है। यह दस्तावेज़ सुविधा-सूची है, production या
+वर्तमान सार्वजनिक macOS previews `v0.2.0-preview.1` migration bridge और
+`v0.2.0-preview.2` controlled preview हैं; stable `v0.2.0` अभी प्रकाशित नहीं है।
+यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
 token counts के कुछ हिस्से emulated/estimated हैं। अंग्रेज़ी
@@ -237,8 +237,10 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public `v0.2.0-preview.1` migration bridge में project update key embedded है;
-अगली source candidate `v0.2.0-preview.2` अभी प्रकाशित नहीं है।
+Public `v0.2.0-preview.2` preview में project update key embedded है। यह
+`v0.1.7-preview.7` installations के लिए same-key preview candidate है और
+explicit consent मांगता है; stable `v0.2.0` अभी pilot testing के बाद ही
+प्रकाशित होगी।
 मौजूदा Preview 7 installations पहले इसी bridge को explicit consent के साथ
 अपडेट कर सकती हैं; उसके बाद stable `v0.2.0` उपलब्ध होने पर stable-first updater
 का उपयोग होगा। Stable release अभी pilot testing के बाद प्रकाशित होगी।

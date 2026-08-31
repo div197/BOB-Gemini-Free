@@ -35,6 +35,21 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
+## [0.2.0-preview.2] - 2026-08-31
+
+### Controlled macOS preview publication
+
+- Published a macOS universal prerelease from public-main commit
+  `6d3a0cfc0a7a0bf05a3c136baf96a48f503b45ef` with the current updater key and
+  signed `SHA256SUMS` manifest.
+- Re-downloaded all five GitHub assets, verified the detached signature, and
+  reconciled every downloaded byte with the locally signed publication input.
+- Kept the release explicitly ad-hoc signed, non-notarized, macOS-only, and
+  suitable for controlled preview testing rather than a silent fleet rollout.
+- Existing same-key Preview 7 installations can now discover Preview 2 through
+  their preview-channel updater path; actual replacement and rollback remain
+  clean-device and pilot gates.
+
 ---
 
 ## [Unreleased] — 2026-08-31
@@ -88,8 +103,10 @@ to an earlier implementation. The current contract supersedes those phrases:
   usable protocol output rather than only an HTTP 200, a terminal sentinel, or
   a guest-mode explanation for unavailable image generation.
 
-This work is local preview engineering. It has not published a release, used a
-live provider key, or enabled GitHub Actions.
+The macOS subset of this work is included in the published `v0.2.0-preview.2`
+controlled preview. Stable publication, other-platform acceptance, and live
+provider validation remain separate gates. No live provider key or GitHub
+Actions workflow was used.
 
 ### Release-transition audit
 
@@ -97,8 +114,9 @@ live provider key, or enabled GitHub Actions.
 - Recorded the immutable public `v0.2.0-preview.1` bridge, the released
   `v0.1.7-preview.7` fleet baseline, and the exact Preview 7 → Preview 1/2 →
   stable migration boundaries in [`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-08-31.md).
-- Locked the next source package identity to `v0.2.0-preview.2`; the preview
-  packagers no longer default to rebuilding the already-published Preview 1.
+- Locked and published the controlled source package identity as
+  `v0.2.0-preview.2`; the preview packagers no longer default to rebuilding the
+  already-published Preview 1.
 - Added updater fixtures for `v0.2.0-preview.1 → v0.2.0` stable-first
   migration, `v0.2.0-preview.1 → v0.2.0-preview.2` continuation, and legacy
   Preview 7 selection of the highest later preview.
@@ -151,9 +169,9 @@ live provider key, or enabled GitHub Actions.
 - Browser fallback, Wails startup, nil embedded clients, and updater plan paths
   now report errors explicitly instead of logging or accepting false success.
 
-These changes are local and tested on the development host; clean-device,
-published-asset, live-provider, and signed/notarized platform acceptance remain
-release gates.
+These changes are tested on the development host and the macOS Preview 2
+assets are publicly reconciled; clean-device, live-provider, and
+signed/notarized platform acceptance remain release gates.
 
 ## [0.2.0-preview.1] - 2026-08-29
 

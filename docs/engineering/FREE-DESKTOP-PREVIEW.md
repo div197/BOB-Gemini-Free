@@ -1,7 +1,8 @@
 # Free Native Desktop Beta
 
-**Status:** branded public experimental migration bridge published as
-`v0.2.0-preview.1`; `v0.1.7-preview.7` remains the existing fleet baseline.
+**Status:** branded public macOS preview `v0.2.0-preview.2` published as the
+current controlled candidate; `v0.2.0-preview.1` remains the immutable
+migration bridge and `v0.1.7-preview.7` remains the existing fleet baseline.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -44,10 +45,11 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 ## Public preview releases
 
-The current [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
-contains the same universal macOS package shape and current-key signed
-manifest. Existing Preview 7 users should use this release first when they
-want updater-based migration to a future stable release.
+The current [v0.2.0-preview.2 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2)
+contains the universal macOS package shape and current-key signed manifest.
+Existing Preview 7 users can discover it directly through their preview-only
+lookup. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
+remains available if a device has already selected that intermediate step.
 
 The manually published [v0.1.7-preview.7 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
 contains:
@@ -66,9 +68,9 @@ The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-Preview 7 carries the branded package refresh, signed preview updater, native
-window/browser refinements, language coverage, and the Web Studio generation
-lifecycle correction: `STOP` returns to
+The current Preview 2 package carries the branded package refresh, signed
+preview updater, native window/browser refinements, language coverage, and the
+Web Studio generation lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
 stream, while incomplete streams are no longer silently treated as complete.
 It also bounds the GitHub preview listing request and explains the
@@ -82,9 +84,10 @@ From macOS:
 make desktop-preview-mac
 ```
 
-In the current source this command defaults to a new `v0.2.0-preview.2`
-candidate. The signed `v0.2.0-preview.1` migration bridge is immutable and
-already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
+In the current source this command defaults to the published
+`v0.2.0-preview.2` package identity. The signed `v0.2.0-preview.1` migration
+bridge is immutable and already public. Set `BOB_RELEASE_VERSION` explicitly
+for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public
 preview and is not rebuilt in place.
 

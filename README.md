@@ -39,7 +39,7 @@ is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineerin
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
 | **Optional provider route** | Web Studio can explicitly use one student-owned Gemini Developer API key for `/v1/chat/completions` and native `/v1beta` generation; this is a separate Google project/quota path, not a quota bypass or key pool |
-| **Native updater status** | The signed `v0.2.0-preview.1` migration bridge is public for existing Preview 7 Macs; the current source advances the next candidate to `v0.2.0-preview.2` and adds explicit Preview → Stable migration for current previews. Stable `v0.2.0` remains gated on pilot acceptance. Older builds with the unrecoverable key still require one manual migration |
+| **Native updater status** | The signed `v0.2.0-preview.1` migration bridge and controlled macOS `v0.2.0-preview.2` are public for existing Preview 7 Macs; current previews add explicit Preview → Stable migration. Stable `v0.2.0` remains gated on pilot acceptance. Older builds with the unrecoverable key still require one manual migration |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md), [`LOCAL-BENCHMARK-2026-08-25.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-25.md), and the current [`LOCAL-BENCHMARK-2026-08-29.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-29.md); they are not Google latency or rate-limit measurements |
@@ -188,7 +188,7 @@ adapter route it uses before classroom or production adoption:
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The latest stable GitHub release contains CLI binaries. The public [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) is the current macOS universal preview for existing Preview 7 installations and contains the corrected branded package, signed project update manifest, native maximize behavior, default-browser link routing, expanded English/Hindi studio UI, bounded provider retries, and visible failure handling. The current source contains additional Studio SSE/PDF cancellation fixes and defaults the next candidate to `v0.2.0-preview.2`; that candidate is not published yet. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; see [`RELEASE-READINESS-v0.2.0.md`](docs/engineering/RELEASE-READINESS-v0.2.0.md) and [`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-08-31.md).
+* The latest stable GitHub release contains CLI binaries. The public [v0.2.0-preview.2 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2) is the current universal preview and is also the same-key update candidate for existing Preview 7 installations. It contains the corrected branded package, signed project update manifest, native maximize behavior, default-browser link routing, expanded English/Hindi studio UI, bounded provider retries, and visible failure handling. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) remains available. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; see [`RELEASE-READINESS-v0.2.0.md`](docs/engineering/RELEASE-READINESS-v0.2.0.md), [`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-08-31.md), and the [`Preview 2 publication record`](docs/engineering/PREVIEW-2-PUBLICATION-2026-08-31.md).
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
@@ -202,7 +202,7 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   replace the app. Already-published binaries keep the behavior compiled into
   that release. The already-published Preview 7 binary predates stable-first
   discovery, so it can
-  first install the published same-key bridge preview before updater-based
+  first install the published same-key Preview 2 bridge before updater-based
   migration to stable, or use one manual stable install. Preview 3 still needs one manual migration because
   it predates the embedded trust key. Preview 6 also needs one manual migration
   to Preview 7 because the original Preview 6 signing key was not recoverable.
@@ -360,8 +360,9 @@ manifest and the matching Ed25519 public key is configured as
 
 This CLI environment-key path is not the native desktop trust boundary.
 Production native builds must embed their public key at build time. The public
-`v0.2.0-preview.1` bridge carries that key; it still requires explicit user
-consent and does not silently replace the app. See
+`v0.2.0-preview.2` carries that key; it still requires explicit user consent
+and does not silently replace the app. Existing Preview 7 builds can discover
+this same-key preview through their preview-only path. See
 [`docs/engineering/DESKTOP-UPDATE-OPERATIONS.md`](docs/engineering/DESKTOP-UPDATE-OPERATIONS.md).
 
 ---
