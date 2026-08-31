@@ -5248,12 +5248,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <span id="label-natural-speech">🔊 Natural Speech Engine</span>
         <span class="val-badge" id="tts-speed-badge">1.0x</span>
       </label>
-      <select id="tts-voice-select" aria-label="Speech voice" onchange="localStorage.setItem('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
+      <select id="tts-voice-select" aria-label="Speech voice" onchange="setLocalPreference('bob_preferred_tts_voice', this.value); showToast('Voice updated!', '🔊');" style="margin-bottom:8px;">
         <option value="auto">🌟 Auto Best Natural HD Voice</option>
       </select>
       <div style="display:flex; align-items:center; gap:8px;">
         <span id="label-tts-speed" style="font-size:0.65rem; color:var(--text-muted); min-width:40px;">Speed:</span>
-        <input type="range" id="tts-speed-range" aria-label="Speech speed" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; localStorage.setItem('bob_tts_rate', this.value);" style="flex:1;">
+        <input type="range" id="tts-speed-range" aria-label="Speech speed" min="0.75" max="1.5" step="0.05" value="1.0" oninput="document.getElementById('tts-speed-badge').innerText = this.value + 'x'; setLocalPreference('bob_tts_rate', this.value);" style="flex:1;">
       </div>
     </div>
 
@@ -5550,6 +5550,38 @@ const MAX_HISTORY_ATTACHMENT_TEXT_CHARS = 200000;
 const MAX_HISTORY_ATTACHMENTS = 12;
 const MAX_HISTORY_ERROR_CHARS = 1200;
 const MAX_HISTORY_CONTENT_CHARS = 300000;
+
+// Browser storage is a convenience, not a prerequisite for using the
+// gateway. Private browsing modes and embedded WebViews can reject storage
+// access altogether, so preference reads/writes must fail closed and keep the
+// current in-memory/default behavior intact.
+function getLocalPreference(key, fallback = null) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value;
+  } catch (_) {
+    return fallback;
+  }
+}
+
+function setLocalPreference(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
+function removeLocalPreference(key) {
+  try {
+    localStorage.removeItem(key);
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 const SAFE_ATTACHMENT_IMAGE_MIME_TYPES = new Set([
   'image/png', 'image/jpeg', 'image/gif', 'image/webp', 'image/bmp', 'image/x-icon', 'image/avif'
 ]);
@@ -6009,13 +6041,13 @@ const INDIC_LANGS = {
   'pa-t-i0-und': { name: 'ਪੰਜਾਬੀ', label: 'Punjabi', symbol: 'ਪੰ' }
 };
 
-let currentIndicLang = localStorage.getItem("bob_gemini_indic_lang") || "hi-t-i0-und";
+let currentIndicLang = getLocalPreference("bob_gemini_indic_lang", "hi-t-i0-und");
 let lastTransliteration = null;
 
 function setIndicScript(langCode) {
   if (!INDIC_LANGS[langCode]) return;
   currentIndicLang = langCode;
-  localStorage.setItem("bob_gemini_indic_lang", currentIndicLang);
+  setLocalPreference("bob_gemini_indic_lang", currentIndicLang);
   const btn = document.getElementById("btn-translit");
   if (btn) {
     btn.innerText = INDIC_LANGS[langCode].symbol;
@@ -6058,7 +6090,7 @@ async function transliterateWord(word) {
 
 function toggleTransliteration() {
   isTransliterationActive = !isTransliterationActive;
-  localStorage.setItem(TRANSLIT_KEY, isTransliterationActive ? "true" : "false");
+  setLocalPreference(TRANSLIT_KEY, isTransliterationActive ? "true" : "false");
   
   const btn = document.getElementById("btn-translit");
   if (btn) {
@@ -6353,7 +6385,7 @@ function applyLanguageUI(dict) {
 
 function setLanguage(lang, isInitial = false) {
   currentLang = I18N[lang] ? lang : "en";
-  localStorage.setItem(LANG_KEY, currentLang);
+  setLocalPreference(LANG_KEY, currentLang);
   document.documentElement.setAttribute("data-lang", currentLang);
   document.documentElement.lang = currentLang === "hi" ? "hi" : "en";
 
@@ -6379,12 +6411,12 @@ function setLanguage(lang, isInitial = false) {
 function initLanguage() {
   const urlParams = new URLSearchParams(window.location.search);
   const langParam = urlParams.get('lang');
-  const saved = langParam || localStorage.getItem(LANG_KEY) || "en";
+  const saved = langParam || getLocalPreference(LANG_KEY, "en") || "en";
   setLanguage(saved, true);
 }
 
 function initTransliteration() {
-  const saved = localStorage.getItem(TRANSLIT_KEY) === "true";
+  const saved = getLocalPreference(TRANSLIT_KEY, "") === "true";
   isTransliterationActive = saved;
   const btn = document.getElementById("btn-translit");
   if (btn) {
@@ -6501,15 +6533,15 @@ function isHostedStudio() {
 }
 
 function hasExplicitGatewayEndpoint() {
-  const saved = (localStorage.getItem(ENDPOINT_KEY) || '').trim();
+  const saved = (getLocalPreference(ENDPOINT_KEY, '') || '').trim();
   if (!saved) return false;
   // Older builds could persist the default loopback URL after an automatic
   // probe. Treat that legacy value as non-explicit until the user connects.
-  return localStorage.getItem(EXPLICIT_ENDPOINT_KEY) === 'true' || saved !== DEFAULT_GATEWAY_URL;
+  return getLocalPreference(EXPLICIT_ENDPOINT_KEY, '') === 'true' || saved !== DEFAULT_GATEWAY_URL;
 }
 
 function getGatewayBaseUrl() {
-  const custom = localStorage.getItem(ENDPOINT_KEY);
+  const custom = getLocalPreference(ENDPOINT_KEY, '');
   if (custom && custom.trim() !== "") {
     return custom.trim().replace(/\/+$/, '');
   }
@@ -6638,11 +6670,11 @@ function saveGatewayEndpoint() {
   const input = document.getElementById("gateway-url-input");
   const val = input ? input.value.trim() : "";
   if (!val || val === window.location.origin) {
-    localStorage.removeItem(ENDPOINT_KEY);
-    localStorage.removeItem(EXPLICIT_ENDPOINT_KEY);
+    removeLocalPreference(ENDPOINT_KEY);
+    removeLocalPreference(EXPLICIT_ENDPOINT_KEY);
   } else {
-    localStorage.setItem(ENDPOINT_KEY, val.replace(/\/+$/, ''));
-    localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
+    setLocalPreference(ENDPOINT_KEY, val.replace(/\/+$/, ''));
+    setLocalPreference(EXPLICIT_ENDPOINT_KEY, 'true');
   }
   showToast("Gateway endpoint updated: " + getGatewayBaseUrl(), "⚡");
   refreshTelemetry();
@@ -6652,8 +6684,8 @@ function saveGatewayEndpoint() {
 }
 
 function resetGatewayEndpoint() {
-  localStorage.removeItem(ENDPOINT_KEY);
-  localStorage.removeItem(EXPLICIT_ENDPOINT_KEY);
+  removeLocalPreference(ENDPOINT_KEY);
+  removeLocalPreference(EXPLICIT_ENDPOINT_KEY);
   const input = document.getElementById("gateway-url-input");
   if (input) input.value = getGatewayBaseUrl();
   showToast("Reset to default: " + getGatewayBaseUrl(), "🔄");
@@ -6689,7 +6721,7 @@ async function pingGatewayManual() {
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
       if (isHostedStudio()) {
-        localStorage.setItem(EXPLICIT_ENDPOINT_KEY, 'true');
+        setLocalPreference(EXPLICIT_ENDPOINT_KEY, 'true');
       }
       const data = await res.json().catch(() => ({ status: "ok", version: "__BOB_DESKTOP_VERSION__" }));
       if (pill) {
@@ -6796,8 +6828,8 @@ function closeAllSidebars() {
 }
 
 function initPanels() {
-  const leftOpen = localStorage.getItem(PANEL_LEFT_KEY) === "true";
-  const rightOpen = localStorage.getItem(PANEL_RIGHT_KEY) === "true";
+  const leftOpen = getLocalPreference(PANEL_LEFT_KEY, "") === "true";
+  const rightOpen = getLocalPreference(PANEL_RIGHT_KEY, "") === "true";
   setSidebarState('left', leftOpen);
   setSidebarState('right', rightOpen);
 }
@@ -6817,11 +6849,11 @@ function setSidebarState(side, isOpen) {
   if (isOpen) {
     panel.classList.remove('collapsed');
     if (btn) btn.classList.add('active');
-    localStorage.setItem(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "true");
+    setLocalPreference(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "true");
   } else {
     panel.classList.add('collapsed');
     if (btn) btn.classList.remove('active');
-    localStorage.setItem(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "false");
+    setLocalPreference(side === 'left' ? PANEL_LEFT_KEY : PANEL_RIGHT_KEY, "false");
   }
 
   panel.setAttribute("aria-hidden", isOpen ? "false" : "true");
@@ -6849,7 +6881,7 @@ const CUSTOM_THEME_PRESETS = {
 function initTheme() {
   const urlParams = new URLSearchParams(window.location.search);
   const themeParam = urlParams.get('theme');
-  const saved = themeParam || localStorage.getItem(THEME_KEY) || "bob-builder";
+  const saved = themeParam || getLocalPreference(THEME_KEY, "bob-builder") || "bob-builder";
   changeTheme(saved);
   const sel = document.getElementById("theme-selector");
   if (sel) sel.value = saved;
@@ -6865,7 +6897,7 @@ function handleThemeSelectChange(themeName) {
 
 function changeTheme(themeName) {
   document.documentElement.setAttribute("data-theme", themeName);
-  localStorage.setItem(THEME_KEY, themeName);
+  setLocalPreference(THEME_KEY, themeName);
   const sel = document.getElementById("theme-selector");
   if (sel) sel.value = themeName;
 
@@ -6879,7 +6911,7 @@ function changeTheme(themeName) {
 function applyCustomThemeProperties() {
   let custom = null;
   try {
-    custom = JSON.parse(localStorage.getItem(CUSTOM_THEME_KEY));
+    custom = JSON.parse(getLocalPreference(CUSTOM_THEME_KEY, null));
   } catch(e) {}
   if (!custom) custom = CUSTOM_THEME_PRESETS.cyberpunk;
 
@@ -6910,7 +6942,7 @@ function removeCustomThemeProperties() {
 function openCustomThemeModal() {
   let custom = null;
   try {
-    custom = JSON.parse(localStorage.getItem(CUSTOM_THEME_KEY));
+    custom = JSON.parse(getLocalPreference(CUSTOM_THEME_KEY, null));
   } catch(e) {}
   if (!custom) custom = CUSTOM_THEME_PRESETS.cyberpunk;
 
@@ -6974,7 +7006,7 @@ function saveCustomThemeAndApply() {
     textMain: document.getElementById("ct-text-main") ? document.getElementById("ct-text-main").value : "#00f0ff"
   };
 
-  localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(custom));
+  setLocalPreference(CUSTOM_THEME_KEY, JSON.stringify(custom));
   changeTheme('custom');
   closeCustomThemeModal();
   showToast("Custom Theme Applied! 🎨", "✨");
@@ -9127,7 +9159,7 @@ function openInstructionsModal() {
   const modal = document.getElementById('instructions-modal');
   if (!modal) return;
   try {
-    const raw = localStorage.getItem('bob_custom_instructions');
+    const raw = getLocalPreference('bob_custom_instructions', null);
     if (raw) {
       const parsed = JSON.parse(raw);
       document.getElementById('instr-user-persona').value = parsed.persona || '';
@@ -9145,9 +9177,7 @@ function closeInstructionsModal() {
 function saveCustomInstructions() {
   const persona = document.getElementById('instr-user-persona').value.trim();
   const style = document.getElementById('instr-response-style').value.trim();
-  try {
-    localStorage.setItem('bob_custom_instructions', JSON.stringify({ persona, style }));
-  } catch(e) {}
+  setLocalPreference('bob_custom_instructions', JSON.stringify({ persona, style }));
   closeInstructionsModal();
   showToast('Custom instructions saved!', '🧠');
 }
@@ -9155,7 +9185,7 @@ function saveCustomInstructions() {
 function getEffectiveSystemPrompt() {
   let basePrompt = document.getElementById('system-prompt').value.trim();
   try {
-    const raw = localStorage.getItem('bob_custom_instructions');
+    const raw = getLocalPreference('bob_custom_instructions', null);
     if (raw) {
       const parsed = JSON.parse(raw);
       let parts = [];
@@ -10344,7 +10374,7 @@ function initTtsVoices() {
   const voices = window.speechSynthesis.getVoices() || [];
   if (voices.length === 0) return;
 
-  const currentVal = localStorage.getItem('bob_preferred_tts_voice') || 'auto';
+  const currentVal = getLocalPreference('bob_preferred_tts_voice', 'auto') || 'auto';
   const ui = (I18N[currentLang] || I18N.en).ui || I18N.en.ui;
   select.innerHTML = `<option value="auto">${ui.ttsAuto}</option>`;
 
@@ -10385,7 +10415,7 @@ function initTtsVoices() {
     select.appendChild(grpOther);
   }
 
-  const rate = localStorage.getItem('bob_tts_rate');
+  const rate = getLocalPreference('bob_tts_rate', null);
   if (rate) {
     const speedRange = document.getElementById('tts-speed-range');
     const speedBadge = document.getElementById('tts-speed-badge');
@@ -10405,7 +10435,7 @@ function getBestNaturalVoice(isHindi) {
   const voices = window.speechSynthesis.getVoices() || [];
   if (voices.length === 0) return null;
 
-  const pref = localStorage.getItem('bob_preferred_tts_voice');
+  const pref = getLocalPreference('bob_preferred_tts_voice', '');
   if (pref && pref !== 'auto') {
     const userVoice = voices.find(v => v.name === pref);
     if (userVoice) return userVoice;
@@ -10470,7 +10500,7 @@ function cycleAudioSpeed() {
   let nextSpeed = speeds[nextIdx];
 
   currentAudioState.rate = nextSpeed;
-  localStorage.setItem('bob_tts_rate', nextSpeed);
+  setLocalPreference('bob_tts_rate', nextSpeed);
 
   const speedBtn = document.getElementById('audio-speed-btn');
   if (speedBtn) speedBtn.innerText = nextSpeed + 'x';
@@ -10534,7 +10564,7 @@ function toggleReadAloud(btn) {
   const naturalVoice = getBestNaturalVoice(isHindi);
   const voiceDisplayName = naturalVoice ? (naturalVoice.name.replace(/^Google\s+/i, 'Google ').replace(/\s*\([^)]*\)/g, '')) : 'Natural Voice';
 
-  const rate = parseFloat(localStorage.getItem('bob_tts_rate') || '1.0');
+  const rate = parseFloat(getLocalPreference('bob_tts_rate', '1.0') || '1.0');
   const sentences = cleanText.match(/[^.!?\n]+[.!?\n]+/g) || [cleanText];
 
   currentAudioState = {
@@ -10938,13 +10968,13 @@ function printConversation() {
 }
 
 /* Subtle, Non-Breaking Reading Zoom Engine */
-let currentReadingZoom = parseFloat(localStorage.getItem('bob_reading_zoom')) || 1.0;
+let currentReadingZoom = parseFloat(getLocalPreference('bob_reading_zoom', '1.0')) || 1.0;
 
 function setReadingZoom(level) {
   currentReadingZoom = Math.min(Math.max(level, 0.75), 1.4);
   currentReadingZoom = Math.round(currentReadingZoom * 100) / 100;
   document.documentElement.style.setProperty('--reading-zoom', currentReadingZoom);
-  localStorage.setItem('bob_reading_zoom', currentReadingZoom.toString());
+  setLocalPreference('bob_reading_zoom', currentReadingZoom.toString());
   const label = document.getElementById('zoom-level-label');
   if (label) label.innerText = Math.round(currentReadingZoom * 100) + '%';
 }

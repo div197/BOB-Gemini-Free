@@ -436,6 +436,50 @@ func TestHistoryStorageFailuresAreVisibleAndRecoverable(t *testing.T) {
 	}
 }
 
+func TestPreferencesFailClosedWhenBrowserStorageIsUnavailable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function getLocalPreference(key, fallback = null)`,
+		`function setLocalPreference(key, value)`,
+		`function removeLocalPreference(key)`,
+		`return fallback;`,
+		`return false;`,
+		`setLocalPreference('bob_preferred_tts_voice', this.value)`,
+		`setLocalPreference('bob_tts_rate', this.value)`,
+		`getLocalPreference(ENDPOINT_KEY, '')`,
+		`getLocalPreference(PANEL_LEFT_KEY, "")`,
+		`setLocalPreference(THEME_KEY, themeName)`,
+		`getLocalPreference(CUSTOM_THEME_KEY, null)`,
+		`setLocalPreference('bob_custom_instructions', JSON.stringify({ persona, style }))`,
+		`getLocalPreference('bob_reading_zoom', '1.0')`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing fail-closed preference marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`localStorage.setItem('bob_preferred_tts_voice'`,
+		`localStorage.setItem('bob_tts_rate'`,
+		`localStorage.getItem("bob_gemini_indic_lang")`,
+		`localStorage.getItem(LANG_KEY)`,
+		`localStorage.setItem(LANG_KEY`,
+		`localStorage.getItem(THEME_KEY)`,
+		`localStorage.setItem(THEME_KEY`,
+		`localStorage.getItem(CUSTOM_THEME_KEY)`,
+		`localStorage.setItem(CUSTOM_THEME_KEY`,
+		`localStorage.getItem('bob_custom_instructions')`,
+		`localStorage.setItem('bob_custom_instructions'`,
+		`localStorage.getItem('bob_preferred_tts_voice')`,
+		`localStorage.getItem('bob_tts_rate')`,
+		`localStorage.getItem('bob_reading_zoom')`,
+		`localStorage.setItem('bob_reading_zoom'`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("preference storage bypasses the guarded helper: %q", forbidden)
+		}
+	}
+}
+
 func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
