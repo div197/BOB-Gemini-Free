@@ -239,8 +239,8 @@ installed-bundle acceptance before publication.
 
 ## Preview 5 publication and one-host migration — 2026-08-31
 
-The current public macOS release is the immutable `v0.2.0-preview.5`
-prerelease, published manually without GitHub Actions from public `main`
+At that historical boundary, the public macOS release was the immutable
+`v0.2.0-preview.5` prerelease, published manually without GitHub Actions from public `main`
 target `c28d787`. The signed package was built from clean source receipt
 `88f2881`, whose source tree matches that target. Its five public assets were
 downloaded into a fresh directory, verified with the checked-in Ed25519 public
