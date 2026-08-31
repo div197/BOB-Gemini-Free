@@ -12025,6 +12025,11 @@ async function sendMessage() {
     let lastRenderTime = 0;
     let fallbackTimer = 0;
     let streamStartTime = performance.now();
+    let sseEventData = [];
+    let sseEventName = "";
+    let sseUnknownFieldCount = 0;
+    let sseUnknownEventCount = 0;
+    const MAX_SSE_DIAGNOSTIC_COUNT = 100;
 
     function doRender() {
       if (!streamRenderActive) return;
@@ -12082,52 +12087,91 @@ async function sendMessage() {
       }
     }
 
+    function resetSSEEvent() {
+      sseEventData = [];
+      sseEventName = "";
+    }
+
+    function consumeSSEEvent() {
+      if (sseEventData.length === 0) {
+        resetSSEEvent();
+        return false;
+      }
+      const streamData = sseEventData.join("\n");
+      if (sseEventName && sseEventName !== "message") {
+        sseUnknownEventCount = Math.min(sseUnknownEventCount + 1, MAX_SSE_DIAGNOSTIC_COUNT);
+      }
+      resetSSEEvent();
+      if (streamData === "[DONE]") { streamDone = true; return true; }
+      if (!streamData) return false;
+      try {
+        const data = JSON.parse(streamData);
+        if (data && data.error && data.error.message) {
+          streamProtocolError = String(data.error.message).slice(0, MAX_HISTORY_ERROR_CHARS);
+          streamDone = true;
+          return true;
+        }
+        const choice = data.choices && data.choices[0];
+        if (!choice) return false;
+        // The gateway reports provider failures inside SSE after headers
+        // have already been sent. Turn that terminal frame into a real UI
+        // error instead of storing it as a successful assistant message.
+        const finishReason = String(choice.finish_reason || "").toLowerCase();
+        if (finishReason === "error") {
+          const errorText = (choice.delta && choice.delta.content) ||
+            (data.error && data.error.message) || "Upstream request failed";
+          streamProtocolError = errorText;
+          streamDone = true;
+          return true;
+        }
+        // Detect finish_reason stop as secondary completion signal
+        if (finishReason === "stop") { streamDone = true; }
+        const delta = choice.delta;
+        if (delta) {
+          if (delta.reasoning_content) {
+            thoughtFullText += delta.reasoning_content;
+            scheduleSmoothRenderTracked();
+          }
+          if (delta.content) {
+            asstFullText += delta.content;
+            scheduleSmoothRenderTracked();
+          }
+        }
+      } catch(e) {
+        streamProtocolError = "Stream contained an invalid SSE event";
+        streamDone = true;
+        return true;
+      }
+      return streamDone;
+    }
+
     function processSSELines(buffer) {
       const lines = buffer.split("\n");
       const remaining = lines.pop(); // Incomplete tail
-      for (const line of lines) {
-        const trimmed = line.trim();
-        const streamData = trimmed.startsWith("data:") ? trimmed.slice(5).trimStart() : null;
-        if (streamData === "[DONE]") { streamDone = true; break; }
-        if (streamData) {
-	          try {
-	            const data = JSON.parse(streamData);
-	            if (data && data.error && data.error.message) {
-	              streamProtocolError = String(data.error.message).slice(0, MAX_HISTORY_ERROR_CHARS);
-	              streamDone = true;
-	              break;
-	            }
-	            const choice = data.choices && data.choices[0];
-            if (!choice) continue;
-            // The gateway reports provider failures inside SSE after headers
-            // have already been sent. Turn that terminal frame into a real UI
-            // error instead of storing it as a successful assistant message.
-            const finishReason = String(choice.finish_reason || "").toLowerCase();
-            if (finishReason === "error") {
-              const errorText = (choice.delta && choice.delta.content) ||
-                (data.error && data.error.message) || "Upstream request failed";
-              streamProtocolError = errorText;
-              streamDone = true;
-              break;
-            }
-            // Detect finish_reason stop as secondary completion signal
-            if (finishReason === "stop") { streamDone = true; }
-            const delta = choice.delta;
-            if (delta) {
-              if (delta.reasoning_content) {
-                thoughtFullText += delta.reasoning_content;
-                scheduleSmoothRenderTracked();
-              }
-              if (delta.content) {
-                asstFullText += delta.content;
-                scheduleSmoothRenderTracked();
-              }
-            }
-          } catch(e) {
-            streamProtocolError = "Stream contained an invalid SSE event";
-            streamDone = true;
+      for (const rawLine of lines) {
+        const line = rawLine.endsWith("\r") ? rawLine.slice(0, -1) : rawLine;
+        if (line === "") {
+          if (consumeSSEEvent()) break;
+          continue;
+        }
+        if (line.startsWith(":")) continue;
+        const separator = line.indexOf(":");
+        const fieldName = separator >= 0 ? line.slice(0, separator) : line;
+        let fieldValue = separator >= 0 ? line.slice(separator + 1) : "";
+        if (fieldValue.startsWith(" ")) fieldValue = fieldValue.slice(1);
+        switch (fieldName) {
+          case "data":
+            sseEventData.push(fieldValue);
             break;
-          }
+          case "event":
+            sseEventName = fieldValue;
+            break;
+          case "id":
+          case "retry":
+            break;
+          default:
+            sseUnknownFieldCount = Math.min(sseUnknownFieldCount + 1, MAX_SSE_DIAGNOSTIC_COUNT);
+            break;
         }
       }
       return remaining;
@@ -12162,7 +12206,10 @@ async function sendMessage() {
     try { reader.releaseLock(); } catch (e) {}
     // Flush any remaining partial buffer (safety net for truncated streams)
     if (partial.trim()) {
-      processSSELines(partial + "\n");
+      processSSELines(partial + "\n\n");
+    }
+    if (sseUnknownFieldCount || sseUnknownEventCount) {
+      console.debug(`Ignored ${sseUnknownFieldCount} unknown SSE fields and ${sseUnknownEventCount} non-message events`);
     }
 
     if (streamReadError) {

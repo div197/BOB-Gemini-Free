@@ -138,21 +138,48 @@ func TestStudioSSEParserAcceptsStandardDataFieldForms(t *testing.T) {
 	}
 	source := html[start : start+end]
 	for _, marker := range []string{
-		`const streamData = trimmed.startsWith("data:") ? trimmed.slice(5).trimStart() : null;`,
-		`if (streamData === "[DONE]") { streamDone = true; break; }`,
+		`function consumeSSEEvent()`,
+		`sseEventData.join("\n")`,
+		`const streamData = sseEventData.join("\n");`,
+		`const MAX_SSE_DIAGNOSTIC_COUNT = 100;`,
+		`Math.min(sseUnknownEventCount + 1, MAX_SSE_DIAGNOSTIC_COUNT)`,
+		`if (streamData === "[DONE]") { streamDone = true; return true; }`,
 		`const data = JSON.parse(streamData);`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("Studio SSE parser is missing standard data-field marker %q", marker)
+		}
+	}
+	for _, marker := range []string{
+		`const separator = line.indexOf(":");`,
+		`case "data":`,
+		`case "event":`,
+		`Math.min(sseUnknownFieldCount + 1, MAX_SSE_DIAGNOSTIC_COUNT)`,
 	} {
 		if !strings.Contains(source, marker) {
 			t.Fatalf("Studio SSE parser is missing standard data-field marker %q", marker)
 		}
 	}
 	for _, forbidden := range []string{
-		`trimmed.startsWith("data: ")`,
-		`trimmed === "data: [DONE]"`,
+		`const trimmed = line.trim();`,
+		`trimmed.startsWith("data:")`,
+		`JSON.parse(fieldValue)`,
 	} {
 		if strings.Contains(source, forbidden) {
 			t.Fatalf("Studio SSE parser still requires non-standard spacing: %q", forbidden)
 		}
+	}
+}
+
+func TestStudioSSEParserFlushesAnUnterminatedFinalEvent(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "// Flush any remaining partial buffer")
+	if start < 0 {
+		t.Fatal("Studio stream flush boundary is missing")
+	}
+	source := html[start:]
+	if !strings.Contains(source, `processSSELines(partial + "\n\n");`) {
+		t.Fatal("Studio stream flush must terminate the final SSE event")
 	}
 }
 
