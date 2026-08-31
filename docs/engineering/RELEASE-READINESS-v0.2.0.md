@@ -11,8 +11,10 @@
 The historical publication entries below are retained as provenance. The
 current local truth is:
 
-- The pre-merge audit baseline was `523ceeb`; PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42)
-  has now merged the reviewed source into public `main` at `ba1b562`.
+- The pre-merge audit baseline was `523ceeb`; protected PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42)
+  merged the reviewed source, PR [#43](https://github.com/div197/BOB-Gemini-Free/pull/43)
+  reconciled the post-merge documentation, and PR [#44](https://github.com/div197/BOB-Gemini-Free/pull/44)
+  merged the updater durability follow-up into public `main`.
 - The reviewed source-hardening code tip is `cec4c8e`, and the final
   documentation reconciliation follows it on the preserved
   `codex/release-readiness-v0.2.0` branch; no runtime source remains only on
