@@ -3,18 +3,19 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `7ccda24`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `9cd999e`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces five real failure classes: coalesced
+This continuation materially reduces six real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
 read-only or translocated location, and stale attachment parsing/OCR work after
 the user removes a file, plus initialization failures when browser preference
-storage is denied. The source and deterministic test gates are green.
+storage is denied, plus execution risk from mutable root CDN dependencies. The
+source and deterministic test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -206,6 +207,16 @@ privacy-restricted browser or embedded WebView can therefore fall back to
 defaults or current in-memory state without aborting startup or a user action.
 Chat-history persistence keeps its separate visible recovery path, and no
 claim is made that browser quota or long-session performance is uniform.
+
+### 12. Root CDN integrity pins — `9cd999e`
+
+All external scripts and stylesheets in the document head now carry exact
+SHA-384 Subresource Integrity pins and anonymous cross-origin loading. The
+floating Tesseract.js major URL was replaced with the verified `5.1.1` asset.
+This protects the root page from an unexpected change at a pinned CDN URL; it
+does not make the app offline. Dynamic artifact `srcdoc` libraries, PDF worker
+and language assets, Prism autoloader language files, and network availability
+remain separately open and browser-dependent.
 
 ## Verification completed
 
