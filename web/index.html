@@ -5982,7 +5982,7 @@ const I18N = {
       gatewayRouteAccessStateLabel: "BOB gateway door",
       gatewayRouteAccessReady: "Access key entered for this page",
       gatewayRouteAccessBlocked: "Access key withheld — use HTTPS for a non-local endpoint",
-      gatewayRouteAccessRequired: "Required by this endpoint",
+      gatewayRouteAccessRequired: "This endpoint requires the separate BOB Gateway Access Key",
       gatewayRouteAccessMissing: "Not entered — only needed if this endpoint is protected",
       gatewayRouteAccessOpen: "Not required by this endpoint",
       gatewayRouteAccessUnknown: "Only known after connection check",
@@ -6197,7 +6197,7 @@ const I18N = {
       gatewayRouteAccessStateLabel: "BOB gateway door",
       gatewayRouteAccessReady: "इस page के लिए access key दर्ज है",
       gatewayRouteAccessBlocked: "Access key नहीं भेजी जाएगी — non-local endpoint के लिए HTTPS उपयोग करें",
-      gatewayRouteAccessRequired: "इस endpoint को आवश्यक है",
+      gatewayRouteAccessRequired: "इस endpoint के लिए अलग BOB Gateway Access Key आवश्यक है",
       gatewayRouteAccessMissing: "दर्ज नहीं — केवल protected endpoint पर चाहिए",
       gatewayRouteAccessOpen: "इस endpoint को आवश्यक नहीं",
       gatewayRouteAccessUnknown: "connection check के बाद पता चलेगा",
@@ -6960,6 +6960,17 @@ function gatewayAccessKeyTransportIssue() {
   return ui.gatewayRouteAccessBlocked || "Access key withheld — use HTTPS for a non-local endpoint.";
 }
 
+function gatewayAccessSelectionIssue() {
+  const transportIssue = gatewayAccessKeyTransportIssue();
+  if (transportIssue) return transportIssue;
+  if (gatewayAuthRequired === true && !gatewayApiKey) {
+    const dict = I18N[currentLang] || I18N.en;
+    const ui = dict.ui || I18N.en.ui;
+    return ui.gatewayRouteAccessRequired || "This gateway requires its separate BOB Gateway Access Key.";
+  }
+  return "";
+}
+
 function gatewayRequestHeaders() {
   const headers = {};
   if (gatewayApiKey && isSecureGatewayForAccessKey(getGatewayBaseUrl())) {
@@ -6978,7 +6989,7 @@ function updateGatewayCredentialStatus() {
   const providerKeyPresent = Boolean(geminiProviderKey);
   const endpointSafe = !providerRoute || canSendGeminiProviderKey();
   const modelIssue = providerRoute ? developerRouteModelIssue() : "";
-  const accessIssue = gatewayAccessKeyTransportIssue();
+  const accessIssue = gatewayAccessSelectionIssue();
   const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;
 
   status.dataset.route = providerRoute ? "provider" : "web";
@@ -7141,6 +7152,15 @@ function toggleGeminiProviderRoute(enabled) {
     showToast("Paste your own Google AI Studio key first", "🔑");
     const input = document.getElementById("gemini-provider-key-input");
     if (input) input.focus();
+    updateGatewayCredentialStatus();
+    return;
+  }
+  const gatewayIssue = gatewayAccessSelectionIssue();
+  if (enabled && gatewayIssue) {
+    useGeminiProvider = false;
+    const toggle = document.getElementById("gemini-provider-toggle");
+    if (toggle) toggle.checked = false;
+    showToast(gatewayIssue, "🔒");
     updateGatewayCredentialStatus();
     return;
   }
