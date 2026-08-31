@@ -869,6 +869,9 @@ main {
 .route-status-card[data-state="blocked"] {
   border-left-color: #ef4444;
 }
+.route-status-card[data-state="checking"] {
+  border-left-color: #f59e0b;
+}
 .route-choice-guide {
   background: var(--bg-input);
   border: 1px solid var(--border-color);
@@ -979,6 +982,11 @@ main {
   background: rgba(239, 68, 68, 0.14);
   border-color: rgba(239, 68, 68, 0.45);
   color: #ef4444;
+}
+.route-status-card[data-state="checking"] .route-status-pill {
+  background: rgba(245, 158, 11, 0.14);
+  border-color: rgba(245, 158, 11, 0.45);
+  color: #f59e0b;
 }
 .route-status-help {
   color: var(--text-muted);
@@ -5774,6 +5782,8 @@ let activeAbortController = null;
 const GATEWAY_PING_TIMEOUT_MS = 8000;
 let gatewayPingController = null;
 let gatewayPingSequence = 0;
+let gatewayPingEndpoint = "";
+let gatewayTelemetrySequence = 0;
 let gatewayPingState = "not-checked";
 let gatewayPingVersion = "";
 let isGenerating = false;
@@ -6117,6 +6127,8 @@ const I18N = {
       gatewayRouteAccessReady: "Access key entered for this page",
       gatewayRouteAccessBlocked: "Access key withheld — use HTTPS for a non-local endpoint",
       gatewayRouteAccessRequired: "This endpoint requires the separate BOB Gateway Access Key",
+      gatewayRouteAccessChecking: "Checking this endpoint's BOB access requirement — wait for Test Ping to finish",
+      gatewayRouteCheckingPill: "CHECKING",
       gatewayRouteAccessMissing: "Not entered — only needed if this endpoint is protected",
       gatewayRouteAccessOpen: "Not required by this endpoint",
       gatewayRouteAccessUnknown: "Only known after connection check",
@@ -6342,6 +6354,8 @@ const I18N = {
       gatewayRouteAccessReady: "इस page के लिए access key दर्ज है",
       gatewayRouteAccessBlocked: "Access key नहीं भेजी जाएगी — non-local endpoint के लिए HTTPS उपयोग करें",
       gatewayRouteAccessRequired: "इस endpoint के लिए अलग BOB Gateway Access Key आवश्यक है",
+      gatewayRouteAccessChecking: "इस endpoint की BOB access आवश्यकता जाँची जा रही है — टेस्ट पिंग पूरा होने तक प्रतीक्षा करें",
+      gatewayRouteCheckingPill: "जाँच",
       gatewayRouteAccessMissing: "दर्ज नहीं — केवल protected endpoint पर चाहिए",
       gatewayRouteAccessOpen: "इस endpoint को आवश्यक नहीं",
       gatewayRouteAccessUnknown: "connection check के बाद पता चलेगा",
@@ -7007,6 +7021,7 @@ let isGatewayOnline = true;
 // null means the endpoint has not been checked yet; true/false are learned
 // only from the selected endpoint's response, never inferred from a field.
 let gatewayAuthRequired = null;
+let gatewayAuthEndpoint = "";
 gatewayRouteStateReady = true;
 
 function isLoopbackPage() {
@@ -7112,13 +7127,26 @@ function gatewayAccessKeyTransportIssue() {
   return ui.gatewayRouteAccessBlocked || "Access key withheld — use HTTPS for a non-local endpoint.";
 }
 
+function gatewayAuthStateMatchesCurrentEndpoint() {
+  return Boolean(gatewayAuthEndpoint) && gatewayAuthEndpoint === getGatewayBaseUrl();
+}
+
+function gatewayAccessProbePending() {
+  return gatewayPingState === "pending" && gatewayPingEndpoint === getGatewayBaseUrl();
+}
+
 function gatewayAccessSelectionIssue() {
   const transportIssue = gatewayAccessKeyTransportIssue();
   if (transportIssue) return transportIssue;
-  if (gatewayAuthRequired === true && !gatewayApiKey) {
+  if (gatewayAuthRequired === true && gatewayAuthStateMatchesCurrentEndpoint() && !gatewayApiKey) {
     const dict = I18N[currentLang] || I18N.en;
     const ui = dict.ui || I18N.en.ui;
     return ui.gatewayRouteAccessRequired || "This gateway requires its separate BOB Gateway Access Key.";
+  }
+  if (gatewayAccessProbePending() && !gatewayApiKey) {
+    const dict = I18N[currentLang] || I18N.en;
+    const ui = dict.ui || I18N.en.ui;
+    return ui.gatewayRouteAccessChecking || "Checking this endpoint's BOB access requirement — wait for Test Ping to finish.";
   }
   return "";
 }
@@ -7140,12 +7168,13 @@ function updateGatewayCredentialStatus() {
   const providerRoute = Boolean(useGeminiProvider);
   const providerKeyPresent = Boolean(geminiProviderKey);
   const endpointSafe = !providerRoute || canSendGeminiProviderKey();
-  const modelIssue = providerRoute ? developerRouteModelIssue() : "";
+  const providerIssue = providerRoute ? developerRouteSelectionIssue() : "";
   const accessIssue = gatewayAccessSelectionIssue();
-  const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;
+  const accessProbeIsPending = gatewayAccessProbePending() && !gatewayApiKey && gatewayAuthRequired !== true;
+  const routeIssue = providerIssue || accessIssue;
 
   status.dataset.route = providerRoute ? "provider" : "web";
-  status.dataset.state = routeIssue ? "blocked" : "ready";
+  status.dataset.state = accessProbeIsPending && !providerIssue ? "checking" : (routeIssue ? "blocked" : "ready");
 
   const kicker = document.getElementById("gateway-route-status-kicker");
   const title = document.getElementById("gateway-route-status-title");
@@ -7162,19 +7191,23 @@ function updateGatewayCredentialStatus() {
   if (title) title.textContent = providerRoute
     ? (ui.gatewayRouteProviderStatus || "Direct Google Gemini API route")
     : (ui.gatewayRouteWebStatus || "Default web-session route");
-  if (pill) pill.textContent = routeIssue ? "BLOCKED" : (providerRoute ? "PROVIDER" : "DEFAULT");
+  if (pill) pill.textContent = accessProbeIsPending && !providerIssue
+    ? (ui.gatewayRouteCheckingPill || "CHECKING")
+    : (routeIssue ? "BLOCKED" : (providerRoute ? "PROVIDER" : "DEFAULT"));
   if (help) help.textContent = routeIssue || (providerRoute
     ? (ui.gatewayRouteProviderStatusHelp || "Prompts use Google's Developer API with the key below.")
     : (ui.gatewayRouteWebStatusHelp || "Prompts use BOB's web-session engine."));
 
   if (accessState) {
-    if (gatewayAuthRequired === true && !gatewayApiKey) {
+    if (gatewayAuthRequired === true && gatewayAuthStateMatchesCurrentEndpoint() && !gatewayApiKey) {
       accessState.textContent = ui.gatewayRouteAccessRequired || "Required by this endpoint";
+    } else if (accessProbeIsPending) {
+      accessState.textContent = ui.gatewayRouteAccessChecking || "Checking this endpoint's BOB access requirement";
     } else if (accessIssue) {
       accessState.textContent = accessIssue;
     } else if (gatewayApiKey) {
       accessState.textContent = ui.gatewayRouteAccessReady || "Access key entered for this page";
-    } else if (gatewayAuthRequired === false) {
+    } else if (gatewayAuthRequired === false && gatewayAuthStateMatchesCurrentEndpoint()) {
       accessState.textContent = ui.gatewayRouteAccessOpen || "Not required by this endpoint";
     } else {
       accessState.textContent = ui.gatewayRouteAccessUnknown || "Only known after connection check";
@@ -7194,7 +7227,7 @@ function updateGatewayCredentialStatus() {
     }
   }
   if (sessionState) sessionState.textContent = ui.gatewayRouteSessionState || "Engine-owned — never paste into Config";
-  if (modelState) modelState.textContent = modelIssue || (ui.gatewayRouteModelState || "Model settings follow the selected route");
+  if (modelState) modelState.textContent = (providerRoute ? developerRouteModelIssue() : "") || (ui.gatewayRouteModelState || "Model settings follow the selected route");
 }
 
 function isLoopbackGatewayURL(rawURL) {
@@ -7255,6 +7288,7 @@ function saveApiKeyFromInput(val) {
 function clearGatewayApiKey() {
   gatewayApiKey = "";
   gatewayAuthRequired = null;
+  gatewayAuthEndpoint = getGatewayBaseUrl();
   const input = document.getElementById("gateway-api-key-input");
   if (input) {
     input.value = "";
@@ -7377,13 +7411,15 @@ function resetGatewayEndpoint() {
 
 async function pingGatewayManual() {
   const pingID = ++gatewayPingSequence;
+  const baseUrl = getGatewayBaseUrl();
+  gatewayPingEndpoint = baseUrl;
   if (gatewayPingController) gatewayPingController.abort();
   const controller = typeof AbortController === "function" ? new AbortController() : null;
   gatewayPingController = controller;
   gatewayPingState = "pending";
   gatewayPingVersion = "";
   let timeoutID = null;
-  const isCurrentPing = () => pingID === gatewayPingSequence;
+  const isCurrentPing = () => pingID === gatewayPingSequence && getGatewayBaseUrl() === baseUrl;
   const releasePing = () => {
     if (gatewayPingController === controller) gatewayPingController = null;
   };
@@ -7396,6 +7432,7 @@ async function pingGatewayManual() {
   const content = document.getElementById("modal-gateway-stats-content");
 
   gatewayAuthRequired = null;
+  gatewayAuthEndpoint = baseUrl;
   updateGatewayCredentialStatus();
 
   if (pill) {
@@ -7420,7 +7457,6 @@ async function pingGatewayManual() {
   const start = performance.now();
   const headers = gatewayRequestHeaders();
   try {
-    const baseUrl = getGatewayBaseUrl();
     let checkUrl = baseUrl + "/";
     if (baseUrl === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
       checkUrl = baseUrl + "/health";
@@ -8795,12 +8831,16 @@ function clearTelemetryStats() {
 }
 
 async function refreshTelemetry() {
+  const telemetryID = ++gatewayTelemetrySequence;
+  const baseUrl = getGatewayBaseUrl();
+  const isCurrentTelemetry = () => telemetryID === gatewayTelemetrySequence && getGatewayBaseUrl() === baseUrl;
   if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
+    if (!isCurrentTelemetry()) return;
     gatewayAuthRequired = null;
+    gatewayAuthEndpoint = baseUrl;
     updateGatewayStatusIndicator(false, null);
     return;
   }
-  const baseUrl = getGatewayBaseUrl();
   const apiKey = gatewayApiKey;
   const headers = gatewayRequestHeaders();
   try {
@@ -8809,9 +8849,11 @@ async function refreshTelemetry() {
     // telemetry route needs the page-session BOB access key. Do not turn a
     // normal secured-endpoint state into a repeated unauthorised stats poll.
     const healthRes = await fetch(baseUrl + "/healthz", { method: "GET", headers: headers }).catch(() => null);
+    if (!isCurrentTelemetry()) return;
     const healthAuthRequired = Boolean(healthRes && healthRes.ok && healthRes.headers.get("X-BOB-Auth-Required") === "true");
     if (healthAuthRequired && !headers.Authorization) {
       gatewayAuthRequired = true;
+      gatewayAuthEndpoint = baseUrl;
       clearTelemetryStats();
       updateGatewayStatusIndicator(true, Math.round(performance.now() - start));
       return;
@@ -8821,9 +8863,11 @@ async function refreshTelemetry() {
       statsUrl = baseUrl + "/health";
     }
     const res = await fetch(statsUrl, { method: "GET", headers: headers });
+    if (!isCurrentTelemetry()) return;
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
       gatewayAuthRequired = false;
+      gatewayAuthEndpoint = baseUrl;
       const data = await res.json().catch(() => ({}));
       document.getElementById("stat-uptime").innerText = (data.uptime_seconds || data.uptime_sec || 0) + "s";
       document.getElementById("stat-requests").innerText = data.requests_served || 0;
@@ -8832,21 +8876,31 @@ async function refreshTelemetry() {
       updateGatewayStatusIndicator(true, latency);
     } else if (res.status === 401) {
       gatewayAuthRequired = true;
+      gatewayAuthEndpoint = baseUrl;
       clearTelemetryStats();
       updateGatewayStatusIndicator(true, latency);
     } else {
       if (healthRes && healthRes.ok) {
         gatewayAuthRequired = healthRes.headers.get("X-BOB-Auth-Required") === "true";
+        gatewayAuthEndpoint = baseUrl;
         clearTelemetryStats();
         updateGatewayStatusIndicator(true, latency);
       } else {
         gatewayAuthRequired = null;
+        gatewayAuthEndpoint = baseUrl;
         clearTelemetryStats();
         updateGatewayStatusIndicator(false, null);
       }
     }
   } catch(e) {
-    gatewayAuthRequired = null;
+    if (!isCurrentTelemetry()) return;
+    // A previously confirmed access requirement remains actionable through a
+    // transient telemetry failure; only a fresh response for this endpoint
+    // may replace that knowledge.
+    if (gatewayAuthEndpoint !== baseUrl || gatewayAuthRequired !== true) {
+      gatewayAuthRequired = null;
+      gatewayAuthEndpoint = baseUrl;
+    }
     clearTelemetryStats();
     updateGatewayStatusIndicator(false, null);
   }
@@ -12534,7 +12588,12 @@ async function sendMessage() {
     showLocalOnboardingModal();
     return;
   }
-  const routeIssue = developerRouteSelectionIssue();
+  // Stop before creating a chat turn when the last endpoint check already
+  // proved that this gateway requires its separate BOB access credential.
+  // The normal web route must not turn a known settings problem into a
+  // failed assistant message; the provider-route guard remains part of the
+  // same preflight so neither credential can be mistaken for the other.
+  const routeIssue = developerRouteSelectionIssue() || gatewayAccessSelectionIssue();
   if (routeIssue) {
     updateGatewayCredentialStatus();
     showToast(routeIssue, "⚠️");

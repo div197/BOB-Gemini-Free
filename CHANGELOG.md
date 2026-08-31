@@ -63,6 +63,10 @@ to an earlier implementation. The current contract supersedes those phrases:
   the Config route selector now blocks the Developer API route until the separate
   BOB Gateway Access Key is entered; the status copy names that requirement in
   English and Hindi instead of waiting for a failed generation request.
+- Keeps the access requirement and in-flight probe bound to the selected
+  endpoint. Send now waits for an explicit endpoint probe to finish rather than
+  creating a failed turn during the short checking window, and stale telemetry
+  cannot overwrite a newer endpoint's credential state.
 - Pins the Studio's visible default route with an explicit web-route marker, so
   a process-level `BOB_GEMINI_FREE_GEMINI_API_KEY` configured for other clients
   cannot silently override the route shown in Config; the existing process-level

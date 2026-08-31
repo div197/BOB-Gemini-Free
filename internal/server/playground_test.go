@@ -1348,7 +1348,7 @@ func TestPlaygroundBlocksIncompatibleDeveloperRouteBeforeSend(t *testing.T) {
 		`function developerRouteSelectionIssue()`,
 		`if (!model || !/^gemini-/i.test(model)`,
 		`The selected endpoint is not trusted for a provider key.`,
-		`const routeIssue = developerRouteSelectionIssue();`,
+		`const routeIssue = developerRouteSelectionIssue() || gatewayAccessSelectionIssue();`,
 		`showToast(routeIssue, "⚠️");`,
 	} {
 		if !strings.Contains(html, marker) {
@@ -1359,10 +1359,37 @@ func TestPlaygroundBlocksIncompatibleDeveloperRouteBeforeSend(t *testing.T) {
 	if sendStart < 0 {
 		t.Fatal("sendMessage is missing")
 	}
-	routeGuard := strings.Index(html[sendStart:], `const routeIssue = developerRouteSelectionIssue();`)
+	routeGuard := strings.Index(html[sendStart:], `const routeIssue = developerRouteSelectionIssue() || gatewayAccessSelectionIssue();`)
 	generationStart := strings.Index(html[sendStart:], "isGenerating = true;")
 	if routeGuard < 0 || generationStart < 0 || routeGuard > generationStart {
 		t.Fatal("incompatible Developer API route is not blocked before generation state or network work")
+	}
+}
+
+func TestPlaygroundBlocksKnownGatewayAuthBeforeChatTurn(t *testing.T) {
+	html := string(playgroundHTML)
+	sendStart := strings.Index(html, "async function sendMessage()")
+	if sendStart < 0 {
+		t.Fatal("sendMessage is missing")
+	}
+	source := html[sendStart:]
+	routeGuard := strings.Index(source, `const routeIssue = developerRouteSelectionIssue() || gatewayAccessSelectionIssue();`)
+	if routeGuard < 0 {
+		t.Fatal("sendMessage must include the known gateway-auth preflight")
+	}
+	for _, marker := range []string{
+		`const routeIssue = developerRouteSelectionIssue() || gatewayAccessSelectionIssue();`,
+		`if (routeIssue) {`,
+		`showToast(routeIssue, "⚠️");`,
+		`const msgIdx = chatHistory.length;`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("sendMessage is missing gateway-auth preflight marker %q", marker)
+		}
+	}
+	historyMutation := strings.Index(source, `const msgIdx = chatHistory.length;`)
+	if historyMutation < 0 || routeGuard > historyMutation {
+		t.Fatal("known gateway authentication failure must be reported before chat history is mutated")
 	}
 }
 
@@ -1406,9 +1433,11 @@ func TestCredentialRouteBlocksKnownGatewayAuthRequirement(t *testing.T) {
 	guard := html[start : start+endOffset]
 	for _, marker := range []string{
 		`const transportIssue = gatewayAccessKeyTransportIssue();`,
-		`if (gatewayAuthRequired === true && !gatewayApiKey)`,
+		`if (gatewayAuthRequired === true && gatewayAuthStateMatchesCurrentEndpoint() && !gatewayApiKey)`,
 		`ui.gatewayRouteAccessRequired`,
 		`|| "This gateway requires its separate BOB Gateway Access Key."`,
+		`if (gatewayAccessProbePending() && !gatewayApiKey)`,
+		`ui.gatewayRouteAccessChecking`,
 	} {
 		if !strings.Contains(guard, marker) {
 			t.Fatalf("gateway access selection guard is missing marker %q", marker)
@@ -1440,6 +1469,41 @@ func TestCredentialRouteBlocksKnownGatewayAuthRequirement(t *testing.T) {
 	if !strings.Contains(toggleSource, `const gatewayIssue = gatewayAccessSelectionIssue();`) ||
 		!strings.Contains(toggleSource, `if (enabled && gatewayIssue)`) {
 		t.Fatal("Developer API route toggle does not block a known protected gateway")
+	}
+}
+
+func TestPlaygroundGatewayAuthStateIsScopedToTheSelectedEndpoint(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`let gatewayPingEndpoint = "";`,
+		`let gatewayTelemetrySequence = 0;`,
+		`let gatewayAuthEndpoint = "";`,
+		`function gatewayAuthStateMatchesCurrentEndpoint()`,
+		`gatewayAuthEndpoint === getGatewayBaseUrl()`,
+		`function gatewayAccessProbePending()`,
+		`gatewayPingState === "pending" && gatewayPingEndpoint === getGatewayBaseUrl()`,
+		`const telemetryID = ++gatewayTelemetrySequence;`,
+		`const isCurrentTelemetry = () => telemetryID === gatewayTelemetrySequence && getGatewayBaseUrl() === baseUrl;`,
+		`const isCurrentPing = () => pingID === gatewayPingSequence && getGatewayBaseUrl() === baseUrl;`,
+		`if (!isCurrentTelemetry()) return;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing endpoint-scoped gateway probe marker %q", marker)
+		}
+	}
+}
+
+func TestPlaygroundShowsCheckingStateBeforeGatewayProbeCompletes(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const accessProbeIsPending = gatewayAccessProbePending() && !gatewayApiKey && gatewayAuthRequired !== true;`,
+		`status.dataset.state = accessProbeIsPending && !providerIssue ? "checking" : (routeIssue ? "blocked" : "ready");`,
+		`ui.gatewayRouteCheckingPill || "CHECKING"`,
+		`gatewayRouteAccessChecking || "Checking this endpoint's BOB access requirement"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing explicit gateway checking-state marker %q", marker)
+		}
 	}
 }
 
@@ -1547,7 +1611,8 @@ func TestGatewayAccessKeyRequiresSecureTransport(t *testing.T) {
 	statusSource := html[statusStart : statusStart+statusEndOffset]
 	for _, marker := range []string{
 		`const accessIssue = gatewayAccessSelectionIssue();`,
-		`const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;`,
+		`const providerIssue = providerRoute ? developerRouteSelectionIssue() : "";`,
+		`const routeIssue = providerIssue || accessIssue;`,
 		`accessState.textContent = accessIssue;`,
 	} {
 		if !strings.Contains(statusSource, marker) {
@@ -1574,7 +1639,7 @@ func TestGatewayPingHasBoundedLatestRequestLifecycle(t *testing.T) {
 		`timeoutID = setTimeout(() =>`,
 		`if (controller) controller.abort();`,
 		`signal: controller ? controller.signal : undefined`,
-		`const isCurrentPing = () => pingID === gatewayPingSequence;`,
+		`const isCurrentPing = () => pingID === gatewayPingSequence && getGatewayBaseUrl() === baseUrl;`,
 		`if (!isCurrentPing()) return;`,
 		`if (timeoutID) clearTimeout(timeoutID);`,
 		`if (gatewayPingController === controller) gatewayPingController = null;`,
@@ -1587,6 +1652,7 @@ func TestGatewayPingHasBoundedLatestRequestLifecycle(t *testing.T) {
 		`const GATEWAY_PING_TIMEOUT_MS = 8000;`,
 		`let gatewayPingController = null;`,
 		`let gatewayPingSequence = 0;`,
+		`let gatewayPingEndpoint = "";`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("gateway ping lifecycle constant is missing marker %q", marker)
