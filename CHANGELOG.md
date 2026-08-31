@@ -59,6 +59,10 @@ to an earlier implementation. The current contract supersedes those phrases:
   deterministic server regression for preview-channel forwarding.
 - Updates the Studio badge copy so native builds direct users to **Help → Check
   for Updates** instead of suggesting the stable CLI updater for every build.
+- If a gateway check has already confirmed that `api_keys` protection is enabled,
+  the Config route selector now blocks the Developer API route until the separate
+  BOB Gateway Access Key is entered; the status copy names that requirement in
+  English and Hindi instead of waiting for a failed generation request.
 
 ### Release candidate verification
 

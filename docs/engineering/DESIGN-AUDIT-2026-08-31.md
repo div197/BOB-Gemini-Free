@@ -404,3 +404,22 @@ This fixes an interaction-floor defect only. It does not alter the four
 credential boundaries, route selection, key retention, provider quotas, or
 remote endpoint trust policy. Native WebView and assistive-technology
 acceptance remain separate release gates.
+
+## 14. Known protected-gateway route guard — 2026-08-31
+
+The credential review found one remaining avoidable failure path: after the
+Studio's explicit Test Ping received `401 Unauthorized` from a gateway, the
+route-status card correctly reported that BOB access was required, but the
+Developer API checkbox could still be enabled. The next request then failed at
+the BOB middleware boundary even when the Google provider key was valid. This
+was not a credential leak or a route substitution, but it made the two-key
+boundary needlessly easy to misunderstand.
+
+The minimum fix adds `gatewayAccessSelectionIssue()`. It preserves the existing
+transport guard and, only after the endpoint has positively reported protected
+access, blocks the Developer API selector until the separate BOB Gateway Access
+Key is present. The status card and English/Hindi copy now name the exact
+requirement. No request is made by the selector itself, and no key is persisted.
+`TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the helper,
+status wiring, and toggle guard. The server-side credential-routing matrix and
+browser smoke remain complementary evidence.

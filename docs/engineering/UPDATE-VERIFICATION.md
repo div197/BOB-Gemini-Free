@@ -79,7 +79,12 @@ This is discovery only. The browser status badge never downloads or installs a
 package, and a native Wails user must still explicitly choose installation in
 the Help dialog. `internal/server/server_test.go` locks channel forwarding and
 `internal/server/playground_test.go` locks the corresponding native/preview
-status copy.
+status copy. The same settings surface now blocks the optional Developer API
+route when a prior connection check has positively identified `api_keys`
+protection but the separate BOB Gateway Access Key is absent; this is a
+pre-send error-prevention state, not an alternate authentication mechanism.
+`TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the source
+boundary.
 
 ## Replacement boundary
 

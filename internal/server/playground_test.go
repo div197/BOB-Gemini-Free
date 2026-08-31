@@ -1268,6 +1268,56 @@ func TestDeveloperAPIRouteToggleFailsClosedWithoutKey(t *testing.T) {
 	}
 }
 
+func TestCredentialRouteBlocksKnownGatewayAuthRequirement(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function gatewayAccessSelectionIssue()")
+	if start < 0 {
+		t.Fatal("gateway access selection guard is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction updateGatewayCredentialStatus")
+	if endOffset < 0 {
+		t.Fatal("gateway access selection guard boundary is missing")
+	}
+	guard := html[start : start+endOffset]
+	for _, marker := range []string{
+		`const transportIssue = gatewayAccessKeyTransportIssue();`,
+		`if (gatewayAuthRequired === true && !gatewayApiKey)`,
+		`ui.gatewayRouteAccessRequired`,
+		`|| "This gateway requires its separate BOB Gateway Access Key."`,
+	} {
+		if !strings.Contains(guard, marker) {
+			t.Fatalf("gateway access selection guard is missing marker %q", marker)
+		}
+	}
+
+	statusStart := strings.Index(html, "function updateGatewayCredentialStatus()")
+	if statusStart < 0 {
+		t.Fatal("gateway credential status function is missing")
+	}
+	statusEndOffset := strings.Index(html[statusStart:], "\n}\n\nfunction isLoopbackGatewayURL")
+	if statusEndOffset < 0 {
+		t.Fatal("gateway credential status function boundary is missing")
+	}
+	statusSource := html[statusStart : statusStart+statusEndOffset]
+	if !strings.Contains(statusSource, `const accessIssue = gatewayAccessSelectionIssue();`) {
+		t.Fatal("credential status does not expose the known gateway-auth requirement")
+	}
+
+	toggleStart := strings.Index(html, "function toggleGeminiProviderRoute(enabled)")
+	if toggleStart < 0 {
+		t.Fatal("Developer API route toggle is missing")
+	}
+	toggleEndOffset := strings.Index(html[toggleStart:], "\n}\n\nfunction toggleGeminiProviderKeyVisibility")
+	if toggleEndOffset < 0 {
+		t.Fatal("Developer API route toggle boundary is missing")
+	}
+	toggleSource := html[toggleStart : toggleStart+toggleEndOffset]
+	if !strings.Contains(toggleSource, `const gatewayIssue = gatewayAccessSelectionIssue();`) ||
+		!strings.Contains(toggleSource, `if (enabled && gatewayIssue)`) {
+		t.Fatal("Developer API route toggle does not block a known protected gateway")
+	}
+}
+
 func TestDeveloperAPIRouteRequiresSafeGatewayTransport(t *testing.T) {
 	html := string(playgroundHTML)
 	start := strings.Index(html, "function canSendGeminiProviderKey()")
@@ -1369,7 +1419,7 @@ func TestGatewayAccessKeyRequiresSecureTransport(t *testing.T) {
 	}
 	statusSource := html[statusStart : statusStart+statusEndOffset]
 	for _, marker := range []string{
-		`const accessIssue = gatewayAccessKeyTransportIssue();`,
+		`const accessIssue = gatewayAccessSelectionIssue();`,
 		`const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;`,
 		`accessState.textContent = accessIssue;`,
 	} {
