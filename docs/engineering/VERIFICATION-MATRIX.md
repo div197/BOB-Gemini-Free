@@ -395,11 +395,11 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `4522e2b`; the current checkout contains the
+The source-hardening tip is `7ccda24`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
-Anthropic lifecycle, and attachment-cancellation follow-ups after the evidence
-documents. The local branch is
+Anthropic lifecycle, attachment-cancellation, and fail-closed preference-
+storage follow-ups after the evidence documents. The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.
@@ -412,4 +412,5 @@ workflow was added or invoked, and no provider or release secret was used.
 | The native updater explains an unwriteable or translocated install before downloading a package | VERIFIED_BY_UNIT_TEST | `CheckDesktopInstallTarget` performs a no-network same-filesystem preflight; tests cover a writable bundle, App Translocation, and unsupported OS, while `cmd/desktop/updates.go` defers background prompts and surfaces manual guidance | A real mounted-DMG, `/Applications`, Gatekeeper, helper restart, rollback, and 30-device run remain external. |
 | The current source can prove Preview 7 → bridge → stable selection without pretending it performed a live install | VERIFIED_BY_UNIT_TEST | `internal/updater/updater_test.go` covers the legacy preview-only lookup, same-key bridge discovery, stable-first migration, preview continuation, and stable-check failure | The actual public Preview 7 binary, exact signed uploaded bytes, private release-key custody, and clean-device replacement still require operator evidence. |
 | Removing an attachment can leave a FileReader or supported OCR worker running and later mutate removed UI state | VERIFIED_IN_SOURCE | `internal/server/playground.html` binds each attachment to an `AbortController`, aborts `FileReader` reads on removal, suppresses stale fallback results, and terminates a Tesseract.js v5 worker when available; `internal/server/playground_test.go` locks the cancellation markers | Main-thread PDF/DOCX/XLSX work, older browser fallbacks, OCR CPU cost, and rendered device behavior remain partial. |
+| Denied browser storage can break preference initialization or click handlers | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` routes language, transliteration, panel, theme, endpoint, speech, reading-zoom, and custom-instruction preferences through fail-closed helpers; `internal/server/playground_test.go` rejects direct preference-storage bypasses | Preferences intentionally remain session/default-only when storage is unavailable; chat-history quota and long-session CPU remain separate browser gates. |
 | The visual product is browser-verified at desktop, tablet, and phone widths | UNKNOWN | The browser-control runtime reported no available browser in this session; source tests and generated-bundle parity do not replace rendered interaction evidence | Recover a real browser/device and run the design-audit viewport matrix before calling the design ceiling closed. |

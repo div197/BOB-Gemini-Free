@@ -3,17 +3,18 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4522e2b`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `7ccda24`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces four real failure classes: coalesced
+This continuation materially reduces five real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
 read-only or translocated location, and stale attachment parsing/OCR work after
-the user removes a file. The source and deterministic test gates are green.
+the user removes a file, plus initialization failures when browser preference
+storage is denied. The source and deterministic test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -196,6 +197,15 @@ whose in-flight CPU work cannot be interrupted by BOB. The existing 32 MiB
 file, extraction-character, PDF-page, and two-job concurrency limits are
 unchanged. Main-thread document parsing, OCR cost, and device behavior remain
 partial until measured on representative Macs.
+
+### 11. Fail-closed preference storage — `7ccda24`
+
+Language, transliteration, panel, theme, endpoint, speech, reading-zoom, and
+custom-instruction preferences now use guarded local-storage helpers. A
+privacy-restricted browser or embedded WebView can therefore fall back to
+defaults or current in-memory state without aborting startup or a user action.
+Chat-history persistence keeps its separate visible recovery path, and no
+claim is made that browser quota or long-session performance is uniform.
 
 ## Verification completed
 
