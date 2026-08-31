@@ -35,6 +35,19 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
+## [0.2.0-preview.6] - Unreleased
+
+### Release safety
+
+- Makes the next preview candidate explicit as `PREVIEW_VERSION` in the
+  Makefile (`v0.2.0-preview.6` for this source candidate).
+- Passes that candidate explicitly from every desktop preview target.
+- Makes the macOS, Windows, and Linux preview packagers fail closed when
+  `BOB_RELEASE_VERSION` is unset, preventing accidental reuse of an immutable
+  published preview tag.
+- Extends the release-source gate to validate the explicit candidate and the
+  packager fail-closed contract.
+
 ## [0.2.0-preview.5] - 2026-08-31
 
 ### Browser streaming

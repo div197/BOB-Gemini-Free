@@ -21,6 +21,14 @@ notarized, or production-ready. It is intended for controlled evaluation only.
 It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
+Preview versioning is explicit and fail-closed. `PREVIEW_VERSION` in the
+Makefile names the next immutable candidate (`v0.2.0-preview.6` in the current
+source), and the `desktop-preview-*` targets pass it as `BOB_RELEASE_VERSION`.
+The three preview packagers refuse to guess a version when called directly.
+Before any publication, advance `PREVIEW_VERSION` to a new unused
+`-preview.N` value, review the resulting source commit, and never rebuild a
+published tag from a later checkout.
+
 The preview packager requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` even though
 the app remains ad-hoc signed. This public value is the updater trust anchor;
 it is not a credential. The corresponding private value is used only by the
@@ -129,7 +137,9 @@ commit it, put it in a shell command, or print it in a terminal transcript.
    version). It fails closed on a non-Git, dirty, or untracked source tree, a
    stale generated `web/index.html`, an invalid version matrix, or drift
    between the canonical updater key and the Makefile, package scripts, Docker
-   metadata, or standalone installers. It also derives the Ed25519 Subject
+   metadata, or standalone installers. It also checks that the next preview
+   candidate is explicit and that every preview packager requires an explicit
+   `BOB_RELEASE_VERSION`. It also derives the Ed25519 Subject
    Public Key Info (SPKI) encoding used by the Bash installer and compares it
    with the canonical raw key.
 3. Confirm the release version in the tag, `CHANGELOG.md`, `Makefile`, and

@@ -4,7 +4,9 @@ set -euo pipefail
 # Verify source state before a release packager copies or signs it. This
 # performs no generation and no network access: a release must be reproducible
 # from an already-reviewed clean commit. A preview may use the Makefile's
-# stable base version with a numeric -preview.N suffix.
+# stable base version with a numeric -preview.N suffix. The next preview
+# candidate is a separate explicit Makefile value; packagers must never infer
+# it from a previously published tag.
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${1:-}"
@@ -27,6 +29,17 @@ if [[ -z "$MAKE_VERSION" ]]; then
 fi
 if [[ ! "$MAKE_VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
 	echo "Makefile VERSION is not a stable semantic version: $MAKE_VERSION" >&2
+	exit 1
+fi
+
+PREVIEW_VERSION="$(awk -F= '$1 == "PREVIEW_VERSION" { gsub(/[[:space:]]/, "", $2); print $2; exit }' "$ROOT_DIR/Makefile")"
+if [[ -z "$PREVIEW_VERSION" || "$PREVIEW_VERSION" != "$MAKE_VERSION-preview."* ]]; then
+	echo "Makefile PREVIEW_VERSION must use Makefile base $MAKE_VERSION: $PREVIEW_VERSION" >&2
+	exit 1
+fi
+PREVIEW_NUMBER="${PREVIEW_VERSION#"$MAKE_VERSION-preview."}"
+if [[ ! "$PREVIEW_NUMBER" =~ ^[0-9]+$ ]]; then
+	echo "Makefile PREVIEW_VERSION has an invalid preview suffix: $PREVIEW_VERSION" >&2
 	exit 1
 fi
 
@@ -102,9 +115,12 @@ for preview_script in \
 		echo "preview packager is missing: $preview_script" >&2
 		exit 1
 	fi
-	preview_version="$(awk -F':-' '/^VERSION=.*BOB_RELEASE_VERSION/ { value=$2; sub(/}.*/, "", value); gsub(/"/, "", value); print value; exit }' "$preview_path")"
-	if [[ -z "$preview_version" || "$preview_version" != "$MAKE_VERSION-preview."* ]]; then
-		echo "$preview_script default preview version $preview_version does not use Makefile base $MAKE_VERSION" >&2
+	if ! awk 'index($0, "VERSION=\"${BOB_RELEASE_VERSION:-}\"") == 1 { found=1 } END { exit !found }' "$preview_path"; then
+		echo "$preview_script must require an explicit BOB_RELEASE_VERSION" >&2
+		exit 1
+	fi
+	if ! awk 'index($0, "BOB_RELEASE_VERSION is required") { found=1 } END { exit !found }' "$preview_path"; then
+		echo "$preview_script must fail closed when BOB_RELEASE_VERSION is unset" >&2
 		exit 1
 	fi
 	preview_channel="$(awk -F':-' '/^CHANNEL=.*BOB_RELEASE_CHANNEL/ { value=$2; sub(/}.*/, "", value); gsub(/"/, "", value); print value; exit }' "$preview_path")"
