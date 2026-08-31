@@ -112,8 +112,11 @@ and use the default web-session route. Enter a **BOB Gateway Access Key** only
 when the gateway owner has provided one for a protected endpoint. Enable the
 **Google Gemini Developer API** route only when the student intentionally wants
 to use their own AI Studio project and its provider limits. The Config modal
-shows this choice before either credential is entered, and it keeps the two
-fields independent.
+now puts this route choice immediately after the endpoint, before the detailed
+credential map, and highlights the currently selected route. The two cards are
+an explanatory state display; the existing **Use your Google key for this
+session** toggle remains the only route control. The modal keeps the two fields
+independent.
 
 The native desktop wrapper is a special local case: it forces the embedded
 gateway to `127.0.0.1` and removes BOB `api_keys` from the desktop configuration.

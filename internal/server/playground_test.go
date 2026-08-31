@@ -50,6 +50,9 @@ func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
 			t.Fatalf("playground is missing session-only gateway-auth marker %q", marker)
 		}
 	}
+	if strings.Index(html, `id="gateway-route-choice"`) > strings.Index(html, `id="gateway-credential-map"`) {
+		t.Fatal("route choice guide must appear before the detailed credential map")
+	}
 	for _, forbidden := range []string{
 		`localStorage.setItem('bob_api_key'`,
 		`localStorage.getItem('bob_api_key'`,
@@ -1163,8 +1166,20 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	for _, marker := range []string{
 		`id="gateway-credential-map"`,
 		`id="gateway-credential-map-lead"`,
+		`id="gateway-route-choice"`,
+		`data-selected-route="web"`,
+		`id="gateway-route-choice-kicker"`,
+		`id="gateway-route-choice-title"`,
+		`id="gateway-route-choice-web-title"`,
+		`id="gateway-route-choice-web-body"`,
+		`id="gateway-route-choice-provider-title"`,
+		`id="gateway-route-choice-provider-body"`,
+		`Start here — choose one Google route`,
+		`Where should this page send prompts?`,
+		`Default web-session (recommended)`,
+		`Your Google Developer API key`,
 		`aria-describedby="gateway-endpoint-help"`,
-		`the endpoint URL says where Studio connects; it is not a key`,
+		`the endpoint chooses where Studio connects; the route chooses which Google path receives prompts`,
 		`id="gateway-route-status"`,
 		`id="gateway-route-status-title"`,
 		`id="gateway-route-status-help"`,
@@ -1219,6 +1234,12 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	for _, marker := range []string{
 		`gatewayCredentialMapTitle:`,
 		`gatewayDesktopBoundary:`,
+		`gatewayRouteChoiceKicker:`,
+		`gatewayRouteChoiceTitle:`,
+		`gatewayRouteChoiceWebTitle:`,
+		`gatewayRouteChoiceWebBody:`,
+		`gatewayRouteChoiceProviderTitle:`,
+		`gatewayRouteChoiceProviderBody:`,
 		`gatewayAuthTitle:`,
 		`gatewayRouteWebHelp:`,
 		`gatewayRouteProviderHelp:`,
@@ -1230,6 +1251,27 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	} {
 		if strings.Count(html, marker) < 2 {
 			t.Fatalf("credential-boundary translation marker %q is not present in English and Hindi dictionaries", marker)
+		}
+	}
+}
+
+func TestGatewayRouteChoiceGuideTracksSelectedRoute(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function updateGatewayCredentialStatus()")
+	if start < 0 {
+		t.Fatal("gateway credential status function is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction isLoopbackGatewayURL")
+	if endOffset < 0 {
+		t.Fatal("gateway credential status function boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`const routeChoice = document.getElementById("gateway-route-choice");`,
+		`if (routeChoice) routeChoice.dataset.selectedRoute = providerRoute ? "provider" : "web";`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("route choice guide is not synchronized with the live route state: %q", marker)
 		}
 	}
 }
