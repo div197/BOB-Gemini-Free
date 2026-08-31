@@ -2,7 +2,7 @@
 
 **Audit date:** 2026-08-31 (Asia/Kolkata)  
 **Source baseline before this audit change:** public `main` at `558e8609333e`
-**Current audited public code baseline:** commit `4beb1275833c387f3bcf458d99b5743720e84311` (PR #68; credential-boundary fix)
+**Current audited public code baseline:** commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2` (PR #71; route-clarity and credential-boundary fix)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -10,7 +10,7 @@ credentials, cookies, or private-key export
 
 The repository is source-ready and now has a locally built, signed, and
 verified `v0.2.0-preview.5` macOS candidate from the current public `main` at
-`4beb127`.
+`a68eb39`.
 That candidate is ready for controlled publication review, but it is not yet a
 public release or a fleet-ready update. The existing `v0.2.0-preview.4`
 assets remain immutable and were not overwritten.
@@ -23,13 +23,13 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Public `main` contains the audited code baseline `4beb1275833c387f3bcf458d99b5743720e84311`; PRs #62–#68 are merged and the release-evidence commit is documentation-only | VERIFIED |
+| Public source | Public `main` contains the audited code baseline `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`; PRs #62–#71 are merged and the release-evidence commit is documentation-only | VERIFIED |
 | Public releases | Latest desktop preview is immutable `v0.2.0-preview.4`; no public Preview 5 exists | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
 | Source gate | `scripts/verify-release-source.sh v0.2.0-preview.5` passes | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
-| Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `4beb127` and passed local asset verification | VERIFIED_LOCAL |
+| Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from `a68eb39` and passed local asset verification | VERIFIED_LOCAL |
 | Preview 5 package smoke | Fresh `open -n` launch owns loopback `127.0.0.1:8081`, returns `{"status":"ok"}` from `/healthz`, serves the credential map, and shuts down cleanly | VERIFIED_LOCAL |
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
 | Current public stable endpoint | GitHub `/releases/latest` resolves to historical `v0.1.5`, not `v0.2.0` | VERIFIED |

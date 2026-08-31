@@ -75,9 +75,11 @@ to an earlier implementation. The current contract supersedes those phrases:
   credential fields also have independent clear actions and are removed from
   the retained modal DOM on close.
 - The earlier local `v0.2.0-preview.5` macOS candidate was built from merged
-  public-main commit `4beb127`; its package and local startup checks do not
-  include this route-clarity patch. Preview 5 remains intentionally unpublished
-  until a fresh candidate passes the public-byte and installed-bundle gates.
+  public-main commit `4beb127`; its package and local startup checks did not
+  include the route-clarity patch and it is superseded. A fresh candidate from
+  merged public-main commit `a68eb39` passed the same local package and startup
+  gates. Preview 5 remains intentionally unpublished until public-byte and
+  installed-bundle gates pass.
 
 ## [0.2.0-preview.4] - 2026-08-31
 

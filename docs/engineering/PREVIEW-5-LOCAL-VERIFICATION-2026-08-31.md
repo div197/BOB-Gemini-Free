@@ -2,8 +2,10 @@
 
 ## Scope and decision
 
-This record covers the locally produced macOS `v0.2.0-preview.5` candidate
-from public `main` at commit `4beb1275833c387f3bcf458d99b5743720e84311`.
+This record covers the freshly produced macOS `v0.2.0-preview.5` candidate
+from the clean checkout at commit `92a703952736e97de44a3e6fb9de3d3dc631e3bb`,
+which is a documentation-only reconciliation commit descended from public
+`main` merge commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`.
 It is a local package and startup receipt, not a GitHub publication receipt.
 
 The candidate passed the local source, package, signature, and one-host startup
@@ -26,7 +28,7 @@ The public downloadable desktop release therefore remains the immutable
 
 | Check | Result | Evidence |
 |---|---|---|
-| Public source identity | PASS | Candidate built from the clean public code baseline `4beb1275833c387f3bcf458d99b5743720e84311`; release-evidence documentation is separate and does not alter packaged code |
+| Public source identity | PASS | Candidate built from clean checkout `92a703952736e97de44a3e6fb9de3d3dc631e3bb`; its changes after `a68eb39` are documentation-only and do not alter packaged code |
 | Release-source preflight | PASS | `scripts/verify-release-source.sh v0.2.0-preview.5` |
 | Full Go suite | PASS | `go test -count=1 ./...` |
 | Race-sensitive suite | PASS | `go test -race -count=1 ./internal/server ./internal/updater ./internal/gemini ./internal/geminiapi ./internal/config ./cmd/desktop` |
@@ -41,8 +43,8 @@ These are the exact SHA-256 entries in the locally signed manifest:
 
 ```text
 d565000fc152deec198714192e14ca7aff6a0b368d1e9079ff3e7b099999e6cb  RELEASE-NOTICE.txt
-556023933cded7f4eaf61fda0ce6c3113b0cc28b3c7b94ec4a0d80ec1c561fa3  bob-gemini-free-macos-universal.dmg
-a5126068bb35d9bbd73f1adb423f9ad806f6e802fcceb8ffd5db0e44572ccaea  bob-gemini-free-macos-universal.zip
+6922aa8fb4805c8978273544ac53a005afba13a600594c044ac22abe118739b5  bob-gemini-free-macos-universal.dmg
+8597bb1ed28148b5cdb9d96b61bd0f7c149b0460d68b93cba583226d39fc950b  bob-gemini-free-macos-universal.zip
 ```
 
 The manifest intentionally covers the release notice and the two installable
