@@ -5,8 +5,9 @@ the public app remains ad-hoc signed and not Apple-notarized.
 
 The current release audit is in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The source on
-public `main` is now ahead of the immutable Preview 4 assets, and the next
-candidate is `v0.2.0-preview.5`; no Preview 5 package is public yet.
+public `main` is now ahead of the immutable Preview 4 assets. A local,
+Keychain-signed `v0.2.0-preview.5` candidate has passed package and startup
+smoke checks, but no Preview 5 package is public yet.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
 Preview 4 (`v0.2.0-preview.4`) is now published from public-main commit

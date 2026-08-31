@@ -64,6 +64,14 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Adds a localized credential map explaining the separate BOB access, Google
   Developer API, web-session/cookie, and endpoint scopes without changing route
   selection, headers, or session-only storage behavior.
+- Corrects the Studio's HTTP 401 handling so a rejected Google Developer API
+  key is not mislabeled as missing BOB gateway authentication; gateway errors
+  now name the BOB access key explicitly.
+- Prepared a fresh local `v0.2.0-preview.5` macOS candidate from the merged
+  public-main commit `4beb127`; its universal package, signed manifest, bundle
+  layout, credential-map markers, and local `/healthz` startup smoke test
+  passed. Preview 5 is intentionally not public until fresh public-byte
+  reconciliation and installed-bundle update tests pass.
 
 ## [0.2.0-preview.4] - 2026-08-31
 
