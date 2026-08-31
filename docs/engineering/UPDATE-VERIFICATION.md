@@ -62,8 +62,11 @@ bound even when a server omits or lies about `Content-Length`.
 The candidate is downloaded into a temporary file in the executable's own
 directory, verified against the signed manifest, checked for platform binary
 magic, and only then considered for replacement. Unix replacement uses an
-atomic same-filesystem rename. Windows retains the existing rollback path
-because a running executable cannot be renamed over in place.
+atomic same-filesystem rename. The updater flushes the temporary metadata file
+before its commit and flushes the Unix containing directory after transaction
+renames and rollback; Windows retains the existing rollback path because a
+running executable cannot be renamed over in place and directory flushing has
+no portable Go contract.
 
 `cmd/release-manifest` creates a sorted manifest from regular release files,
 excluding `SHA256SUMS` and `SHA256SUMS.sig`, and signs the exact manifest bytes.

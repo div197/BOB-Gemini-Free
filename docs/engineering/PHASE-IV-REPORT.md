@@ -281,6 +281,17 @@ The source-level regression is protected by
 `TestStudioSSEParserAcceptsStandardDataFieldForms`, while rendered browser
 behavior remains an external gate.
 
+### 18. Updater transaction durability — `b136724`
+
+The native updater now flushes its plan, confirmation, failure, and warning
+records before same-directory replacement, and synchronizes Unix directory
+entries after backup, candidate activation, rollback, and startup-recovery
+transitions. A fault-injection regression proves that a directory-sync failure
+after candidate activation restores the previous install and preserves a
+visible failure result. This narrows the power-loss ambiguity window without
+claiming recursive app-bundle file fsync, Windows directory-fsync semantics, or
+a physical power-cut acceptance run.
+
 ## Verification completed
 
 | Gate | Result | Evidence boundary |

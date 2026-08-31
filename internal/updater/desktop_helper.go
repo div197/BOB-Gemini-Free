@@ -133,12 +133,7 @@ func ConfirmDesktopUpdate(path string) error {
 	if err := validateConfirmationPath(path); err != nil {
 		return err
 	}
-	temporary := path + ".tmp"
-	if err := os.WriteFile(temporary, []byte("healthy\n"), 0600); err != nil {
-		return fmt.Errorf("write desktop update confirmation: %w", err)
-	}
-	if err := os.Rename(temporary, path); err != nil {
-		_ = os.Remove(temporary)
+	if err := writeAtomicDesktopUpdateFile(path, []byte("healthy\n"), 0600); err != nil {
 		return fmt.Errorf("commit desktop update confirmation: %w", err)
 	}
 	return nil
@@ -268,14 +263,28 @@ func replaceAndConfirmDesktopUpdate(plan *DesktopUpdatePlan) error {
 	if err := os.Rename(plan.InstallTarget, plan.BackupPath); err != nil {
 		return fmt.Errorf("move current desktop install to rollback path: %w", err)
 	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget)); err != nil {
+		restoreErr := os.Rename(plan.BackupPath, plan.InstallTarget)
+		restoreSyncErr := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget))
+		if restoreErr != nil || restoreSyncErr != nil {
+			failure := fmt.Errorf("persist current desktop rollback move: %w; restore previous desktop install: rename=%v, sync=%v", err, restoreErr, restoreSyncErr)
+			_ = writeDesktopUpdateFailure(plan, failure)
+			return failure
+		}
+		return fmt.Errorf("persist current desktop rollback move: %w", err)
+	}
 	if err := os.Rename(plan.CandidatePath, plan.InstallTarget); err != nil {
 		restoreErr := os.Rename(plan.BackupPath, plan.InstallTarget)
-		if restoreErr != nil {
-			failure := fmt.Errorf("activate verified desktop candidate: %w; restore previous desktop install: %v", err, restoreErr)
+		restoreSyncErr := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget))
+		if restoreErr != nil || restoreSyncErr != nil {
+			failure := fmt.Errorf("activate verified desktop candidate: %w; restore previous desktop install: rename=%v, sync=%v", err, restoreErr, restoreSyncErr)
 			_ = writeDesktopUpdateFailure(plan, failure)
 			return failure
 		}
 		return fmt.Errorf("activate verified desktop candidate: %w", err)
+	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget)); err != nil {
+		return rollbackDesktopUpdate(plan, nil, fmt.Errorf("persist verified desktop candidate activation: %w", err))
 	}
 
 	process, err := launchUpdatedDesktop(plan.InstallTarget, plan.ConfirmationPath)
@@ -293,9 +302,17 @@ func replaceAndConfirmDesktopUpdate(plan *DesktopUpdatePlan) error {
 		_ = writeDesktopUpdateWarning(plan, fmt.Errorf("updated to %s but could not remove rollback backup %s: %w", plan.TargetVersion, plan.BackupPath, err))
 		return nil
 	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.BackupPath)); err != nil {
+		_ = writeDesktopUpdateWarning(plan, fmt.Errorf("updated to %s but could not persist rollback cleanup %s: %w", plan.TargetVersion, plan.BackupPath, err))
+		return nil
+	}
 	_ = os.Remove(failureRecordPath(plan))
 	if err := os.RemoveAll(plan.StageDir); err != nil {
 		_ = writeDesktopUpdateWarning(plan, fmt.Errorf("updated to %s but could not remove staging directory %s: %w", plan.TargetVersion, plan.StageDir, err))
+		return nil
+	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.StageDir)); err != nil {
+		_ = writeDesktopUpdateWarning(plan, fmt.Errorf("updated to %s but could not persist staging cleanup %s: %w", plan.TargetVersion, plan.StageDir, err))
 	}
 	return nil
 }
@@ -312,7 +329,15 @@ func rollbackDesktopUpdate(plan *DesktopUpdatePlan, process *os.Process, cause e
 	if err := os.Rename(plan.BackupPath, plan.InstallTarget); err != nil {
 		return fmt.Errorf("%v; restore desktop rollback backup: %w", cause, err)
 	}
-	_ = os.RemoveAll(plan.StageDir)
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget)); err != nil {
+		return fmt.Errorf("%v; persist restored desktop install: %w", cause, err)
+	}
+	if err := os.RemoveAll(plan.StageDir); err != nil {
+		return fmt.Errorf("%v; remove failed desktop staging directory: %w", cause, err)
+	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.StageDir)); err != nil {
+		return fmt.Errorf("%v; persist failed desktop staging cleanup: %w", cause, err)
+	}
 	return cause
 }
 
@@ -479,7 +504,7 @@ func writeDesktopUpdateFailure(plan *DesktopUpdatePlan, cause error) error {
 		return nil
 	}
 	content := fmt.Sprintf("BOB Gemini Free desktop update failed at %s\nTarget: %s\nRelease: %s\nReason: %s\n", time.Now().UTC().Format(time.RFC3339), plan.InstallTarget, plan.TargetVersion, cause)
-	return os.WriteFile(failureRecordPath(plan), []byte(content), 0600)
+	return writeAtomicDesktopUpdateFile(failureRecordPath(plan), []byte(content), 0600)
 }
 
 func writeDesktopUpdateWarning(plan *DesktopUpdatePlan, cause error) error {
@@ -487,5 +512,5 @@ func writeDesktopUpdateWarning(plan *DesktopUpdatePlan, cause error) error {
 		return nil
 	}
 	content := fmt.Sprintf("BOB Gemini Free desktop update completed with cleanup warning at %s\nTarget: %s\nRelease: %s\nReason: %s\n", time.Now().UTC().Format(time.RFC3339), plan.InstallTarget, plan.TargetVersion, cause)
-	return os.WriteFile(warningRecordPath(plan), []byte(content), 0600)
+	return writeAtomicDesktopUpdateFile(warningRecordPath(plan), []byte(content), 0600)
 }
