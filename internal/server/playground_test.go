@@ -935,7 +935,10 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 		`streamProtocolError = "Stream contained an invalid SSE event"`,
 		`if (data && data.error && data.error.message)`,
 		`if (finishReason === "error")`,
-		`const isGatewayAuthError = /invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);`,
+		`const isGatewayAuthError = !useGeminiProvider && /bob gateway access key required|invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);`,
+		`throw new Error("401 Unauthorized: BOB Gateway Access Key required");`,
+		`if (useGeminiProvider)`,
+		`dict.providerAuthError`,
 		`session authentication|Google session|HTTP 401|HTTP 403`,
 		`Cookie pools do not bypass quotas or provider policy.`,
 	} {
@@ -994,6 +997,9 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`input.type = input.type === "password" ? "text" : "password";`,
 		`keyInput.type = "password";`,
 		`providerKeyInput.type = "password";`,
+		`gatewayAuthErrorTitle:`,
+		`gatewayAuthErrorHelp:`,
+		`providerAuthError:`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("playground is missing credential-boundary marker %q", marker)

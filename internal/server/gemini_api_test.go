@@ -79,6 +79,29 @@ func TestChatDeveloperAPIRejectsEmptyNonstreamOutput(t *testing.T) {
 	}
 }
 
+func TestChatDeveloperAPIAuthFailureNamesProviderNotGateway(t *testing.T) {
+	const providerKey = "test-provider-key"
+	provider := &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		return developerResponse(http.StatusUnauthorized, "application/json", `{"error":{"code":401,"message":"API key not valid. Please pass a valid API key.","status":"UNAUTHENTICATED"}}`), nil
+	})}
+	app := New(config.Default(), "test-version")
+	app.GeminiAPI.HTTP = provider
+	app.GeminiAPI.BaseURL = "https://provider.test"
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`))
+	req.Header.Set(geminiProviderKeyHeader, providerKey)
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	body := rec.Body.String()
+	if rec.Code != http.StatusUnauthorized || !strings.Contains(body, "Gemini Developer API rejected the key or project") {
+		t.Fatalf("provider auth failure = status %d body %s", rec.Code, body)
+	}
+	if strings.Contains(body, "invalid api key") || strings.Contains(body, "BOB Gateway Access Key") || strings.Contains(body, providerKey) {
+		t.Fatalf("provider auth failure was misclassified or leaked a credential: %s", body)
+	}
+}
+
 func TestChatDeveloperAPIStreamPreservesDeltasAndUsage(t *testing.T) {
 	provider := &http.Client{Transport: developerRoundTripFunc(func(req *http.Request) (*http.Response, error) {
 		return developerResponse(http.StatusOK, "text/event-stream", ": waiting\n\ndata: {\"candidates\":[{\"content\":{\"role\":\"model\",\"parts\":[{\"text\":\"hello \"}]}}]}\n\ndata: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"world\"}]},\"finishReason\":\"STOP\"}],\"usageMetadata\":{\"promptTokenCount\":2,\"candidatesTokenCount\":2,\"totalTokenCount\":4}}\n\n"), nil
