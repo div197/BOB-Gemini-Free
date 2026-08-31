@@ -21,8 +21,8 @@ but it does not download, replace, or restart until the user selects
 
 The evidence sections below that name Preview 1, Preview 2, or Preview 3 are
 retained as historical provenance for the earlier publication sequence. The
-authoritative current state is the Preview 4 reconciliation at the end of this
-document.
+authoritative current state is the Preview 4 reconciliation and the
+post-Preview-4 source reconciliation at the end of this document.
 
 ## Evidence snapshot before PR #42
 
@@ -216,14 +216,15 @@ repository and release assets.
 ## Post-Preview 4 source reconciliation — 2026-08-31
 
 Protected PR #62 merged the artifact-preview lifecycle fix, responsive-header
-fix, generated web bundle, focused regression tests, and dated browser evidence
-into public `main` at merge commit `5530edb`. This source change was not
-retroactively inserted into the immutable Preview 4 assets, and GitHub Actions
-was not used.
+fix, generated web bundle, focused regression tests, and dated browser evidence;
+protected PR #64 then merged the Studio multiline-SSE framing fix and its
+regression coverage. Both are now in public `main` at merge commit `cd44b2c`.
+These source changes were not retroactively inserted into the immutable Preview
+4 assets, and GitHub Actions was not used.
 
 The three Wails preview packagers now default to the next explicit candidate,
 `v0.2.0-preview.5`; no Preview 5 tag or release exists yet. The current source
-is therefore ahead of the latest public package by one reviewed UI/reliability
-change. Preview 5 requires the clean-source gate, local package build,
+is therefore ahead of the latest public package by two reviewed UI/reliability
+changes. Preview 5 requires the clean-source gate, local package build,
 Keychain-backed manifest signing, fresh public-byte reconciliation, and
 installed-bundle acceptance before publication.

@@ -67,8 +67,8 @@ confirmation and rollback. The immutable `v0.2.0-preview.1` package remains
 the migration bridge; Preview 2 and Preview 3 are historical release inputs.
 The current Preview 4 embeds the desktop trust key and remains an explicit,
 user-consented updater. The public `main` source now includes the post-Preview-4
-artifact-preview and responsive-header fix, but the published Preview 4 assets
-remain immutable; the three preview packagers default to the next candidate
+artifact-preview, responsive-header, and multiline-SSE fixes, but the published
+Preview 4 assets remain immutable; the three preview packagers default to the next candidate
 `v0.2.0-preview.5`, which is not published yet. Historical builds without an
 embedded desktop trust key remain manual-update-only. Stable builds never move
 into preview; current-key preview builds may migrate into a newer stable
