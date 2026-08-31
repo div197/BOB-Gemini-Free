@@ -14,7 +14,8 @@ import (
 
 type loggingResponseWriter struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode  int
+	wroteHeader bool
 }
 
 func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
@@ -22,12 +23,27 @@ func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 }
 
 func (lrw *loggingResponseWriter) WriteHeader(code int) {
-	lrw.statusCode = code
+	if !lrw.wroteHeader {
+		lrw.statusCode = code
+		lrw.wroteHeader = true
+	}
 	lrw.ResponseWriter.WriteHeader(code)
+}
+
+func (lrw *loggingResponseWriter) Write(p []byte) (int, error) {
+	if !lrw.wroteHeader {
+		lrw.statusCode = http.StatusOK
+		lrw.wroteHeader = true
+	}
+	return lrw.ResponseWriter.Write(p)
 }
 
 func (lrw *loggingResponseWriter) Flush() {
 	if flusher, ok := lrw.ResponseWriter.(http.Flusher); ok {
+		if !lrw.wroteHeader {
+			lrw.statusCode = http.StatusOK
+			lrw.wroteHeader = true
+		}
 		flusher.Flush()
 	}
 }
