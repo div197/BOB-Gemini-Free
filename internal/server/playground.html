@@ -8676,7 +8676,7 @@ function showLocalOnboardingModal() {
           To use a local BOB gateway, start it first, then choose <b>Gateway Offline → Test Ping</b>.
           Your browser may ask for permission at that moment; it is only for this explicit local connection.
         </p>
-        
+
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 0.25rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem; overflow-wrap: anywhere; word-break: break-word; overflow: auto;">
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
           <code style="color: #10b981; user-select: all; overflow-wrap: anywhere;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</code>
@@ -12352,6 +12352,14 @@ async function sendMessage() {
   const dict = I18N[currentLang] || I18N.en;
   const ui = dict.ui || I18N.en.ui;
   let gatewayResponseReceived = false;
+  const msgIdx = chatHistory.length;
+  let inputPromptTokens = 0;
+  let storyDiv = null;
+  let contentSpan = null;
+  let footer = null;
+  let asstFullText = "";
+  let thoughtFullText = "";
+  let streamStartTime = 0;
 
   isGenerating = true;
   try {
@@ -12400,7 +12408,6 @@ async function sendMessage() {
   }
 
   // User row
-  const msgIdx = chatHistory.length;
   const userDiv = document.createElement("div");
   userDiv.className = "user-row";
   userDiv.setAttribute("data-msg-idx", msgIdx);
@@ -12426,7 +12433,6 @@ async function sendMessage() {
       userDiv.innerHTML = `${attachmentsHtml}<div class="user-bubble">${escapeHtml(text || (attachedFilesCopy.length > 0 ? "Attached " + attachedFilesCopy.length + " file(s)" : "Please analyze this image."))}</div><button type="button" class="btn-user-action" aria-label="Edit prompt and rerun from here" onclick="openEditUserMessage(${msgIdx})" title="Edit prompt and re-run from here">✏️</button>`;
   contentEl.appendChild(userDiv);
 
-  let inputPromptTokens = 0;
   if (typeof userPayloadContent === 'string') {
     inputPromptTokens = estimateTokensJS(userPayloadContent);
   } else if (Array.isArray(userPayloadContent)) {
@@ -12453,7 +12459,7 @@ async function sendMessage() {
   removeAttachedAttachment();
 
   // Assistant story card
-  const storyDiv = document.createElement("div");
+  storyDiv = document.createElement("div");
   storyDiv.className = "story-card markdown-body";
 
   const header = document.createElement("div");
@@ -12476,11 +12482,11 @@ async function sendMessage() {
   thoughtBox.innerHTML = `<div class="thought-card-header" role="button" tabindex="0" aria-label="Toggle reasoning details" onclick="this.parentElement.classList.toggle('collapsed')" title="Click to collapse / expand reasoning"><span class="thought-title-span">🧠 ${ui.reasoning}</span><span class="thought-toggle-icon">▼</span></div><div class="thought-content"></div>`;
   storyDiv.appendChild(thoughtBox);
 
-  const contentSpan = document.createElement("div");
+  contentSpan = document.createElement("div");
   contentSpan.innerHTML = `<div class="typing-indicator"><span>✦</span> <span>${dict.generating}</span></div>`;
   storyDiv.appendChild(contentSpan);
 
-  const footer = document.createElement("div");
+  footer = document.createElement("div");
   footer.className = "story-card-footer";
   footer.style.display = "none";
   footer.innerHTML = `
@@ -12523,10 +12529,6 @@ async function sendMessage() {
     if (m.role === "assistant" && m.status && m.status !== "complete") continue;
     reqMessages.push({role: m.role, content: m.content});
   }
-
-  let asstFullText = "";
-  let thoughtFullText = "";
-  let lastMathRenderTime = 0;
 
     const baseUrl = getGatewayBaseUrl();
     if (useGeminiProvider && !geminiProviderKey) {
@@ -12590,7 +12592,7 @@ async function sendMessage() {
     let pendingRender = false;
     let lastRenderTime = 0;
     let fallbackTimer = 0;
-    let streamStartTime = performance.now();
+    streamStartTime = performance.now();
     let sseEventData = [];
     let sseEventName = "";
     let sseUnknownFieldCount = 0;
@@ -12842,27 +12844,31 @@ async function sendMessage() {
     saveHistory();
   } catch(err) {
     if (err.name === 'AbortError') {
-      contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
-      renderAllMath(storyDiv);
-      highlightAllCode(storyDiv);
-      renderAllMermaid(storyDiv);
-      storyDiv.setAttribute('data-raw', asstFullText);
-      if (userIsAtBottom) keepMessagesAtBottom();
-      
-      const stopElapsed = (performance.now() - streamStartTime) / 1000;
+      const stopElapsed = streamStartTime > 0 ? (performance.now() - streamStartTime) / 1000 : 0;
       const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;
       const stopTokens = estimateTokensJS(asstFullText);
       const totalStopTokens = (inputPromptTokens + stopTokens);
       const inStopStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';
-      const statsEl = storyDiv.querySelector("#live-stream-stats");
-      if (statsEl) {
-        statsEl.innerText = `${inStopStr}Out: ~${stopTokens.toLocaleString()} tok • Total: ~${totalStopTokens.toLocaleString()} tok (stopped • ${stopElapsed.toFixed(2)}s)`;
-      }
+      if (contentSpan && storyDiv && footer) {
+        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`);
+        renderAllMath(storyDiv);
+        highlightAllCode(storyDiv);
+        renderAllMermaid(storyDiv);
+        storyDiv.setAttribute('data-raw', asstFullText);
+        if (userIsAtBottom) keepMessagesAtBottom();
 
-      footer.style.display = "flex";
-      const footerStats = footer.querySelector(".story-footer-token-stats");
-      if (footerStats) {
-        footerStats.innerText = `${finalWords} words • ${inStopStr}Out: ~${stopTokens.toLocaleString()} tok • Total: ~${totalStopTokens.toLocaleString()} tok (stopped • ${stopElapsed.toFixed(2)}s)`;
+        const statsEl = storyDiv.querySelector("#live-stream-stats");
+        if (statsEl) {
+          statsEl.innerText = `${inStopStr}Out: ~${stopTokens.toLocaleString()} tok • Total: ~${totalStopTokens.toLocaleString()} tok (stopped • ${stopElapsed.toFixed(2)}s)`;
+        }
+
+        footer.style.display = "flex";
+        const footerStats = footer.querySelector(".story-footer-token-stats");
+        if (footerStats) {
+          footerStats.innerText = `${finalWords} words • ${inStopStr}Out: ~${stopTokens.toLocaleString()} tok • Total: ~${totalStopTokens.toLocaleString()} tok (stopped • ${stopElapsed.toFixed(2)}s)`;
+        }
+      } else {
+        showToast("Generation stopped", "⏹️");
       }
 
       chatHistory.push({
@@ -12895,6 +12901,20 @@ async function sendMessage() {
         .replace(/(authorization|cookie|x-goog-api-key)\s*[:=]\s*[^\s,;]+/ig, "$1: [redacted]")
         .replace(/https?:\/\/[^\s<>"']+/gi, "[redacted-url]")
         .slice(0, MAX_HISTORY_ERROR_CHARS);
+      const errorStats = storyDiv && storyDiv.querySelector("#live-stream-stats");
+      if (errorStats) {
+        const inErrorStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';
+        errorStats.innerText = `${inErrorStr}${ui.generationFailed || "Generation failed"}`;
+      }
+      if (footer) {
+        footer.style.display = "flex";
+        const footerStats = footer.querySelector(".story-footer-token-stats");
+        if (footerStats) {
+          const errorTokens = estimateTokensJS(asstFullText);
+          const inErrorStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';
+          footerStats.innerText = `${inErrorStr}Out: ~${errorTokens.toLocaleString()} tok • ${ui.generationFailed || "Generation failed"}`;
+        }
+      }
       let errorHtml = "";
       const isGatewayAuthError = !useGeminiProvider && /bob gateway access key required|invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);
       if (isGatewayAuthError) {
@@ -12930,12 +12950,16 @@ async function sendMessage() {
       let errorWrapper = `<div style="padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
       if (asstFullText.trim() !== "" || thoughtFullText.trim() !== "") {
         errorWrapper = `<div style="margin-top:16px; padding:12px; border-radius:8px; background:rgba(239,68,68,0.08); border:1px solid rgba(239,68,68,0.3);">${errorHtml}</div>`;
-        contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + errorWrapper;
-        renderAllMath(storyDiv);
-        highlightAllCode(storyDiv);
-        renderAllMermaid(storyDiv);
-        storyDiv.setAttribute('data-raw', asstFullText);
-        if (userIsAtBottom) keepMessagesAtBottom();
+        if (contentSpan && storyDiv) {
+          contentSpan.innerHTML = renderMarkdown(asstFullText, `live-${msgIdx}-content`) + errorWrapper;
+          renderAllMath(storyDiv);
+          highlightAllCode(storyDiv);
+          renderAllMermaid(storyDiv);
+          storyDiv.setAttribute('data-raw', asstFullText);
+          if (userIsAtBottom) keepMessagesAtBottom();
+        } else {
+          showToast(`Generation failed: ${safeErrorMessage}`, "⚠️");
+        }
         
         chatHistory.push({
           role: "assistant", 
@@ -12946,7 +12970,11 @@ async function sendMessage() {
         });
         saveHistory();
       } else {
-        contentSpan.innerHTML = errorWrapper;
+        if (contentSpan) {
+          contentSpan.innerHTML = errorWrapper;
+        } else {
+          showToast(`Generation failed: ${safeErrorMessage}`, "⚠️");
+        }
         chatHistory.push({
           role: "assistant",
           content: "",

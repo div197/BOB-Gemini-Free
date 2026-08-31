@@ -89,6 +89,16 @@ to an earlier implementation. The current contract supersedes those phrases:
   overrides cannot be coalesced accidentally; an unserializable override
   safely disables coalescing for that request.
 
+### Generation terminal-state correctness
+
+- Keeps streamed text, cancellation counters, and error-state rendering in the
+  request handler's shared lifecycle scope. A failed connection or user stop
+  now exits the temporary `Streaming...` state without a client-side exception,
+  records the terminal turn, and exposes the existing retry actions.
+- Adds a deterministic browser smoke check for both a dead gateway endpoint and
+  a deliberately hanging local stream; no Google account or provider key is
+  required for either path.
+
 ### Responsive Studio navigation
 
 - Keeps the phone/tablet configuration drawer below the primary New/model
