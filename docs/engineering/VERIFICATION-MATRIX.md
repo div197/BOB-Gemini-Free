@@ -576,12 +576,13 @@ compatible model, and gateway-access check are all satisfied; selecting the
 default card turns the provider route off without clearing the student's key.
 
 `TestGatewayRouteChoiceGuideIsInteractiveAndAccessible` locks the native
-control, focus-visible, and state-synchronization markers. A current-source
-browser run exercised the missing-key path (focus moved to the provider-key
-field and the route stayed on web), a dummy-key provider selection, the return
-to web, and modal focus return with zero page-level horizontal overflow. This
-is source/browser evidence only: the unpublished Preview 8 package has not
-been rebuilt with this follow-up.
+control, focus-visible, and state-synchronization markers. Current-source and
+exact-packaged browser runs exercised the missing-key path (focus moved to the
+provider-key field and the route stayed on web), a dummy-key provider
+selection, the return to web, modal focus return, and zero page-level
+horizontal overflow. The exact package refresh is recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
+the candidate remains unpublished.
 
 ## Current Preview 6 publication addendum — 2026-08-31
 
@@ -605,7 +606,7 @@ is therefore an operator/project discipline, not a GitHub-enforced lock.
 | Preview 6 carries the reviewed v0.2 source follow-ups | VERIFIED_LIVE | The local package was built from release source target `f9b3410`, whose browser-boundary, credential-route, telemetry, release-version, settings, gateway-coexistence, and transport-guard changes are in the package receipt | Later `main` documentation/test-only reconciliation is not retroactively part of the published release. |
 | The updater can select Preview 6 for legacy Preview 7 and Preview 5 clients | VERIFIED_BY_UNIT_TEST | `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` uses a mocked official preview listing and asserts Preview 6 selection, manifest availability, and no self-update | The mock does not prove an installed-bundle replacement; one Preview 7/Preview 5 → Preview 6 pilot is still required. |
 | The settings surface explains the four credential boundaries | VERIFIED_BY_UNIT_TEST | `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`, `TestGatewayRouteChoiceGuideTracksSelectedRoute`, the localized dictionary test, and pre-send route guards cover BOB access, Google Developer API, engine-owned cookies, and endpoint identity | Student-owned key validity, Google quota, provider availability, and the safety of a remote endpoint remain external decisions. |
-| The current source Preview 8 candidate is locally packaged and signed without being represented as public | VERIFIED_LOCAL | Reviewed runtime source commit `0583779dc6fcc635fadfa935bf164687affe7bdb` passed the clean-source gate, Wails universal build, Keychain-backed manifest signer, exact-asset verifier, DMG-layout check, packaged `/healthz` and static-route smoke, updater transition tests, browser settings/preflight smoke, and current source tests; receipt: `PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md` | `v0.2.0-preview.8` is not published or downloadable; installed Preview 6 → Preview 8 replacement, public-byte reconciliation, rollback, clean-device, Apple trust, provider, and pilot gates remain open. |
+| The current source Preview 8 candidate is locally packaged and signed without being represented as public | VERIFIED_LOCAL | Reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6` passed the clean-source gate, Wails universal build, Keychain-backed manifest signer, exact-asset verifier, DMG-layout check, packaged `/healthz` and static-route smoke, packaged settings smoke, updater transition tests, browser settings/preflight smoke, and current source tests; receipt: `PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md` | `v0.2.0-preview.8` is not published or downloadable; installed Preview 6 → Preview 8 replacement, public-byte reconciliation, rollback, clean-device, Apple trust, provider, and pilot gates remain open. |
 | The Gateway settings dialog keeps its interaction controls usable at responsive widths | VERIFIED_LIVE | Current-source browser checks at 390×844, 1024×768, and 1440×900 found no Gateway-modal button or non-checkbox text/password input below 44px, no page-level horizontal overflow, bounded dialog scrolling, and focus return; `TestGatewayModalControlsMeetTouchTargetContract` protects the CSS contract | This is current-bundle browser evidence, not native-WebView, assistive-technology, provider, clean-device, or fleet acceptance. |
 | A known protected gateway can leave the Developer API route enabled without its separate BOB access credential | VERIFIED_BY_UNIT_TEST | After `Test Ping` observes the endpoint's `401`, `gatewayAccessSelectionIssue()` feeds the route-status card and blocks the Developer API toggle until the BOB Gateway Access Key is present; `TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the guard and localized requirement copy | The guard depends on an explicit connection check; it cannot infer remote ownership or trust before the operator tests and saves an endpoint. |
 | A stable 0.2.0 student release is ready | UNKNOWN | Local source/package/public-byte gates are green, but no Apple platform trust, clean-device rollback, live provider, Windows/Linux, or staged pilot evidence exists | Do not announce stable or perform a 30-device wave until the remaining acceptance gates are recorded. |
