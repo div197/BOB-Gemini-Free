@@ -415,8 +415,8 @@ deterministic history-limit stream regression. The signed public
 is now published from public-main commit `6d3a0cfc`.
 The local branch is
 `codex/release-readiness-v0.2.0`; its reviewed source is now included in
-public `main` through protected PRs #42–#47. The Preview 2 publication baseline
-was rechecked against public `main` after PR #46. No stable release was tagged, no GitHub Actions
+public `main` through protected PRs #42–#48. The Preview 2 publication baseline
+was rechecked against public `main` before publication. No stable release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider secret was used. The release
 private key was used only inside the owner-controlled local Keychain signing
 operation and was never exposed to source, Git, chat, or a student package.

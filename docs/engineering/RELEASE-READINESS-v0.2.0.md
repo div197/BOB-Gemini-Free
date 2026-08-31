@@ -21,8 +21,9 @@ current local truth is:
   [#46](https://github.com/div197/BOB-Gemini-Free/pull/46) merged the native
   Windows metadata replacement path.
 - The Preview 2 release source baseline is public-main merge commit
-  `6d3a0cfc`; protected PR #47 reconciled the release-readiness documentation
-  after the updater hardening merges. No runtime source remains only on the
+  `6d3a0cfc`; protected PR #47 established the preceding readiness record and
+  PR #48 reconciled the publication state after the updater hardening merges.
+  No runtime source remains only on the
   preserved `codex/release-readiness-v0.2.0` branch, and the exact public merge
   commit was rechecked before this documentation refresh.
 - The immutable public `v0.2.0-preview.1` bridge was not rebuilt or
@@ -152,15 +153,15 @@ The public GitHub state was also checked:
 - its macOS universal DMG/ZIP, release notice, checksum manifest, and detached
   signature are present, were re-downloaded, signature-verified, and matched
   the locally signed files byte-for-byte;
-- the reviewed source hardening was published to `main` through protected PRs
-  #31, #42, #44, #46, and #47; the Preview 2 publication baseline is
-  `6d3a0cfc`;
+- the reviewed source hardening and release record were published to `main`
+  through protected PRs #31, #42, #44, #46, #47, and #48; the Preview 2
+  publication baseline is `6d3a0cfc`;
 - the release-source coherence, installer trust-anchor, and session-only
   gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
   #38; that historical snapshot recorded `origin/main` as `f3a0a8c`; the
   current authoritative `origin/main` at that historical snapshot was
   `523ceeb` (PR #41, which contains those earlier merge ancestors); the later
-  protected PRs #42–#47 are recorded in the current-local-truth section above
+  protected PRs #42–#48 are recorded in the current-local-truth section above
   and were rechecked before this refresh;
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
