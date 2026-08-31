@@ -9706,9 +9706,41 @@ currentAttachedDoc = null;   // Backwards-compatible reference
 let activeAttachmentParses = 0;
 const pendingAttachmentParseSlots = [];
 
-function acquireAttachmentParseSlot() {
-  return new Promise(resolve => {
-    const grant = () => {
+function acquireAttachmentParseSlot(signal = null) {
+  return new Promise((resolve, reject) => {
+    let settled = false;
+    let queued = false;
+
+    function cleanup() {
+      if (signal && typeof signal.removeEventListener === 'function') {
+        signal.removeEventListener('abort', onAbort);
+      }
+    }
+
+    function removeQueuedGrant() {
+      if (!queued) return;
+      const index = pendingAttachmentParseSlots.indexOf(grant);
+      if (index >= 0) pendingAttachmentParseSlots.splice(index, 1);
+      queued = false;
+    }
+
+    function onAbort() {
+      if (settled) return;
+      settled = true;
+      removeQueuedGrant();
+      cleanup();
+      reject(attachmentAbortError());
+    }
+
+    function grant() {
+      if (settled) return;
+      if (signal && signal.aborted) {
+        onAbort();
+        return;
+      }
+      settled = true;
+      queued = false;
+      cleanup();
       activeAttachmentParses++;
       let released = false;
       resolve(() => {
@@ -9718,10 +9750,19 @@ function acquireAttachmentParseSlot() {
         const next = pendingAttachmentParseSlots.shift();
         if (next) next();
       });
-    };
+    }
+
+    if (signal && typeof signal.addEventListener === 'function') {
+      signal.addEventListener('abort', onAbort, { once: true });
+      if (signal.aborted) {
+        onAbort();
+        return;
+      }
+    }
     if (activeAttachmentParses < MAX_ATTACHMENT_PARSE_CONCURRENCY) {
       grant();
     } else {
+      queued = true;
       pendingAttachmentParseSlots.push(grant);
     }
   });
@@ -9933,7 +9974,17 @@ async function extractDocumentToMarkdown(file) {
   attachedFilesList.push(fileEntry);
   renderAttachmentsShelf();
 
-  const releaseParseSlot = await acquireAttachmentParseSlot();
+  let releaseParseSlot;
+  try {
+    releaseParseSlot = await acquireAttachmentParseSlot(fileEntry.abortController ? fileEntry.abortController.signal : null);
+  } catch (error) {
+    if (error && error.name === 'AbortError') return;
+    fileEntry.status = 'error';
+    fileEntry.statusText = 'Failed to queue parse';
+    console.error('Unable to queue file parsing:', error);
+    renderAttachmentsShelf();
+    return;
+  }
   let activePDF = null;
   let activePDFLoadingTask = null;
   try {
