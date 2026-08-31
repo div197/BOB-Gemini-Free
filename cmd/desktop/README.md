@@ -12,8 +12,10 @@ cannot strand the window on its loading screen.
 
 The packaged app discovers the current user's config and cookie files when
 they exist, while forcibly keeping the desktop gateway on loopback with API
-keys and remote origins disabled. It never ships a shared Google session or
-developer credential.
+keys and remote origins disabled. The Config modal's BOB Gateway Access Key is
+therefore normally unnecessary for the embedded engine; it is only for a
+separately running protected BOB endpoint. It never ships a shared Google
+session or developer credential.
 
 ## Development prerequisites
 

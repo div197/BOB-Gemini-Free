@@ -15,7 +15,14 @@ import (
 	"github.com/div197/bob-gemini-free/internal/models"
 )
 
-const geminiProviderKeyHeader = "X-BOB-Gemini-API-Key"
+const (
+	geminiProviderKeyHeader = "X-BOB-Gemini-API-Key"
+	// geminiProviderRouteHeader lets the Studio explicitly pin its default
+	// web-session choice even when the owning process has a provider key in its
+	// environment. It is a route selector, not a credential.
+	geminiProviderRouteHeader = "X-BOB-Gemini-Route"
+	geminiWebRoute            = "web"
+)
 
 func (a *App) rejectDeveloperAPIOnRoute(w http.ResponseWriter, r *http.Request, route string) bool {
 	_, selected, err := a.geminiAPIKeyForRequest(r)
@@ -30,16 +37,51 @@ func (a *App) rejectDeveloperAPIOnRoute(w http.ResponseWriter, r *http.Request, 
 	return false
 }
 
+// webRouteOverrideRequested reports whether the caller explicitly selected the
+// cookie-backed web route. This is used by the Studio to keep its visible route
+// toggle authoritative when the gateway process also has a configured
+// Developer API key for non-Studio clients.
+func webRouteOverrideRequested(r *http.Request) (bool, error) {
+	var values []string
+	for name, headerValues := range r.Header {
+		if strings.EqualFold(name, geminiProviderRouteHeader) {
+			values = append(values, headerValues...)
+		}
+	}
+	if len(values) == 0 {
+		return false, nil
+	}
+	if len(values) > 1 {
+		return false, errors.New("only one Gemini request route may be supplied")
+	}
+	if strings.ToLower(strings.TrimSpace(values[0])) != geminiWebRoute {
+		return false, errors.New("unsupported Gemini request route")
+	}
+	return true, nil
+}
+
 // geminiAPIKeyForRequest resolves exactly one provider key. A request header
 // takes precedence over the process-level key, but a blank or repeated header
-// is an error. There is intentionally no pool/rotation behavior: that would
-// obscure quota ownership and could be used to evade provider limits.
+// is an error. The explicit web route can suppress the process-level key for a
+// Studio request without changing the legacy behavior of other clients. There
+// is intentionally no pool/rotation behavior: that would obscure quota
+// ownership and could be used to evade provider limits.
 func (a *App) geminiAPIKeyForRequest(r *http.Request) (string, bool, error) {
 	var values []string
 	for name, headerValues := range r.Header {
 		if strings.EqualFold(name, geminiProviderKeyHeader) {
 			values = append(values, headerValues...)
 		}
+	}
+	webRoute, err := webRouteOverrideRequested(r)
+	if err != nil {
+		return "", false, err
+	}
+	if webRoute {
+		if len(values) > 0 {
+			return "", false, errors.New("Gemini web route cannot be combined with a Developer API key")
+		}
+		return "", false, nil
 	}
 	if len(values) > 1 {
 		return "", false, errors.New("only one Gemini Developer API key may be supplied")

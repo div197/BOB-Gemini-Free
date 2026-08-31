@@ -114,7 +114,7 @@ func (a *App) withCORS(next http.Handler) http.Handler {
 			w.Header().Add("Vary", "Origin")
 		}
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, HEAD")
-		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, x-bob-gemini-api-key, *")
+		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Accept, Origin, User-Agent, x-api-key, anthropic-version, anthropic-beta, x-goog-api-key, x-goog-api-client, x-client-request-id, x-bob-gemini-api-key, x-bob-gemini-route, *")
 		w.Header().Set("Access-Control-Expose-Headers", "x-request-id, openai-processing-ms, openai-version, content-length, x-bob-auth-required, x-bob-gateway, x-bob-protocol, x-bob-version")
 		w.Header().Set("Access-Control-Allow-Private-Network", "true")
 

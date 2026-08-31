@@ -1090,12 +1090,14 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`id="gateway-route-status"`,
 		`id="gateway-route-status-title"`,
 		`id="gateway-route-status-help"`,
+		`id="gateway-desktop-boundary"`,
 		`id="gateway-route-access-state"`,
 		`id="gateway-route-provider-state"`,
 		`id="gateway-route-model-state"`,
 		`data-state="blocked"`,
 		`Credential map — these are different`,
 		`most students should leave both key fields empty`,
+		`Native desktop note: the embedded gateway stays on loopback`,
 		`Default web-session route:`,
 		`Google Developer API route:`,
 		`BOB endpoint access:`,
@@ -1109,6 +1111,7 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`aria-describedby="gemini-provider-help gemini-provider-route-note"`,
 		`This is not the BOB Gateway Access Key.`,
 		`Use your Google key for this session`,
+		`headers["X-BOB-Gemini-Route"] = "web"`,
 		`function toggleApiKeyVisibility()`,
 		`input.type = input.type === "password" ? "text" : "password";`,
 		`keyInput.type = "password";`,
@@ -1137,6 +1140,7 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 
 	for _, marker := range []string{
 		`gatewayCredentialMapTitle:`,
+		`gatewayDesktopBoundary:`,
 		`gatewayAuthTitle:`,
 		`gatewayRouteWebHelp:`,
 		`gatewayRouteProviderHelp:`,
@@ -1180,6 +1184,7 @@ func TestPlaygroundCredentialTranslationsUseTheCorrectDictionaryScope(t *testing
 	for _, marker := range []string{
 		`"gateway-credential-map-title": dict.gatewayCredentialMapTitle,`,
 		`"gateway-credential-map-lead": dict.gatewayCredentialMapLead,`,
+		`"gateway-desktop-boundary": dict.gatewayDesktopBoundary,`,
 		`"gateway-route-web-label": dict.gatewayRouteWebLabel,`,
 		`"gateway-route-web-help": dict.gatewayRouteWebHelp,`,
 		`"gateway-route-provider-label": dict.gatewayRouteProviderLabel,`,

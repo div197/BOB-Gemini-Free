@@ -115,6 +115,12 @@ to use their own AI Studio project and its provider limits. The Config modal
 shows this choice before either credential is entered, and it keeps the two
 fields independent.
 
+The native desktop wrapper is a special local case: it forces the embedded
+gateway to `127.0.0.1` and removes BOB `api_keys` from the desktop configuration.
+That is why the BOB access field is normally empty in the downloaded app. The
+field remains available for a Studio page that is deliberately connected to a
+separately running protected CLI, Docker, or LAN gateway.
+
 The gateway access key and the Developer API key are not interchangeable. The
 first controls entry to BOB; the second selects a different Google upstream and
 assigns provider quota/billing responsibility to the student's project. If the
@@ -139,7 +145,11 @@ student-owned Developer API key per process. BOB does not rotate a key pool,
 turn a provider key into gateway authorization, or silently retry a request
 through the other upstream. The Studio's page-memory key and the process-level
 key are separate configurations; the Studio cannot display or clear a key that
-was supplied to the engine process.
+was supplied to the engine process. When the Studio's Developer API toggle is
+off, it sends an explicit `X-BOB-Gemini-Route: web` selector so that its visible
+default web-session choice cannot be silently overridden by that process-level
+key. Other clients that omit the selector retain the documented process-level
+behavior.
 
 ### Runtime route status and guards
 
