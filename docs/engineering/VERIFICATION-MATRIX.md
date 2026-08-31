@@ -263,8 +263,8 @@ two justified protected-core changes described in
 
 The historical Mission 0 statements above were not the branch status at that
 audit boundary. The following evidence was recorded then. It is retained for
-provenance; the current Preview 5 publication and migration evidence in the
-addendum below supersedes its release-specific rows.
+  provenance; the current Preview 6 publication and migration evidence in the
+  final addendum below supersedes its release-specific rows.
 
 | Claim at the 2026-08-21 audit boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
@@ -278,10 +278,10 @@ addendum below supersedes its release-specific rows.
 | Public-repository secret scanning and push protection are enabled | VERIFIED_LIVE | GitHub repository settings were enabled and the current secret-alert query returned an empty list | GitHub settings are external state and must remain part of maintainer release review. |
 | `main` requires pull requests and blocks force-push/deletion | VERIFIED_LIVE | GitHub branch protection reports enforced admins, pull-request review gate, conversation resolution, and disabled force pushes/deletions | No hosted status check is required because this project intentionally does not use GitHub Actions; local validation remains mandatory. |
 | The native desktop process honors a user's local config/cookie without widening its network boundary | VERIFIED_BY_UNIT_TEST | `cmd/desktop/config_test.go` verifies cookie discovery while forcing loopback, empty API keys, and empty remote origins | First-run login UX is not implemented; authenticated features remain per-user/session-dependent. |
-| The public release is a student-ready cross-platform native installer set | UNKNOWN | GitHub release inspection found CLI assets in `v0.1.5` but no trusted native installer set; only macOS ARM64 ad-hoc native smoke testing is complete | Requires native Windows/Linux builds, clean-device tests, platform signing, macOS notarization, and manual release publication. |
-| A public native desktop preview is available for controlled evaluation | VERIFIED_LIVE | Manually published prerelease `v0.2.0-preview.5` contains the branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This is a beta preview only: no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Existing Preview 6 installations require one manual migration because the original project signing key was not recoverable. The released Preview 7 updater can select a current same-key Preview 5 candidate through its preview path, but installed replacement remains a device gate. |
+| The public release is a student-ready cross-platform native installer set | UNKNOWN | GitHub release inspection found CLI assets in `v0.1.5` but no trusted native installer set; the current public desktop preview is macOS-only and only macOS ARM64 ad-hoc native smoke testing is complete | Requires native Windows/Linux builds, clean-device tests, platform signing, macOS notarization, and manual release publication. |
+| A public native desktop preview is available for controlled evaluation at the historical Preview 5 boundary | VERIFIED_LIVE | At that historical boundary, manually published prerelease `v0.2.0-preview.5` contained the branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This historical beta evidence does not replace the current Preview 6 addendum: there is still no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Installed replacement remains a device gate. |
 | A free branded macOS preview package can be created without Apple membership | VERIFIED_BY_INTEGRATION_TEST | `scripts/package-wails-preview.sh` creates a branded `BOB Gemini Free.app`, `.zip`, `.dmg`, release notice, and checksums without Developer ID credentials; the bundle metadata uses the `com.abcsteps` identity | This proves local packaging only; it does not establish Gatekeeper trust, notarization, clean-device acceptance, or public student readiness. |
-| The native desktop app exposes an explicit update check | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` selects only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covers branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current source can offer a consented verified update; the already-published Preview 7 binary has a current same-key Preview 5 candidate available through its preview-only path. It does not silently install, remove the macOS warning, or replace platform publisher trust. |
+| The native desktop app exposes an explicit update check at the historical Preview 5 boundary | VERIFIED_BY_UNIT_TEST | At that historical boundary, `internal/updater/desktop.go` selected only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covered branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current Preview 6 source adds the published-candidate matrix in the final addendum. Neither source evidence nor the published package silently installs, removes the macOS warning, or replaces platform publisher trust. |
 
 ## Preview 3 v0.2.0 release-readiness update — 2026-08-31 (historical)
 
@@ -419,9 +419,8 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31 (historical snapshot)
 
 This continuation snapshot supersedes older commit labels in the historical
-sections above, but is itself retained for provenance. The current Preview 5
-publication and credential addendum below is authoritative for the present
-release.
+sections above, but is itself retained for provenance. The current Preview 6
+publication addendum at the end is authoritative for the present release.
 The reviewed code tip at the start of this continuation was `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
@@ -525,10 +524,10 @@ post-publication source fixes. The next source package candidate is explicitly
 claim should imply that Preview 4 already contains either post-release source
 change.
 
-## Current Preview 5 publication and credential addendum — 2026-08-31
+## Preview 5 publication and credential addendum — historical boundary
 
-This addendum supersedes older “current” commit labels in the historical
-sections above. The immutable Preview 5 package was built from the merged
+This section records the Preview 5 boundary and supersedes no later release
+state. The immutable Preview 5 package was built from the merged
 commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; the route-clarity patch and
 Preview 5 release reconciliation are public source. After publication,
 protected PR #77 and PR #78 advanced public `main` to the intermediate
@@ -539,13 +538,14 @@ telemetry, release-version, settings, and desktop-coexistence hardening. PR #84
 then moved public `main` to `0cc81b2029d5dd467f7c96b26a8b812bee1ab461` with
 the release-state documentation and updater-matrix reconciliation. PR #86 then
 moved it to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` with the fail-closed
-gateway access-key transport guard. None
-of these post-publication source changes are contained in immutable Preview 5
-assets. Preview 4 assets remain immutable historical input, while Preview 5 is
-the current public macOS prerelease package. The complete local package receipt is in
-[`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
+gateway access-key transport guard. The Preview 6 release source target is
+`f9b3410e74d7ccc08487dc03788b54a201e12ade`; its package contains these
+post-publication follow-ups. Preview 4 and Preview 5 remain immutable
+historical inputs, while Preview 6 is the current public macOS prerelease
+package. The complete package receipt is in
+[`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the Preview 5 boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | Studio users can distinguish the BOB access credential, the Google Developer API key, the web-session cookies, and the gateway endpoint | VERIFIED_IN_SOURCE | `internal/server/playground.html` presents a credential map, separate labels, password masking, scoped help, and explicit session/provider-route wording; `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials` locks the boundary in English and Hindi | The UI cannot tell whether a remote endpoint is trustworthy or whether a student has permission to use a key; the user/operator must make that decision. |
 | A rejected Google Developer API key is mislabeled as a missing BOB gateway access key | VERIFIED_BY_UNIT_TEST | The Studio preserves provider-route HTTP 401 messages, scopes gateway-auth classification away from the provider route, and names **BOB Gateway Access Key** in the gateway error; `TestChatDeveloperAPIAuthFailureNamesProviderNotGateway`, `TestPlaygroundBoundsManualRetriesAndLocksRequestControls`, and `TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute` lock the backend and source behavior | A configured process-level provider key is not visible to the Studio's route toggle; the operator must still identify which route the process is using. |
@@ -558,6 +558,27 @@ the current public macOS prerelease package. The complete local package receipt 
 | An existing writable Preview 1 installation can replace itself with Preview 5 | VERIFIED_LIVE | Native Help → Check for Updates discovered Preview 5; explicit install replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check found no newer release | This is one successful device path; Preview 4/Preview 7 baselines, deliberate rollback, and 20–30-device rollout remain open. |
 | Public `main` contains post-Preview 5 source follow-ups | VERIFIED_LIVE | Protected PRs #77–#83 merged the in-app-browser localhost-origin, credential-input, telemetry, release-version, settings, and desktop-coexistence follow-ups; documentation/test reconciliation PR #84 moved public `main` to `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`, and PR #86 moved it to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` with the secure gateway-key transport guard | These changes are not in immutable Preview 5 bytes. A new signed preview is required before students receive them. |
 | Studio telemetry can distinguish a live secured gateway from protected aggregate stats without repeated unauthorized polling | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` checks public `/healthz` and its exposed `X-BOB-Auth-Required` marker before requesting `/`; `TestTelemetryUsesHealthzBeforeProtectedStats` and `TestTrustedBrowserCanReadHealthzAuthMarker` protect the ordering and cross-origin header contract, and a current-main browser smoke observed repeated `/healthz` requests with no `/` 401 loop | Stats remain unavailable without the BOB access key, and remote browser/PNA deployment acceptance remains open. |
-| The local `v0.2.0-preview.6` candidate is package-verified but not public | VERIFIED_LOCAL | A fresh universal macOS candidate rebuilt from exact merged public `main` `49e0d3b` passed package, ad-hoc bundle, detached-manifest, DMG-layout, full test, race, vet, module, build, and local 1/10/20/30 benchmark gates; its exact receipt is `PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md` | It has not been uploaded; Preview 5 remains the current downloadable package. Apple trust, clean-device rollback, provider behavior, and pilot acceptance remain open. |
-| A newly built native desktop app cannot silently attach to an older BOB gateway on the configured port | VERIFIED_LOCAL | The current-main signed Preview 6 candidate launched beside the older installed process on `127.0.0.1:8081`, selected a safe loopback port (`127.0.0.1:51802` in the run), returned `X-BOB-Version: v0.2.0-preview.6`, rendered its own version, and shut down cleanly; `cmd/desktop/gateway_test.go` covers exact reuse and stale-version fallback | This is one macOS host and a local candidate, not a clean-device, cross-platform, or fleet acceptance result. |
+| The published `v0.2.0-preview.6` package is signed and structurally valid | VERIFIED_LIVE | A universal macOS package rebuilt from release source target `f9b3410` passed package, ad-hoc bundle, detached-manifest, DMG-layout, full test, race, vet, module, build, and local 1/10/20/30 benchmark gates; the five public assets were then downloaded and verified against the signed input; receipt: `PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md` | This is project-byte authenticity, not Apple Developer ID signing/notarization or a clean-device/pilot/rollback acceptance claim. |
+| A newly built native desktop app cannot silently attach to an older BOB gateway on the configured port | VERIFIED_LOCAL | The current-main signed Preview 6 package launched beside the older installed process on `127.0.0.1:8081`, selected a safe loopback port (`127.0.0.1:53065` in the run), returned `X-BOB-Version: v0.2.0-preview.6`, rendered its own version, and shut down cleanly; `cmd/desktop/gateway_test.go` covers exact reuse and stale-version fallback | This is one macOS host and a local package, not a clean-device, cross-platform, or fleet acceptance result. |
 | The credential settings surface keeps BOB access, Google Developer API, web-session cookies, and endpoint identity distinct | VERIFIED_LIVE | Current-source browser smoke showed the credential map, separate masked fields, explicit provider-route toggle, page-memory wording, engine-owned cookie boundary, and Google AI Studio/limits links; source tests cover English/Hindi localization and pre-send route guards | Provider quota/availability, endpoint trust decisions, and student-owned key validity remain external. |
+
+## Current Preview 6 publication addendum — 2026-08-31
+
+This is the current release-state boundary for the repository. Historical
+Preview 1–5 sections above remain evidence of earlier states and must not be
+read as the current downloadable package.
+
+The immutable public macOS prerelease is
+[`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
+packaged from source target `f9b3410`. Its five public assets were manually
+published, re-downloaded, signature-verified, and compared byte-for-byte with
+the local signed inputs. The current source advances `PREVIEW_VERSION` to the
+unused `v0.2.0-preview.7` so Preview 6 cannot be rebuilt accidentally.
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| Preview 6 is the current public macOS beta | VERIFIED_LIVE | GitHub release `v0.2.0-preview.6` is published as a prerelease with the universal DMG, ZIP, notice, checksum manifest, and detached signature; the five public files were freshly verified | It remains ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
+| Preview 6 carries the reviewed v0.2 source follow-ups | VERIFIED_LIVE | The local package was built from release source target `f9b3410`, whose browser-boundary, credential-route, telemetry, release-version, settings, gateway-coexistence, and transport-guard changes are in the package receipt | Later `main` documentation/test-only reconciliation is not retroactively part of the immutable tag. |
+| The updater can select Preview 6 for legacy Preview 7 and Preview 5 clients | VERIFIED_BY_UNIT_TEST | `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` uses a mocked official preview listing and asserts Preview 6 selection, manifest availability, and no self-update | The mock does not prove an installed-bundle replacement; one Preview 7/Preview 5 → Preview 6 pilot is still required. |
+| The settings surface explains the four credential boundaries | VERIFIED_BY_UNIT_TEST | `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`, the localized dictionary test, and pre-send route guards cover BOB access, Google Developer API, engine-owned cookies, and endpoint identity | Student-owned key validity, Google quota, provider availability, and the safety of a remote endpoint remain external decisions. |
+| A stable 0.2.0 student release is ready | UNKNOWN | Local source/package/public-byte gates are green, but no Apple platform trust, clean-device rollback, live provider, Windows/Linux, or staged pilot evidence exists | Do not announce stable or perform a 30-device wave until the remaining acceptance gates are recorded. |

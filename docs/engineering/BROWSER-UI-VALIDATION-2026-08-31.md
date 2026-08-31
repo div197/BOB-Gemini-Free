@@ -70,7 +70,7 @@ advanced to `ade691d` through PR #77 (browser security evidence) and PR #78
 (credential-input probe hygiene). It then advanced through PRs #80–#83 to
 `9f11eef`, documentation/test reconciliation PR #84 moved public `main` to
 `0cc81b2`, and PR #86 added the browser gateway-key transport guard at
-`49e0d3b`; all of these post-publication source changes require a new package
-and are not claimed for Preview 5. Native macOS, Windows, Linux, CDN/offline,
-and clean-device acceptance remain open gates in
+`49e0d3b`. These post-publication source changes are not claimed for Preview 5;
+they are included in the published Preview 6 package from `f9b3410`. Native
+macOS, Windows, Linux, CDN/offline, and clean-device acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).

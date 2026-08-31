@@ -2,26 +2,26 @@
 
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Source baseline before this audit change:** public `main` at `558e8609333e`
-**Current audited packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
-**Current public-main head after Preview 5 publication:** commit `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation; not included in immutable Preview 5 assets)
+**Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
+**Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
 ## Decision
 
-The repository is source-ready and has published the signed, verified
-`v0.2.0-preview.5` macOS prerelease from packaged source target `c28d787`.
-Its assets were re-downloaded and reconciled byte-for-byte, and one
-writable `/Applications` Preview 1 installation updated and restarted into
-Preview 5 with its visible chat state preserved. The release is not yet a
-fleet-ready update. The existing `v0.2.0-preview.4` assets remain immutable and
-were not overwritten.
+The repository is source-ready and has now published the signed, verified
+`v0.2.0-preview.6` macOS prerelease from packaged source target `f9b3410`.
+Its five assets were re-downloaded and reconciled byte-for-byte after manual
+publication. The earlier Preview 5 installation migration remains a one-host
+observation; Preview 6 is not yet a fleet-ready update. The existing Preview 4
+and Preview 5 assets remain immutable and were not overwritten.
 
-Public `main` is now ahead of the packaged Preview 5 source baseline because
-the browser-boundary and credential-input follow-ups were merged after
-publication. They are verified source changes, not part of the bytes students
-currently download from Preview 5; they need a new immutable preview before
-rollout.
+The Preview 6 package was built from the recorded release source target. The
+browser-boundary, credential-input, telemetry, release-version, settings,
+desktop-coexistence, release-state, and gateway-key transport follow-ups are
+included in the newly published Preview 6 bytes. Current `main` continues the
+release reconciliation, while the package itself remains immutable; all of it
+still requires staged device acceptance before broad rollout.
 
 Do not call the current state a stable student release. Apple Developer ID,
 notarization, clean-device replacement/rollback, Windows/Linux acceptance,
@@ -31,38 +31,38 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` through PRs #77–#86 | VERIFIED |
-| Public releases | Latest desktop preview is immutable `v0.2.0-preview.5`; Preview 4 remains available as historical input | VERIFIED |
+| Public source | Preview 6 is packaged from `f9b3410e74d7ccc08487dc03788b54a201e12ade`; the earlier Preview 5 source baseline `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` remains historical | VERIFIED |
+| Public releases | Latest desktop preview is immutable `v0.2.0-preview.6`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
-| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.5` passes | VERIFIED |
+| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.6` passes on the release source target | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
-| Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from clean checkout `88f2881` whose source tree matches the public release target, and passed local asset verification | VERIFIED_LOCAL |
-| Preview 5 package smoke | Fresh `open -n` launch owns loopback `127.0.0.1:8081`, returns `{"status":"ok"}` from `/healthz`, serves the credential map, and shuts down cleanly | VERIFIED_LOCAL |
-| Preview 6 current-main candidate | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `49e0d3b`; bundle, architecture, DMG layout, signed manifest, and updater version checks passed | VERIFIED_LOCAL |
-| Preview 6 coexistence smoke | The `/tmp` candidate selected `127.0.0.1:51802` while the installed app stayed on `127.0.0.1:8081`, served `X-BOB-Version: v0.2.0-preview.6`, and shut down cleanly | VERIFIED_LOCAL |
-| Preview 5 public assets | All five published assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE |
-| Existing writable Preview 1 installation updates to Preview 5 | **Help → Check for Updates** discovered Preview 5; explicit install closed the old app, replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check reported no newer release | VERIFIED_LIVE |
+| Historical Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from clean checkout `88f2881` whose source tree matched the then-current public release target, and passed local asset verification | VERIFIED_LOCAL_HISTORICAL |
+| Historical Preview 5 package smoke | Fresh `open -n` launch owned loopback `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential map, and shut down cleanly | VERIFIED_LOCAL_HISTORICAL |
+| Preview 6 package | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `f9b3410`; bundle, architecture, DMG layout, signed manifest, and updater version checks passed | VERIFIED_LOCAL |
+| Preview 6 public assets | All five uploaded assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE |
+| Preview 6 coexistence smoke | The `/tmp` candidate selected `127.0.0.1:53065` while the installed app stayed on `127.0.0.1:8081`, served `X-BOB-Version: v0.2.0-preview.6`, and shut down cleanly | VERIFIED_LOCAL |
+| Historical Preview 5 public assets | All five published assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE_HISTORICAL |
+| Historical Preview 1 installation update to Preview 5 | **Help → Check for Updates** discovered Preview 5; explicit install closed the old app, replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check reported no newer release. This remains the only live installed-bundle migration observation. | VERIFIED_LIVE_HISTORICAL |
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
 | Current public stable endpoint | GitHub `/releases/latest` resolves to historical `v0.1.5`, not `v0.2.0` | VERIFIED |
 
-## Preview 6 candidate continuation — 2026-08-31
+## Preview 6 publication continuation — 2026-08-31
 
-Public `v0.2.0-preview.5` remains the latest downloadable desktop release.
-The merged public source at `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
-contains the version-aware desktop gateway handshake and the fail-closed
-gateway access-key transport guard. A fresh local universal
-`v0.2.0-preview.6` candidate was rebuilt from that exact public-main tree,
-signed with the owner-controlled Keychain path, verified against its detached
-manifest, and launched while the older installed gateway continued to own
-`127.0.0.1:8081`. The new app selected `127.0.0.1:51802` in the recorded run,
-exposed the exact `X-BOB-Version: v0.2.0-preview.6` marker, rendered its own
-version, and shut down cleanly. Full details and hashes are in
+Public `v0.2.0-preview.6` is now the latest downloadable desktop release.
+The release source at `f9b3410e74d7ccc08487dc03788b54a201e12ade` contains the
+version-aware desktop gateway handshake and the fail-closed gateway access-key
+transport guard. A universal Preview 6 package was rebuilt from that exact
+source, signed with the owner-controlled Keychain path, verified against its
+detached manifest, published manually, and re-downloaded into a fresh
+directory. The local package launched while the older installed gateway owned
+`127.0.0.1:8081`; it selected `127.0.0.1:53065`, exposed the exact
+`X-BOB-Version: v0.2.0-preview.6` marker, rendered its own version, and shut
+down cleanly. Full details and hashes are in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
 
-This is local candidate evidence, not a publication or fleet claim. Preview 6
-has not been uploaded to GitHub, and Apple trust, clean-device rollback, live
-Google behavior, and pilot acceptance remain open.
+This is a controlled public beta, not a fleet claim. Apple trust, clean-device
+rollback, live Google behavior, and pilot acceptance remain open.
 
 The Preview 7 and Preview 5 asset verifications prove the published packages
 and manifests use the current project trust anchor. The one-host update proves
@@ -76,11 +76,11 @@ The updater is user-consented. “Automatic update” means a bounded metadata
 check and a visible install choice; it does not mean a silent classroom-wide
 push.
 
-| Installed build | Candidate behavior now that Preview 5 is published | Required condition |
+| Installed build | Candidate behavior now that Preview 6 is published | Required condition |
 |---|---|---|
-| `v0.1.7-preview.7` | Legacy preview-only lookup can select `v0.2.0-preview.5` | Same current project key, macOS package/manifest published, app copied to a writable location |
-| `v0.2.0-preview.1`–`preview.4` | Current preview path selects the newest preview when no newer stable exists; Preview 1 → Preview 5 was observed on one Mac | Same key and explicit consent; Preview 4 assets remain unchanged |
-| Current-source `v0.2.0-preview.5` | No update to itself; later previews are selected by semver | Published signed successor and writable install target |
+| `v0.1.7-preview.7` | Legacy preview-only lookup selects the published `v0.2.0-preview.6` candidate in the mocked matrix | Same current project key, macOS package/manifest published, app copied to a writable location; live device transition remains open |
+| `v0.2.0-preview.1`–`preview.5` | Current preview path selects the newest published preview when no newer stable exists; Preview 1 → Preview 5 was observed on one Mac | Same key and explicit consent; Preview 4 and Preview 5 assets remain unchanged; Preview 6 device transition remains open |
+| Current-source `v0.2.0-preview.6` | No update to itself; later previews are selected by semver | A later signed successor and writable install target |
 | `v0.2.0` stable build | Checks only the stable endpoint; it never downgrades into preview | A newer public stable release must exist |
 | `v0.1.7-preview.6` or a build with the unrecoverable old key | Cannot verify a current-key release | One manual installation of a current-key package |
 | Mounted DMG, App Translocation, or read-only app path | Update is refused before download/staging | Copy the app to `/Applications` or another writable location and relaunch |
@@ -111,19 +111,18 @@ Complete these in order, from a clean checkout based on public `main`:
 6. **COMPLETED locally:** `scripts/verify-release-assets.sh` passed. The
    detailed current candidate receipt is in
    [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
-7. **OPEN:** publish the immutable GitHub prerelease manually, including the
-   exact five assets and signed manifest. GitHub Actions are not part of this flow.
-8. **OPEN after publication:** download every public asset into a fresh
-   directory, re-run verification, and compare public bytes with the signed local
-   input.
+7. **COMPLETED:** publish the immutable GitHub prerelease manually, including
+   the exact five assets and signed manifest. GitHub Actions were not used.
+8. **COMPLETED:** download every public asset into a fresh directory, re-run
+   verification, and compare public bytes with the signed local input.
 9. **COMPLETED for coexistence on one host / OPEN for rollout:** test one writable
    `/Applications` Mac; then test two or three pilots before any 20–30-device
    wave. Record only version, OS/architecture, health result, generation
    class, and update result.
 
-If a future gate fails, keep `v0.2.0-preview.5` immutable and do not reuse its
-tag or overwrite its assets. Do not publish a failed Preview 6 candidate; create
-a new immutable preview identity after a corrected build.
+If a future gate fails, keep `v0.2.0-preview.6` and all earlier releases
+immutable and do not reuse any published tag or overwrite its assets. Create a
+new immutable preview identity after a corrected build.
 
 ## Remaining external gates
 

@@ -3,25 +3,27 @@
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
-**Current packaged source baseline:** public `main` at `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`
-**Current public preview:** immutable macOS universal `v0.2.0-preview.5`; Preview
-4 and Preview 3 are historical, and Preview 1 remains the migration bridge
+**Current public packaged source target:** `f9b3410e74d7ccc08487dc03788b54a201e12ade` for immutable Preview 6
+**Current public preview:** immutable macOS universal `v0.2.0-preview.6`; Preview
+5, Preview 4, and Preview 3 are historical, and Preview 1 remains the migration bridge
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
 > **Current audit superseding this historical compilation:** the authoritative
 > release state is recorded in
-> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). Preview 5 is
-> published and its public bytes plus one writable Preview 1 → Preview 5
-> migration are verified. Apple platform trust, deliberate rollback, clean
+> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). Preview 6 is
+> published and its public bytes are signature-verified and byte-reconciled;
+> the one writable Preview 1 → Preview 5 migration remains the installed
+> update observation. Apple platform trust, deliberate rollback, clean
 > device/pilot acceptance, provider behavior, and fleet rollout remain open.
 > The private key remains only in the owner-controlled macOS Keychain.
 
 The sections below preserve earlier readiness snapshots for provenance. Treat
 their Preview 1–4 “current” wording as historical at the time each section was
-written; use the current release audit and Preview 5 publication record for
-present-day operations.
+written; use the current release audit and Preview 6 verification receipt for
+present-day operations. The Preview 5 publication record remains historical
+provenance.
 
-## Current Preview 5 publication reconciliation — 2026-08-31
+## Historical Preview 5 publication reconciliation — 2026-08-31
 
 The public `v0.2.0-preview.5` macOS universal prerelease was published
 manually from `main` target `c28d787` after clean-source, package, Keychain
@@ -34,13 +36,13 @@ This is a controlled public beta, not a stable or unattended fleet release.
 The remaining gates are deliberate rollback, clean-device and pilot evidence,
 Apple/Windows platform trust, and live provider/network validation.
 
-## Current source continuation — 2026-08-31
+## Current Preview 6 publication reconciliation — 2026-08-31
 
-Public `main` has since advanced to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
-through protected PRs #77–#86. Those source follow-ups are not contained in the
-immutable Preview 5 package. A fresh universal `v0.2.0-preview.6` candidate was
-built, signed, package-verified, and coexistence-smoke-tested locally; it has
-not been uploaded or published. The exact evidence and hashes are recorded in
+Public `main` at release source target `f9b3410e74d7ccc08487dc03788b54a201e12ade`
+contains the protected PR #77–#86 source follow-ups. A fresh universal
+`v0.2.0-preview.6` package was built, signed, package-verified,
+coexistence-smoke-tested locally, published manually, and re-downloaded for
+signature/byte verification. The exact evidence and hashes are recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
 The new updater regression matrix covers Preview 6 discovery from legacy
 `v0.1.7-preview.7`, the `v0.2.0-preview.1` bridge, and Preview 5 through a

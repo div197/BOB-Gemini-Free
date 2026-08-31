@@ -22,7 +22,7 @@ It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
 Preview versioning is explicit and fail-closed. `PREVIEW_VERSION` in the
-Makefile names the next immutable candidate (`v0.2.0-preview.6` in the current
+Makefile names the next immutable candidate (`v0.2.0-preview.7` in the current
 source), and the `desktop-preview-*` targets pass it as `BOB_RELEASE_VERSION`.
 The three preview packagers refuse to guess a version when called directly.
 Before any publication, advance `PREVIEW_VERSION` to a new unused
@@ -68,20 +68,23 @@ local file; do not pipe an unpinned branch directly into a shell.
 
 ## Native automatic-update status
 
-The current public native preview is `v0.2.0-preview.5`, built with the
+The current public native preview is `v0.2.0-preview.6`, built with the
 desktop trust key and a signed preview manifest. It performs an explicit
 metadata check, and a user can approve a verified staged update with health
 confirmation and rollback. The immutable `v0.2.0-preview.1` package remains
-the migration bridge; Preview 2, Preview 3, and Preview 4 are historical
-release inputs. Preview 5 embeds the desktop trust key and remains an explicit,
-user-consented updater. The public `main` source includes the post-Preview-4
-artifact-preview, responsive-header, multiline-SSE, and credential-boundary
-fixes. Historical builds without an embedded desktop trust key remain
-manual-update-only. Stable builds never move into preview; current-key preview
-builds may migrate into a newer stable release only after explicit user consent.
+the migration bridge; Preview 2–5 are historical release inputs. Preview 6
+embeds the desktop trust key and remains an explicit, user-consented updater.
+The current public source includes the post-Preview-4 artifact-preview,
+responsive-header, multiline-SSE, credential-boundary, desktop-coexistence,
+and gateway-key transport fixes. Historical builds without an embedded desktop
+trust key remain manual-update-only. Stable builds never move into preview;
+current-key preview builds may migrate into a newer stable release only after
+explicit user consent.
 
-The exact Preview 5 public-byte and installed-migration evidence is recorded in
-[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md).
+The exact Preview 6 public-byte evidence is recorded in
+[`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
+the one-host installed migration evidence remains the earlier Preview 1 →
+Preview 5 observation.
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the

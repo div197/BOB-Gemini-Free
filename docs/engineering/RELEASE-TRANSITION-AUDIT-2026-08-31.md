@@ -1,18 +1,25 @@
 # Release Transition Audit — 2026-08-31
 
+> Historical transition chronology. The current public release is the
+> immutable `v0.2.0-preview.6`; see
+> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md) and the Preview 6
+> verification receipt for current operational truth.
+
 ## Decision
 
-The immutable `v0.2.0-preview.1` tag was not reused. Controlled macOS
-`v0.2.0-preview.5` is now the current public preview from public `main`
-target `c28d787`. Preview 4, Preview 3, and the superseded
-`v0.2.0-preview.2` remain available as historical release inputs. Stable
-`v0.2.0` remains a later
-release candidate, not a release to publish until the device and pilot gates
-pass.
+The immutable `v0.2.0-preview.1` tag was not reused. This document records the
+historical Preview 5 transition from public `main` target `c28d787`; Preview 5
+is no longer the current public preview. The immutable `v0.2.0-preview.6`
+macOS prerelease is now current, built from target `f9b3410`. Preview 4,
+Preview 3, Preview 5, and the superseded `v0.2.0-preview.2` remain available
+as historical release inputs. Stable `v0.2.0` remains a later release
+candidate, not a release to publish until the device and pilot gates pass.
 
-The exact current publication and byte-reconciliation evidence is recorded in
-[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md);
-the earlier Preview 2 record remains historical provenance.
+The current publication and byte-reconciliation evidence is recorded in
+[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md) and
+[`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
+the Preview 5 publication record and earlier Preview 2 record remain
+historical provenance.
 
 The updater is working as a staged, user-consented migration mechanism. It is
 not a silent fleet push: a running app may perform a delayed metadata check,
@@ -21,8 +28,9 @@ but it does not download, replace, or restart until the user selects
 
 The evidence sections below that name Preview 1, Preview 2, or Preview 3 are
 retained as historical provenance for the earlier publication sequence. The
-authoritative current state is the Preview 5 reconciliation at the end of this
-document. Earlier publication sections are historical provenance.
+Preview 5 reconciliation near the end is also historical; the current state is
+the Preview 6 addendum below and the current release audit. Earlier publication
+sections are historical provenance.
 
 ## Evidence snapshot before PR #42
 
@@ -247,3 +255,21 @@ visible chat response, and reported no newer release on a second check.
 This proves one same-key installed migration; deliberate rollback, clean-device
 acceptance, Apple platform trust, live Google behavior, and staged pilot/fleet
 rollout remain open.
+
+## Preview 6 publication and current boundary — 2026-08-31
+
+The current public macOS prerelease is the immutable
+[`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
+packaged from source target `f9b3410`. It was signed through the
+owner-controlled local Keychain, published manually without GitHub Actions,
+and independently re-downloaded from GitHub. The DMG, ZIP, release notice,
+`SHA256SUMS`, and `SHA256SUMS.sig` all passed detached-signature, checksum, and
+byte-for-byte verification.
+
+Preview 6 is a controlled public beta, not a stable or silent fleet release.
+The updater matrix selects it for legacy Preview 7 and Preview 5 clients, but a
+real installed Preview 7/Preview 5 → Preview 6 transition, deliberate rollback,
+clean-device acceptance, Apple platform trust, live Google behavior, and the
+20–30-device pilot remain open. The next source candidate is explicitly
+`v0.2.0-preview.7`; the published Preview 6 tag and assets must remain
+immutable.

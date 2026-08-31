@@ -1,23 +1,24 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 5 enables a signed, user-consented macOS preview updater;
+**Status:** Preview 6 enables a signed, user-consented macOS preview updater;
 the public app remains ad-hoc signed and not Apple-notarized.
 
 The current release audit is in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The immutable
-public `v0.2.0-preview.5` assets use packaged source target `c28d787` and have
-passed signature, byte-reconciliation, and one-host installed migration
-checks. Public `main` is now `49e0d3b`; the fresh local `v0.2.0-preview.6`
-candidate also proves that a new desktop build does not attach to an older
-gateway that still owns the configured port, because reuse requires an exact
-`X-BOB-Version` match. It also withholds a BOB access key from non-loopback
-cleartext HTTP endpoints.
+public `v0.2.0-preview.6` assets use packaged source target `f9b3410` and have
+passed signature and public-byte reconciliation. The earlier Preview 1 →
+Preview 5 installed migration remains the one-host update observation. The
+Preview 6 package also proves that a new desktop build does not attach to an
+older gateway that still owns the configured port, because reuse requires an
+exact `X-BOB-Version` match. It also withholds a BOB access key from
+non-loopback cleartext HTTP endpoints.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
-Preview 5 (`v0.2.0-preview.5`) is published from public `main`; Preview 4 and
-Preview 3 remain historical provenance. The five Preview 5 assets were
-re-downloaded, signature-verified, and byte-reconciled. A writable Preview 1
-installation was also updated to Preview 5 on one audit Mac.
+Preview 6 (`v0.2.0-preview.6`) is published from source target `f9b3410`;
+Preview 5, Preview 4, and Preview 3 remain historical provenance. The five
+Preview 6 assets were re-downloaded, signature-verified, and byte-reconciled.
+A writable Preview 1 installation was previously updated to Preview 5 on one
+audit Mac; Preview 6 installed-base transition remains open.
 Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
 This document is the operator and product boundary for the native updater. An
@@ -72,13 +73,13 @@ The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The
 released Preview 7 binary predates the later stable-first source change and
-therefore discovers only newer previews. The same-key Preview 5 is now the
+therefore discovers only newer previews. The same-key Preview 6 is now the
 latest published preview candidate for that path; a current-source preview
 can then discover a newer stable release. A direct stable install is the
-simpler alternative. Preview 6
-installations require a one-time manual
-migration because the original Preview 6 project signing key was not
-recoverable. Historical `v0.1.7-preview.3` also remains a manual migration
+alternative. Legacy `v0.1.7-preview.6` installations require a one-time manual
+migration because their original project signing key was not recoverable; the
+published current `v0.2.0-preview.6` package uses the current key. Historical
+`v0.1.7-preview.3` also remains a manual migration
 path because it predates the trust key.
 
 The local macOS, Windows, and Linux preview packagers now fail closed when a
@@ -178,8 +179,9 @@ local test run is not proof that the GitHub asset upload preserved the bytes.
 1. One clean Mac: install, first-run gateway, anonymous request behavior,
    per-user sign-in path, bridge-preview installation/update if testing the
    existing Preview 7 fleet path, stable update, rollback, and uninstall.
-   Preview 6 devices require the documented one-time manual migration before
-   the signed updater can be used.
+   Legacy `v0.1.7-preview.6` devices require the documented one-time manual
+   migration before the signed updater can be used; current `v0.2.0-preview.6`
+   devices do not.
 2. Two or three pilot Macs: repeat with ordinary student accounts and the
    real classroom network; record version, OS, architecture, and provider
    session result without recording cookies or prompts.
@@ -195,8 +197,8 @@ For the exact existing-fleet sequence, use the
 
 ## Current decision
 
-The code path is appropriate for the controlled Preview 6 candidate, but the
-repository must not label an ad-hoc/unsigned package as a production
-auto-updating student release. The remaining gates are publication of the
-exact candidate, Apple/Windows platform trust, clean-device rollback, and
-pilot acceptance—not a missing fake fallback.
+The code path is appropriate for the controlled public Preview 6 beta, but the
+repository must not label an ad-hoc package as a production auto-updating
+student release. The remaining gates are Apple/Windows platform trust,
+clean-device rollback, Preview 6 installed-base transition evidence, and pilot
+acceptance—not a missing fake fallback.

@@ -35,18 +35,28 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
-## [0.2.0-preview.6] - Unreleased
+## [0.2.0-preview.6] - 2026-08-31
 
 ### Release safety
 
-- Makes the next preview candidate explicit as `PREVIEW_VERSION` in the
-  Makefile (`v0.2.0-preview.6` for this source candidate).
+- Made the Preview 6 candidate explicit as `PREVIEW_VERSION` in the Makefile at
+  the release source target; the post-publication source now advances that
+  guard to the next unused candidate, `v0.2.0-preview.7`.
 - Passes that candidate explicitly from every desktop preview target.
 - Makes the macOS, Windows, and Linux preview packagers fail closed when
   `BOB_RELEASE_VERSION` is unset, preventing accidental reuse of an immutable
   published preview tag.
 - Extends the release-source gate to validate the explicit candidate and the
   packager fail-closed contract.
+
+### Publication
+
+- Published the macOS universal beta manually as `v0.2.0-preview.6` from
+  source target `f9b3410`, with the branded DMG/ZIP, release notice,
+  `SHA256SUMS`, and detached `SHA256SUMS.sig`.
+- Re-downloaded all five public assets into a fresh directory, verified the
+  detached Ed25519 signature and exact SHA-256 bytes, and matched them to the
+  local signed inputs. No GitHub Actions were used.
 
 ### Settings clarity
 
@@ -72,11 +82,11 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ### Updater verification
 
-- Adds a mocked release-list regression matrix proving that a published
-  `v0.2.0-preview.6` candidate would be offered to legacy `v0.1.7-preview.7`,
+- Adds a mocked release-list regression matrix proving that the published
+  `v0.2.0-preview.6` candidate is selected for legacy `v0.1.7-preview.7`,
   `v0.2.0-preview.1`, and Preview 5 installations, while the same Preview 6
-  build would not update itself. This does not publish the candidate or claim a
-  real-device migration.
+  build does not update itself. The matrix does not replace a real-device
+  installed migration or rollback test.
 
 ## [0.2.0-preview.5] - 2026-08-31
 
@@ -121,8 +131,9 @@ to an earlier implementation. The current contract supersedes those phrases:
   public-main commit `4beb127`; its package and local startup checks did not
   include the route-clarity patch and it is superseded. A fresh candidate from
   merged public-main commit `a68eb39` passed the same local package and startup
-  gates. It was superseded by the current public Preview 5 candidate after
-  public-byte reconciliation and a one-host installed-bundle migration.
+  gates. That candidate was superseded by the published Preview 5 candidate
+  after public-byte reconciliation and a one-host installed-bundle migration;
+  Preview 5 is now historical because Preview 6 is the current public preview.
 
 ## [0.2.0-preview.4] - 2026-08-31
 

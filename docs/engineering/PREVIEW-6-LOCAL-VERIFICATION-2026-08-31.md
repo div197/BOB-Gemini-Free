@@ -1,17 +1,17 @@
-# Preview 6 Candidate — Local Verification Receipt
+# Preview 6 — Local and Public Verification Receipt
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Candidate:** `v0.2.0-preview.6` / preview channel
-**Public source:** `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
+**Public source:** `f9b3410e74d7ccc08487dc03788b54a201e12ade`
 **Merged change:** PR #83, version-aware desktop gateway coexistence; PR #84,
 release-state documentation and updater-matrix reconciliation; PR #86,
 fail-closed gateway access-key transport guard
-**Status:** locally verified candidate; not uploaded or published
+**Status:** published prerelease; local and post-download public verification passed
 
-This receipt records the exact local candidate produced after the public
-source merge. It does not turn an ad-hoc macOS package into an Apple
-Developer ID/notarized release, and it does not prove Google availability or
-30-device rollout.
+This receipt records the exact local candidate produced from the public source
+merge and the independent fresh download of the published assets. It does not
+turn an ad-hoc macOS package into an Apple Developer ID/notarized release, and
+it does not prove Google availability or 30-device rollout.
 
 ## Source and package gates
 
@@ -27,6 +27,8 @@ Developer ID/notarized release, and it does not prove Google availability or
 - `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` — PASS; the mocked
   preview listing offers Preview 6 to legacy Preview 7, Preview 1, and Preview
   5 clients, and offers no update to Preview 6 itself
+- `gh release create v0.2.0-preview.6` — PASS; manual publication with exactly
+  five assets and no GitHub Actions
 
 The benchmark is local-only and uses a deterministic in-process upstream. It
 is not a Google quota, latency, or classroom-capacity claim.
@@ -47,15 +49,18 @@ not exported, printed, committed, or placed in the package.
 - release asset verifier: `scripts/verify-release-assets.sh` — PASS
 
 Local candidate directory:
-`/tmp/bob-gemini-free-preview6-main-49e0d3b`
+`/tmp/bob-gemini-free-preview6-main-f9b3410`
+
+Public download verification directory:
+`/tmp/bob-gemini-free-preview6-public.tqs8E9`
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `b8e6a1e686da5c51e9d82852c4aa91b88e996e78ac3166e3d882b11c0fa5bfef` |
-| `SHA256SUMS` | `7e29ee62882ffca81226da7694f347e85ba20731dac1a268ae01059b60cf0897` |
-| `SHA256SUMS.sig` | `2d6af2d928f818afe4228d0cea642a022325456b1e6b24aa856326d8d997d21c` |
-| `bob-gemini-free-macos-universal.dmg` | `377b4e11764355c7d63d3a5e0bca74133eff9ae567ce2e00417fe1008c55e621` |
-| `bob-gemini-free-macos-universal.zip` | `b6269f9d2f17d980c411766b2d3585e429cdaa112882d4ff6aeaa3ef71d03429` |
+| `SHA256SUMS` | `37c23c2691c706c7b90a92fca85285577afe47856b2d9f4bd6a8f7f7b749496a` |
+| `SHA256SUMS.sig` | `c27a522a0585183141348268f6e6f8998b125a604dace1ae950531f5b10356ac` |
+| `bob-gemini-free-macos-universal.dmg` | `917e4e42a4026678effff3c1d3e6a0dc964420e35b39f89f38e6fc6f9d3fbe72` |
+| `bob-gemini-free-macos-universal.zip` | `581e5f12700efe461f21c8b81cd1307d08bd74b8f2b00d8ee7cb31079b76351b` |
 
 ## Native coexistence proof
 
@@ -63,7 +68,7 @@ The older installed `/Applications/BOB Gemini Free.app` process was left
 running on `127.0.0.1:8081`. The exact current-main Preview 6 candidate was
 opened separately. Because the old gateway had no matching `X-BOB-Version`
 marker, the new app did not reuse it. It selected the safe loopback port
-`127.0.0.1:51802` in this run, returned local `/healthz` JSON
+`127.0.0.1:53065` in this run, returned local `/healthz` JSON
 `{"status":"ok"}` with `X-BOB-Version: v0.2.0-preview.6`, rendered
 `v0.2.0-preview.6` in the native root page, and shut down cleanly. The old
 process remained on 8081 throughout this check.
@@ -94,8 +99,10 @@ and assistive-technology coverage remain separate gates.
 
 ## Publication boundary
 
-The candidate is intentionally not a public release in this receipt. Before
-publishing it, re-run the clean-worktree source gate, sign the exact final
-asset directory, upload all five assets manually, download them into a fresh
-directory, verify the detached signature and byte hashes, and update the
-release page and rollout matrix. No GitHub Actions are required.
+The immutable public release is
+[`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6).
+All five uploaded assets were downloaded into a fresh directory, passed the
+detached-signature and exact-byte verifier, and matched the local signed input.
+This proves project release authenticity and publication integrity; it does not
+prove Apple Developer ID/notarization, clean-device rollback, live Google
+availability, or a 20–30-device rollout. No GitHub Actions are required.
