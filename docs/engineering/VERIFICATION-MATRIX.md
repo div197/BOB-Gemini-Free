@@ -395,10 +395,10 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `888a7fa`; the current checkout contains the
+The source-hardening tip is `e478874`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
-history-persistence, and Developer API stream-error follow-ups after the
-evidence documents. The local branch is
+history-persistence, Developer API stream-error, and session/quota-error
+follow-ups after the evidence documents. The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.

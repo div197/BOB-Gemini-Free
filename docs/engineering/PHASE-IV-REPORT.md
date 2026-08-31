@@ -166,6 +166,16 @@ non-destructive and are covered by fixtures. This improves diagnosis without
 claiming that every future provider event type is known or that the
 reverse-engineered web-RPC stream has public-SSE semantics.
 
+### 8. Session and quota failure classification — `e478874`
+
+The web-RPC client now labels HTTP 401/403 responses as authentication/session
+rejections and HTTP 429 as quota, while preserving the existing no-replay rule
+for provider policy and quota responses. The Studio distinguishes these
+provider failures from BOB's own optional gateway API-key protection, avoiding
+the misleading instruction to enter a local key when Google's session has
+expired or access has been denied. This is actionable error classification,
+not automatic reauthentication or quota circumvention.
+
 ## Verification completed
 
 | Gate | Result | Evidence boundary |
