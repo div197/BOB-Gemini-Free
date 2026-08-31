@@ -2,9 +2,9 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `049ca2fb5927f70a21f6647e5046b9e19679c7a5` (merged `main`
-after PR #93; this fresh receipt supersedes the earlier local same-version
-candidate built from `2d42d4443818f594bc8d27f906977b30acce7495`)
+**Source snapshot:** `8c35a11960d2ed9c50c5986e11a5b03beba6777d` (merged `main`
+after PR #95; this fresh receipt supersedes the earlier local same-version
+candidate built from `049ca2fb5927f70a21f6647e5046b9e19679c7a5`)
 **Public baseline:** `v0.2.0-preview.6` remains the current published macOS
 preview.
 
@@ -39,7 +39,17 @@ The following checks passed:
 The private signing value was not displayed, exported, copied, committed, or
 placed in the package. The signed asset receipt was written outside the
 worktree at audit time; its manifest SHA-256 is
-`1992995eb81ef442ec2ab7e1a232ef76e41012db43dc399a970c87f3a4fec163`.
+`a1c6d76a87d4155eacdb147869dec39c2a7dfcb2d4f33c7b8e2136d1be30c81a`.
+
+The exact local candidate hashes are:
+
+| Asset | SHA-256 |
+|---|---|
+| `RELEASE-NOTICE.txt` | `8cdf026e0ed515392fea734a839fa010f3e467d6c83396b971c2537a459ba557` |
+| `bob-gemini-free-macos-universal.dmg` | `9bebc0216a32ffb89bb7727dd939259398f17d09cdf25779a7a44dfe5911304a` |
+| `bob-gemini-free-macos-universal.zip` | `a95d0252977bffd50e8759359db82dd30ceff365be1ec83c634c741baf0ca56f` |
+| `SHA256SUMS` | `a1c6d76a87d4155eacdb147869dec39c2a7dfcb2d4f33c7b8e2136d1be30c81a` |
+| `SHA256SUMS.sig` | `5d7d019d2bf9409514d27fe47b03609431da0fd3992f97e95fa75e8613c26acb` |
 
 ## Bundle identity and runtime proof
 
@@ -54,12 +64,15 @@ The updater must use the injected channel-aware identity, not Finder's numeric
 bundle field, when deciding whether a preview update exists.
 
 The bundled executable was started directly from the candidate app on an
-isolated loopback port (`127.0.0.1:18082`) while the installed app was left
+isolated loopback port (`127.0.0.1:18083`) while the installed app was left
 untouched. The candidate:
 
 - returned HTTP 200 from `/healthz` with `X-BOB-Version:
   v0.2.0-preview.7`;
 - served `/playground`, `/manifest.json`, `/sw.js`, and `/favicon.ico`;
+- returned a channel-aware `/v1/update/check` response with
+  `channel: preview` and the published Preview 6 baseline as the current
+  latest public preview;
 - rendered the injected `v0.2.0-preview.7` identity in the playground; and
 - shut down cleanly after the smoke test.
 
@@ -93,6 +106,11 @@ These tests prove selection and transaction rules, not an installed-device
 replacement. Since Preview 7 is not published, existing devices currently see
 the published Preview 6 candidate, subject to their compiled updater behavior,
 writable install location, signature key, network, and explicit consent.
+
+The candidate's embedded Studio forwards its build-pinned preview channel to
+the same updater selection boundary used by the native Help action. This keeps
+the status badge from querying only the historical stable release; discovery
+remains metadata-only and does not install anything.
 
 ## Public release truth
 
