@@ -530,6 +530,65 @@ func TestLegacyPreview7CanDiscoverNextPreviewCandidate(t *testing.T) {
 	}
 }
 
+func TestPublishedPreviewFleetMatrixSelectsCurrentCandidate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/preview" {
+			t.Errorf("preview fleet lookup requested %s; want preview channel only", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{
+			{
+				TagName:    "v0.2.0-preview.5",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5",
+				Assets: []ReleaseAsset{
+					{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.5/bob-gemini-free-macos-universal.zip", Size: 4096},
+					{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.5/SHA256SUMS"},
+					{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.5/SHA256SUMS.sig"},
+				},
+			},
+			{
+				TagName:    "v0.2.0-preview.4",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4",
+			},
+			{
+				TagName:    "v0.1.7-preview.7",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7",
+			},
+		})
+	}))
+	defer server.Close()
+
+	for _, test := range []struct {
+		name           string
+		currentVersion string
+		wantVersion    string
+		wantUpdate     bool
+	}{
+		{name: "legacy preview 7", currentVersion: "v0.1.7-preview.7", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
+		{name: "migration bridge", currentVersion: "v0.2.0-preview.1", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
+		{name: "preview 4", currentVersion: "v0.2.0-preview.4", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
+		{name: "current candidate", currentVersion: "v0.2.0-preview.5", wantVersion: "v0.2.0-preview.5", wantUpdate: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", test.currentVersion, DesktopChannelPreview, "darwin", "arm64")
+			if err != nil {
+				t.Fatalf("preview fleet lookup: %v", err)
+			}
+			if result.LatestVersion != test.wantVersion || result.HasUpdate != test.wantUpdate {
+				t.Fatalf("preview result = %#v, want version %s/update %v", result, test.wantVersion, test.wantUpdate)
+			}
+			if test.wantUpdate && (!result.AssetAvailable || !result.ManifestAvailable || result.AssetName != "bob-gemini-free-macos-universal.zip") {
+				t.Fatalf("current candidate is not installable: %#v", result)
+			}
+		})
+	}
+}
+
 func TestLegacyPreview7CannotDiscoverStableWithoutBridge(t *testing.T) {
 	var requests int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

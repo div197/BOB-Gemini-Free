@@ -33,7 +33,8 @@
 ## Engineering Status & Evidence Boundary
 
 Phase II has regression-locked the fragile protocol core and documented what
-is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md).
+is actually known in [`docs/engineering/VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md). The current release and installed-base
+gate is tracked in [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md).
 
 | Status | Current meaning |
 |---|---|

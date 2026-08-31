@@ -41,7 +41,9 @@ unlimited-access प्रमाणपत्र नहीं। मॉडल प
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
 token counts के कुछ हिस्से emulated/estimated हैं। अंग्रेज़ी
 [`VERIFICATION-MATRIX.md`](docs/engineering/VERIFICATION-MATRIX.md) में हर
-दावे का source/test/device boundary दिया गया है।
+दावे का source/test/device boundary दिया गया है। वर्तमान release और installed-
+base gate [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md)
+में दर्ज है।
 
 ---
 
