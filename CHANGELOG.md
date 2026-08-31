@@ -94,6 +94,12 @@ live provider key, or enabled GitHub Actions.
 ### Reliability and release hardening
 
 #### Added
+- Continued the no-Actions hardening campaign with bounded session-bound image
+  reference expiry and retryable page-token refresh, visible local-history
+  persistence recovery, abortable attachment parsing, fail-closed preference
+  storage, dedicated service health identity, committed-response status
+  logging, literal-loopback CORS validation, and standard SSE field handling in
+  the Studio browser reader.
 - Added a release-source preflight that treats the canonical Ed25519 public-key
   block, standalone macOS/Linux and Windows installer trust anchors, Docker
   base version, and preview packager defaults as one checked matrix. A key or

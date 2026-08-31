@@ -3,13 +3,13 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `a954dec`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `b394214`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces ten real failure classes: coalesced
+This continuation materially reduces eleven concrete failure paths: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
 read-only or translocated location, stale attachment parsing/OCR work after the
@@ -18,7 +18,8 @@ is denied, execution risk from mutable root CDN dependencies, and
 false-positive optional service health reports, misleading request status logs
 after response commitment, a Host-header origin-confusion path in the default
 CORS shortcut, and delayed recovery after transient page-token refresh
-failures. The source and deterministic test gates are green.
+failures, plus loss of valid standard SSE frames in the Studio reader. The
+source and deterministic test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -266,6 +267,18 @@ callers still receive the last-known-good/default set instead of starting a
 refresh storm. Deterministic tests cover the failure, backoff, and recovery
 sequence. Google token lifetime and authenticated upload/vision capability
 remain provider-dependent.
+
+### 17. Studio SSE field compatibility — `b394214`
+
+The browser Studio reader now accepts the SSE `data:` field with or without
+the optional separator space and handles CRLF line endings after normalizing
+the complete line. `[DONE]` detection and the existing invalid-event,
+truncated-stream, and usable-output guards remain unchanged. This is a narrow
+interoperability correction for the browser client; it does not claim generic
+multi-line SSE event assembly or close the broader Web RPC framing boundary.
+The source-level regression is protected by
+`TestStudioSSEParserAcceptsStandardDataFieldForms`, while rendered browser
+behavior remains an external gate.
 
 ## Verification completed
 

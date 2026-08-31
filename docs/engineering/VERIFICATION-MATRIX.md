@@ -395,13 +395,13 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `a954dec`; the current checkout contains the
+The source-hardening tip is `b394214`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
 root-CDN-integrity, queued-attachment-cancellation, dedicated service
 health-probe, dynamic-artifact-CDN, response-status-logging, literal-loopback
-CORS, and page-token-retry follow-ups
+CORS, page-token-retry, and Studio SSE-field-compatibility follow-ups
 after the evidence documents.
 The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
@@ -422,4 +422,5 @@ workflow was added or invoked, and no provider or release secret was used.
 | The optional service-status command reports an unrelated process as the BOB gateway | VERIFIED_BY_UNIT_TEST | `internal/service/service.go` probes the unauthenticated `/healthz` route and requires the BOB gateway identity and protocol headers; `internal/service/service_test.go` covers valid, wrong-status, missing-identity, wrong-identity, wrong-protocol, and unrelated-process responses | The headers are a compatibility signal, not an authentication credential; a real OS service manager and device process remain external. |
 | Request logs report a status different from the status committed to the client after repeated headers or streaming flushes | VERIFIED_BY_UNIT_TEST | `internal/server/middleware.go` records only the first committed status and marks implicit `Write`/supported `Flush` commits; `internal/server/middleware_test.go` covers repeated `WriteHeader`, implicit `Write`, and `Flush` followed by a later header | This protects local observability only; reverse-proxy logs and external log collectors remain outside BOB's control. |
 | A transient page-token refresh failure suppresses recovery for the full cache TTL or causes an immediate retry storm | VERIFIED_BY_UNIT_TEST | `internal/multimodal/tokens.go` preserves the last-known-good token set, reserves one in-flight refresh, and schedules a 15-second retry backoff after failure; `TestTokenCacheRetriesFailedRefreshAfterBoundedDelay` covers immediate suppression, backoff expiry, and recovery | The delay is a local availability guard; Google token lifetime and authenticated image capability remain provider-dependent. |
+| The Studio drops a valid SSE frame when the `data:` field omits the optional space or uses CRLF | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` extracts the payload after the SSE field name and trims only the optional separator; `TestStudioSSEParserAcceptsStandardDataFieldForms` rejects the old space-dependent branch and checks `[DONE]` handling | Browser rendering and full multi-line event assembly remain unverified; the parser still deliberately treats the gateway's one-frame JSON events as the supported shape. |
 | The visual product is browser-verified at desktop, tablet, and phone widths | UNKNOWN | The browser-control runtime reported no available browser in this session; source tests and generated-bundle parity do not replace rendered interaction evidence | Recover a real browser/device and run the design-audit viewport matrix before calling the design ceiling closed. |
