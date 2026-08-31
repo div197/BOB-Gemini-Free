@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"reflect"
-	"runtime"
 	"sync"
 	"testing"
 	"time"
@@ -417,6 +416,7 @@ func TestStreamFlightRejectsNewSubscriberAfterHistoryLimit(t *testing.T) {
 	key := flight.Key("history-limit", 1, 4, nil)
 	historyLimitReached := make(chan struct{})
 	releaseUpstream := make(chan struct{})
+	leaderConsumed := make(chan struct{}, 1)
 	leaderDone := make(chan error, 1)
 
 	go func() {
@@ -425,12 +425,19 @@ func TestStreamFlightRejectsNewSubscriberAfterHistoryLimit(t *testing.T) {
 				if err := emit("x"); err != nil {
 					return err
 				}
-				runtime.Gosched()
+				select {
+				case <-leaderConsumed:
+				case <-time.After(2 * time.Second):
+					return errors.New("healthy history-limit leader did not consume the emitted chunk")
+				}
 			}
 			close(historyLimitReached)
 			<-releaseUpstream
 			return nil
-		}, func(string) error { return nil })
+		}, func(string) error {
+			leaderConsumed <- struct{}{}
+			return nil
+		})
 	}()
 
 	<-historyLimitReached
