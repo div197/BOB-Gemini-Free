@@ -1268,11 +1268,32 @@ func TestGatewayRouteChoiceGuideTracksSelectedRoute(t *testing.T) {
 	source := html[start : start+endOffset]
 	for _, marker := range []string{
 		`const routeChoice = document.getElementById("gateway-route-choice");`,
-		`if (routeChoice) routeChoice.dataset.selectedRoute = providerRoute ? "provider" : "web";`,
+		`const selectedRoute = providerRoute ? "provider" : "web";`,
+		`routeChoice.dataset.selectedRoute = selectedRoute;`,
 	} {
 		if !strings.Contains(source, marker) {
 			t.Fatalf("route choice guide is not synchronized with the live route state: %q", marker)
 		}
+	}
+}
+
+func TestGatewayRouteChoiceGuideIsInteractiveAndAccessible(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`<button type="button" class="route-choice-option" data-route="web" aria-pressed="true" onclick="selectGatewayRoute('web')">`,
+		`<button type="button" class="route-choice-option" data-route="provider" aria-pressed="false" onclick="selectGatewayRoute('provider')">`,
+		`function selectGatewayRoute(route)`,
+		`const providerRoute = route === "provider";`,
+		`if (toggle) toggle.checked = providerRoute;`,
+		`option.setAttribute("aria-pressed", option.dataset.route === selectedRoute ? "true" : "false");`,
+		`.route-choice-option:focus-visible`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("gateway route selector is missing interactive/accessibility marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `<div class="route-choice-option"`) {
+		t.Fatal("gateway route options must not remain non-interactive divs")
 	}
 }
 

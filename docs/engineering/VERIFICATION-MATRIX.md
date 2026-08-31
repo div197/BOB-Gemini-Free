@@ -565,6 +565,24 @@ package. The complete package receipt is in
 | A newly built native desktop app cannot silently attach to an older BOB gateway on the configured port | VERIFIED_LOCAL | The current-main signed Preview 6 package launched beside the older installed process on `127.0.0.1:8081`, selected a safe loopback port (`127.0.0.1:53065` in the run), returned `X-BOB-Version: v0.2.0-preview.6`, rendered its own version, and shut down cleanly; `cmd/desktop/gateway_test.go` covers exact reuse and stale-version fallback | This is one macOS host and a local package, not a clean-device, cross-platform, or fleet acceptance result. |
 | The credential settings surface keeps BOB access, Google Developer API, web-session cookies, and endpoint identity distinct | VERIFIED_LIVE | Current-source browser smoke showed the credential map, separate masked fields, explicit provider-route toggle, page-memory wording, engine-owned cookie boundary, and Google AI Studio/limits links; source tests cover English/Hindi localization and pre-send route guards | Provider quota/availability, endpoint trust decisions, and student-owned key validity remain external. |
 
+## Interactive credential route controls — 2026-09-01
+
+The current source follow-up closes a presentation/correctness gap in the
+route-choice guide: the two route cards are now native buttons rather than
+non-interactive explanatory containers. Their `aria-pressed` state is
+synchronized with the provider toggle and the live route-status card. Selecting
+the Developer API card fails closed until a page-memory key, safe endpoint,
+compatible model, and gateway-access check are all satisfied; selecting the
+default card turns the provider route off without clearing the student's key.
+
+`TestGatewayRouteChoiceGuideIsInteractiveAndAccessible` locks the native
+control, focus-visible, and state-synchronization markers. A current-source
+browser run exercised the missing-key path (focus moved to the provider-key
+field and the route stayed on web), a dummy-key provider selection, the return
+to web, and modal focus return with zero page-level horizontal overflow. This
+is source/browser evidence only: the unpublished Preview 8 package has not
+been rebuilt with this follow-up.
+
 ## Current Preview 6 publication addendum — 2026-08-31
 
 This is the current release-state boundary for the repository. Historical

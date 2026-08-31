@@ -436,11 +436,20 @@ student to scan.
 The minimum L1 correction moves a compact route-choice guide immediately after
 the endpoint field and before the detailed credential map. It presents the
 recommended default web-session path beside the explicit Developer API path,
-highlights the live selected route, and states that the existing provider
-toggle remains the only route control. It does not add a second selector or
-change request headers, storage, endpoint trust, provider limits, or fallback
-behavior. `TestGatewayRouteChoiceGuideTracksSelectedRoute` and the ordering
-assertion in `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`
-protect the source contract; current-source desktop and Hindi browser checks
-confirmed the guide is visible on first open and remains localized. Phone and
-native-WebView rendering remain separate release evidence gates.
+highlights the live selected route, and states the credential boundary before a
+student sees either key field. It does not change request headers, storage,
+endpoint trust, provider limits, or fallback behavior.
+
+### Current source correction — 2026-09-01
+
+The route guide's cards were initially only an explanatory state display even
+though their radio-like styling and “choose one” copy made them look
+interactive. That failed the interaction floor for mouse, keyboard, and touch
+users. The current source promotes both cards to native buttons, adds visible
+focus treatment, and keeps their pressed state synchronized with the existing
+provider toggle. A provider-card click with no key focuses the key field and
+leaves the default route active; a valid page-memory test key can select the
+provider route, and the web card turns it off without erasing it. The change is
+covered by `TestGatewayRouteChoiceGuideIsInteractiveAndAccessible` and a
+current-source browser interaction run. Native-WebView and packaged-release
+rendering remain separate gates.

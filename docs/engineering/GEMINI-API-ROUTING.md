@@ -113,10 +113,12 @@ when the gateway owner has provided one for a protected endpoint. Enable the
 **Google Gemini Developer API** route only when the student intentionally wants
 to use their own AI Studio project and its provider limits. The Config modal
 now puts this route choice immediately after the endpoint, before the detailed
-credential map, and highlights the currently selected route. The two cards are
-an explanatory state display; the existing **Use your Google key for this
-session** toggle remains the only route control. The modal keeps the two fields
-independent.
+credential map, and highlights the currently selected route. The two route
+cards are keyboard-accessible controls; selecting the provider card still
+requires a key, a trusted endpoint, a compatible model, and a completed
+gateway access check. The **Use your Google key for this session** toggle
+mirrors the same route state and remains available as an explicit off switch.
+The modal keeps the two fields independent.
 
 The native desktop wrapper is a special local case: it forces the embedded
 gateway to `127.0.0.1` and removes BOB `api_keys` from the desktop configuration.
@@ -193,6 +195,12 @@ The UI key is held only in page memory and is sent only as
 official upstream `x-goog-api-key` header. It is not sent on health, metrics,
 model-list, update-check, or ping requests. The custom header is separate from
 BOB's local gateway `Authorization`/`x-api-key` authentication.
+
+The route cards in Config are native controls, not a decorative legend. The
+default web-session card is safe to select without a key. The Developer API
+card keeps the web route active until its key, endpoint trust, compatible
+model, and BOB access requirement are valid; the provider toggle mirrors the
+same state and can turn the route off without clearing the page-memory key.
 
 The optional BOB gateway-auth token is held only in the current page session as
 well. It is never written to browser storage and must be entered again after a
