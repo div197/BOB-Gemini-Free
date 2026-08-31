@@ -55,33 +55,11 @@ func writeAtomicDesktopUpdateFile(path string, data []byte, perm os.FileMode) er
 	return nil
 }
 
-func replaceDesktopUpdateFile(temporaryPath, path string) error {
-	err := os.Rename(temporaryPath, path)
-	if err == nil {
-		return nil
-	}
-	if runtime.GOOS != "windows" {
-		return err
-	}
-
-	// Windows does not replace an existing destination with Rename. These
-	// destinations are updater-owned metadata files, never the installed app;
-	// remove only the exact existing file before retrying the same-directory
-	// rename so failure records and repeated confirmations retain overwrite
-	// behavior without weakening executable replacement.
-	if _, statErr := os.Lstat(path); statErr != nil {
-		return err
-	}
-	if removeErr := os.Remove(path); removeErr != nil {
-		return fmt.Errorf("remove existing desktop update metadata: %w", removeErr)
-	}
-	return os.Rename(temporaryPath, path)
-}
-
 // syncDesktopUpdateDirectory is a seam for fault-injection tests around the
 // swap protocol. Windows does not expose a portable directory fsync contract;
-// NTFS journaling and the existing rollback transaction remain the platform
-// boundary there. macOS and Unix-like hosts flush the directory entry.
+// its native metadata move uses write-through semantics and the existing
+// rollback transaction remains the platform boundary there. macOS and
+// Unix-like hosts flush the directory entry.
 var syncDesktopUpdateDirectory = syncDesktopUpdateDirectoryImpl
 
 func syncDesktopUpdateDirectoryImpl(path string) error {
