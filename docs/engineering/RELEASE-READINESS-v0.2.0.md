@@ -74,6 +74,12 @@ current local truth is:
   surfaces, accessible selector names, a prompt skip link, and synchronized
   generated web output. These are source/regression results, not visual
   browser acceptance.
+- The current source also invalidates cached dynamic Gemini `/app` tokens after
+  an explicit upstream HTTP 401/403. Buffered and streaming rejection,
+  configured-cookie preservation, fresh-bootstrap recovery, and an in-flight
+  bootstrap ordering race are regression-tested. This is local stale-token
+  recovery only; live expiry, reauthentication, and provider acceptance remain
+  external gates.
 - Follow-up commit `b136724` hardens updater transaction durability with
   flushed metadata commits, Unix directory synchronization around swaps and
   recovery, and a fault-injected rollback regression. Recursive app-bundle

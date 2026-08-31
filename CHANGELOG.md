@@ -316,6 +316,19 @@ This remains an ad-hoc-signed, non-notarized controlled preview. Stable
 - Kept the New/model toolbar above responsive drawers and bounded manual UI
   retries so a visible provider failure cannot be multiplied by rapid clicks.
 
+##### Session rejection recovery
+
+- Explicit Google HTTP 401/403 responses now invalidate only the cached dynamic
+  `/app` page token and build identifier. The configured cookie file and guest
+  cookie remain intact, and the next request performs a fresh bootstrap rather
+  than reusing rejected session material.
+- An invalidation generation prevents an older in-flight bootstrap from
+  restoring tokens after the rejection. The buffered and streaming paths,
+  credential preservation, refresh, and in-flight ordering are covered by
+  deterministic tests.
+- This is bounded local recovery, not automatic reauthentication or a provider
+  availability guarantee. The rejected request is not replayed.
+
 ---
 
 ## [0.1.9] - 2026-08-28
