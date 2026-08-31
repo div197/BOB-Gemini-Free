@@ -13,7 +13,7 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `8651eba`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `1cc33d5`, ahead of `origin/main`; the
   branch contains the subsequent audit documentation, coalesced-stream,
   remote-image, and updater-preflight hardening commits.
 - The current branch contains the later 100-path hardening follow-ups,
@@ -29,6 +29,11 @@ current local truth is:
   release artifact download and explains App Translocation/read-only paths;
   the preflight is source- and fixture-tested but still needs a real
   `/Applications` installed-bundle run.
+- A fresh local macOS Preview package was built from clean commit `1cc33d5`;
+  its universal bundle passed ad-hoc `codesign --verify`, the DMG contained a
+  visible `/Applications` shortcut, and the package carried no private key or
+  signed release manifest. This is local package evidence, not a publication
+  or clean-device update proof.
 - The current tip also contains the isolated Studio correctness pass: native
   button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
   surfaces, accessible selector names, a prompt skip link, and synchronized

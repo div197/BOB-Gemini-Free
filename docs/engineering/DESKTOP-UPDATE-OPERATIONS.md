@@ -27,6 +27,10 @@ recovery guidance before downloading the release package. The staging step
 repeats this check because permissions can change after discovery; this is an
 error-prevention improvement, not a bypass of the signed-manifest boundary.
 
+This preflight does not make the updater silent: the user still chooses
+**Install Update**, and the helper still waits for a local healthy-startup
+confirmation before deleting the rollback copy.
+
 If the helper or machine is interrupted after the transaction starts, the next
 native launch inspects only a validated plan belonging to that exact install.
 A healthy confirmation finalizes the candidate and removes the rollback copy; a
