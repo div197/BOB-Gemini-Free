@@ -2,6 +2,7 @@ package geminiapi
 
 import (
 	"context"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -84,6 +85,65 @@ func TestStreamParsesSSEAndIgnoresCommentsAndDone(t *testing.T) {
 	}
 	if len(events) != 2 || events[0].Candidates[0].Content.Parts[0].Text != "a" || events[1].Candidates[0].FinishReason != "STOP" {
 		t.Fatalf("events = %#v", events)
+	}
+}
+
+func TestStreamPreservesOrderWithUnknownSSEFieldsAndMultilineData(t *testing.T) {
+	var events []GenerateContentResponse
+	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return response(http.StatusOK, "text/event-stream", "event: provider_delta\nid: 1\nretry: 1000\nx-provider-field: ignored\ndata: {\"candidates\":[{\"content\":{\ndata: \"parts\":[{\"text\":\"first\"}]}}]}\n\n"+
+			"event: provider_delta\nid: 2\ndata: {\"candidates\":[{\"content\":{\"parts\":[{\"text\":\"second\"}]}}]}\n\n"), nil
+	}))
+	err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(event GenerateContentResponse) error {
+		events = append(events, event)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("Stream() error = %v", err)
+	}
+	if len(events) != 2 {
+		t.Fatalf("events = %#v, want two ordered events", events)
+	}
+	if got := events[0].Candidates[0].Content.Parts[0].Text; got != "first" {
+		t.Fatalf("first event text = %q", got)
+	}
+	if got := events[1].Candidates[0].Content.Parts[0].Text; got != "second" {
+		t.Fatalf("second event text = %q", got)
+	}
+}
+
+func TestStreamReportsHTTP200ProviderErrorEvent(t *testing.T) {
+	const apiKey = "stream-provider-secret"
+	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return response(http.StatusOK, "text/event-stream", "event: error\ndata: {\"error\":{\"code\":429,\"status\":\"RESOURCE_EXHAUSTED\",\"message\":\"quota for stream-provider-secret\"}}\n\n"), nil
+	}))
+	err := client.Stream(context.Background(), "gemini-3.7-flash", apiKey, GenerateContentRequest{}, func(GenerateContentResponse) error {
+		t.Fatal("provider error event reached the content callback")
+		return nil
+	})
+	if err == nil {
+		t.Fatal("HTTP-200 provider error event was accepted")
+	}
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("error = %T %v, want APIError", err, err)
+	}
+	if apiErr.Status != http.StatusTooManyRequests || apiErr.Kind != "quota" {
+		t.Fatalf("APIError = %#v, want quota/429", apiErr)
+	}
+	if strings.Contains(err.Error(), apiKey) || !strings.Contains(err.Error(), "RESOURCE_EXHAUSTED") {
+		t.Fatalf("provider stream error was not safely classified: %v", err)
+	}
+}
+
+func TestStreamClassifiesStringProviderErrorCode(t *testing.T) {
+	client := NewClient(roundTripFunc(func(*http.Request) (*http.Response, error) {
+		return response(http.StatusOK, "text/event-stream", "event: error\ndata: {\"error\":{\"code\":\"RESOURCE_EXHAUSTED\",\"status\":\"RESOURCE_EXHAUSTED\",\"message\":\"too many requests\"}}\n\n"), nil
+	}))
+	err := client.Stream(context.Background(), "gemini-3.7-flash", "stream-key", GenerateContentRequest{}, func(GenerateContentResponse) error { return nil })
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) || apiErr.Status != http.StatusTooManyRequests || apiErr.Kind != "quota" {
+		t.Fatalf("error = %#v, want quota/429 APIError", err)
 	}
 }
 
