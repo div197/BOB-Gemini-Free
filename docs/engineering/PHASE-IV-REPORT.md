@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `1cc33d5`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `5eae3e2`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -60,7 +60,7 @@ The remaining high-value source risks were:
 
 ## Work completed
 
-### 1. Coalesced stream lifecycle — `7ee4a23`, `1f47a29`
+### 1. Coalesced stream lifecycle — `7ee4a23`, `1f47a29`, `5eae3e2`
 
 `internal/gemini/flight.go` now gives each subscriber an independent context
 and bounded queue. A leader's cancellation or deadline detaches only the
@@ -72,9 +72,10 @@ returns `ErrStreamSubscriberTooSlow`; it never silently drops a delta.
 The history path preserves the registration/replay boundary, caps retained
 chunks and bytes, refuses a new subscriber after history truncation, and
 removes completed or abandoned flights. The slow-subscriber regression was
-also made deterministic: it now waits for both leader and follower before the
-burst, eliminating a test race that previously allowed the follower to join
-after completion and replay successfully.
+also made deterministic in two layers: it waits for both leader and follower
+before the burst, then paces each burst item on healthy-leader consumption.
+This tests follower overflow rather than depending on the Go scheduler to
+schedule a fast leader during an instantaneous burst.
 
 Protected behavior includes:
 
@@ -117,7 +118,7 @@ The updater remains user-consented. A background check may discover and show a
 candidate; it never installs without **Install Update**. No silent fleet push
 was added.
 
-### 4. Documentation and evidence — `1cc33d5`
+### 4. Documentation and evidence — `1cc33d5`, `5eae3e2`
 
 The design audit, release readiness document, desktop update operations, 100-
 path register, and verification matrix now record the continuation truth:

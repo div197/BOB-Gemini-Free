@@ -395,15 +395,15 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `1cc33d5`; the current checkout also contains the
-report-only documentation commit that follows it. The local branch is
+The source-hardening tip is `5eae3e2`; the current checkout contains the
+deterministic stream-regression follow-up after the evidence documents. The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.
 
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
-| A slow coalesced stream subscriber is never silently dropped | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight.go` returns `ErrStreamSubscriberTooSlow` from a bounded queue; the overflow test now waits for both leader and follower before emitting and passes repeatedly under `go test -race` | This protects the local multiplexer; live Google stream behavior and browser disconnects remain external. |
+| A slow coalesced stream subscriber is never silently dropped | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight.go` returns `ErrStreamSubscriberTooSlow` from a bounded queue; the overflow test synchronizes both subscribers and paces the burst on healthy-leader consumption, then passes repeatedly under `go test -race` | This protects the local multiplexer; live Google stream behavior and browser disconnects remain external. |
 | Cancelling a leader or follower does not cancel an independent healthy subscriber, while the last subscriber cancels an abandoned flight | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight_test.go` covers follower cancellation, leader cancellation, leader deadline, and last-subscriber cleanup under the race detector | The upstream client's own total timeout remains the final bound; this is not a provider retry guarantee. |
 | A fetched remote image cannot bypass downstream decode dimensions through high compression | VERIFIED_BY_UNIT_TEST | `internal/multimodal/upload.go` validates fetched bytes with `inspectImageData`; `TestFetchImageBytesRejectsImagesOutsideDecodeBudget` covers a highly-compressible image over the source-dimension budget | OCR/browser CPU pressure and live remote-image egress remain external. |
 | The native updater explains an unwriteable or translocated install before downloading a package | VERIFIED_BY_UNIT_TEST | `CheckDesktopInstallTarget` performs a no-network same-filesystem preflight; tests cover a writable bundle, App Translocation, and unsupported OS, while `cmd/desktop/updates.go` defers background prompts and surfaces manual guidance | A real mounted-DMG, `/Applications`, Gatekeeper, helper restart, rollback, and 30-device run remain external. |

@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed through `1cc33d5` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
+**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed through `5eae3e2` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
 
 **Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
 
