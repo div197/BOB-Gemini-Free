@@ -900,11 +900,25 @@ main {
   margin-top: 10px;
 }
 .route-choice-option {
+  appearance: none;
   background: var(--bg-card);
   border: 1px solid var(--border-color);
   border-radius: 7px;
+  color: inherit;
+  cursor: pointer;
+  display: block;
+  font: inherit;
   min-width: 0;
   padding: 8px 9px;
+  text-align: left;
+  width: 100%;
+}
+.route-choice-option:hover {
+  border-color: var(--accent-primary);
+}
+.route-choice-option:focus-visible {
+  outline: 2px solid var(--accent-primary);
+  outline-offset: 2px;
 }
 .route-choice-option-title {
   align-items: center;
@@ -4537,14 +4551,14 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <div class="route-choice-guide-kicker" id="gateway-route-choice-kicker">Start here — choose one Google route</div>
         <div class="route-choice-guide-title" id="gateway-route-choice-title">Where should this page send prompts?</div>
         <div class="route-choice-options">
-          <div class="route-choice-option" data-route="web">
+          <button type="button" class="route-choice-option" data-route="web" aria-pressed="true" onclick="selectGatewayRoute('web')">
             <span class="route-choice-option-title" id="gateway-route-choice-web-title">Default web-session (recommended)</span>
             <span class="route-choice-option-body" id="gateway-route-choice-web-body">Leave the Google key empty. BOB uses its engine-owned guest/account session when available; provider limits still apply.</span>
-          </div>
-          <div class="route-choice-option" data-route="provider">
+          </button>
+          <button type="button" class="route-choice-option" data-route="provider" aria-pressed="false" onclick="selectGatewayRoute('provider')">
             <span class="route-choice-option-title" id="gateway-route-choice-provider-title">Your Google Developer API key</span>
             <span class="route-choice-option-body" id="gateway-route-choice-provider-body">Enter your own AI Studio key, then enable “Use your Google key for this session” below. Google project limits and billing still apply.</span>
-          </div>
+          </button>
         </div>
       </div>
 
@@ -7120,6 +7134,43 @@ function developerRouteSelectionIssue() {
   return developerRouteModelIssue();
 }
 
+// The route guide is an actual control, not a decorative legend. Keep it
+// synchronized with the explicit provider toggle so students have one clear
+// route choice while the key itself remains an opt-in page-session secret.
+function selectGatewayRoute(route) {
+  const providerRoute = route === "provider";
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  const toggle = document.getElementById("gemini-provider-toggle");
+
+  if (providerRoute) {
+    if (!geminiProviderKey) {
+      showToast(ui.gatewayRouteProviderKeyMissing || "The Developer API route is selected, but no Google AI Studio key is entered.", "🔑");
+      const input = document.getElementById("gemini-provider-key-input");
+      if (input) input.focus();
+      return;
+    }
+    if (!canSendGeminiProviderKey()) {
+      showToast(ui.gatewayRouteProviderBlockedHelp || "The selected endpoint is not a safe saved HTTPS or local loopback destination.", "🔒");
+      return;
+    }
+    const modelIssue = developerRouteModelIssue();
+    if (modelIssue) {
+      showToast(modelIssue, "⚠️");
+      return;
+    }
+    const accessIssue = gatewayAccessSelectionIssue();
+    if (accessIssue) {
+      showToast(accessIssue, "🔒");
+      return;
+    }
+  }
+
+  useGeminiProvider = providerRoute;
+  if (toggle) toggle.checked = providerRoute;
+  updateGatewayCredentialStatus();
+}
+
 function gatewayAccessKeyTransportIssue() {
   if (!gatewayApiKey || isSecureGatewayForAccessKey(getGatewayBaseUrl())) return "";
   const dict = I18N[currentLang] || I18N.en;
@@ -7187,7 +7238,13 @@ function updateGatewayCredentialStatus() {
   const routeChoice = document.getElementById("gateway-route-choice");
 
   if (kicker) kicker.textContent = ui.gatewayRouteStatusKicker || "Request route for this page";
-  if (routeChoice) routeChoice.dataset.selectedRoute = providerRoute ? "provider" : "web";
+  if (routeChoice) {
+    const selectedRoute = providerRoute ? "provider" : "web";
+    routeChoice.dataset.selectedRoute = selectedRoute;
+    routeChoice.querySelectorAll(".route-choice-option[data-route]").forEach(option => {
+      option.setAttribute("aria-pressed", option.dataset.route === selectedRoute ? "true" : "false");
+    });
+  }
   if (title) title.textContent = providerRoute
     ? (ui.gatewayRouteProviderStatus || "Direct Google Gemini API route")
     : (ui.gatewayRouteWebStatus || "Default web-session route");

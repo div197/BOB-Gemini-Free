@@ -84,7 +84,9 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Places an explicit, live route-choice guide immediately after the endpoint,
   before the detailed credential map, so the default web-session path and the
   opt-in Developer API path are understandable before a student sees either
-  key field. The existing provider toggle remains the only route control.
+  key field. The two route cards are real keyboard-accessible controls and stay
+  synchronized with the provider toggle; selecting the provider route fails
+  closed until its key, endpoint trust, model, and gateway-access checks pass.
 - Adds an accessible description relationship for the endpoint field and
   removes the internal `api_keys` configuration name from the student-facing
   helper text without changing route selection, headers, storage, or security
