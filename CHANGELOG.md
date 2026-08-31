@@ -74,7 +74,7 @@ to an earlier implementation. The current contract supersedes those phrases:
 ### Release candidate verification
 
 - Packaged and locally verified the next `v0.2.0-preview.7` macOS universal
-  candidate from merged `main` (`daaea61`), including the signed manifest, DMG
+  candidate from the main-tip source snapshot (`0c6a6ff`), including the signed manifest, DMG
   layout, bundle architecture, bundled runtime startup, updater transition
   matrix, the protected-gateway route guard, and the Studio route pin. The
   candidate remains unpublished pending installed-base and pilot gates.
