@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); the source/design audit is reviewed against the later code tip `49080a5` on `codex/release-readiness-v0.2.0`. The design-specific L1 delta remains attributable to `fe6e91b`, with the generated `web/index.html` synchronized from the source studio.
+**Git baseline:** `523ceeb` (`origin/main`); the source/design audit is reviewed against the later code tip `cec4c8e` on `codex/release-readiness-v0.2.0`. The design-specific L1 delta remains attributable to `fe6e91b`, with the generated `web/index.html` synchronized from the source studio.
 
 **Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
 

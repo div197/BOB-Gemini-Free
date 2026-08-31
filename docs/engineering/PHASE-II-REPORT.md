@@ -684,7 +684,7 @@ does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
 The current source-hardening code tip is on the local branch
-`codex/release-readiness-v0.2.0` at `49080a5`; subsequent documentation
+`codex/release-readiness-v0.2.0` at `cec4c8e`; subsequent documentation
 reconciliation is being kept separate, while `origin/main` remains a separate
 branch at `523ceeb`. A local Preview 2 candidate has been signed and verified
 through the Keychain-backed release flow, but no public Preview 2 or stable

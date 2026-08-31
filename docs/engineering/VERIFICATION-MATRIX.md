@@ -399,7 +399,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The current reviewed code tip is `49080a5`; it contains the
+The current reviewed code tip is `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,

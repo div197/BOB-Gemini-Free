@@ -13,7 +13,7 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `49080a5`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `cec4c8e`, ahead of `origin/main`; the
   branch contains the subsequent audit documentation, coalesced-stream,
   remote-image, and updater-preflight hardening commits.
 - The next source package identity is `v0.2.0-preview.2`. The immutable public
