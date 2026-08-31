@@ -31,16 +31,16 @@
 ## वर्तमान स्थिति और प्रमाण सीमा
 
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
-bridge, historical Preview 3/4/5 और current controlled preview
-`v0.2.0-preview.6` शामिल हैं। Public `main` में Preview 4 के बाद का
-artifact-preview, responsive-header, multiline-SSE और credential-boundary
-सुधार आ चुके हैं। Preview 6 के public bytes और Preview 1 → Preview 5
-installed migration का प्रमाण उपलब्ध है; rollback, clean-device,
-pilot और platform-trust gates अभी खुले हैं।
-Public `main` पर PR #77–#86 के बदलावों से बना immutable Preview 6 package
-`f9b3410` source target से signed और प्रकाशित है। Public bytes को फिर से
-download करके verify किया गया है। वर्तमान source future candidate के लिए
-वर्तमान source अगली candidate के लिए `v0.2.0-preview.8` नाम रखता है; Preview 6 को दोबारा build नहीं करना चाहिए। Preview 8 स्थानीय रूप से package, sign और verify हो चुका है, लेकिन अभी प्रकाशित नहीं है।
+bridge, historical Preview 3–7 और current controlled preview
+`v0.2.0-preview.8` शामिल हैं। Public `main` में Preview 4 के बाद का
+artifact-preview, responsive-header, multiline-SSE, credential-boundary,
+route-control और diagnostics सुधार आ चुके हैं। Preview 8 के public bytes और
+signature को फिर से download करके verify किया गया है। Preview 1 → Preview 5
+installed migration का प्रमाण उपलब्ध है; audit Mac पर Preview 5 ने Preview 8
+को खोज लिया था, लेकिन install action cancel किया गया, इसलिए replacement,
+rollback, clean-device, pilot और platform-trust gates अभी खुले हैं।
+Public `main` पर current Preview 8 package `bfa68ff` source target से signed और
+manually प्रकाशित है। Stable `v0.2.0` अभी प्रकाशित नहीं है।
 Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,

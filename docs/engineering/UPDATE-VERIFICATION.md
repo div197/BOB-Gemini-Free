@@ -168,16 +168,25 @@ reports `immutable: false` for Preview 6; the project's write-once release
 policy therefore requires a new tag and fresh public-byte reconciliation for a
 future candidate.
 
-## Current Preview 8 candidate — 2026-09-01
+## Current Preview 8 publication — 2026-09-01
 
-The current source candidate is `v0.2.0-preview.8`, built from reviewed runtime
-source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`. It is freshly packaged,
-signed, and verified; the exact package hashes and local startup evidence are
+The current public macOS prerelease is
+[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8),
+built from reviewed runtime source commit
+`bfa68ff5926924d1c0b35410e8d8175c404002d6`. It was packaged, signed, and
+verified locally; the exact package hashes and local startup evidence are
 recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
-It is not a public release yet, so installed devices cannot discover it. A
-published release still requires the exact five-file upload followed by fresh
-signature, checksum, and byte reconciliation.
+The exact five-file release set was then uploaded manually without GitHub
+Actions, downloaded again into a fresh directory, signature- and
+checksum-verified, and compared byte-for-byte with the local signed inputs.
+
+This proves public release-byte integrity and metadata discovery. It does not
+prove Apple Developer ID/notarization, a clean-device replacement, rollback,
+live Google availability, or a 20–30-device rollout. On the audit Mac, the
+installed Preview 5 app discovered Preview 8 through **Help → Check for
+Updates**; the install action was canceled, so replacement remains an open
+device gate.
 
 ## Preview 2 publication evidence — 2026-08-31
 

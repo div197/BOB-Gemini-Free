@@ -30,13 +30,14 @@ Before any publication, advance `PREVIEW_VERSION` to a new unused
 `-preview.N` value, review the resulting source commit, and never rebuild a
 published tag from a later checkout.
 
-As of the 2026-08-31 follow-up, the earlier `v0.2.0-preview.7` candidate was
-never published and is superseded by the changed source. The current source
-candidate is `v0.2.0-preview.8`; it has been packaged, signed, and verified
-locally from the clean reviewed checkpoint recorded in
+As of the 2026-09-01 follow-up, the earlier `v0.2.0-preview.7` candidate was
+never published and is superseded by the changed source. The current public
+release is `v0.2.0-preview.8`; it was packaged, signed, and verified from the
+clean reviewed checkpoint recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md),
-but it remains unpublished. The public downloadable macOS preview remains
-`v0.2.0-preview.6`. macOS bundle metadata uses numeric base version `0.2.0`;
+then published manually and re-downloaded for signature, checksum, and
+byte-for-byte reconciliation. The release is a macOS prerelease, not a stable
+student release. macOS bundle metadata uses numeric base version `0.2.0`;
 the injected updater/About/health identity retains the full
 `v0.2.0-preview.8` channel-aware version.
 
@@ -79,11 +80,11 @@ local file; do not pipe an unpinned branch directly into a shell.
 
 ## Native automatic-update status
 
-The current public native preview is `v0.2.0-preview.6`, built with the
+The current public native preview is `v0.2.0-preview.8`, built with the
 desktop trust key and a signed preview manifest. It performs an explicit
 metadata check, and a user can approve a verified staged update with health
 confirmation and rollback. The public `v0.2.0-preview.1` package remains
-the migration bridge; Preview 2–5 are historical release inputs. Preview 6
+the migration bridge; Preview 2–7 are historical release inputs. Preview 8
 embeds the desktop trust key and remains an explicit, user-consented updater.
 The current public source includes the post-Preview-4 artifact-preview,
 responsive-header, multiline-SSE, credential-boundary, desktop-coexistence,
@@ -92,14 +93,17 @@ trust key remain manual-update-only. Stable builds never move into preview;
 current-key preview builds may migrate into a newer stable release only after
 explicit user consent.
 
-The exact Preview 6 public-byte evidence is recorded in
+The exact Preview 8 public-byte evidence is recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
+the exact historical Preview 6 public-byte evidence is recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
 the superseded locally verified Preview 7 candidate is recorded in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md);
 the current Preview 8 candidate is recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
 the one-host installed migration evidence remains the earlier Preview 1 →
-Preview 5 observation.
+Preview 5 observation. Preview 5 → Preview 8 discovery was observed on the
+audit Mac, but its install action was canceled and is not replacement proof.
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the
@@ -118,7 +122,7 @@ The implementation sequence is:
 
 This removes repeated delete/download/install work after the user approves the
 update. For the existing public `v0.1.7-preview.7` fleet, the current public
-same-key `v0.2.0-preview.6` is the direct preview target; use the published
+same-key `v0.2.0-preview.8` is the direct preview target; use the published
 Preview 1 bridge only when a device has already selected that intermediate
 step. A current-source preview can then use its stable-first path after stable
 acceptance is complete. No silent install is enabled by the current preview.

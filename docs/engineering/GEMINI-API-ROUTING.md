@@ -1,11 +1,11 @@
 # Gemini Developer API Routing and Student Limits
 
 **Status:** implemented in the v0.2 milestone; the current public desktop
-package is macOS `v0.2.0-preview.6`, built from source target `f9b3410` and
-verified after public download. Preview 5 and its source baseline `c28d787`
-remain historical provenance; the current source continues the reviewed
-browser-boundary, credential-input, telemetry, release-version, settings, and
-desktop-coexistence follow-ups.
+package is macOS `v0.2.0-preview.8`, built from reviewed runtime source target
+`bfa68ff` and verified after public download. Preview 6, Preview 5, and their
+source baselines remain historical provenance; the current source includes the
+reviewed browser-boundary, credential-input, telemetry, release-version,
+settings, route-control, diagnostics, and desktop-coexistence follow-ups.
 **Audit date:** 2026-09-01 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is

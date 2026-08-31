@@ -1,16 +1,17 @@
 # v0.2.0-preview.8 — Candidate Verification
 
 **Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
-**Status:** locally packaged, signed, and verified; **not published**
+**Status:** publicly published as a signed macOS prerelease and reverified
 **Runtime source snapshot:** `bfa68ff5926924d1c0b35410e8d8175c404002d6` (the
 clean reviewed main commit used to build the package)
-**Public baseline:** `v0.2.0-preview.6` remains the current downloadable
-macOS preview. The earlier local Preview 7 candidate was never published and
-is superseded by this source.
+**Public release:** [`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+is the current downloadable macOS prerelease. The earlier local Preview 7
+candidate was never published and is superseded by this source.
 
-This receipt separates a locally verified candidate from a downloadable public
-release. Preview 8 must not be described as downloadable until the exact
-package, manifest, signature, and public-byte reconciliation are completed.
+This receipt records both the local candidate gates and the later public
+release reconciliation. The exact package, manifest, signature, and public
+bytes were verified before and after publication; device replacement and
+platform trust remain separate gates.
 
 ## Reviewed source changes
 
@@ -135,7 +136,7 @@ BOB_WAILS_PLATFORM=darwin/universal
 | Local packaged health | PASS; HTTP 200, `X-Bob-Version: v0.2.0-preview.8`, `X-Bob-Auth-Required: false` |
 | Local packaged static routes | PASS; `/playground`, `/manifest.json`, `/sw.js`, and `/favicon.ico` returned 200 |
 | Installed Preview 6 → Preview 8 replacement | OPEN; requires a writable device |
-| Public upload, fresh download, signature verification, and byte comparison | OPEN; requires explicit publication |
+| Public upload, fresh download, signature verification, and byte comparison | PASS; the five public assets were re-downloaded and matched the local signed inputs byte-for-byte |
 
 ## Signed asset hashes
 
@@ -157,11 +158,18 @@ package.
 
 ## Public and installed-base boundary
 
-GitHub's current downloadable macOS preview remains `v0.2.0-preview.6`.
-Preview 8 has not been tagged, uploaded, or published, so no installed device
-can discover it yet. Publishing requires a new unique tag, the exact verified
-five-file release directory, and a fresh download/signature/byte reconciliation
-after upload. A local package or a passing updater matrix is not a fleet update.
+GitHub's current downloadable macOS prerelease is the published
+[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8).
+The exact five-file release directory was uploaded manually, downloaded again
+into a fresh directory, signature- and checksum-verified, and compared
+byte-for-byte with the local signed inputs. A Preview 5 installation on the
+audit Mac successfully discovered Preview 8 through **Help → Check for
+Updates**; the install action was intentionally canceled, so the actual
+Preview 5 → Preview 8 replacement remains unproven.
+
+Publication proves release-byte integrity and metadata discovery, not a fleet
+update. Each device still needs a writable application location, explicit user
+consent, a restart/health check, and a rollback/clean-device observation.
 
 ## Release boundary
 

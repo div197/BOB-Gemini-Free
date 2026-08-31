@@ -582,9 +582,10 @@ provider-key field and the route stayed on web), a dummy-key provider
 selection, the return to web, modal focus return, and zero page-level
 horizontal overflow. The exact package refresh is recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
-the candidate remains unpublished.
+the candidate was subsequently published as `v0.2.0-preview.8`; its public
+asset reconciliation is recorded in the current addendum below.
 
-## Current Preview 6 publication addendum — 2026-08-31
+## Preview 6 publication addendum — 2026-08-31 (historical)
 
 This is the current release-state boundary for the repository. Historical
 Preview 1–5 sections above remain evidence of earlier states and must not be
@@ -602,11 +603,25 @@ is therefore an operator/project discipline, not a GitHub-enforced lock.
 
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
-| Preview 6 is the current public macOS beta | VERIFIED_LIVE | GitHub release `v0.2.0-preview.6` is published as a prerelease with the universal DMG, ZIP, notice, checksum manifest, and detached signature; the five public files were freshly verified | It remains ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
+| Preview 6 was the current public macOS beta at this audit boundary | VERIFIED_LIVE | GitHub release `v0.2.0-preview.6` was published as a prerelease with the universal DMG, ZIP, notice, checksum manifest, and detached signature; the five public files were freshly verified | It remains ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. Preview 8 is the current public prerelease. |
 | Preview 6 carries the reviewed v0.2 source follow-ups | VERIFIED_LIVE | The local package was built from release source target `f9b3410`, whose browser-boundary, credential-route, telemetry, release-version, settings, gateway-coexistence, and transport-guard changes are in the package receipt | Later `main` documentation/test-only reconciliation is not retroactively part of the published release. |
 | The updater can select Preview 6 for legacy Preview 7 and Preview 5 clients | VERIFIED_BY_UNIT_TEST | `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` uses a mocked official preview listing and asserts Preview 6 selection, manifest availability, and no self-update | The mock does not prove an installed-bundle replacement; one Preview 7/Preview 5 → Preview 6 pilot is still required. |
 | The settings surface explains the four credential boundaries | VERIFIED_BY_UNIT_TEST | `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`, `TestGatewayRouteChoiceGuideTracksSelectedRoute`, the localized dictionary test, and pre-send route guards cover BOB access, Google Developer API, engine-owned cookies, and endpoint identity | Student-owned key validity, Google quota, provider availability, and the safety of a remote endpoint remain external decisions. |
-| The current source Preview 8 candidate is locally packaged and signed without being represented as public | VERIFIED_LOCAL | Reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6` passed the clean-source gate, Wails universal build, Keychain-backed manifest signer, exact-asset verifier, DMG-layout check, packaged `/healthz` and static-route smoke, packaged settings smoke, updater transition tests, browser settings/preflight smoke, and current source tests; receipt: `PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md` | `v0.2.0-preview.8` is not published or downloadable; installed Preview 6 → Preview 8 replacement, public-byte reconciliation, rollback, clean-device, Apple trust, provider, and pilot gates remain open. |
+| The current source Preview 8 candidate is locally packaged and signed | VERIFIED_LOCAL | Reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6` passed the clean-source gate, Wails universal build, Keychain-backed manifest signer, exact-asset verifier, DMG-layout check, packaged `/healthz` and static-route smoke, packaged settings smoke, updater transition tests, browser settings/preflight smoke, and current source tests; receipt: `PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md` | The candidate was subsequently published and is covered by the current Preview 8 addendum below; installed replacement, rollback, clean-device, Apple trust, provider, and pilot gates remain open. |
 | The Gateway settings dialog keeps its interaction controls usable at responsive widths | VERIFIED_LIVE | Current-source browser checks at 390×844, 1024×768, and 1440×900 found no Gateway-modal button or non-checkbox text/password input below 44px, no page-level horizontal overflow, bounded dialog scrolling, and focus return; `TestGatewayModalControlsMeetTouchTargetContract` protects the CSS contract | This is current-bundle browser evidence, not native-WebView, assistive-technology, provider, clean-device, or fleet acceptance. |
 | A known protected gateway can leave the Developer API route enabled without its separate BOB access credential | VERIFIED_BY_UNIT_TEST | After `Test Ping` observes the endpoint's `401`, `gatewayAccessSelectionIssue()` feeds the route-status card and blocks the Developer API toggle until the BOB Gateway Access Key is present; `TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the guard and localized requirement copy | The guard depends on an explicit connection check; it cannot infer remote ownership or trust before the operator tests and saves an endpoint. |
 | A stable 0.2.0 student release is ready | UNKNOWN | Local source/package/public-byte gates are green, but no Apple platform trust, clean-device rollback, live provider, Windows/Linux, or staged pilot evidence exists | Do not announce stable or perform a 30-device wave until the remaining acceptance gates are recorded. |
+
+## Current Preview 8 publication addendum — 2026-09-01
+
+This is the current release-state boundary. The Preview 6 section above is
+historical evidence from before Preview 8 publication; it must not be used as
+the current downloadable-version statement.
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| Preview 8 is the current public macOS prerelease | VERIFIED_LIVE | GitHub release [`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8) is published as a prerelease with the universal DMG, ZIP, release notice, `SHA256SUMS`, and `SHA256SUMS.sig`; all five public assets were downloaded into a fresh directory, verified, and compared byte-for-byte with the local signed inputs | The package is ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
+| Preview 8 contains the reviewed current runtime source | VERIFIED_LIVE | The package was built from reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`; later `main` commit `364fb0b` is documentation-only relative to that runtime source | This release does not include later runtime changes unless a new uniquely versioned release is built and reconciled. |
+| An installed Preview 5 app can discover Preview 8 | VERIFIED_LIVE | On the audit Mac, **Help → Check for Updates** displayed a signed Preview 8 update offer from the public release | The install action was canceled; installed-bundle replacement, restart, rollback, clean-device, and fleet acceptance remain unproven. |
+| Preview 8 silently updates every student computer | STALE_OR_INCORRECT | The updater performs bounded metadata checks and asks for explicit consent before staging, replacing, and restarting the app | Each device requires a writable application path and a user-approved install; no GitHub Actions or classroom-wide push exists. |
+| A stable `v0.2.0` student release is ready | UNKNOWN | Source, package, signature, public-byte, and discovery gates are green | Apple Developer ID/notarization, clean-device and rollback, Windows/Linux, live Google behavior, and staged pilot gates remain open. |

@@ -1,11 +1,12 @@
 # Free Native Desktop Beta
 
-**Status:** branded public macOS preview `v0.2.0-preview.6` is the current
-controlled candidate; Preview 5, Preview 4, and Preview 3 remain historical, the
-published `v0.2.0-preview.1` migration bridge remains available, and
-`v0.1.7-preview.7` remains the existing fleet baseline. A locally packaged and
-signed `v0.2.0-preview.8` candidate is the next source version, but is not yet
-published; the earlier Preview 7 candidate was superseded before publication.
+**Status:** branded public macOS preview `v0.2.0-preview.8` is the current
+controlled candidate; Preview 6 and earlier remain historical, the published
+`v0.2.0-preview.1` migration bridge remains available, and
+`v0.1.7-preview.7` remains the existing fleet baseline. Preview 8 was packaged,
+signed, published manually, and re-downloaded for exact signature, checksum,
+and byte verification; the earlier Preview 7 candidate was superseded before
+publication.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -48,12 +49,13 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 ## Public preview releases
 
-The current [v0.2.0-preview.6 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6)
+The current [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
 contains the universal macOS package shape and current-key signed manifest.
-It was built from public source target `f9b3410`, passed fresh local package,
-signature, secure-key transport, and old-gateway coexistence checks, and was
-re-downloaded and byte-verified after publication. Existing Preview 7 users can
-discover Preview 6 directly through their preview-only lookup. The published
+It was built from reviewed runtime source target `bfa68ff`, passed fresh local
+package, signature, secure-key transport, settings-route, and old-gateway
+coexistence checks, and was re-downloaded and byte-verified after publication.
+Existing Preview 7 users can discover Preview 8 directly through their
+preview-only lookup. The published
 [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
 
@@ -68,14 +70,14 @@ Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
 legacy `v0.1.7-preview.6` installations require a one-time manual migration
 because their older project signing key cannot verify Preview 7. This is
-separate from the published `v0.2.0-preview.6` package. Windows and Linux require
+separate from the published `v0.2.0-preview.8` package. Windows and Linux require
 their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-The current Preview 6 package carries the branded package refresh, signed
+The current Preview 8 package carries the branded package refresh, signed
 preview updater, native window/browser refinements, language coverage, and the
 Web Studio generation lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
@@ -94,8 +96,8 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to the explicit next candidate
-`v0.2.0-preview.8`; the published `v0.2.0-preview.6` package remains the
-current public baseline. The signed `v0.2.0-preview.1` migration bridge is
+`v0.2.0-preview.8`; that exact candidate is now the published public preview.
+The signed `v0.2.0-preview.1` migration bridge is
 already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public
 preview and is not rebuilt in place.

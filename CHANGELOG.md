@@ -37,6 +37,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+No unreleased changes are recorded yet.
+
+## [0.2.0-preview.8] - 2026-09-01
+
 ### Responsive Studio correctness
 
 - Keeps compact phone header actions inside a bounded 44px-tall interaction
@@ -132,20 +136,24 @@ to an earlier implementation. The current contract supersedes those phrases:
   post-Preview-7 request-flight, responsive-drawer, generated-bundle, and
   settings-clarity review. The earlier local Preview 7 receipt remains
   historical and is not reused for changed source bytes.
-- Refreshes the local Preview 8 candidate from reviewed runtime source commit
+- Refreshes the Preview 8 release from reviewed runtime source commit
   `bfa68ff5926924d1c0b35410e8d8175c404002d6` after the interactive route-choice
   and endpoint-scoped access-preflight changes merged. The new universal macOS
   package, signed manifest, app bundle, DMG layout, static routes, loopback
   health response, packaged route-control smoke, and protected/pending/open
-  settings probes were reverified; the candidate remains unpublished.
+  settings probes were reverified. The exact five-file set was published
+  manually as [`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8),
+  downloaded again, signature- and checksum-verified, and reconciled
+  byte-for-byte with the local signed inputs.
 - Recorded the current 1/10/20/30-concurrency local benchmark against the
   current source commit. This remains a local-only measurement, not a Google
   quota or classroom-capacity claim.
 - Exercised the generated-artifact lifecycle with a synthetic local SSE
   fixture: preview launch and Code-tab hydration passed with the complete
   source, without a provider request or credential.
-- Keeps Preview 8 explicitly unpublished until installed-base, rollback,
-  clean-device, platform-trust, provider, and pilot gates are observed.
+- Keeps the public Preview 8 release explicitly prerelease and user-consented;
+  installed-base replacement, rollback, clean-device, platform-trust,
+  provider, and pilot gates remain open.
 
 ## [0.2.0-preview.6] - 2026-08-31
 
