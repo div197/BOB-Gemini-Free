@@ -5,7 +5,7 @@
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
 **Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
-**Current source candidate:** `v0.2.0-preview.8` from reviewed `main` tip `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11`; freshly packaged, signed, and verified, not published
+**Current source candidate:** `v0.2.0-preview.8` from reviewed `main` tip `7395243c90eec3f884dd49067b64dd549aab1956`; freshly packaged, signed, and verified, not published
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -47,7 +47,7 @@ the earlier bytes were not reused or published.
 | Public releases | Latest desktop preview is the published `v0.2.0-preview.6`; GitHub currently reports `immutable: false`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED_LIVE |
 | Historical Preview 7 public package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED_LIVE_HISTORICAL |
 | Superseded Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from the main-tip source snapshot `0c6a6ff` after PR #99, signed through the local Keychain, and verified locally; it was never a public release | VERIFIED_LOCAL_HISTORICAL |
-| Current Preview 8 candidate | `v0.2.0-preview.8` was freshly packaged from current `main` tip `638aa1d`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
+| Current Preview 8 candidate | `v0.2.0-preview.8` was freshly packaged from current `main` tip `7395243`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
 | Source gate | `scripts/verify-release-source.sh v0.2.0-preview.8` passes on current `main`; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
@@ -80,7 +80,7 @@ for provenance. The public downloadable version remains
 
 ## Current source Preview 8 candidate — 2026-09-01
 
-The current `main` tip `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` advances the
+The current `main` tip `7395243c90eec3f884dd49067b64dd549aab1956` advances the
 next candidate to `v0.2.0-preview.8`. It includes the request-flight identity
 fix, responsive drawer fix, synchronized generated Studio bundle, settings
 credential-map clarification, generation terminal-state fix, and bounded

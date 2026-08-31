@@ -123,7 +123,7 @@ to an earlier implementation. The current contract supersedes those phrases:
   settings-clarity review. The earlier local Preview 7 receipt remains
   historical and is not reused for changed source bytes.
 - Refreshes the local Preview 8 candidate from the clean `main` tip
-  `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` after the generation terminal-state
+  `7395243c90eec3f884dd49067b64dd549aab1956` after the generation terminal-state
   and gateway-diagnostics lifecycle fixes. The new universal macOS package,
   signed manifest, app bundle, DMG layout, static routes, and loopback health
   response were reverified; the candidate remains unpublished.
