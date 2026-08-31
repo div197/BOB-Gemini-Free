@@ -114,7 +114,7 @@ initial Mission 0 snapshot, the package-local results were: root 0.6%,
 | OpenAI system/developer roles are natively preserved | STALE_OR_INCORRECT | `internal/format/openai.go:139-142` turns them into `[System instruction]: ...`; unit assertions are in `internal/format/openai_test.go:48-66` | Support level: EMULATED_RELIABLY for the tested prompt transformation, not native Gemini/OpenAI role semantics. |
 | OpenAI structured outputs are enforced | STALE_OR_INCORRECT | `internal/format/openai.go:172-174` appends a textual JSON instruction | Support level: EMULATED_PARTIALLY. No schema validator or response conformance check is present. |
 | OpenAI reasoning output is supported as `reasoning_content` | VERIFIED_BY_UNIT_TEST | `internal/format/thinking.go:32-200`, `internal/server/chat.go:79-144`, `internal/format/openai_test.go:213-235`, `internal/format/thinking_test.go:7-152` | The local splitter and serialization path are tested. Whether Google emits the expected fenced markers live is UNKNOWN. |
-| Anthropic Messages has a complete compatible SSE lifecycle | STALE_OR_INCORRECT | `internal/server/anthropic.go:116-280` emits the lifecycle; `internal/format/anthropic.go:12-378` now rejects unsupported/malformed input blocks and preserves tool-result order; tests cover selected conversion cases, not the complete SSE contract | Selected lifecycle and strict input conversion are implemented; full Anthropic/Claude Code compatibility is not established. |
+| Anthropic Messages has a complete compatible SSE lifecycle | STALE_OR_INCORRECT | `internal/server/anthropic.go` emits ordered success/error lifecycle events, stops after SSE write failures, and `internal/server/server_test.go` covers success and upstream-error ordering; `internal/format/anthropic.go` rejects unsupported/malformed input blocks and preserves tool-result order | Selected lifecycle and strict input conversion are implemented; full Anthropic/Claude Code compatibility is not established. |
 | Anthropic extended thinking is full native support | STALE_OR_INCORRECT | `internal/server/anthropic.go:55-67` maps budgets to Gemini think integers; `internal/format/anthropic.go:147-169` maps requests | Support level: EMULATED_PARTIALLY. Budget semantics are reduced to a small internal mode set. |
 | Anthropic prompt caching counters are real | STALE_OR_INCORRECT | `internal/server/anthropic.go:132-136,330-335` returns both cache counters as `0` | Support level: EMULATED. No cache accounting exists. |
 | Anthropic tool use/results are native | STALE_OR_INCORRECT | `internal/format/anthropic.go:92-120,172-222` converts blocks to OpenAI-shaped data; `internal/format/openai.go:74-80,184-232` injects/parses Markdown blocks | Support level: EMULATED_PARTIALLY; no native Google function-call request is sent. |
@@ -395,10 +395,10 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `e478874`; the current checkout contains the
+The source-hardening tip is `4666dba`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
-history-persistence, Developer API stream-error, and session/quota-error
-follow-ups after the evidence documents. The local branch is
+history-persistence, Developer API stream-error, session/quota-error, and
+Anthropic lifecycle follow-ups after the evidence documents. The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.

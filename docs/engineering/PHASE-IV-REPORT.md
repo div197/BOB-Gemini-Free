@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `888a7fa`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4666dba`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -175,6 +175,15 @@ provider failures from BOB's own optional gateway API-key protection, avoiding
 the misleading instruction to enter a local key when Google's session has
 expired or access has been denied. This is actionable error classification,
 not automatic reauthentication or quota circumvention.
+
+### 9. Anthropic SSE lifecycle write integrity — `4666dba`
+
+The Anthropic adapter now treats a failed lifecycle write as terminal. Initial
+stream setup, block flush/stop, tool block events, `message_delta`, and
+`message_stop` are no longer allowed to be silently skipped while the handler
+continues toward a success response. Deterministic fixtures cover ordered
+success lifecycle and upstream-error termination; complete Claude Code event
+parity and real client compatibility remain open.
 
 ## Verification completed
 
