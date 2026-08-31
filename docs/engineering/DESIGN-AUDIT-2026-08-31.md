@@ -6,9 +6,12 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); the source/design audit is reviewed against the later code tip `cec4c8e` on `codex/release-readiness-v0.2.0`. The design-specific L1 delta remains attributable to `fe6e91b`, with the generated `web/index.html` synchronized from the source studio.
+**Git baseline:** `577c194` (`origin/main`) at the start of this follow-up. The
+source/design audit also includes the local responsive-drawer focus fix under
+test, with the generated `web/index.html` kept synchronized before publication.
 
-**Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
+**Audit status:** source, regression, and local browser shell checks complete;
+provider, artifact, native-WebView, and fleet acceptance remain open
 
 ## Executive conclusion
 
@@ -31,17 +34,23 @@ release-readiness follow-ups separately added updater permission diagnostics,
 Developer API tool-argument validation, desktop update-check jitter,
 credential-safe public error handling, and nil-safe logging for partial server
 and Gemini-client construction. Those changes are recorded in the failure
-register and release docs. The result is not yet a visual release sign-off
-because the real browser session required for desktop, tablet, phone,
-keyboard, focus, and artifact walkthroughs was unavailable.
+register and release docs. A fresh in-app browser session now covers the local
+shell at desktop, tablet, and phone widths plus responsive drawer keyboard
+behavior. The result is still not a full visual release sign-off because
+provider responses, artifact walkthroughs, 200% zoom, native WebView behavior,
+and clean-device packaging remain separate evidence gates.
 
-The final L1 delta in this audit is `fe6e91b`: compact attachment, session, and
-user-edit actions now have a 24px minimum hit area and keyboard focus reveals
-actions that are otherwise hover-only; mobile-collapsed header controls retain
-stable accessible names; gateway, voice, transliteration, and Send controls
-expose their current state to assistive technology. The changes preserve the
-navigation model and feature set; they do not turn source-level proof into
-browser proof.
+The final L1 delta in this audit also includes the responsive drawer focus
+contract: compact attachment, session, and user-edit actions retain a 24px
+minimum hit area and keyboard focus reveals actions that are otherwise
+hover-only; mobile-collapsed header controls retain stable accessible names;
+gateway, voice, transliteration, and Send controls expose their current state
+to assistive technology; and configuration/integration drawers trap focus on
+small screens, close on Escape, and return focus to their triggers. A fresh
+local browser run now provides shell evidence at desktop, tablet, and phone
+widths. The changes preserve the navigation model and feature set; they do not
+turn the shell smoke test into provider, artifact, native-WebView, or fleet
+proof.
 
 ## 1. Product intent in three lines
 
@@ -82,15 +91,15 @@ signals than the aspirational adjectives in the CSS comments.
 
 | Rank | Impact | Finding | Authority | Decision / status |
 |---|---|---|---|---|
-| 1 | Release blocker | No controlled desktop/tablet/phone browser walk could be completed: the in-app browser runtime reported no available browser and an empty browser list. | Evidence gate | **Open.** Do not call the current visual state release-ready until the matrix in section 8 is run. |
+| 1 | Release blocker | The full desktop/tablet/phone product walk is not complete: the local shell is covered, but provider responses, long-chat scrolling, artifact execution, 200% zoom, and native-WebView behavior still lack end-to-end evidence. | Evidence gate | **Open.** Keep the release in controlled preview until the remaining matrix in section 8 is run. |
 | 2 | High | Several dialogs had no explicit dialog semantics or focus contract; the dynamically-created hosted onboarding surface used `.modal-overlay`/`.modal-content`, which were not defined by the current stylesheet. | L1 | **Fixed.** Shared dialog markup, labels, `aria-modal`, Escape behavior, focus trap, and focus return are now explicit. |
 | 2a | High | Core click-only controls used generic `role="button"` elements and button templates omitted an explicit non-submit type. | L1 | **Fixed in source.** Brand, model, starter, token-estimate, artifact-rail, static, and generated controls now use native buttons; a source regression scans every button opening tag. |
-| 2b | High | Collapsed configuration/code drawers were visually hidden but did not explicitly leave the keyboard and assistive-technology interaction tree. | L1 | **Fixed in source.** Drawer panels now synchronize `aria-hidden`/`inert` with `aria-expanded` trigger state. Live drawer focus and coverage still require the browser matrix. |
+| 2b | High | Collapsed configuration/code drawers were visually hidden but did not explicitly leave the keyboard and assistive-technology interaction tree, and closing a responsive drawer dropped focus to the document body. | L1 | **Fixed and browser-smoke-tested.** Drawer panels synchronize `aria-hidden`/`inert` with `aria-expanded`, use temporary dialog semantics on small screens, trap Tab, close on Escape, and return focus to the trigger. Full assistive-technology and native-WebView coverage remains open. |
 | 2c | Medium | Modal surfaces could clip long content at short viewports or large browser zoom. | L1 | **Fixed in source.** Shared dialog surfaces use a bounded dynamic viewport height and internal vertical scrolling. Rendered 200% zoom evidence remains pending. |
 | 2d | Medium | On narrow widths, header labels are intentionally hidden; several compact attachment/session/edit actions were also too small or only visible on hover, making the mobile and keyboard experience ambiguous. | L1 | **Fixed in source.** Header and dynamic action states now have stable accessible names, and compact actions have a 24px minimum containment with focus-visible disclosure. Rendered touch and keyboard evidence remains pending. |
 | 3 | High | The viewport disabled browser text scaling with `maximum-scale=1.0` and `user-scalable=no`. This directly contradicted the reading-zoom and accessibility intent. | L1 | **Fixed.** The scale lock was removed while preserving `viewport-fit` and keyboard-resize behavior. |
 | 4 | High | `--text-subdued` failed normal-text contrast in the default theme and several selectable themes; muted text also failed in the Tokyo Night and Solarized Light themes. | L1 | **Fixed.** Theme token values were corrected and covered by a contrast regression test. |
-| 5 | High | The responsive shell has enough density to make overlap, drawer coverage, composer collision, and New Chat visibility a real risk at tablet and phone widths. Source CSS contains mitigation, and drawer semantics are now explicit, but no live viewport evidence was available. | L2 evidence gate | **Open.** Verify before restructuring; keep the change isolated if a section-level fix is needed. |
+| 5 | High | The responsive shell has enough density to make overlap, drawer coverage, composer collision, and New Chat visibility a real risk at tablet and phone widths. | L2 evidence gate | **Partially verified.** Fresh local browser checks at 1440x900, 1024x768, and 390x844 found no document horizontal overflow and exercised both drawers; long conversation, composer collision, touch target, and artifact states still need the remaining matrix. |
 | 6 | Medium | The top area gives similar visual weight to status, configuration, code, command menu, GitHub, glossary, theme, language, model, zoom, export, and clear. This makes the prompt workspace compete with the product chrome. | L2 | **Proposal only.** Test a section-level hierarchy change with before/after captures. |
 | 7 | Medium | The Studio depends on multiple remote CDN scripts and styles for markdown, math, diagrams, document parsing, OCR, and runtime helpers. That is a reliability boundary for a product described as local-first and immediate. | L3 | **Proposal only.** Define explicit degraded states or package only the critical path; do not invent fake offline fallbacks. |
 | 8 | Medium | `playground.html` is a monolithic 11,674-line document containing tokens, layout, markup, runtime state, rendering, and feature logic. It makes visual regressions and ownership boundaries difficult to see. | L3 | **Proposal only.** Split by component/build boundary only after behavior and generated-artifact parity are protected. |
@@ -104,6 +113,7 @@ signals than the aspirational adjectives in the CSS comments.
 |---|---|---|
 | Promoted core click-only surfaces to native controls | Native buttons provide correct keyboard activation, focus behavior, and assistive-technology semantics without a global keydown shim. Explicit `type="button"` also prevents accidental form submission if the shell is embedded later. | `internal/server/playground.html:5068-5354,11091-11110`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Isolated collapsed drawers from the interaction tree | A visually translated panel must not leave hidden controls reachable by Tab or screen readers. The trigger and panel now expose one synchronized state. | `internal/server/playground.html:5097-5101,5136,5348,6716-6742`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
+| Added a responsive drawer focus contract | A mobile drawer that opens over the workspace must not strand keyboard users behind the overlay. Small-screen drawers now focus their first control, wrap Tab/Shift+Tab, close on Escape, and return focus to the opening trigger; desktop sidebars retain complementary semantics. | `internal/server/playground.html` responsive drawer lifecycle; `TestPlaygroundUsesNativeControlAndDrawerSemantics`; live phone viewport smoke test |
 | Added prompt skip link and selector names | Keyboard users can reach the primary task directly, and theme/language controls have names that do not depend on title tooltips. | `internal/server/playground.html:4020,5114-5127`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Bounded shared dialog surfaces | Long onboarding, gateway, glossary, and instruction content can scroll inside the modal instead of clipping against a short viewport or 200% zoom. | `internal/server/playground.html:2776-2784,2867-2875`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Restored missing semantic surface aliases | Theme-independent `--bg-hover` and `--bg-main` references now resolve to the active theme tokens instead of producing invalid computed declarations. | `internal/server/playground.html:74-76`; `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
@@ -217,36 +227,37 @@ close, Escape, and focus return at desktop/tablet/phone widths.
 
 ## 7. Correctness table
 
-“Source-fixed” means a deterministic source invariant and regression test now
-exist. It does not mean a real browser interaction has passed. “Browser
-pending” is intentional and is the correct status while the browser runtime is
-unavailable.
+"Source-fixed" means a deterministic source invariant and regression test now
+exist. “Browser-smoke” means the local in-app browser exercised the named
+surface; it does not mean the same behavior has passed in every native WebView,
+provider state, or clean device.
 
 | Page / path | Viewport | Issue | Severity | Status |
 |---|---|---|---|---|
-| Studio shell `/playground` | Desktop 1440x900 | Full visual walk, hierarchy, clipping, and layout shift | High | **Browser pending**; no browser was available |
-| Studio shell `/playground` | Tablet 1024x768 and 768x1024 | Drawer coverage, New Chat visibility, header wrapping, composer collision | High | **Browser pending**; responsive CSS exists but is not acceptance evidence |
-| Studio shell `/playground` | Phone 390x844 and 320x844 | Narrow header, two-column starter cards, touch targets, safe-area behavior | High | **Browser pending**; source has phone rules, visual proof absent |
+| Studio shell `/playground` | Desktop 1440x900 | Initial shell, header hierarchy, clipping, and document overflow | High | **Browser-smoke passed**; long-chat and layout-shift path remains |
+| Studio shell `/playground` | Tablet 1024x768 | Initial shell, header wrapping, document overflow, and drawer open/close | High | **Browser-smoke passed**; 768x1024, long-chat, and composer collision remain |
+| Studio shell `/playground` | Phone 390x844 | Narrow header, starter grid, document overflow, and drawer focus lifecycle | High | **Browser-smoke passed**; 320x844, touch-target, safe-area, and long-chat paths remain |
 | Page typography | All | Browser text scaling was disabled | High | **Source-fixed**; scale lock removed and regression-tested |
 | Primary prompt/composer | All | Accessible name, focus visibility, loading/stop/error recovery | High | **Partially source-fixed**; native control/selector tests pass, browser state walk pending |
 | Header and compact row actions | Phone/tablet/keyboard | Hidden labels, dynamic state announcements, sub-24px attachment/session/edit targets, and hover-only edit visibility | Medium | **Source-fixed** in `fe6e91b`; rendered touch and keyboard walk pending |
 | Chat scrolling | All | Top/bottom navigation, streaming bottom anchor, composer offset | High | **Source-supported** by existing regression tests; real scroll walk pending |
 | Starter cards | Desktop/tablet/phone | Click-only activation excluded keyboard users and used invalid generic control semantics | Medium | **Source-fixed** with native buttons and phrasing-content markup; browser keyboard walk pending |
 | Model chip and token estimate | Desktop/tablet/phone | Click-only controls lacked native button semantics | Medium | **Source-fixed**; browser keyboard walk pending |
-| Dialogs and command palette | All | Missing semantics, focus trap/return, consistent Escape behavior, and short-viewport clipping | High | **Source-fixed in source**; browser focus-trap, return, and 200% zoom test pending |
+| Dialogs and command palette | All | Missing semantics, focus trap/return, consistent Escape behavior, and short-viewport clipping | High | **Source-fixed**; responsive drawer focus/return smoke-tested, modal and 200% zoom paths pending |
 | Hosted onboarding dialog | All | Undefined modal classes and long command content could render poorly | High | **Source-fixed**; browser resize/wrap test pending |
-| Configuration/code drawers | Tablet/phone | Dense controls, panel coverage, hidden-panel focus, and compact actions may be difficult to operate by touch | High | **Partially source-fixed**; `aria-hidden`/`inert` state is explicit, but coverage and target-size evidence require browser |
+| Configuration/code drawers | Tablet/phone | Dense controls, panel coverage, hidden-panel focus, and compact actions may be difficult to operate by touch | High | **Browser-smoke passed** for 390x844 focus/Tab/Escape/return and no document overflow; touch target, 768x1024, and native-WebView evidence remain |
 | Gateway/configuration panel | Tablet/phone | Dense controls and compact actions may be difficult to operate by touch | Medium | **Open**; assess target size and panel overflow in browser |
 | Artifact Preview/Code | All | Empty/error/loading/source-limit states and generated game launch | High | **Open for rendered acceptance**; source-level sandbox/recovery tests pass |
 | Language selector and Hindi UI | All | Translation coverage and text expansion | Medium | **Open**; docs correctly classify coverage as English/Hindi plus partial targets |
 | Theme surfaces | All built-in themes | Subdued/muted text contrast | High | **Source-fixed** with numeric contrast regression; browser visual sampling pending |
-| External GitHub/release links, generated Markdown links, and Copy actions | All | Default-browser handoff, link protocol safety, and clipboard success/failure feedback | Low | **Source-supported** by explicit link allow-listing, real anchors/`noopener`, and guarded clipboard writes; click behavior not browser-verified here |
+| External GitHub/release links, generated Markdown links, and Copy actions | All | Default-browser handoff, link protocol safety, and clipboard success/failure feedback | Low | **Source-supported** by explicit link allow-listing, real anchors/`noopener`, and guarded clipboard writes; external navigation was not triggered during the local smoke run |
 | Hosted Studio → localhost gateway | N/A | Origin/PNA trust is a security boundary, not a visual feature | High | **Separate release gate**; not changed by this design pass |
 
 ## 8. Required browser acceptance run
 
-When a browser runtime is available, run the following exact matrix and attach
-before/after screenshots for every L2 change:
+The local shell portion is now complete for the three primary viewports. The
+remaining acceptance run is the following exact matrix; attach before/after
+screenshots for every L2 change:
 
 | Path | Desktop | Tablet | Phone |
 |---|---|---|---|

@@ -5167,7 +5167,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
 <main>
   <!-- Left Model Configuration & Studio Controls -->
-  <aside class="sidebar-panel left collapsed" id="sidebar-left" aria-hidden="true" inert>
+  <aside class="sidebar-panel left collapsed" id="sidebar-left" aria-hidden="true" aria-labelledby="left-panel-title" inert>
     <div class="panel-header">
       <span id="left-panel-title">Studio Configuration</span>
       <button type="button" class="btn-pill-subtle" id="left-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('left')">✕ Hide</button>
@@ -5420,7 +5420,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   </section>
 
   <!-- Right Drop-in Integration Studio -->
-  <aside class="sidebar-panel right collapsed" id="sidebar-right" aria-hidden="true" inert>
+  <aside class="sidebar-panel right collapsed" id="sidebar-right" aria-hidden="true" aria-labelledby="right-panel-title" inert>
     <div class="panel-header">
       <span id="right-panel-title">Drop-in Integration</span>
       <button type="button" class="btn-pill-subtle" id="right-panel-hide" style="padding:0 8px; height:24px; font-size:0.65rem;" onclick="toggleSidebar('right')">✕ Hide</button>
@@ -6827,24 +6827,89 @@ function closeAllSidebars() {
   setSidebarState('right', false);
 }
 
+// Responsive drawers behave like modal surfaces: keep keyboard focus inside
+// the open drawer and return it to the trigger when the drawer closes.
+const sidebarReturnFocus = new WeakMap();
+
+function getOpenResponsiveSidebar() {
+  if (window.innerWidth > 1080) return null;
+  for (const side of ['left', 'right']) {
+    const panel = document.getElementById('sidebar-' + side);
+    if (panel && !panel.classList.contains('collapsed')) return panel;
+  }
+  return null;
+}
+
+function rememberSidebarFocus(side, panel) {
+  const trigger = document.getElementById('btn-toggle-' + side);
+  const active = document.activeElement;
+  const openModal = typeof getOpenManagedModal === 'function' ? getOpenManagedModal() : null;
+  const destination = active && active !== document.body && !panel.contains(active) &&
+    (!openModal || !openModal.contains(active)) ? active : trigger;
+  if (destination) sidebarReturnFocus.set(panel, destination);
+}
+
+function focusSidebarInitial(panel) {
+  if (window.innerWidth > 1080) return;
+  requestAnimationFrame(() => {
+    const focusable = getModalFocusableElements(panel);
+    const destination = focusable[0] || panel;
+    if (destination && typeof destination.focus === 'function') destination.focus();
+  });
+}
+
+function restoreSidebarFocus(panel, side) {
+  const trigger = document.getElementById('btn-toggle-' + side);
+  const destination = sidebarReturnFocus.get(panel) || trigger;
+  sidebarReturnFocus.delete(panel);
+  requestAnimationFrame(() => {
+    if (destination && destination.isConnected && !destination.disabled) destination.focus();
+  });
+}
+
+function trapResponsiveSidebarFocus(e, panel) {
+  if (!panel || window.innerWidth > 1080 || e.key !== 'Tab') return false;
+  const focusable = getModalFocusableElements(panel);
+  if (!focusable.length) {
+    e.preventDefault();
+    panel.focus();
+    return true;
+  }
+  const first = focusable[0];
+  const last = focusable[focusable.length - 1];
+  if (!panel.contains(document.activeElement)) {
+    e.preventDefault();
+    (e.shiftKey ? last : first).focus();
+  } else if (e.shiftKey && document.activeElement === first) {
+    e.preventDefault();
+    last.focus();
+  } else if (!e.shiftKey && document.activeElement === last) {
+    e.preventDefault();
+    first.focus();
+  }
+  return true;
+}
+
 function initPanels() {
   const leftOpen = getLocalPreference(PANEL_LEFT_KEY, "") === "true";
   const rightOpen = getLocalPreference(PANEL_RIGHT_KEY, "") === "true";
-  setSidebarState('left', leftOpen);
-  setSidebarState('right', rightOpen);
+  setSidebarState('left', leftOpen, leftOpen && window.innerWidth <= 1080);
+  setSidebarState('right', rightOpen, rightOpen && window.innerWidth <= 1080);
 }
 
 function toggleSidebar(side) {
   const panel = document.getElementById('sidebar-' + side);
   const isCollapsed = panel.classList.contains('collapsed');
-  setSidebarState(side, isCollapsed);
+  setSidebarState(side, isCollapsed, true);
 }
 
-function setSidebarState(side, isOpen) {
+function setSidebarState(side, isOpen, manageFocus = true) {
   const panel = document.getElementById('sidebar-' + side);
   const btn = document.getElementById('btn-toggle-' + side);
   const backdrop = document.getElementById('drawer-backdrop');
   if (!panel) return;
+  const wasOpen = !panel.classList.contains('collapsed');
+  if (isOpen && !wasOpen && manageFocus) rememberSidebarFocus(side, panel);
   
   if (isOpen) {
     panel.classList.remove('collapsed');
@@ -6859,6 +6924,14 @@ function setSidebarState(side, isOpen) {
   panel.setAttribute("aria-hidden", isOpen ? "false" : "true");
   panel.toggleAttribute("inert", !isOpen);
   if (btn) btn.setAttribute("aria-expanded", isOpen ? "true" : "false");
+
+  const isResponsiveDrawer = window.innerWidth <= 1080;
+  panel.setAttribute("role", isResponsiveDrawer ? "dialog" : "complementary");
+  if (isResponsiveDrawer) panel.setAttribute("aria-modal", "true");
+  else panel.removeAttribute("aria-modal");
+
+  if (isOpen && !wasOpen && manageFocus) focusSidebarInitial(panel);
+  if (!isOpen && wasOpen && manageFocus) restoreSidebarFocus(panel, side);
 
   // Mobile drawer overlay management
   if (window.innerWidth <= 1080) {
@@ -7684,6 +7757,17 @@ function activateKeyboardButton(e) {
 document.addEventListener("keydown", (e) => {
   const openModal = getOpenManagedModal();
   if (openModal && trapManagedModalFocus(e, openModal)) return;
+
+  const openSidebar = getOpenResponsiveSidebar();
+  if (openSidebar) {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      toggleSidebar(openSidebar.id === 'sidebar-left' ? 'left' : 'right');
+      return;
+    }
+    if (trapResponsiveSidebarFocus(e, openSidebar)) return;
+  }
+
   if (activateKeyboardButton(e)) return;
 
   const confirmModal = document.getElementById("confirm-modal");
