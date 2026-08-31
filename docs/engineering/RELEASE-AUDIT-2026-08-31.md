@@ -79,7 +79,7 @@ push.
 | Installed build | Candidate behavior now that Preview 6 is published | Required condition |
 |---|---|---|
 | `v0.1.7-preview.7` | Legacy preview-only lookup selects the published `v0.2.0-preview.6` candidate in the mocked matrix | Same current project key, macOS package/manifest published, app copied to a writable location; live device transition remains open |
-| `v0.2.0-preview.1`–`preview.5` | Current preview path selects the newest published preview when no newer stable exists; Preview 1 → Preview 5 was observed on one Mac | Same key and explicit consent; Preview 4 and Preview 5 assets remain unchanged; Preview 6 device transition remains open |
+| Installed `v0.2.0-preview.1`–`preview.5` lineage | The preview-channel lookup selects the newest published preview when no newer stable exists; the only live migration observed was Preview 1 → Preview 5 on one Mac | Same key and explicit consent; Preview 4 and Preview 5 assets remain unchanged; Preview 6 device transition remains open |
 | Current-source `v0.2.0-preview.6` | No update to itself; later previews are selected by semver | A later signed successor and writable install target |
 | `v0.2.0` stable build | Checks only the stable endpoint; it never downgrades into preview | A newer public stable release must exist |
 | `v0.1.7-preview.6` or a build with the unrecoverable old key | Cannot verify a current-key release | One manual installation of a current-key package |
