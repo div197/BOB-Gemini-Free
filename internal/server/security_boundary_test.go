@@ -122,6 +122,26 @@ func TestHealthzIsUnauthenticatedAndStable(t *testing.T) {
 	}
 }
 
+func TestTrustedBrowserCanReadHealthzAuthMarker(t *testing.T) {
+	cfg := config.Default()
+	cfg.APIKeys = []string{"health-secret"}
+	cfg.AllowedOrigins = []string{"https://studio.example.test"}
+	app := New(cfg, "healthz-cors-test")
+	req := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	req.Header.Set("Origin", "https://studio.example.test")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("trusted healthz status = %d, want 200", rec.Code)
+	}
+	exposed := strings.ToLower(rec.Header().Get("Access-Control-Expose-Headers"))
+	for _, marker := range []string{"x-bob-auth-required", "x-bob-gateway", "x-bob-protocol"} {
+		if !strings.Contains(exposed, marker) {
+			t.Fatalf("trusted healthz CORS exposure missing %q: %q", marker, exposed)
+		}
+	}
+}
+
 func TestProtectedRoutePrefixDoesNotBypassAPIKey(t *testing.T) {
 	cfg := config.Default()
 	cfg.APIKeys = []string{"route-secret"}
