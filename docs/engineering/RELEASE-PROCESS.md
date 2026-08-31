@@ -31,11 +31,13 @@ Before any publication, advance `PREVIEW_VERSION` to a new unused
 published tag from a later checkout.
 
 As of the 2026-08-31 follow-up, the earlier `v0.2.0-preview.7` candidate was
-never published and is superseded by the changed source. The next candidate is
-`v0.2.0-preview.8`; it must be packaged from a clean reviewed commit before
-publication. The public downloadable macOS preview remains
+never published and is superseded by the changed source. The current source
+candidate is `v0.2.0-preview.8`; it has been packaged, signed, and verified
+locally from the clean reviewed checkpoint recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md),
+but it remains unpublished. The public downloadable macOS preview remains
 `v0.2.0-preview.6`. macOS bundle metadata uses numeric base version `0.2.0`;
-the injected updater/About/health identity will retain the full
+the injected updater/About/health identity retains the full
 `v0.2.0-preview.8` channel-aware version.
 
 The preview packager requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` even though
@@ -94,7 +96,7 @@ The exact Preview 6 public-byte evidence is recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
 the superseded locally verified Preview 7 candidate is recorded in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md);
-the current Preview 8 candidate will be recorded in
+the current Preview 8 candidate is recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
 the one-host installed migration evidence remains the earlier Preview 1 →
 Preview 5 observation.
