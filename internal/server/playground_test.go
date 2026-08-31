@@ -408,6 +408,34 @@ func TestHistoryStorageBoundsAttachmentsWithoutCorruptingPayloads(t *testing.T) 
 	}
 }
 
+func TestHistoryStorageFailuresAreVisibleAndRecoverable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="history-storage-status" class="history-storage-status" role="status" aria-live="polite" aria-atomic="true" hidden`,
+		`function setHistoryStorageState(state)`,
+		`function tryWriteHistoryStorage(serialized)`,
+		`function tryRemoveHistoryStorage()`,
+		`Conversation saved in compact mode; some attachment previews may be omitted.`,
+		`Previous local conversation data was unavailable, so a fresh chat was started.`,
+		`This conversation could not be saved on this device.`,
+		`if (tryWriteHistoryStorage(JSON.stringify(compacted)))`,
+		`setHistoryStorageState("compacted")`,
+		`setHistoryStorageState("unsaved")`,
+		`setHistoryStorageState("recovered")`,
+		`if (tryRemoveHistoryStorage()) {`,
+		`setHistoryStorageState("clear");`,
+		`setHistoryStorageState("unavailable");`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing visible history-storage recovery marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanHistory))`) ||
+		strings.Contains(html, `localStorage.setItem(STORAGE_KEY, JSON.stringify(compacted))`) {
+		t.Fatal("history writes must go through the guarded storage helper")
+	}
+}
+
 func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

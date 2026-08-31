@@ -2414,6 +2414,25 @@ input[type="range"] {
   background: rgba(245, 158, 11, 0.08);
   color: #fde68a;
 }
+.history-storage-status {
+  margin: 0 auto 10px;
+  width: min(900px, calc(100% - 32px));
+  padding: 9px 12px;
+  border: 1px solid rgba(245, 158, 11, 0.42);
+  border-left: 3px solid #f59e0b;
+  border-radius: 8px;
+  background: rgba(245, 158, 11, 0.08);
+  color: #fde68a;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+.history-storage-status.danger {
+  border-color: rgba(248, 113, 113, 0.48);
+  border-left-color: #f87171;
+  background: rgba(239, 68, 68, 0.09);
+  color: #fecaca;
+}
 #art-pane-code {
   background: var(--bg-app);
   display: flex;
@@ -5350,6 +5369,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
 
     <!-- Sacred Geometry Studio Input Dock with Multimodal Vision Engine -->
     <div class="studio-input-area">
+      <div id="history-storage-status" class="history-storage-status" role="status" aria-live="polite" aria-atomic="true" hidden></div>
       <div class="studio-input-container">
         <div class="studio-input-capsule">
           <!-- Multi-File Universal Document & Media Shelf -->
@@ -5551,6 +5571,50 @@ const MAX_HISTORY_THOUGHT_CHARS = 300000;
 const MAX_HISTORY_MESSAGES = 200;
 const MAX_HISTORY_TOTAL_CHARS = 4000000;
 const MAX_HISTORY_SERIALIZED_CHARS = MAX_HISTORY_TOTAL_CHARS + 500000;
+let historyStorageState = "unknown";
+
+function setHistoryStorageState(state) {
+  historyStorageState = state;
+  const statusEl = document.getElementById("history-storage-status");
+  if (!statusEl) return;
+
+  const messages = {
+    compacted: "Conversation saved in compact mode; some attachment previews may be omitted. Export important work before clearing this device.",
+    recovered: "Previous local conversation data was unavailable, so a fresh chat was started. Export important work regularly.",
+    unavailable: "Local chat history is unavailable on this device. Export important work before closing or clearing storage.",
+    unsaved: "This conversation could not be saved on this device. Export important work before closing or clearing storage."
+  };
+  const message = messages[state];
+  if (!message) {
+    statusEl.hidden = true;
+    statusEl.textContent = "";
+    statusEl.classList.remove("danger");
+    return;
+  }
+  statusEl.textContent = message;
+  statusEl.classList.toggle("danger", state === "unsaved" || state === "unavailable");
+  statusEl.hidden = false;
+}
+
+function tryWriteHistoryStorage(serialized) {
+  try {
+    localStorage.setItem(STORAGE_KEY, serialized);
+    return true;
+  } catch (error) {
+    console.warn("Unable to persist local chat history:", error);
+    return false;
+  }
+}
+
+function tryRemoveHistoryStorage() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+    return true;
+  } catch (error) {
+    console.warn("Unable to clear local chat history:", error);
+    return false;
+  }
+}
 
 let currentLang = "en";
 let isTransliterationActive = false;
@@ -10500,7 +10564,11 @@ function newChat() {
   }
   removeAttachedAttachment();
   chatHistory = [];
-  localStorage.removeItem(STORAGE_KEY);
+  if (tryRemoveHistoryStorage()) {
+    setHistoryStorageState("clear");
+  } else {
+    setHistoryStorageState("unavailable");
+  }
   renderMessages();
   showToast("Started new chat session", "✦");
   const input = document.getElementById("user-input");
@@ -11005,24 +11073,32 @@ function saveHistory() {
   chatHistory = trimHistoryPairs(chatHistory);
   try {
     const cleanHistory = sanitizeHistoryForStorage(chatHistory);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanHistory));
-  } catch(e) {
-    console.warn("Storage quota exceeded or storage error, attempting compacted save:", e);
-    try {
-      // Fallback: strip heavy image dataUrls to guarantee text chat retention
-      const compacted = trimStoredHistory(sanitizeHistoryForStorage(chatHistory).map(m => {
-        const compact = { ...m };
-        if (Array.isArray(compact.attachedFiles)) {
-          compact.attachedFiles = compact.attachedFiles.map(file => sanitizeAttachmentForStorage(file, false)).filter(Boolean);
-        }
-        if (compact.attachedImage) compact.attachedImage = sanitizeAttachmentForStorage(compact.attachedImage, false);
-        return compact;
-      }));
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(compacted));
-    } catch(e2) {
-      console.error("Critical localStorage write error:", e2);
+    if (tryWriteHistoryStorage(JSON.stringify(cleanHistory))) {
+      setHistoryStorageState("saved");
+      return;
     }
+  } catch(e) {
+    console.warn("Unable to prepare local chat history, attempting compacted save:", e);
   }
+
+  try {
+    // Fallback: strip heavy image dataUrls to guarantee text chat retention
+    const compacted = trimStoredHistory(sanitizeHistoryForStorage(chatHistory).map(m => {
+      const compact = { ...m };
+      if (Array.isArray(compact.attachedFiles)) {
+        compact.attachedFiles = compact.attachedFiles.map(file => sanitizeAttachmentForStorage(file, false)).filter(Boolean);
+      }
+      if (compact.attachedImage) compact.attachedImage = sanitizeAttachmentForStorage(compact.attachedImage, false);
+      return compact;
+    }));
+    if (tryWriteHistoryStorage(JSON.stringify(compacted))) {
+      setHistoryStorageState("compacted");
+      return;
+    }
+  } catch(e) {
+    console.error("Unable to prepare compacted local chat history:", e);
+  }
+  setHistoryStorageState("unsaved");
 }
 
 function loadHistory() {
@@ -11032,6 +11108,7 @@ function loadHistory() {
       if (raw.length > MAX_HISTORY_SERIALIZED_CHARS) {
         console.warn("Stored chat history exceeded the safe size bound; starting a fresh history.");
         chatHistory = [];
+        setHistoryStorageState("recovered");
         renderMessages();
         return;
       }
@@ -11059,6 +11136,7 @@ function loadHistory() {
           })));
       } else {
         chatHistory = [];
+        setHistoryStorageState("recovered");
       }
     } else {
       chatHistory = [];
@@ -11066,6 +11144,7 @@ function loadHistory() {
   } catch(e) {
     console.warn("Recovered from corrupted chat history payload:", e);
     chatHistory = [];
+    setHistoryStorageState("recovered");
   }
   renderMessages();
 }
