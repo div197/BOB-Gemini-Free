@@ -3,17 +3,24 @@
 ## Decision
 
 The immutable `v0.2.0-preview.1` tag was not reused. Controlled macOS
-`v0.2.0-preview.2` is now published from public-main commit `6d3a0cfc` and is
-the current preview candidate. Stable `v0.2.0` remains a later release
-candidate, not a release to publish until the device and pilot gates pass.
+`v0.2.0-preview.3` is now published from public-main commit `284b7d1a` and is
+the current preview candidate. The superseded `v0.2.0-preview.2` remains
+available as historical release input. Stable `v0.2.0` remains a later
+release candidate, not a release to publish until the device and pilot gates
+pass.
 
-The exact publication and byte-reconciliation evidence is recorded in
-[`PREVIEW-2-PUBLICATION-2026-08-31.md`](PREVIEW-2-PUBLICATION-2026-08-31.md).
+The exact current publication and byte-reconciliation evidence is recorded in
+[`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md);
+the earlier Preview 2 record remains historical provenance.
 
 The updater is working as a staged, user-consented migration mechanism. It is
 not a silent fleet push: a running app may perform a delayed metadata check,
 but it does not download, replace, or restart until the user selects
 **Install Update**.
+
+The evidence sections below that name Preview 1 or Preview 2 are retained as
+historical provenance for the earlier publication sequence. The authoritative
+current state is the Preview 3 reconciliation at the end of this document.
 
 ## Evidence snapshot before PR #42
 
@@ -161,3 +168,23 @@ Do not publish stable yet. Before a stable tag, the owner still needs to:
 The project signing key authenticates release bytes. It does not remove the
 macOS first-launch warning, create Apple publisher trust, or prove Google
 availability, quota, model identity, or unlimited use.
+
+## Preview 3 publication reconciliation — 2026-08-31
+
+The owner-controlled local release operation built the universal macOS
+package from public-main commit `284b7d1a9a2e7c45402318f29f08f0c1dba36d43`,
+signed its exact manifest through the macOS Keychain, and published
+`v0.2.0-preview.3` as a prerelease without GitHub Actions. The five GitHub
+assets were downloaded again into a fresh directory; the detached signature
+verified and every downloaded file matched the local publication input
+byte-for-byte.
+
+The final package also fixed the ZIP root name so both distribution surfaces
+present `BOB Gemini Free.app`. The exact asset sizes and SHA-256 values are
+recorded in [`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md).
+
+This closes Preview 3 source/package/public-byte reconciliation. It does not
+close clean-device replacement, restart, interrupted-update rollback, Apple
+Developer ID/notarization, Google provider behavior, or 20–30-device pilot
+acceptance. The private signing key remains outside the public repository in
+the owner-controlled local secret store.

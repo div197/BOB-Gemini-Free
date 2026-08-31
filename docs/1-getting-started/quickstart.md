@@ -195,10 +195,11 @@ check:
 ./bob-gemini-free --update
 ```
 
-The CLI refuses an unsigned update. The public `v0.2.0-preview.2` controlled
+The CLI refuses an unsigned update. The public `v0.2.0-preview.3` controlled
 macOS preview carries the current native project key, and the immutable
 `v0.2.0-preview.1` bridge remains available. Existing Preview 7 installations
-can discover Preview 2 through their preview-only path. Once stable `v0.2.0`
+have a current same-key Preview 3 candidate through their preview-only path.
+Once stable `v0.2.0`
 is published and accepted, the current-source preview updater can complete
 that migration. As of this quickstart revision, stable `v0.2.0` is not
 published; publication remains gated on clean-device and pilot acceptance.

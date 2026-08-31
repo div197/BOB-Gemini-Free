@@ -41,8 +41,9 @@ anchor. Its stable-channel metadata must identify the exact package, positive
 declared size, signed manifest, and official GitHub URLs. Public Preview 7 has
 the current key, but its released updater predates stable-first discovery; a
 same-key bridge preview or manual install is required before it can reach a
-new stable release through the updater. Preview 3 has no embedded desktop key
-and therefore cannot install a native update.
+new stable release through the updater. Historical `v0.1.7-preview.3` has no
+embedded desktop key and therefore cannot install a native update; the current
+`v0.2.0-preview.3` package embeds the current project public key.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
 injects it into every CLI matrix binary. On macOS,
@@ -122,10 +123,28 @@ writable application location, the user must explicitly approve installation,
 and a clean-device/pilot run must observe restart, confirmation, rollback
 preservation, and local configuration survival.
 
+## Preview 3 publication evidence — 2026-08-31
+
+The controlled macOS `v0.2.0-preview.3` release was built from public `main`
+commit `284b7d1a9a2e7c45402318f29f08f0c1dba36d43`, signed through the local
+owner-controlled Keychain, and published manually without GitHub Actions:
+
+[`github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3)
+
+The five public assets were downloaded into a fresh directory. The detached
+Ed25519 signature verified, and every downloaded file matched the local signed
+input byte-for-byte. The release is macOS universal, ad-hoc signed, not
+Developer ID signed, and not notarized. The local artifact also passed fresh
+launch, loopback `/healthz`, and clean shutdown smoke testing.
+
+This proves source/package/public-byte integrity. It does not prove an
+installed-bundle replacement, rollback after interruption, Gatekeeper trust,
+Google availability, or a 20–30-device rollout.
+
 ## Remaining release gate
 
 The owner-controlled macOS Keychain signer was exercised for the published
-`v0.2.0-preview.2` candidate: the exact release directory received a detached
+`v0.2.0-preview.3` candidate: the exact release directory received a detached
 Ed25519 signature, passed `scripts/verify-release-assets.sh`, and produced a
 0600 evidence receipt outside the worktree. All five public assets were then
 downloaded, re-verified, and byte-compared with the local inputs. This proves
@@ -133,5 +152,5 @@ publication integrity, not a successful installed-app replacement.
 
 Stable `v0.2.0` remains unpublished. A live successful update cannot be
 claimed until the owner completes clean-device replacement, rollback, and pilot
-acceptance for the published Preview 2 candidate. The private key remains
+acceptance for the published Preview 3 candidate. The private key remains
 outside the repository and must stay in the local secret store.

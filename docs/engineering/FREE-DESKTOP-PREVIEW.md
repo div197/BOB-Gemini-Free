@@ -1,6 +1,6 @@
 # Free Native Desktop Beta
 
-**Status:** branded public macOS preview `v0.2.0-preview.2` published as the
+**Status:** branded public macOS preview `v0.2.0-preview.3` published as the
 current controlled candidate; `v0.2.0-preview.1` remains the immutable
 migration bridge and `v0.1.7-preview.7` remains the existing fleet baseline.
 
@@ -33,8 +33,8 @@ stable-first behavior and can reach stable through the updater only after a
 same-key bridge preview, or through a manual stable install. It never silently
 downloads or replaces an application. A newer signed candidate requires
 consent, manifest/package verification, safe staging, and rollback protection.
-Preview 3 and other builds without the current embedded desktop trust key still
-require a manual migration. This project-level signature does not create Apple
+Historical `v0.1.7-preview.3` and other builds without the current embedded
+desktop trust key still require a manual migration. This project-level signature does not create Apple
 Developer ID or notarization trust.
 
 The standalone CLI installer is a separate path. It verifies the signed
@@ -45,7 +45,7 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 ## Public preview releases
 
-The current [v0.2.0-preview.2 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2)
+The current [v0.2.0-preview.3 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3)
 contains the universal macOS package shape and current-key signed manifest.
 Existing Preview 7 users can discover it directly through their preview-only
 lookup. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
@@ -58,7 +58,7 @@ contains:
 - `bob-gemini-free-macos-universal.zip`;
 - `RELEASE-NOTICE.txt`, `SHA256SUMS`, and `SHA256SUMS.sig`.
 
-Preview 3 remains available for manual migration and retains the Windows x64
+Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
 Preview 6 installations require a one-time manual migration because their
 older project signing key cannot verify Preview 7. Windows and Linux require
@@ -68,7 +68,7 @@ The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-The current Preview 2 package carries the branded package refresh, signed
+The current Preview 3 package carries the branded package refresh, signed
 preview updater, native window/browser refinements, language coverage, and the
 Web Studio generation lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
@@ -85,7 +85,7 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to the published
-`v0.2.0-preview.2` package identity. The signed `v0.2.0-preview.1` migration
+`v0.2.0-preview.3` package identity. The signed `v0.2.0-preview.1` migration
 bridge is immutable and already public. Set `BOB_RELEASE_VERSION` explicitly
 for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public

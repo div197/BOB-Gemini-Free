@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.1-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.3-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -30,8 +30,9 @@
 
 ## वर्तमान स्थिति और प्रमाण सीमा
 
-वर्तमान सार्वजनिक macOS previews `v0.2.0-preview.1` migration bridge और
-`v0.2.0-preview.2` controlled preview हैं; stable `v0.2.0` अभी प्रकाशित नहीं है।
+वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
+bridge और current controlled preview `v0.2.0-preview.3` शामिल हैं; stable
+`v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
@@ -237,13 +238,13 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public `v0.2.0-preview.2` preview में project update key embedded है। यह
-`v0.1.7-preview.7` installations के लिए same-key preview candidate है और
-explicit consent मांगता है; stable `v0.2.0` अभी pilot testing के बाद ही
+Public `v0.2.0-preview.3` preview में project update key embedded है। यह
+current same-key controlled preview है और explicit consent मांगता है; stable
+`v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी।
+मौजूदा Preview 7 installations यदि current project key रखती हैं तो preview
+channel में इस candidate को देख सकती हैं; actual replacement और rollback का
+clean-device प्रमाण अभी अलग gate है। Stable release अभी pilot testing के बाद
 प्रकाशित होगी।
-मौजूदा Preview 7 installations पहले इसी bridge को explicit consent के साथ
-अपडेट कर सकती हैं; उसके बाद stable `v0.2.0` उपलब्ध होने पर stable-first updater
-का उपयोग होगा। Stable release अभी pilot testing के बाद प्रकाशित होगी।
 
 ---
 

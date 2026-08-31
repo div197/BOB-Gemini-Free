@@ -64,17 +64,19 @@ Preview 4 was the first public native build with a build-embedded desktop trust
 key and a signed preview manifest. It performs an explicit metadata check, and
 a user can approve a verified staged update with health confirmation and
 rollback. Preview 6 was the previous signed preview; `v0.2.0-preview.1` is the
-immutable migration bridge and `v0.2.0-preview.2` is the current published
-macOS preview for the existing Preview 7 fleet. Preview 3 remains
-manual-update-only because it has no embedded desktop trust key. Stable builds
+immutable migration bridge and `v0.2.0-preview.3` is the current published
+macOS preview for controlled evaluation. The current Preview 3 embeds the
+desktop trust key and remains an explicit, user-consented updater; the
+historical `v0.1.7-preview.3` build remains manual-update-only because it has
+no embedded desktop trust key. Stable builds
 never move into preview; current-key
 preview builds may migrate into a newer stable release only after explicit
 user consent.
 
 The source now enables that user-consented path for the signed macOS preview,
-and the same-key `v0.2.0-preview.2` package is publicly available for the
-existing Preview 7 fleet. The exact public-byte evidence is recorded in
-[`PREVIEW-2-PUBLICATION-2026-08-31.md`](PREVIEW-2-PUBLICATION-2026-08-31.md).
+and the same-key `v0.2.0-preview.3` package is publicly available for
+controlled evaluation. The exact public-byte evidence is recorded in
+[`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md).
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the
