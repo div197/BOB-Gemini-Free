@@ -11,6 +11,8 @@ broad student rollout.
 - Actionable, calm native update-check, staging, and startup-recovery dialogs.
 - Responsive tablet/phone drawer semantics with initial focus, keyboard Tab
   trapping, Escape close, and focus return.
+- Branded `BOB Gemini Free.app` bundle naming in both the ZIP and DMG install
+  surfaces.
 - Local browser smoke evidence at desktop, tablet, and phone widths with no
   document horizontal overflow or browser console warnings/errors.
 - A version-aware package notice so the downloaded artifact identifies its
