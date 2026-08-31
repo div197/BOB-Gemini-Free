@@ -9,7 +9,7 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-windows-preview}"
 PLATFORM="${BOB_WAILS_PLATFORM:-windows/amd64}"
 INTERNAL_APP_NAME="bob-gemini-free"
-VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.5}"
+VERSION="${BOB_RELEASE_VERSION:-}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 EXPECTED_PUBLIC_KEY="$(awk '
 	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
@@ -17,6 +17,10 @@ EXPECTED_PUBLIC_KEY="$(awk '
 	in_key && length($0)==64 && $0 !~ /[^0-9a-fA-F]/ { print; exit }
 ' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 
+if [[ -z "$VERSION" ]]; then
+	echo "BOB_RELEASE_VERSION is required; refusing to guess or reuse an immutable preview tag" >&2
+	exit 1
+fi
 if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
 	echo "preview packages require a semantic -preview.N version: $VERSION" >&2
 	exit 1

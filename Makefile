@@ -6,6 +6,10 @@
 
 BINARY_NAME=bob-gemini-free
 VERSION=v0.2.0
+# The next immutable preview candidate is deliberately explicit. Preview
+# packagers refuse to guess a version so a previously published tag cannot be
+# rebuilt accidentally from a later source tree.
+PREVIEW_VERSION=v0.2.0-preview.6
 UPDATE_PUBLIC_KEY_FILE=docs/engineering/UPDATE-PUBLIC-KEY.txt
 UPDATE_PUBLIC_KEY=$(shell awk '/^Encoding: hexadecimal Ed25519 public key$$/ { in_key=1; next } in_key && /^[[:space:]]*$$/ { in_key=0 } in_key && length($$0)==64 && $$0 !~ /[^0-9a-fA-F]/ { print; exit }' $(UPDATE_PUBLIC_KEY_FILE))
 LDFLAGS=-s -w -X main.Version=$(VERSION) -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=$(UPDATE_PUBLIC_KEY)
@@ -67,15 +71,15 @@ desktop-release-mac: web desktop-key-check
 
 desktop-preview-mac: web desktop-key-check
 	@echo "Building the free, ad-hoc-signed BOB Gemini Free macOS beta package..."
-	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-preview.sh
+	BOB_RELEASE_VERSION="$(PREVIEW_VERSION)" BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-preview.sh
 
 desktop-preview-windows: web desktop-key-check
 	@echo "Building the free, unsigned BOB Gemini Free Windows beta executable..."
-	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-windows-preview.sh
+	BOB_RELEASE_VERSION="$(PREVIEW_VERSION)" BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-windows-preview.sh
 
 desktop-preview-linux: web desktop-key-check
 	@echo "Building the free BOB Gemini Free Linux beta package on a native Linux host..."
-	BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-linux-preview.sh
+	BOB_RELEASE_VERSION="$(PREVIEW_VERSION)" BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY="$(UPDATE_PUBLIC_KEY)" scripts/package-wails-linux-preview.sh
 
 desktop-mac: web desktop-key-check
 	@echo "Building the BOB Gemini Free macOS app (run on macOS; universal target)..."

@@ -78,7 +78,10 @@ recoverable. Historical `v0.1.7-preview.3` also remains a manual migration
 path because it predates the trust key.
 
 The local macOS, Windows, and Linux preview packagers now fail closed when a
-non-development package is built without `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`.
+non-development package is built without `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`
+or an explicit `BOB_RELEASE_VERSION`. The Makefile's `PREVIEW_VERSION` is the
+single next-candidate value passed by the preview targets; this prevents a
+direct invocation from silently reusing an immutable published tag.
 That prevents a future preview from being labelled updater-capable while its
 desktop binary has no embedded trust anchor. The private signing key remains
 required only by the separate local release-manifest/signing step and is never

@@ -18,11 +18,9 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-# The published migration bridge is v0.2.0-preview.1 and v0.2.0-preview.4 is
-# the current public macOS preview. The next source candidate therefore
-# defaults to a new immutable preview version. Set BOB_RELEASE_VERSION
-# explicitly for every publication.
-VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.5}"
+# Never infer an immutable preview tag from the packager. The Makefile supplies
+# the reviewed next candidate; direct callers must make that choice explicit.
+VERSION="${BOB_RELEASE_VERSION:-}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 EXPECTED_PUBLIC_KEY="$(awk '
 	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
@@ -31,6 +29,10 @@ EXPECTED_PUBLIC_KEY="$(awk '
 ' "$ROOT_DIR/docs/engineering/UPDATE-PUBLIC-KEY.txt")"
 trap 'rm -rf "$STAGE_DIR"' EXIT
 
+if [[ -z "$VERSION" ]]; then
+	echo "BOB_RELEASE_VERSION is required; refusing to guess or reuse an immutable preview tag" >&2
+	exit 1
+fi
 if [[ ! "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-preview\.[0-9]+$ ]]; then
 	echo "preview packages require a semantic -preview.N version: $VERSION" >&2
 	exit 1
