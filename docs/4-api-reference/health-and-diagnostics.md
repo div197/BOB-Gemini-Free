@@ -131,7 +131,12 @@ unavailable.
 
 ## 5. Release Update Check Endpoint (`GET /v1/update/check`)
 
-Check for newer GitHub releases programmatically:
+Check for newer GitHub releases programmatically. The response follows the
+running gateway build's release channel: the default CLI/embedded constructor
+checks stable releases, while a native preview build checks stable first for a
+one-way migration and then the published preview channel when no stable update
+exists. This endpoint only reads release metadata; it never downloads,
+replaces, or restarts the application.
 
 ```bash
 curl http://127.0.0.1:9610/v1/update/check
@@ -140,8 +145,19 @@ curl http://127.0.0.1:9610/v1/update/check
 ### Response
 ```json
 {
-  "current_version": "v0.1.7",
-  "latest_version": "v0.1.7",
-  "has_update": false
+  "current_version": "v0.2.0-preview.6",
+  "latest_version": "v0.2.0-preview.7",
+  "has_update": true,
+  "channel": "preview",
+  "asset_available": true,
+  "manifest_available": true
 }
 ```
+
+The native Wails app uses **Help → Check for Updates** for installation. The
+web Studio status badge is informational: on a native build it points users to
+the native Help action, on a preview CLI/browser route it points to the
+official Releases page, and on a stable CLI route it retains the `--update`
+command guidance. An unavailable metadata check returns HTTP 200 with
+`has_update: false` and a bounded `error` message so the status probe cannot
+interrupt the Studio.

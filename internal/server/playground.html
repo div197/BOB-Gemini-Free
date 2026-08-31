@@ -7272,7 +7272,10 @@ async function pingGatewayManual() {
         .then(r => r.json())
         .then(up => {
           if (up && up.has_update) {
-            if (badge) badge.innerHTML = `Latency: ${latency}ms • <span style="color:#f59e0b; font-weight:600;">✨ Update ${escapeHtml(up.latest_version)} Available</span> (run <code>bob-gemini-free --update</code>)`;
+            const updateAction = isNativeDesktopStudio()
+              ? "open Help → Check for Updates"
+              : (up.channel === "preview" ? "open the official Releases page" : "run bob-gemini-free --update");
+            if (badge) badge.innerHTML = `Latency: ${latency}ms • <span style="color:#f59e0b; font-weight:600;">✨ Update ${escapeHtml(up.latest_version)} Available</span> (${escapeHtml(updateAction)})`;
           }
         }).catch(() => {});
     } else if (res.status === 401) {

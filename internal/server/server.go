@@ -14,7 +14,10 @@ import (
 	"github.com/div197/bob-gemini-free/internal/geminiapi"
 	"github.com/div197/bob-gemini-free/internal/metrics"
 	"github.com/div197/bob-gemini-free/internal/multimodal"
+	"github.com/div197/bob-gemini-free/internal/updater"
 )
+
+type updateCheckFunc func(context.Context, string, string) (*updater.DesktopCheckResult, error)
 
 type App struct {
 	Cfg             config.Config
@@ -29,6 +32,8 @@ type App struct {
 	StartTime       time.Time
 	ImageCache      imageRefCache // Bounded authenticated-image SHA256 -> Scotty FileRef cache
 	Metrics         *metrics.Registry
+	updateChannel   string
+	updateCheck     updateCheckFunc
 	stopPoolReload  func()
 	closeOnce       sync.Once
 }
@@ -54,6 +59,15 @@ func createHTTPClient(cfg config.Config) *http.Client {
 }
 
 func New(cfg config.Config, version string) *App {
+	return NewWithUpdateChannel(cfg, version, updater.DesktopChannelStable)
+}
+
+// NewWithUpdateChannel constructs a gateway with the release channel carried
+// by its owning build. The default New constructor remains stable for the CLI,
+// embedded library, and other non-desktop callers; native desktop builds pass
+// their build-pinned preview/stable channel so the Studio status check and the
+// native updater observe the same release view.
+func NewWithUpdateChannel(cfg config.Config, version, channel string) *App {
 	config.Normalize(&cfg)
 	gemClient := gemini.NewClient(cfg)
 	registry := metrics.New()
@@ -68,15 +82,17 @@ func New(cfg config.Config, version string) *App {
 	httpClient := createHTTPClient(cfg)
 
 	app := &App{
-		Cfg:        cfg,
-		Gem:        gemClient,
-		GeminiAPI:  geminiapi.NewClient(httpClient),
-		Tokens:     multimodal.NewTokenCache(cfg, gemClient.Cookies, httpClient),
-		HTTPClient: httpClient,
-		Logf:       logFn,
-		Version:    version,
-		StartTime:  time.Now(),
-		Metrics:    registry,
+		Cfg:           cfg,
+		Gem:           gemClient,
+		GeminiAPI:     geminiapi.NewClient(httpClient),
+		Tokens:        multimodal.NewTokenCache(cfg, gemClient.Cookies, httpClient),
+		HTTPClient:    httpClient,
+		Logf:          logFn,
+		Version:       version,
+		StartTime:     time.Now(),
+		Metrics:       registry,
+		updateChannel: normalizeUpdateChannel(channel),
+		updateCheck:   updater.CheckLatestDesktopForChannelContext,
 	}
 
 	// Guest-only apps have no file-backed session state to reload. Avoid
@@ -87,6 +103,13 @@ func New(cfg config.Config, version string) *App {
 	}
 
 	return app
+}
+
+func normalizeUpdateChannel(channel string) string {
+	if channel == updater.DesktopChannelPreview {
+		return updater.DesktopChannelPreview
+	}
+	return updater.DesktopChannelStable
 }
 
 // Close stops background gateway-owned workers. It is safe to call more than
