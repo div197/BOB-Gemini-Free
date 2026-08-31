@@ -82,6 +82,28 @@ func TestTriageStatusCapturesBoundedRetryAfter(t *testing.T) {
 	}
 }
 
+func TestTriageStatusClassifiesSessionAndQuotaFailures(t *testing.T) {
+	for _, test := range []struct {
+		status int
+		kind   string
+		text   string
+	}{
+		{status: http.StatusUnauthorized, kind: "auth", text: "session or request authentication"},
+		{status: http.StatusForbidden, kind: "auth", text: "session or request authentication"},
+		{status: http.StatusTooManyRequests, kind: "quota", text: "rate limited"},
+	} {
+		resp := &http.Response{StatusCode: test.status, Header: make(http.Header)}
+		err := (&Client{}).triageStatus(resp)
+		var upstreamErr *UpstreamError
+		if !errors.As(err, &upstreamErr) {
+			t.Fatalf("status %d error = %v, want UpstreamError", test.status, err)
+		}
+		if upstreamErr.Kind != test.kind || !strings.Contains(upstreamErr.Msg, test.text) {
+			t.Fatalf("status %d error = %#v, want kind %q and text %q", test.status, upstreamErr, test.kind, test.text)
+		}
+	}
+}
+
 func TestUpstreamRetryDelayIsCappedAndJittered(t *testing.T) {
 	for attempt := 0; attempt < 8; attempt++ {
 		got := upstreamRetryDelay(attempt, 2)
@@ -170,6 +192,41 @@ func TestGenerateRetriesPreRequestDialFailure(t *testing.T) {
 	requester.mu.Unlock()
 	if called != 2 {
 		t.Fatalf("pre-request dial retry request count = %d, want 2", called)
+	}
+}
+
+func TestGenerateRetryWithNilLoggerDoesNotPanic(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+	}}
+	client := testClientWithRequester(requester, 2)
+	client.Logf = nil
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	if err == nil || !strings.Contains(err.Error(), "connection refused") {
+		t.Fatalf("GenerateContext error = %v, want the final dial failure", err)
+	}
+}
+
+func TestGenerateStreamRetryWithNilLoggerDoesNotPanic(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{
+		{err: &net.OpError{Op: "dial", Net: "tcp", Err: errors.New("connection refused")}},
+		{response: goldenOK(io.NopCloser(strings.NewReader(goldenBoQLine("recovered stream"))))},
+	}}
+	client := testClientWithRequester(requester, 2)
+	client.Logf = nil
+
+	var got []string
+	err := client.GenerateStreamContext(context.Background(), "fixture", 1, 4, nil, nil, func(delta string) error {
+		got = append(got, delta)
+		return nil
+	})
+	if err != nil {
+		t.Fatalf("GenerateStreamContext: %v", err)
+	}
+	if strings.Join(got, "") != "recovered stream" {
+		t.Fatalf("stream output = %q, want recovered stream", strings.Join(got, ""))
 	}
 }
 

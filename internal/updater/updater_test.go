@@ -39,6 +39,8 @@ func TestIsNewerVersion(t *testing.T) {
 		{"v0.1.7-preview.3", "v0.1.7-preview.4", true},
 		{"v0.1.7-preview.4", "v0.1.7-preview.3", false},
 		{"v0.1.7-preview.4", "v0.1.7", true},
+		{"v0.2.0-preview.1", "v0.2.0-preview.2", true},
+		{"v0.2.0-preview.1", "v0.2.0", true},
 		{"v0.1.7-preview.4", "not-a-version", false},
 	}
 
@@ -347,6 +349,45 @@ func TestLegacyPreview7CanDiscoverSameKeyBridgePreview(t *testing.T) {
 	}
 }
 
+func TestLegacyPreview7CanDiscoverNextPreviewCandidate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/preview" {
+			t.Errorf("legacy Preview 7 requested %s; want preview channel only", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{
+			{
+				TagName:    "v0.2.0-preview.1",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1",
+			},
+			{
+				TagName:    "v0.2.0-preview.2",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2",
+				Assets: []ReleaseAsset{
+					{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.2/bob-gemini-free-macos-universal.zip", Size: 2048},
+					{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.2/SHA256SUMS"},
+					{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.2/SHA256SUMS.sig"},
+				},
+			},
+		})
+	}))
+	defer server.Close()
+
+	// A legacy Preview 7 updater can skip an older bridge when the next
+	// same-key preview is already published; it still remains preview-only.
+	result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", "v0.1.7-preview.7", DesktopChannelPreview, "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("legacy Preview 7 next-preview lookup: %v", err)
+	}
+	if result.LatestVersion != "v0.2.0-preview.2" || !result.HasUpdate || !result.AssetAvailable || !result.ManifestAvailable {
+		t.Fatalf("legacy Preview 7 next-preview result = %#v", result)
+	}
+}
+
 func TestLegacyPreview7CannotDiscoverStableWithoutBridge(t *testing.T) {
 	var requests int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -408,7 +449,7 @@ func TestPreviewDesktopBuildCanMigrateToNewerStableRelease(t *testing.T) {
 	}))
 	defer server.Close()
 
-	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64")
+	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.2.0-preview.1", "darwin", "arm64")
 	if err != nil {
 		t.Fatalf("checkLatestDesktopPreviewWithStableMigration: %v", err)
 	}
@@ -434,9 +475,9 @@ func TestPreviewDesktopBuildChecksPreviewWhenStableHasNoUpdate(t *testing.T) {
 		case "/preview":
 			previewRequests++
 			_ = json.NewEncoder(w).Encode([]GitHubRelease{{
-				TagName:    "v0.1.7-preview.8",
+				TagName:    "v0.2.0-preview.2",
 				Prerelease: true,
-				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.8",
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2",
 			}})
 		default:
 			http.NotFound(w, r)
@@ -444,11 +485,11 @@ func TestPreviewDesktopBuildChecksPreviewWhenStableHasNoUpdate(t *testing.T) {
 	}))
 	defer server.Close()
 
-	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64")
+	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.2.0-preview.1", "darwin", "arm64")
 	if err != nil {
 		t.Fatalf("checkLatestDesktopPreviewWithStableMigration: %v", err)
 	}
-	if result.LatestVersion != "v0.1.7-preview.8" || result.Channel != DesktopChannelPreview || !result.HasUpdate {
+	if result.LatestVersion != "v0.2.0-preview.2" || result.Channel != DesktopChannelPreview || !result.HasUpdate {
 		t.Fatalf("preview fallback result = %#v", result)
 	}
 	if stableRequests != 1 || previewRequests != 1 {
@@ -477,7 +518,7 @@ func TestPreviewDesktopBuildDoesNotHideStableCheckFailure(t *testing.T) {
 	}))
 	defer server.Close()
 
-	if _, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.1.7-preview.7", "darwin", "arm64"); err == nil {
+	if _, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.2.0-preview.1", "darwin", "arm64"); err == nil {
 		t.Fatal("stable metadata failure was hidden by the preview path")
 	}
 	if previewRequests != 0 {

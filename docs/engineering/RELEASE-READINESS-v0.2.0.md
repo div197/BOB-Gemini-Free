@@ -1,10 +1,48 @@
 # BOB Gemini Free v0.2.0 Release Readiness
 
-**Audit date:** 2026-08-29 (Asia/Kolkata)
+**Audit date:** 2026-08-31 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
 **Current public migration bridge:** `v0.2.0-preview.1`
 **Decision:** **NOT READY for publication as a student-facing stable release**
+
+## Current repository refresh — 2026-08-31
+
+The historical publication entries below are retained as provenance. The
+current local truth is:
+
+- `origin/main` is `523ceeb`.
+- The reviewed source-hardening tip is pushed to
+  `codex/release-readiness-v0.2.0` at `cec4c8e`, ahead of `origin/main`; the
+  branch contains the subsequent audit documentation, coalesced-stream,
+  remote-image, and updater-preflight hardening commits.
+- The next source package identity is `v0.2.0-preview.2`. The immutable public
+  `v0.2.0-preview.1` bridge must not be rebuilt or overwritten, and no Preview 2
+  tag or release exists yet.
+- The current branch contains the later 100-path hardening follow-ups,
+  including nil-safe server and Gemini-client optional logging, accessible
+  attachment/image controls, and JavaScript-URL-free gateway recovery, but those
+  commits are not merged into `main`.
+- No stable `v0.2.0` tag or release was created here, and no GitHub Actions
+  workflow was added or run.
+- This refresh does not close signed-asset publication, Apple/Windows
+  platform trust, clean-device updater, live provider, browser, or 30-device
+  rollout gates.
+- The native updater now preflights the current install location before any
+  release artifact download and explains App Translocation/read-only paths;
+  the preflight is source- and fixture-tested but still needs a real
+  `/Applications` installed-bundle run.
+- The final local macOS Preview 2 package was built from clean commit
+  `cec4c8e`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
+  contained a visible `/Applications` shortcut, and the package was signed
+  and verified through the local Keychain-backed Ed25519 release signer. A
+  0600 local evidence receipt was recorded outside the worktree. This is local
+  package evidence, not a publication or clean-device update proof.
+- The current tip also contains the isolated Studio correctness pass: native
+  button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
+  surfaces, accessible selector names, a prompt skip link, and synchronized
+  generated web output. These are source/regression results, not visual
+  browser acceptance.
 
 This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,
@@ -39,13 +77,12 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes were reviewed through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
-and are published on `main` at merge commit `c5fa74f`. The native package
-evidence below was produced from clean source commit `d318b4f`, an ancestor of
-that published source; subsequent commits refreshed the evidence documents and
-release wiring. The signed `v0.2.0-preview.1` migration bridge is publicly
-published. Stable `v0.2.0` remains unpublished until the clean-device and pilot
-gates pass.
+The following paragraph is retained as historical provenance for the earlier
+PR-based publication sequence. The current source and package truth is in the
+refresh above and in
+[`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](RELEASE-TRANSITION-AUDIT-2026-08-31.md).
+The signed `v0.2.0-preview.1` migration bridge is publicly published. Stable
+`v0.2.0` remains unpublished until the clean-device and pilot gates pass.
 
 ## Evidence already available
 
@@ -71,7 +108,7 @@ cross-builds in an isolated
 temporary directory, and the public-key presence gate. Coverage remains a
 measured limitation.
 
-The working tree is currently clean. At the time of this readiness review, the
+At the time of this historical readiness review, the working tree was clean and the
 complete post-Preview-7 branch delta was 134 files relative to the then-current
 `origin/main`; the reviewed source is now published on `main` as PR #31. This
 remains a release-candidate audit of a large feature milestone, not a routine
@@ -81,15 +118,14 @@ current local-only 1/10/20/30-concurrency baseline is recorded in
 [`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
 Google capacity or latency result.
 
-The current clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
-package run on this Mac. The resulting universal ad-hoc-signed app, ZIP, DMG,
-Applications shortcut, checksum file, bundle metadata, local PWA routes, and
-native GUI quit/shutdown path were verified. This remains a local unsigned-
-manifest candidate: the current source still requires a signed release
-manifest, public-upload reconciliation, clean-device updater run, and pilot
-before publication. `spctl` rejection remains expected for a package without
-Apple Developer ID trust. An intentionally missing Keychain item also caused
-the manifest signer to fail closed; the real private key was not read.
+An earlier clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
+package run on this Mac. That historical package was an unsigned-manifest
+candidate. The later local Preview 2 candidate was signed and verified through
+the Keychain-backed manifest flow as recorded in the current refresh; public
+upload reconciliation, clean-device updater run, and pilot gates remain open.
+`spctl` rejection remains expected for a package without Apple Developer ID
+trust. An intentionally missing Keychain item also caused the manifest signer
+to fail closed; the real private key was not read.
 
 The public GitHub state was also checked:
 
@@ -101,7 +137,9 @@ The public GitHub state was also checked:
   merge commit `c5fa74f`;
 - the release-source coherence, installer trust-anchor, and session-only
   gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
-  #38; current `origin/main` is `f3a0a8c`;
+  #38; that historical snapshot recorded `origin/main` as `f3a0a8c`; the
+  current authoritative `origin/main` is `523ceeb` (PR #41, which contains
+  those earlier merge ancestors);
 - there is no stable `v0.2.0` tag or GitHub Release yet;
 - no GitHub Actions workflow is required or present in the current tree.
 
@@ -280,7 +318,7 @@ artifacts or measurements:
 Until those gates are complete, the truthful label is **release candidate under
 controlled validation**, not “fully ready” or “automatic rollout completed.”
 
-## Publication refresh — 2026-08-31
+## Publication refresh — 2026-08-31 (historical source record)
 
 Protected PR [#40](https://github.com/div197/BOB-Gemini-Free/pull/40) merged the
 CLI updater asset-selection hardening into `main` at `a80f08d`. The updater now
@@ -290,4 +328,5 @@ selection already used exact branded/legacy migration names. Focused, full,
 race, vet, module, build, and release-source checks passed. This closes a
 locally testable selector ambiguity; it does not prove public asset completeness,
 signed stable publication, platform trust, or installed-device update
-acceptance.
+acceptance. The current authoritative remote main ref is `523ceeb`; use the
+repository refresh at the top of this document for present-state decisions.

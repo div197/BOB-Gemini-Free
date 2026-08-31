@@ -72,6 +72,13 @@ type Client struct {
 	Metrics *metrics.Registry
 }
 
+func (c *Client) logf(format string, args ...any) {
+	if c == nil || c.Logf == nil {
+		return
+	}
+	c.Logf(format, args...)
+}
+
 const (
 	maxUpstreamResponseBytes   = 32 << 20
 	maxUpstreamStreamLineBytes = 16 << 20
@@ -249,11 +256,19 @@ func (c *Client) triageStatus(resp *http.Response) error {
 			RetryAfter: retryAfter,
 		}
 	}
+	if resp.StatusCode == http.StatusUnauthorized || resp.StatusCode == http.StatusForbidden {
+		return &UpstreamError{
+			Status:     resp.StatusCode,
+			Kind:       "auth",
+			Msg:        fmt.Sprintf("Google session or request authentication was rejected (HTTP %d); refresh the session or verify provider access", resp.StatusCode),
+			RetryAfter: retryAfter,
+		}
+	}
 	if resp.StatusCode == http.StatusTooManyRequests {
 		return &UpstreamError{
 			Status:     resp.StatusCode,
-			Kind:       "http",
-			Msg:        "upstream rate limited (HTTP 429); retry later",
+			Kind:       "quota",
+			Msg:        "Google upstream rate limited (HTTP 429); wait before retrying",
 			RetryAfter: retryAfter,
 		}
 	}
@@ -526,7 +541,7 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
+			c.logf("Retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
 			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
 				return "", err
 			}
@@ -543,8 +558,8 @@ func (c *Client) GenerateStream(prompt string, modelID, thinkMode int, fileRefs 
 func (c *Client) GenerateStreamContext(ctx context.Context, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any, emit func(string) error) error {
 	if c.Flight != nil {
 		flightKey := c.requestFlightKey(prompt, modelID, thinkMode, fileRefs)
-		return c.Flight.ExecuteStreamContext(ctx, flightKey, func(streamEmit func(string) error) error {
-			return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
+		return c.Flight.ExecuteStreamContextWithRunner(ctx, flightKey, func(sharedCtx context.Context, streamEmit func(string) error) error {
+			return c.generateStreamContextDirect(sharedCtx, prompt, modelID, thinkMode, fileRefs, extra, streamEmit)
 		}, emit)
 	}
 	return c.generateStreamContextDirect(ctx, prompt, modelID, thinkMode, fileRefs, extra, emit)
@@ -666,7 +681,7 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			break
 		}
 		if attempt < c.Cfg.RetryAttempts-1 {
-			c.Logf("Stream retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
+			c.logf("Stream retry %d/%d: %s", attempt+1, c.Cfg.RetryAttempts, upstreamLogMessage(lastErr))
 			if err := waitForUpstreamRetry(ctx, lastErr, attempt, c.Cfg.RetryDelaySec); err != nil {
 				return err
 			}

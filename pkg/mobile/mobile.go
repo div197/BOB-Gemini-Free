@@ -83,6 +83,9 @@ func GetDefaultGateway() *MobileGateway {
 // experimental implementation writes it to a temporary file for the Go client;
 // it does not provide platform keystore integration.
 func (m *MobileGateway) Start(port int, host string, cookieContent string) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("mobile gateway is not initialized")
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -173,6 +176,9 @@ func (m *MobileGateway) Start(port int, host string, cookieContent string) (stri
 
 // Stop shuts down the in-process mobile gateway and cleans up temporary credentials.
 func (m *MobileGateway) Stop() error {
+	if m == nil {
+		return nil
+	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 
@@ -210,6 +216,9 @@ func (m *MobileGateway) Stop() error {
 
 // IsRunning returns whether the mobile gateway is actively listening.
 func (m *MobileGateway) IsRunning() bool {
+	if m == nil {
+		return false
+	}
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.running
@@ -217,6 +226,9 @@ func (m *MobileGateway) IsRunning() bool {
 
 // GetURL returns the active local HTTP endpoint (e.g. http://127.0.0.1:9610).
 func (m *MobileGateway) GetURL() string {
+	if m == nil {
+		return ""
+	}
 	m.mu.RLock()
 	defer m.mu.RUnlock()
 	return m.baseURL
@@ -225,6 +237,9 @@ func (m *MobileGateway) GetURL() string {
 // Generate executes a synchronous generation request through the configured
 // upstream client.
 func (m *MobileGateway) Generate(prompt string, modelName string) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("mobile gateway is not initialized")
+	}
 	m.mu.RLock()
 	app := m.app
 	running := m.running
@@ -248,6 +263,9 @@ func (m *MobileGateway) Generate(prompt string, modelName string) (string, error
 
 // GenerateStream executes a streaming request, invoking the StreamCallback on each incoming chunk.
 func (m *MobileGateway) GenerateStream(prompt string, modelName string, cb StreamCallback) error {
+	if m == nil {
+		return fmt.Errorf("mobile gateway is not initialized")
+	}
 	m.mu.RLock()
 	app := m.app
 	running := m.running
@@ -294,6 +312,9 @@ func (m *MobileGateway) CountTokens(text string) int {
 // Refine executes the three-stage reasoning orchestration through the configured
 // upstream client.
 func (m *MobileGateway) Refine(prompt string) (string, error) {
+	if m == nil {
+		return "", fmt.Errorf("mobile gateway is not initialized")
+	}
 	m.mu.RLock()
 	app := m.app
 	running := m.running

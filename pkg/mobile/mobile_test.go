@@ -99,6 +99,32 @@ func TestMobileGatewayRejectsNonLoopbackBinding(t *testing.T) {
 	}
 }
 
+func TestNilMobileGatewayMethodsFailClosed(t *testing.T) {
+	var gw *MobileGateway
+
+	if _, err := gw.Start(0, "127.0.0.1", ""); err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("nil Start() error = %v, want initialization error", err)
+	}
+	if err := gw.Stop(); err != nil {
+		t.Fatalf("nil Stop() = %v, want nil", err)
+	}
+	if gw.IsRunning() {
+		t.Fatal("nil IsRunning() = true, want false")
+	}
+	if got := gw.GetURL(); got != "" {
+		t.Fatalf("nil GetURL() = %q, want empty", got)
+	}
+	if _, err := gw.Generate("hello", "gemini-3.7-flash"); err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("nil Generate() error = %v, want initialization error", err)
+	}
+	if err := gw.GenerateStream("hello", "gemini-3.7-flash", nil); err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("nil GenerateStream() error = %v, want initialization error", err)
+	}
+	if _, err := gw.Refine("hello"); err == nil || !strings.Contains(err.Error(), "not initialized") {
+		t.Fatalf("nil Refine() error = %v, want initialization error", err)
+	}
+}
+
 func TestMobileGatewayUsesEphemeralCookieFileAndCleansItUp(t *testing.T) {
 	gw := &MobileGateway{}
 	if _, err := gw.Start(0, "localhost", "SID=test-session; SAPISID=test-sapisid"); err != nil {

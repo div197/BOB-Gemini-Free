@@ -1,7 +1,8 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current target:** public migration bridge `v0.2.0-preview.1`, for the
-existing public `v0.1.7-preview.7` fleet
+**Current public target:** migration bridge `v0.2.0-preview.1`, for the
+existing public `v0.1.7-preview.7` fleet. The next source candidate is
+`v0.2.0-preview.2` and is not published yet.
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -25,7 +26,10 @@ that stable-first behavior and checks only the preview listing. The updater:
 
 - contacts the fixed official GitHub release API after the user selects
   **Help → Check for Updates**, or through one delayed and once-daily
-  background metadata check while a published desktop build is running;
+  background metadata check while a published desktop build is running; the
+  first background check waits 30 seconds plus a per-process random jitter of
+  up to five minutes so a classroom restart does not synchronize every
+  metadata request;
 - selects the newer stable package, or the highest published `preview.N`
   package when no stable update exists, for the current platform;
 - verifies the embedded Ed25519 public key, `SHA256SUMS`, signature, asset name,
@@ -144,7 +148,11 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-The `v0.2.0-preview.1` bridge is published. The remaining rollout gates are:
+The `v0.2.0-preview.1` bridge is published and its exact public macOS assets
+have been re-downloaded and verified locally. The next source candidate is
+`v0.2.0-preview.2`; a local Keychain-backed package has been signed and
+verified, but it has not been tagged or published. The remaining
+rollout gates are:
 
 1. the full local test/race/vet/build gate passes;
 2. the generated `web/index.html` is regenerated from
@@ -159,3 +167,6 @@ The `v0.2.0-preview.1` bridge is published. The remaining rollout gates are:
 
 Until those gates pass, the honest status is **controlled public beta**, not
 “ready for an unattended 30-device production rollout.”
+
+The complete version and installed-base transition matrix is recorded in
+[`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](RELEASE-TRANSITION-AUDIT-2026-08-31.md).

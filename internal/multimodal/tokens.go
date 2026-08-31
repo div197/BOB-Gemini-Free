@@ -19,6 +19,7 @@ const (
 	DefaultPushID             = "feeds/mcudyrk2a4khkz"
 	DefaultPctx               = "CgcSBWjK7pYx"
 	TokenCacheTTL             = 600 * time.Second
+	TokenCacheRetryDelay      = 15 * time.Second
 	MaxPageTokenResponseBytes = 8 << 20
 	MaxPageTokenValueBytes    = 4096
 )
@@ -49,6 +50,12 @@ type TokenCache struct {
 	client *http.Client
 	ts     time.Time
 	tokens PageTokens
+	// retryAt prevents a failed refresh from becoming either a ten-minute
+	// outage or an immediate retry storm. refreshing keeps the timestamp
+	// reservation from creating a dog-pile while the request is in flight.
+	retryAt    time.Time
+	refreshing bool
+	nowFn      func() time.Time
 }
 
 func NewTokenCache(cfg config.Config, cookie *gemini.CookieCache, client *http.Client) *TokenCache {
@@ -165,11 +172,19 @@ func (c *TokenCache) Get() PageTokens {
 	return c.GetContext(context.Background())
 }
 
+func (c *TokenCache) now() time.Time {
+	if c != nil && c.nowFn != nil {
+		return c.nowFn()
+	}
+	return time.Now()
+}
+
 // GetContext refreshes page tokens without allowing a failed refresh to erase
 // the last known-good token set. This matters for Scotty uploads: a transient
 // login-page, redirect, or oversized response should fail the current upload,
 // but should not turn every subsequent request into a request with empty
-// authorization state.
+// authorization state. A failed refresh is retried after a short bounded
+// delay, rather than being cached as a ten-minute success.
 func (c *TokenCache) GetContext(ctx context.Context) PageTokens {
 	if c == nil {
 		return PageTokens{PushID: DefaultPushID, Pctx: DefaultPctx}
@@ -177,18 +192,25 @@ func (c *TokenCache) GetContext(ctx context.Context) PageTokens {
 	if ctx == nil {
 		ctx = context.Background()
 	}
+	now := c.now()
 	c.mu.Lock()
-	if time.Since(c.ts) > TokenCacheTTL {
+	refreshDue := c.ts.IsZero() || now.Sub(c.ts) > TokenCacheTTL || (!c.retryAt.IsZero() && !now.Before(c.retryAt))
+	if !c.refreshing && refreshDue {
 		// Immediately update the timestamp to prevent a dog-pile of concurrent fetches.
 		// Other requests will safely fall back to the stale tokens while we fetch in the background.
-		c.ts = time.Now()
+		c.ts = now
+		c.refreshing = true
 		c.mu.Unlock()
 
 		newTokens, ok := c.fetchPageTokens(ctx)
 
 		c.mu.Lock()
+		c.refreshing = false
 		if ok {
 			c.tokens = newTokens
+			c.retryAt = time.Time{}
+		} else {
+			c.retryAt = now.Add(TokenCacheRetryDelay)
 		}
 		tokens := c.tokens
 		c.mu.Unlock()

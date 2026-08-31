@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -19,6 +20,8 @@ import (
 	"github.com/div197/bob-gemini-free/internal/geminiapi"
 	"github.com/div197/bob-gemini-free/internal/multimodal"
 )
+
+var credentialLikeTextPattern = regexp.MustCompile(`(?i)(?:\bAIzaSy|\bghp_|\bgithub_pat_|\bsk-)[A-Za-z0-9_-]{16,}`)
 
 // ErrorToStatusCode maps an upstream error to an appropriate HTTP status code.
 // Default is 502 Bad Gateway if the error isn't a recognized UpstreamError.
@@ -187,7 +190,7 @@ func publicUpstreamErrorMessage(err error) string {
 
 	var apiErr *geminiapi.APIError
 	if errors.As(err, &apiErr) && apiErr != nil {
-		if message := strings.TrimSpace(apiErr.Message); message != "" {
+		if message := publicErrorText(apiErr.Message, "Gemini Developer API request failed"); message != "" {
 			return message
 		}
 		return "Gemini Developer API request failed"
@@ -196,8 +199,8 @@ func publicUpstreamErrorMessage(err error) string {
 	var upstreamErr *gemini.UpstreamError
 	if errors.As(err, &upstreamErr) && upstreamErr != nil {
 		switch upstreamErr.Kind {
-		case "http", "bard", "session":
-			if message := strings.TrimSpace(upstreamErr.Msg); message != "" {
+		case "http", "auth", "bard", "quota", "session":
+			if message := publicErrorText(upstreamErr.Msg, "upstream request failed"); message != "" {
 				return message
 			}
 		case "protocol":
@@ -266,17 +269,30 @@ func publicDeveloperAPIErrorMessage(err error) string {
 	if errors.As(err, &apiErr) && apiErr != nil {
 		return publicUpstreamErrorMessage(apiErr)
 	}
-	message := strings.TrimSpace(err.Error())
+	return publicErrorText(err.Error(), "Gemini Developer API request failed")
+}
+
+// publicErrorText is the last defense before an internal/provider error is
+// placed in a client-visible response or an optional local log. Constructors
+// should still prefer fixed messages, but this boundary must not trust an
+// exported error's Message field or a future transport implementation. URLs,
+// credential headers, and credential-shaped tokens are operational details,
+// not useful client output.
+func publicErrorText(message, fallback string) string {
+	message = strings.TrimSpace(message)
 	if message == "" {
-		return "Gemini Developer API request failed"
+		return fallback
 	}
 	lower := strings.ToLower(message)
 	for _, marker := range []string{
-		"http://", "https://", "x-goog-api-key", "authorization", "cookie", "sapisid", "access_token", "api_key",
+		"http://", "https://", "x-goog-api-key", "authorization", "cookie", "sapisid", "access_token", "refresh_token", "api_key",
 	} {
 		if strings.Contains(lower, marker) {
-			return "Gemini Developer API request failed"
+			return fallback
 		}
+	}
+	if credentialLikeTextPattern.MatchString(message) {
+		return fallback
 	}
 	message = strings.Map(func(r rune) rune {
 		if r == '\r' || r == '\n' || r == '\t' {

@@ -188,6 +188,42 @@ func TestNilAppHandlerFailsClosed(t *testing.T) {
 	}
 }
 
+func TestPartialAppWithRequestLoggingDoesNotPanic(t *testing.T) {
+	// An embedder may enable request logging before wiring an optional logger.
+	// Serving a local health request must remain safe in that partial state.
+	app := &App{Cfg: config.Config{LogRequests: true}}
+	rec := httptest.NewRecorder()
+
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodGet, "/healthz", nil))
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("partial logged app healthz status = %d, want 200", rec.Code)
+	}
+}
+
+func TestPartialAppWithoutLoggerServesGoogleRequest(t *testing.T) {
+	cfg := config.Default()
+	cfg.RetryAttempts = 1
+	app := &App{
+		Cfg: cfg,
+		Gem: &gemini.Client{
+			Cfg:     cfg,
+			HTTP:    fakeGeminiRequester{body: mockGeminiBody("ok")},
+			Cookies: gemini.NewCookieCache(""),
+			Pool:    gemini.NewCookiePool(),
+		},
+		Version: "partial-google-test",
+	}
+	req := httptest.NewRequest(http.MethodPost, "/v1beta/models/gemini-3.7-flash", strings.NewReader(`{"contents":[{"role":"user","parts":[{"text":"hello"}]}]}`))
+	rec := httptest.NewRecorder()
+
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("partial logged Google request status = %d body=%s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestAuthMatrix(t *testing.T) {
 	cfg := config.Default()
 	cfg.APIKeys = []string{"sk-secret-key"}
@@ -866,6 +902,23 @@ func TestPublicUpstreamErrorMessageDoesNotExposeWebRPCURL(t *testing.T) {
 	}
 }
 
+func TestPublicUpstreamAuthAndQuotaMessagesRemainActionable(t *testing.T) {
+	authMessage := publicUpstreamErrorMessage(&gemini.UpstreamError{
+		Kind: "auth", Status: http.StatusUnauthorized,
+		Msg: "Google session or request authentication was rejected (HTTP 401); refresh the session or verify provider access",
+	})
+	if !strings.Contains(authMessage, "refresh the session") || strings.Contains(authMessage, "API key protection") {
+		t.Fatalf("public auth message = %q", authMessage)
+	}
+	quotaMessage := publicUpstreamErrorMessage(&gemini.UpstreamError{
+		Kind: "quota", Status: http.StatusTooManyRequests,
+		Msg: "Google upstream rate limited (HTTP 429); wait before retrying",
+	})
+	if !strings.Contains(quotaMessage, "wait before retrying") {
+		t.Fatalf("public quota message = %q", quotaMessage)
+	}
+}
+
 func TestPublicAttachmentErrorMessageDoesNotExposeSourceDetails(t *testing.T) {
 	secretURL := "https://images.example.test/download?token=short-lived-secret"
 	err := fmt.Errorf("image fetch failed for %s: dial %s", secretURL, secretURL)
@@ -907,6 +960,37 @@ func TestPublicDeveloperAPIErrorMessageDoesNotExposeTransportDetails(t *testing.
 	longMessage := strings.Repeat("x", 600)
 	if got := publicDeveloperAPIErrorMessage(errors.New(longMessage)); len([]rune(got)) > 515 {
 		t.Fatalf("generic Developer API message was not bounded: %d runes", len([]rune(got)))
+	}
+}
+
+func TestPublicErrorMessagesRejectCredentialLikeProviderText(t *testing.T) {
+	credentialLikeKey := "AIzaSy" + strings.Repeat("A", 35)
+	secretURL := "https://provider.test/v1beta/models/test:generateContent?key=" + credentialLikeKey
+
+	for _, tt := range []struct {
+		name string
+		err  error
+	}{
+		{
+			name: "developer api error",
+			err:  &geminiapi.APIError{Kind: "provider", Message: "provider rejected " + credentialLikeKey},
+		},
+		{
+			name: "web rpc error",
+			err:  &gemini.UpstreamError{Kind: "http", Msg: "provider returned " + secretURL},
+		},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			var got string
+			if _, ok := tt.err.(*geminiapi.APIError); ok {
+				got = publicDeveloperAPIErrorMessage(tt.err)
+			} else {
+				got = publicUpstreamErrorMessage(tt.err)
+			}
+			if strings.Contains(got, credentialLikeKey) || strings.Contains(got, "provider.test") {
+				t.Fatalf("credential-like provider text escaped: %q", got)
+			}
+		})
 	}
 }
 
@@ -961,6 +1045,66 @@ func TestAnthropicMessagesStreamWithToolCalls(t *testing.T) {
 	}
 	if !strings.Contains(body, "\"stop_reason\":\"tool_use\"") {
 		t.Errorf("Expected stop_reason tool_use in message_delta, got:\n%s", body)
+	}
+}
+
+func TestAnthropicMessagesStreamHasCompleteSuccessLifecycle(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "anthropic-lifecycle-test")
+	app.Gem.HTTP = fakeGeminiRequester{body: mockGeminiBody("hello from Gemini")}
+	payload := `{
+		"model": "claude-3-7-sonnet",
+		"max_tokens": 1000,
+		"stream": true,
+		"messages": [{"role": "user", "content": "Say hello"}]
+	}`
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(payload)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	ordered := []string{
+		"event: message_start",
+		"event: content_block_start",
+		"event: content_block_delta",
+		"event: content_block_stop",
+		"event: message_delta",
+		"event: message_stop",
+	}
+	last := -1
+	for _, marker := range ordered {
+		idx := strings.Index(body, marker)
+		if idx < 0 || idx <= last {
+			t.Fatalf("Anthropic lifecycle marker %q missing or out of order in:\n%s", marker, body)
+		}
+		last = idx
+	}
+	if !strings.Contains(body, `"stop_reason":"end_turn"`) {
+		t.Fatalf("successful Anthropic stream lacked end_turn: %s", body)
+	}
+}
+
+func TestAnthropicMessagesStreamFailureDoesNotEmitSuccessStop(t *testing.T) {
+	app := New(config.Default(), "anthropic-stream-error-test")
+	app.Gem.HTTP = streamFailureRequester{}
+	payload := `{
+		"model": "claude-3-7-sonnet",
+		"max_tokens": 1000,
+		"stream": true,
+		"messages": [{"role": "user", "content": "Say hello"}]
+	}`
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(payload)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "event: error") {
+		t.Fatalf("stream failure lacked Anthropic error event: %s", body)
+	}
+	if strings.Contains(body, "event: message_stop") || strings.Contains(body, `"stop_reason":"end_turn"`) {
+		t.Fatalf("stream failure was serialized as successful completion: %s", body)
 	}
 }
 

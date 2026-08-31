@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/format"
+	"github.com/div197/bob-gemini-free/internal/metrics"
 	"github.com/div197/bob-gemini-free/internal/models"
 	"github.com/div197/bob-gemini-free/internal/updater"
 )
@@ -17,6 +18,22 @@ import (
 // HealthzProtocolVersion identifies the local gateway handshake understood by
 // desktop wrappers. It is not an authentication credential.
 const HealthzProtocolVersion = "1"
+
+const (
+	routeOpenAIChatWebRPC      = metrics.RouteOpenAIChatWebRPC
+	routeOpenAIResponsesWebRPC = metrics.RouteOpenAIResponsesWebRPC
+	routeAnthropicWebRPC       = metrics.RouteAnthropicWebRPC
+	routeGoogleWebRPC          = metrics.RouteGoogleWebRPC
+	routeGeminiDeveloperAPI    = metrics.RouteGeminiDeveloperAPI
+	routeImageGenerationWebRPC = metrics.RouteImageGenerationWebRPC
+	routeRefineWebRPC          = metrics.RouteRefineWebRPC
+)
+
+func (a *App) observeRoute(route metrics.Route) {
+	if a != nil && a.Metrics != nil {
+		a.Metrics.ObserveRoute(route)
+	}
+}
 
 // handleHealthz is intentionally smaller than the human-facing / telemetry
 // route. It performs no upstream, cookie, or GitHub work and is safe for

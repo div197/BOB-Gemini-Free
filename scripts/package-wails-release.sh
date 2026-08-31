@@ -10,6 +10,11 @@ ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 VERSION="${BOB_RELEASE_VERSION:-}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-stable}"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-release}"
+OUTPUT_DIR="${OUTPUT_DIR%/}"
+if [[ -z "$OUTPUT_DIR" || "$OUTPUT_DIR" == "/" || "$OUTPUT_DIR" == "." || "$OUTPUT_DIR" == ".." ]]; then
+	echo "refusing unsafe output directory: $OUTPUT_DIR" >&2
+	exit 1
+fi
 PLATFORM="${BOB_WAILS_PLATFORM:-darwin/universal}"
 PUBLIC_KEY="${BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY:-}"
 EXPECTED_PUBLIC_KEY="$(awk '
@@ -73,6 +78,11 @@ if [[ -e "$OUTPUT_DIR" ]]; then
 	echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
 	exit 1
 fi
+INSPECTION_APP="${OUTPUT_DIR}.app"
+if [[ -e "$INSPECTION_APP" ]]; then
+	echo "inspection app already exists; choose a clean output path: $INSPECTION_APP" >&2
+	exit 1
+fi
 for command_name in rsync codesign ditto hdiutil shasum; do
 	if ! command -v "$command_name" >/dev/null; then
 		echo "required command not found: $command_name" >&2
@@ -98,7 +108,7 @@ cd "$STAGE_ROOT/cmd/desktop"
 "${WAILS[@]}" build -clean -platform "$PLATFORM" -ldflags "-X main.desktopVersion=${VERSION} -X main.desktopChannel=${CHANNEL} -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=${PUBLIC_KEY}"
 
 SOURCE_APP="$STAGE_ROOT/cmd/desktop/build/bin/${INTERNAL_APP_NAME}.app"
-DEST_APP="$OUTPUT_DIR/${PUBLIC_APP_NAME}.app"
+DEST_APP="$INSPECTION_APP"
 if [[ ! -d "$SOURCE_APP" ]]; then
 	echo "desktop build did not produce the expected app bundle: $SOURCE_APP" >&2
 	exit 1
@@ -159,5 +169,6 @@ NOTICE
 	shasum -a 256 "$(basename "$ZIP_PATH")" "$(basename "$DMG_PATH")" RELEASE-NOTICE.txt > SHA256SUMS
 )
 
-echo "BOB Gemini Free macOS $VERSION package candidate ready in: $OUTPUT_DIR"
+echo "BOB Gemini Free macOS $VERSION release assets ready in: $OUTPUT_DIR"
+echo "inspectable app bundle: $DEST_APP"
 ls -lh "$OUTPUT_DIR"

@@ -34,9 +34,11 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if useDeveloperAPI {
+		a.observeRoute(routeGeminiDeveloperAPI)
 		a.handleDirectGeminiChat(w, r, req, providerKey)
 		return
 	}
+	a.observeRoute(routeOpenAIChatWebRPC)
 
 	modelStr := req.Model
 	if modelStr == "" {
@@ -203,7 +205,7 @@ func (a *App) handleChat(w http.ResponseWriter, r *http.Request) {
 
 			_ = writeSSEDone(w)
 		} else {
-			a.Logf("Chat stream error: %s", publicUpstreamErrorMessage(emitErr))
+			a.logf("Chat stream error: %s", publicUpstreamErrorMessage(emitErr))
 			// Headers have already been sent, so preserve any partial model
 			// output but never turn a transport/provider failure into
 			// assistant-authored Markdown. The browser and standard SSE

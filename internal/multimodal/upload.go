@@ -280,6 +280,13 @@ func fetchImageBytesContext(ctx context.Context, client gemini.Requester, imageU
 	if !strings.HasPrefix(detectedType, "image/") {
 		return nil, fmt.Errorf("image fetch returned non-image content type %q", detectedType)
 	}
+	// MIME sniffing alone only checks the file signature. Validate the encoded
+	// image dimensions and pixel count before returning it to callers such as
+	// the image-generation b64_json path, which does not pass through the
+	// upload/compression guard a second time.
+	if _, err := inspectImageData(body); err != nil {
+		return nil, fmt.Errorf("image fetch returned an unsafe image: %w", err)
+	}
 
 	return body, nil
 }

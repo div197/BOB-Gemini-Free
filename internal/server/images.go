@@ -17,6 +17,7 @@ func (a *App) handleImageGenerations(w http.ResponseWriter, r *http.Request) {
 	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/images/generations") {
 		return
 	}
+	a.observeRoute(routeImageGenerationWebRPC)
 	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{

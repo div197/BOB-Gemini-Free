@@ -10,6 +10,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -123,6 +124,9 @@ func (c *Client) Stream(ctx context.Context, model, apiKey string, req GenerateC
 	}
 	sawUsableContent := false
 	err := c.StreamRaw(ctx, model, apiKey, req, func(data json.RawMessage) error {
+		if streamErr := parseProviderStreamError(data, apiKey); streamErr != nil {
+			return streamErr
+		}
 		var response GenerateContentResponse
 		if err := json.Unmarshal(data, &response); err != nil {
 			return &APIError{Kind: "protocol", Message: "Gemini Developer API returned invalid stream JSON", Err: err}
@@ -142,6 +146,78 @@ func (c *Client) Stream(ctx context.Context, model, apiKey string, req GenerateC
 		return &APIError{Kind: "protocol", Message: "Gemini Developer API returned no usable stream content"}
 	}
 	return nil
+}
+
+// parseProviderStreamError recognizes the public API's error envelope even
+// when a provider sends it as an HTTP-200 SSE event. Treating that event as an
+// empty generation loses the actionable quota/auth status and makes clients
+// misclassify the stream. The message is sanitized and the caller's key is
+// redacted before the error crosses this package boundary.
+func parseProviderStreamError(data []byte, key string) *APIError {
+	var envelope struct {
+		Error struct {
+			Code    json.RawMessage `json:"code"`
+			Message string          `json:"message"`
+			Status  string          `json:"status"`
+		} `json:"error"`
+	}
+	if err := json.Unmarshal(data, &envelope); err != nil {
+		return nil
+	}
+	if len(envelope.Error.Code) == 0 && strings.TrimSpace(envelope.Error.Message) == "" && strings.TrimSpace(envelope.Error.Status) == "" {
+		return nil
+	}
+
+	kind := "provider"
+	statusCode := providerStreamStatusCode(envelope.Error.Code, envelope.Error.Status)
+	switch statusCode {
+	case http.StatusUnauthorized, http.StatusForbidden:
+		kind = "auth"
+	case http.StatusTooManyRequests:
+		kind = "quota"
+	default:
+		switch strings.ToUpper(strings.TrimSpace(envelope.Error.Status)) {
+		case "UNAUTHENTICATED", "PERMISSION_DENIED":
+			kind = "auth"
+		case "RESOURCE_EXHAUSTED", "RATE_LIMIT_EXCEEDED":
+			kind = "quota"
+		}
+	}
+	message := strings.TrimSpace(envelope.Error.Message)
+	if message == "" {
+		message = "Gemini Developer API returned a provider stream error"
+	}
+	if status := strings.TrimSpace(envelope.Error.Status); status != "" {
+		message += " (" + status + ")"
+	}
+	return &APIError{
+		Status:  statusCode,
+		Kind:    kind,
+		Message: redactMessage(message, strings.TrimSpace(key)),
+	}
+}
+
+func providerStreamStatusCode(rawCode json.RawMessage, status string) int {
+	var numericCode int
+	if len(rawCode) > 0 && json.Unmarshal(rawCode, &numericCode) == nil {
+		return numericCode
+	}
+	var stringCode string
+	if len(rawCode) > 0 && json.Unmarshal(rawCode, &stringCode) == nil {
+		if parsed, err := strconv.Atoi(strings.TrimSpace(stringCode)); err == nil {
+			return parsed
+		}
+	}
+	switch strings.ToUpper(strings.TrimSpace(status)) {
+	case "RESOURCE_EXHAUSTED", "RATE_LIMIT_EXCEEDED":
+		return http.StatusTooManyRequests
+	case "UNAUTHENTICATED":
+		return http.StatusUnauthorized
+	case "PERMISSION_DENIED":
+		return http.StatusForbidden
+	default:
+		return 0
+	}
 }
 
 // HasUsableContent reports whether a response contains model-produced content

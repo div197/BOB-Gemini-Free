@@ -14,7 +14,8 @@ import (
 
 type loggingResponseWriter struct {
 	http.ResponseWriter
-	statusCode int
+	statusCode  int
+	wroteHeader bool
 }
 
 func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
@@ -22,12 +23,27 @@ func newLoggingResponseWriter(w http.ResponseWriter) *loggingResponseWriter {
 }
 
 func (lrw *loggingResponseWriter) WriteHeader(code int) {
-	lrw.statusCode = code
+	if !lrw.wroteHeader {
+		lrw.statusCode = code
+		lrw.wroteHeader = true
+	}
 	lrw.ResponseWriter.WriteHeader(code)
+}
+
+func (lrw *loggingResponseWriter) Write(p []byte) (int, error) {
+	if !lrw.wroteHeader {
+		lrw.statusCode = http.StatusOK
+		lrw.wroteHeader = true
+	}
+	return lrw.ResponseWriter.Write(p)
 }
 
 func (lrw *loggingResponseWriter) Flush() {
 	if flusher, ok := lrw.ResponseWriter.(http.Flusher); ok {
+		if !lrw.wroteHeader {
+			lrw.statusCode = http.StatusOK
+			lrw.wroteHeader = true
+		}
 		flusher.Flush()
 	}
 }
@@ -129,13 +145,27 @@ func isAllowedOrigin(origin string, configured []string, requestHost, requestSch
 	}
 
 	// A local browser page needs no cross-origin permission when it talks to
-	// the exact gateway origin that served it. Do not trust every loopback
-	// port by default: another local web server can be malicious and the
-	// gateway may hold privileged Google session credentials.
-	if strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
+	// the exact gateway origin that served it. Only trust a literal loopback
+	// listener host here: an attacker-controlled Host header or DNS alias must
+	// not turn an arbitrary web origin into an implicit same-origin exception.
+	if isLoopbackHost(requestHost) && strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
 		return true
 	}
 	return false
+}
+
+func isLoopbackHost(hostport string) bool {
+	hostport = strings.TrimSpace(hostport)
+	if host, _, err := net.SplitHostPort(hostport); err == nil {
+		hostport = host
+	} else if strings.HasPrefix(hostport, "[") && strings.HasSuffix(hostport, "]") {
+		hostport = strings.TrimSuffix(strings.TrimPrefix(hostport, "["), "]")
+	}
+	if strings.EqualFold(hostport, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(hostport)
+	return ip != nil && ip.IsLoopback()
 }
 
 const maxRequestBodySize = 32 << 20 // 32 MB limit
@@ -218,12 +248,21 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 }
 
 func (a *App) logRequest(r *http.Request, statusCode int, duration time.Duration) {
-	if !a.Cfg.LogRequests {
+	if a == nil || !a.Cfg.LogRequests || a.Logf == nil || r == nil {
 		return
 	}
 	clientIP, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		clientIP = r.RemoteAddr
 	}
-	a.Logf("%s %s %s -> %d (%dms)", clientIP, r.Method, r.URL.Path, statusCode, duration.Milliseconds())
+	a.logf("%s %s %s -> %d (%dms)", clientIP, r.Method, r.URL.Path, statusCode, duration.Milliseconds())
+}
+
+// logf keeps optional embedding callbacks from becoming a request-serving
+// failure. Fully initialized applications still use the configured logger.
+func (a *App) logf(format string, args ...any) {
+	if a == nil || a.Logf == nil {
+		return
+	}
+	a.Logf(format, args...)
 }

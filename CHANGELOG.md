@@ -37,7 +37,7 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ---
 
-## [Unreleased] — 2026-08-30
+## [Unreleased] — 2026-08-31
 
 ### Explicit Gemini Developer API route (local preview work)
 
@@ -91,9 +91,34 @@ to an earlier implementation. The current contract supersedes those phrases:
 This work is local preview engineering. It has not published a release, used a
 live provider key, or enabled GitHub Actions.
 
+### Release-transition audit
+
+#### Added
+- Recorded the immutable public `v0.2.0-preview.1` bridge, the released
+  `v0.1.7-preview.7` fleet baseline, and the exact Preview 7 → Preview 1/2 →
+  stable migration boundaries in [`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-08-31.md).
+- Locked the next source package identity to `v0.2.0-preview.2`; the preview
+  packagers no longer default to rebuilding the already-published Preview 1.
+- Added updater fixtures for `v0.2.0-preview.1 → v0.2.0` stable-first
+  migration, `v0.2.0-preview.1 → v0.2.0-preview.2` continuation, and legacy
+  Preview 7 selection of the highest later preview.
+
 ### Reliability and release hardening
 
 #### Added
+- Continued the no-Actions hardening campaign with bounded session-bound image
+  reference expiry and retryable page-token refresh, visible local-history
+  persistence recovery, abortable attachment parsing, fail-closed preference
+  storage, dedicated service health identity, committed-response status
+  logging, literal-loopback CORS validation, standard SSE field handling in the
+  Studio browser reader, and immediate cancellation of active PDF.js loading
+  or document tasks when an attachment is removed.
+- Made a cancelled coalesced-stream subscriber win over a concurrently queued
+  final delta, preventing a false successful completion while preserving the
+  shared response for remaining subscribers.
+- Corrected native macOS packaging so the inspectable `.app` stays outside the
+  signed release-asset directory, and made manifest creation reject accidental
+  directory assets instead of silently skipping them.
 - Added a release-source preflight that treats the canonical Ed25519 public-key
   block, standalone macOS/Linux and Windows installer trust anchors, Docker
   base version, and preview packager defaults as one checked matrix. A key or

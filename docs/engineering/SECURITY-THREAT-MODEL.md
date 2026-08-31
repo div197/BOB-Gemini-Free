@@ -47,6 +47,7 @@ identify the trust gap.
 | PNA is treated as authentication | Incorrect assumption | A browser permission prompt does not bind the request to an approved application |
 | API keys are optional | Source-verified | No-key installs have no credential check for API routes |
 | Public Web Studio needs cross-origin access | Intentional product requirement | A blanket CORS disable would break the hosted Studio use case |
+| Same-origin shortcut trusts an attacker-controlled Host/DNS alias | Mitigated by source/test | The implicit default exception now requires the request host to be `localhost`, `127.0.0.0/8`, or `::1`; a non-loopback host must be explicitly configured |
 | Remote image fetch reaches attacker-controlled/private targets | Mitigated by application checks | `FetchImageBytes` now rejects private/local IP and DNS results, nonstandard ports, and cross-host redirects; residual DNS/proxy topology risk remains |
 | Query-string API key leaks through logs/history/referrers | Mitigated by default | Legacy query-key compatibility is disabled unless the operator explicitly enables `allow_query_api_key`; header credentials remain the supported path |
 
@@ -54,7 +55,7 @@ identify the trust gap.
 
 ### Origin allow-list
 
-Use a strict loopback-only default for browser `Origin` headers. Add an
+Use a strict literal-loopback-only default for browser `Origin` headers. Add an
 explicit `allowed_origins`/`BOB_GEMINI_FREE_ALLOWED_ORIGINS` list for a known
 hosted Studio or LAN deployment. Reflect only an exact approved origin; never
 reflect arbitrary input and never use `*` for an origin-bearing request.
@@ -99,12 +100,18 @@ exists only as an explicit legacy compatibility opt-in
 should remain disabled for remote deployments because URLs are more likely to
 be logged or copied.
 
+Public error responses add a separate defense-in-depth boundary: provider and
+transport messages are reduced to bounded text and reject URLs, credential
+header markers, and common credential-shaped tokens before they reach a client
+or optional local log. This does not protect reverse proxies, browser history,
+or third-party provider logs from values outside the gateway's control.
+
 ## Chosen minimum change
 
 Implement strict origin filtering now:
 
 1. allow no-origin native clients as before;
-2. allow loopback browser origins by default;
+2. allow exact browser origins on literal loopback hosts by default;
 3. allow additional exact origins only through explicit configuration;
 4. return a failed preflight/403 for an unapproved origin;
 5. reflect the exact approved origin and add `Vary: Origin`;

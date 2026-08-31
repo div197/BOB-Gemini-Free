@@ -171,9 +171,11 @@ defines the evidence required before revisiting the boundary.
 Added `internal/metrics` with bounded counters and latency histograms for
 requests, in-flight work, upstream attempts/errors/429s, stream retries,
 session-pool state/failovers, image uploads/cache, and estimated tokens.
-Authenticated `GET /v1/metrics` exposes safe aggregate JSON; `/` includes the
-same aggregate view; `/healthz` remains minimal. Metrics reset on restart and
-are never sent externally.
+Authenticated `GET /v1/metrics` exposes safe aggregate JSON, including a
+fixed-cardinality route breakdown for web-RPC versus the explicit Gemini
+Developer API path; `/` includes the same aggregate view; `/healthz` remains
+minimal. Metrics reset on restart and are never sent externally. Per-request
+capability correlation is deliberately not exposed.
 
 ### Mission 8 — Real benchmark baseline
 
@@ -348,6 +350,8 @@ risks as complete. The local implementation continuation added:
 - bounded upstream response bodies/stream lines and nil/status/timeout guards;
 - secure cookie-file hashing/reload and pool deduplication/cooldown behavior;
 - bounded image/upload input and strict Scotty URL/response validation;
+- dimension normalization for highly compressible images that are small on disk
+  but exceed the downstream working-size limit;
 - final remote-image DNS revalidation with a direct literal-public-IP dial and
   rejection of unguardable HTTP-client seams;
 - updater redirect, metadata, asset-size, exact-byte, and staged-package
@@ -363,6 +367,9 @@ risks as complete. The local implementation continuation added:
 - bounded, single-cookie-scoped Scotty reference caching with explicit
   multi-account-pool disablement and concurrent upload single-flight; provider
   reference expiry remains open and upstream-dependent.
+- bounded browser attachment extraction with a two-job queue, capped text and
+  PDF work, cooperative cancellation after removal, and explicit error-state
+  styling; OCR worker termination and device CPU evidence remain open.
 - bounded operational retry configuration plus capped exponential jitter and
   `Retry-After` handling for transient upstream failures, while retaining
   immediate failure for 429, policy, and provider rejection responses.
@@ -573,3 +580,114 @@ requires the canonical platform asset name and rejects a lookalike that only
 matches the old suffix-based rule. Focused, full, race, vet, module, build, and
 release-source checks passed. This is a defense-in-depth source guarantee; it
 does not establish public release completeness or clean-device updater proof.
+
+### Studio Markdown-link protocol follow-up — 2026-08-31
+
+The Studio previously described its Markdown links as allow-listed but only
+blocked three dangerous-looking string prefixes. That left the renderer's
+security decision dependent on downstream sanitization details. A shared
+protocol allow-list now accepts only `http:`, `https:`, `mailto:`, and `tel:`
+(plus same-document hash links), converts unsupported or malformed targets to
+`#`, and is reused by the native/hosted external-link bridge. The focused
+source regression rejects the old blacklist markers and requires the shared
+policy in both rendering and navigation paths. This does not change Gemini
+wire behavior or make generated content trusted; artifact HTML remains
+sandboxed and browser acceptance is still required.
+
+### Studio artifact-action follow-up — 2026-08-31
+
+The interactive artifact card had both a click-only container action and a
+nested launch button. That was ambiguous for keyboard users and made the
+whole card look actionable even though the real operation is the launch
+control. The container is now a named group with neutral hover treatment, and
+only an explicit `type="button"` launch button carries `data-action`. The
+artifact registry, sandbox, editor hydration, and preview lifecycle are
+unchanged; this is a focused interaction/accessibility correction protected by
+`TestArtifactLaunchChipUsesOneKeyboardAction`.
+
+### Studio Developer API route-state follow-up — 2026-08-31
+
+The optional student-owned Gemini Developer API toggle could previously remain
+checked after an empty key was submitted, or after an active key was cleared;
+the next generation then failed instead of the UI reflecting the route change.
+The route now validates key presence before enabling, resets the checkbox and
+focuses the key field when absent, and explicitly returns to the default
+web-session route when an active key is cleared. This is a client-state safety
+fix only: it does not rotate keys, bypass provider limits, or change the
+server-side header boundary. `TestDeveloperAPIRouteToggleFailsClosedWithoutKey`
+protects the ordering and visible reset behavior.
+
+### Studio provider-key transport follow-up — 2026-08-31
+
+Native Wails context was previously treated as sufficient trust for sending a
+student-owned Developer API key, even when the configured gateway endpoint had
+been changed to a remote plain-HTTP address. The client now permits HTTP only
+for loopback endpoints; remote endpoints must be explicitly saved and use
+HTTPS, and endpoints containing credentials or no hostname are rejected. This
+does not prevent the default local gateway or intentionally configured HTTPS
+deployments, and it does not change the server-side provider-key header
+contract. `TestDeveloperAPIRouteRequiresSafeGatewayTransport` protects the
+decision boundary; rendered native/hosted behavior remains a browser/device
+acceptance gate.
+
+### Studio gateway-status follow-up — 2026-08-31
+
+The generation catch path previously set the local gateway indicator to
+offline for every non-abort error, including HTTP 401/502 responses and
+provider or stream failures that arrived after the gateway had already
+responded. The client now records response receipt, marks the gateway online
+at that point, and only marks it offline when no response was received. The
+visible provider/session error remains intact while local connectivity state
+stays truthful. `TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure`
+protects this distinction; live browser/provider behavior remains external.
+
+### Studio attachment-control follow-up — 2026-08-31
+
+Attachment preview and removal controls previously interpolated persisted
+attachment IDs into inline `onclick` JavaScript. The shelf now writes the
+escaped ID into `data-file-id` and routes both actions through the existing
+delegated event handler; the controls have explicit button types and
+accessible names. This preserves the same preview/remove operations while
+removing an avoidable local-history injection boundary.
+`TestAttachmentControlsDoNotEmbedUntrustedIDsInInlineJavaScript` protects the
+construction and rejects the old handlers.
+
+### Studio attachment-image follow-up — 2026-08-31
+
+The same history/rendering path also allowed persisted attachment icons to be
+inserted as raw HTML and made image thumbnails pointer-only inline handlers.
+Attachment icons are now escaped before HTML insertion. Image previews are
+keyboard/touch buttons backed by a delegated action, accept only bounded
+base64 raster data URLs, use `noopener,noreferrer` for the preview window, and
+show an explicit unavailable state for unsupported formats. This preserves
+normal PNG/JPEG/WebP-style previews while avoiding active SVG/data navigation
+from crafted local history. `TestPersistedAttachmentIconsAreEscapedBeforeHistoryHTML`
+and `TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls` protect the
+boundary.
+
+### Studio gateway-recovery follow-up — 2026-08-31
+
+Generation error copy used `javascript:void(0)` anchors for the Config
+recovery action. Those affordances are now real named buttons routed through
+the existing delegated action handler, preserving keyboard behavior and
+keeping failure UI free of executable URL schemes. `TestErrorRecoveryConfigActionsAvoidJavaScriptURLs`
+protects the construction.
+
+### Optional logging boundary follow-up — 2026-08-31
+
+The upstream Gemini client had the same partial-construction hazard that was
+previously found in the server: a retry after a pre-request transport failure
+called an optional logger directly. The new `Client.logf` helper makes both
+buffered and streaming retry logging nil-safe. Deterministic regressions cover
+the final error and a successful stream recovery with no logger. This change
+does not alter retry classification, delay, payload construction, session
+routing, or stream deduplication.
+
+The current source-hardening code tip is on the local branch
+`codex/release-readiness-v0.2.0` at `cec4c8e`; subsequent documentation
+reconciliation is being kept separate, while `origin/main` remains a separate
+branch at `523ceeb`. A local Preview 2 candidate has been signed and verified
+through the Keychain-backed release flow, but no public Preview 2 or stable
+release, tag, or GitHub Actions workflow was created by this continuation. The
+browser viewport acceptance matrix and clean-device/provider/public-release
+asset gates remain open.

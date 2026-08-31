@@ -28,11 +28,17 @@ func CompressImageBytesIfNeeded(imgData []byte, mime string, maxBytes int) ([]by
 	if maxBytes <= 0 {
 		maxBytes = MaxImageByteSize
 	}
-	if err := validateImageData(imgData); err != nil {
+	config, err := inspectImageData(imgData)
+	if err != nil {
 		return imgData, mime, err
 	}
 
-	if len(imgData) <= maxBytes && mime != "" {
+	// Byte size alone is not a safe fast path. A very compressible PNG can be
+	// tiny on disk while expanding to a large bitmap in the upstream or image
+	// decoder. Normalize any image that exceeds the downstream working
+	// dimension even when its encoded bytes already fit the budget.
+	if len(imgData) <= maxBytes && mime != "" &&
+		config.Width <= MaxImageDimension && config.Height <= MaxImageDimension {
 		return imgData, mime, nil
 	}
 
@@ -98,26 +104,31 @@ func maxInt(a, b int) int {
 }
 
 func validateImageData(imgData []byte) error {
+	_, err := inspectImageData(imgData)
+	return err
+}
+
+func inspectImageData(imgData []byte) (image.Config, error) {
 	if len(imgData) == 0 {
-		return fmt.Errorf("image data is empty")
+		return image.Config{}, fmt.Errorf("image data is empty")
 	}
 	if len(imgData) > MaxImageInputBytes {
-		return fmt.Errorf("image input exceeded %d bytes", MaxImageInputBytes)
+		return image.Config{}, fmt.Errorf("image input exceeded %d bytes", MaxImageInputBytes)
 	}
 	config, _, err := image.DecodeConfig(bytes.NewReader(imgData))
 	if err != nil {
-		return fmt.Errorf("failed to inspect image dimensions: %w", err)
+		return image.Config{}, fmt.Errorf("failed to inspect image dimensions: %w", err)
 	}
 	if config.Width <= 0 || config.Height <= 0 {
-		return fmt.Errorf("image dimensions are invalid")
+		return image.Config{}, fmt.Errorf("image dimensions are invalid")
 	}
 	if config.Width > MaxImageSourceDimension || config.Height > MaxImageSourceDimension {
-		return fmt.Errorf("image dimensions exceed %d pixels", MaxImageSourceDimension)
+		return image.Config{}, fmt.Errorf("image dimensions exceed %d pixels", MaxImageSourceDimension)
 	}
 	if uint64(config.Width)*uint64(config.Height) > MaxImagePixels {
-		return fmt.Errorf("image contains more than %d pixels", MaxImagePixels)
+		return image.Config{}, fmt.Errorf("image contains more than %d pixels", MaxImagePixels)
 	}
-	return nil
+	return config, nil
 }
 
 func CompressIfNeeded(b64 string, maxSize int) (string, error) {

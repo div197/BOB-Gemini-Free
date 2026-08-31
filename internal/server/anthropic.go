@@ -15,6 +15,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 	if a.rejectDeveloperAPIOnRoute(w, r, "/v1/messages") {
 		return
 	}
+	a.observeRoute(routeAnthropicWebRPC)
 	bodyBytes, err := readRequestBody(r)
 	if err != nil || len(bodyBytes) == 0 {
 		writeJSON(w, http.StatusBadRequest, map[string]any{
@@ -150,7 +151,10 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				},
 			},
 		}
-		_ = writeSSEEvent(w, "message_start", evStart)
+		if err := writeSSEEvent(w, "message_start", evStart); err != nil {
+			a.logf("Anthropic stream message_start write failed: %v", err)
+			return
+		}
 
 		splitter := format.NewThinkingStreamSplitter()
 		var startedThinkingBlock bool
@@ -242,27 +246,41 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		})
 
 		if streamErr != nil {
-			_ = writeSSEEvent(w, "error", map[string]any{
+			if err := writeSSEEvent(w, "error", map[string]any{
 				"type": "error",
 				"error": map[string]any{
 					"type":    "api_error",
 					"message": publicUpstreamErrorMessage(streamErr),
 				},
-			})
+			}); err != nil {
+				a.logf("Anthropic stream error write failed: %v", err)
+			}
 			return
 		}
 
 		// Flush remaining tokens
 		for _, ch := range splitter.Flush() {
-			_ = emitChunk(ch)
+			if err := emitChunk(ch); err != nil {
+				a.logf("Anthropic stream flush write failed: %v", err)
+				return
+			}
 		}
 
 		// Stop active block
 		if startedTextBlock || startedThinkingBlock {
-			_ = stopCurrentBlock()
+			if err := stopCurrentBlock(); err != nil {
+				a.logf("Anthropic stream content_block_stop write failed: %v", err)
+				return
+			}
 		} else {
-			_ = startTextBlock()
-			_ = stopCurrentBlock()
+			if err := startTextBlock(); err != nil {
+				a.logf("Anthropic stream empty-text block write failed: %v", err)
+				return
+			}
+			if err := stopCurrentBlock(); err != nil {
+				a.logf("Anthropic stream empty-text block stop write failed: %v", err)
+				return
+			}
 		}
 
 		fullThinking := splitter.GetFullThinking()
@@ -284,7 +302,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 					if inputMap == nil {
 						inputMap = make(map[string]any)
 					}
-					_ = writeSSEEvent(w, "content_block_start", map[string]any{
+					if err := writeSSEEvent(w, "content_block_start", map[string]any{
 						"type":  "content_block_start",
 						"index": currentBlockIndex,
 						"content_block": map[string]any{
@@ -293,19 +311,28 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 							"name":  tc.Function.Name,
 							"input": inputMap,
 						},
-					})
-					_ = writeSSEEvent(w, "content_block_delta", map[string]any{
+					}); err != nil {
+						a.logf("Anthropic stream tool block start write failed: %v", err)
+						return
+					}
+					if err := writeSSEEvent(w, "content_block_delta", map[string]any{
 						"type":  "content_block_delta",
 						"index": currentBlockIndex,
 						"delta": map[string]any{
 							"type":         "input_json_delta",
 							"partial_json": tc.Function.Arguments,
 						},
-					})
-					_ = writeSSEEvent(w, "content_block_stop", map[string]any{
+					}); err != nil {
+						a.logf("Anthropic stream tool block delta write failed: %v", err)
+						return
+					}
+					if err := writeSSEEvent(w, "content_block_stop", map[string]any{
 						"type":  "content_block_stop",
 						"index": currentBlockIndex,
-					})
+					}); err != nil {
+						a.logf("Anthropic stream tool block stop write failed: %v", err)
+						return
+					}
 				}
 			}
 		}
@@ -318,7 +345,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			outTokens = 1
 		}
 
-		_ = writeSSEEvent(w, "message_delta", map[string]any{
+		if err := writeSSEEvent(w, "message_delta", map[string]any{
 			"type": "message_delta",
 			"delta": map[string]any{
 				"stop_reason":   stopReason,
@@ -327,13 +354,18 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			"usage": map[string]any{
 				"output_tokens": outTokens,
 			},
-		})
+		}); err != nil {
+			a.logf("Anthropic stream message_delta write failed: %v", err)
+			return
+		}
 
 		a.addEstimatedTokens(uint64(promptTokens + outTokens))
 
-		_ = writeSSEEvent(w, "message_stop", map[string]any{
+		if err := writeSSEEvent(w, "message_stop", map[string]any{
 			"type": "message_stop",
-		})
+		}); err != nil {
+			a.logf("Anthropic stream message_stop write failed: %v", err)
+		}
 		return
 	}
 

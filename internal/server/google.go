@@ -52,9 +52,11 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if useDeveloperAPI {
+		a.observeRoute(routeGeminiDeveloperAPI)
 		a.handleDirectGoogleGenerate(w, r, modelName, action, bodyBytes, providerKey)
 		return
 	}
+	a.observeRoute(routeGoogleWebRPC)
 
 	var req models.GoogleGenerateRequest
 	if err := json.Unmarshal(bodyBytes, &req); err != nil {
@@ -109,7 +111,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	a.RequestsServed.Add(1) // Track all Google API requests, not just countTokens
-	a.Logf("Google API: model=%s stream=%t tools=%t prompt_len=%d", resolved.Name, stream, hasTools, len(prompt))
+	a.logf("Google API: model=%s stream=%t tools=%t prompt_len=%d", resolved.Name, stream, hasTools, len(prompt))
 
 	if stream && !hasTools {
 		if !startSSE(w) {
@@ -169,7 +171,7 @@ func (a *App) handleGoogleGenerate(w http.ResponseWriter, r *http.Request) {
 			}
 			_ = writeSSEData(w, finalChunk)
 		} else {
-			a.Logf("Google stream error: %s", publicUpstreamErrorMessage(emitErr))
+			a.logf("Google stream error: %s", publicUpstreamErrorMessage(emitErr))
 			// Headers have already been sent. A top-level error preserves the
 			// native Google-shaped stream contract without pretending that a
 			// provider failure is model-authored Markdown. Native Google SSE

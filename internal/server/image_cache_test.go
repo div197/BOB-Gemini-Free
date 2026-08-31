@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/config"
 	"github.com/div197/bob-gemini-free/internal/gemini"
@@ -50,6 +51,46 @@ func TestImageRefCacheZeroValueAndClear(t *testing.T) {
 	cache.Clear()
 	if got := cache.Len(); got != 0 {
 		t.Fatalf("cache length after clear = %d, want 0", got)
+	}
+}
+
+func TestImageRefCacheExpiresReferencesAfterConservativeAge(t *testing.T) {
+	now := time.Unix(1_000, 0)
+	cache := imageRefCache{nowFn: func() time.Time { return now }}
+	cache.Store("session-image", "/ref")
+
+	if ref, ok := cache.Load("session-image"); !ok || ref != "/ref" {
+		t.Fatalf("fresh reference = (%q, %t), want (/ref, true)", ref, ok)
+	}
+
+	now = now.Add(maxImageCacheAge)
+	if ref, ok := cache.Load("session-image"); ok || ref != "" {
+		t.Fatalf("expired reference = (%q, %t), want (empty, false)", ref, ok)
+	}
+}
+
+func TestImageRefCacheRefreshesExpiredReference(t *testing.T) {
+	now := time.Unix(2_000, 0)
+	cache := imageRefCache{nowFn: func() time.Time { return now }}
+	cache.Store("session-image", "/stale")
+	now = now.Add(maxImageCacheAge)
+
+	loaderCalls := 0
+	ref, shared, err := cache.Do(context.Background(), "session-image", func() (string, error) {
+		loaderCalls++
+		return "/fresh", nil
+	})
+	if err != nil {
+		t.Fatalf("refresh error = %v", err)
+	}
+	if shared || ref != "/fresh" {
+		t.Fatalf("refresh result = %q shared:%t, want /fresh shared:false", ref, shared)
+	}
+	if loaderCalls != 1 {
+		t.Fatalf("refresh loader calls = %d, want 1", loaderCalls)
+	}
+	if ref, ok := cache.Load("session-image"); !ok || ref != "/fresh" {
+		t.Fatalf("refreshed cache entry = (%q, %t), want (/fresh, true)", ref, ok)
 	}
 }
 

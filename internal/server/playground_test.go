@@ -1,6 +1,10 @@
 package server
 
 import (
+	"fmt"
+	"math"
+	"regexp"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -122,6 +126,62 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	}
 }
 
+func TestStudioSSEParserAcceptsStandardDataFieldForms(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function processSSELines(buffer)")
+	if start < 0 {
+		t.Fatal("processSSELines function start is missing")
+	}
+	end := strings.Index(html[start:], "\n    while (true) {")
+	if end <= 0 {
+		t.Fatal("processSSELines function boundaries are missing")
+	}
+	source := html[start : start+end]
+	for _, marker := range []string{
+		`const streamData = trimmed.startsWith("data:") ? trimmed.slice(5).trimStart() : null;`,
+		`if (streamData === "[DONE]") { streamDone = true; break; }`,
+		`const data = JSON.parse(streamData);`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Studio SSE parser is missing standard data-field marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`trimmed.startsWith("data: ")`,
+		`trimmed === "data: [DONE]"`,
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("Studio SSE parser still requires non-standard spacing: %q", forbidden)
+		}
+	}
+}
+
+func TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure(t *testing.T) {
+	html := string(playgroundHTML)
+	functionStart := strings.Index(html, "async function sendMessage()")
+	if functionStart < 0 {
+		t.Fatal("sendMessage function start is missing")
+	}
+	functionEndOffset := strings.Index(html[functionStart:], "\n}\n\n// Progressive Web App (PWA) Offline Service Worker Registration")
+	if functionEndOffset < 0 {
+		t.Fatal("sendMessage function boundary is missing")
+	}
+	source := html[functionStart : functionStart+functionEndOffset]
+	for _, marker := range []string{
+		`let gatewayResponseReceived = false;`,
+		`const res = await fetch(baseUrl + "/v1/chat/completions",`,
+		`gatewayResponseReceived = true;`,
+		`if (!gatewayResponseReceived) updateGatewayStatusIndicator(false, null);`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("generation status lifecycle is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "\n      updateGatewayStatusIndicator(false, null);\n      let mixedContentHint") {
+		t.Fatal("generation catch still marks a reachable gateway offline for provider or HTTP errors")
+	}
+}
+
 func TestChatScrollKeepsAStableBottomAnchor(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
@@ -221,6 +281,50 @@ func TestArtifactRenderingHasBoundedSourceAndRegistryState(t *testing.T) {
 	}
 }
 
+func TestArtifactLaunchChipUsesOneKeyboardAction(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`<div class="artifact-card-chip" role="group"`,
+		`<button type="button" class="btn-launch-art"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("artifact launch chip is missing accessible-action marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `<div class="artifact-card-chip" data-action="launch-art"`) {
+		t.Fatal("artifact launch chip still exposes a duplicate click-only container action")
+	}
+	if strings.Contains(html, `<button class="btn-launch-art"`) {
+		t.Fatal("artifact launch button must declare an explicit button type")
+	}
+}
+
+func TestClipboardActionsHaveExplicitFailureState(t *testing.T) {
+	html := string(playgroundHTML)
+
+	if strings.Count(html, "navigator.clipboard.writeText(") != 1 {
+		t.Fatalf("clipboard writes must be centralized in one guarded helper, got %d call sites", strings.Count(html, "navigator.clipboard.writeText("))
+	}
+	for _, marker := range []string{
+		"async function copyTextToClipboard(text, successMessage, failureMessage)",
+		"Clipboard access is unavailable.",
+		"Could not copy to clipboard.",
+		"return false;",
+		"return true;",
+		"return copyTextToClipboard(cmd, \"Command copied to clipboard!\")",
+		"return copyTextToClipboard(element.innerText, \"Code snippet copied to clipboard!\")",
+		"await copyTextToClipboard(source, 'Editor source copied to clipboard!', 'Could not copy editor source.')",
+		"return copyTextToClipboard(getArtifactSource(currentActiveArtifact), \"Artifact code copied to clipboard!\")",
+		"await copyTextToClipboard(code, 'Code block copied to clipboard!')",
+		"await copyTextToClipboard(text, \"Message copied to clipboard!\")",
+		"return copyTextToClipboard(transcript, \"Complete conversation copied to clipboard!\")",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("clipboard failure-safety marker %q is missing", marker)
+		}
+	}
+}
+
 func TestDeepRefinerDoesNotSilentlyReplacePromptOnFailure(t *testing.T) {
 	html := string(playgroundHTML)
 	start := strings.Index(html, "async function refineCurrentPromptDeep()")
@@ -287,7 +391,7 @@ func TestImageProviderFailureDoesNotSilentlyReplayViaOCR(t *testing.T) {
 	if start < 0 {
 		t.Fatal("image failure policy marker is missing")
 	}
-	endOffset := strings.Index(html[start:], "\n      updateGatewayStatusIndicator(false, null);")
+	endOffset := strings.Index(html[start:], "\n      let mixedContentHint = \"\";")
 	if endOffset < 0 {
 		t.Fatal("image failure policy boundary is missing")
 	}
@@ -331,6 +435,199 @@ func TestHistoryStorageBoundsAttachmentsWithoutCorruptingPayloads(t *testing.T) 
 	}
 	if strings.Contains(html, `dataUrl: item.attachedImage.dataUrl.slice(0, 100000)`) {
 		t.Fatal("history storage must not persist a truncated, invalid image data URL")
+	}
+}
+
+func TestHistoryStorageFailuresAreVisibleAndRecoverable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="history-storage-status" class="history-storage-status" role="status" aria-live="polite" aria-atomic="true" hidden`,
+		`function setHistoryStorageState(state)`,
+		`function tryWriteHistoryStorage(serialized)`,
+		`function tryRemoveHistoryStorage()`,
+		`Conversation saved in compact mode; some attachment previews may be omitted.`,
+		`Previous local conversation data was unavailable, so a fresh chat was started.`,
+		`This conversation could not be saved on this device.`,
+		`if (tryWriteHistoryStorage(JSON.stringify(compacted)))`,
+		`setHistoryStorageState("compacted")`,
+		`setHistoryStorageState("unsaved")`,
+		`setHistoryStorageState("recovered")`,
+		`if (tryRemoveHistoryStorage()) {`,
+		`setHistoryStorageState("clear");`,
+		`setHistoryStorageState("unavailable");`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing visible history-storage recovery marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `localStorage.setItem(STORAGE_KEY, JSON.stringify(cleanHistory))`) ||
+		strings.Contains(html, `localStorage.setItem(STORAGE_KEY, JSON.stringify(compacted))`) {
+		t.Fatal("history writes must go through the guarded storage helper")
+	}
+}
+
+func TestPreferencesFailClosedWhenBrowserStorageIsUnavailable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function getLocalPreference(key, fallback = null)`,
+		`function setLocalPreference(key, value)`,
+		`function removeLocalPreference(key)`,
+		`return fallback;`,
+		`return false;`,
+		`setLocalPreference('bob_preferred_tts_voice', this.value)`,
+		`setLocalPreference('bob_tts_rate', this.value)`,
+		`getLocalPreference(ENDPOINT_KEY, '')`,
+		`getLocalPreference(PANEL_LEFT_KEY, "")`,
+		`setLocalPreference(THEME_KEY, themeName)`,
+		`getLocalPreference(CUSTOM_THEME_KEY, null)`,
+		`setLocalPreference('bob_custom_instructions', JSON.stringify({ persona, style }))`,
+		`getLocalPreference('bob_reading_zoom', '1.0')`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing fail-closed preference marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`localStorage.setItem('bob_preferred_tts_voice'`,
+		`localStorage.setItem('bob_tts_rate'`,
+		`localStorage.getItem("bob_gemini_indic_lang")`,
+		`localStorage.getItem(LANG_KEY)`,
+		`localStorage.setItem(LANG_KEY`,
+		`localStorage.getItem(THEME_KEY)`,
+		`localStorage.setItem(THEME_KEY`,
+		`localStorage.getItem(CUSTOM_THEME_KEY)`,
+		`localStorage.setItem(CUSTOM_THEME_KEY`,
+		`localStorage.getItem('bob_custom_instructions')`,
+		`localStorage.setItem('bob_custom_instructions'`,
+		`localStorage.getItem('bob_preferred_tts_voice')`,
+		`localStorage.getItem('bob_tts_rate')`,
+		`localStorage.getItem('bob_reading_zoom')`,
+		`localStorage.setItem('bob_reading_zoom'`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("preference storage bypasses the guarded helper: %q", forbidden)
+		}
+	}
+}
+
+func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const MAX_ATTACHMENT_EXTRACTED_CHARS = 1000000;`,
+		`const MAX_ATTACHMENT_PDF_PAGES = 200;`,
+		`const MAX_ATTACHMENT_PARSE_CONCURRENCY = 2;`,
+		`function acquireAttachmentParseSlot(signal = null)`,
+		`pendingAttachmentParseSlots.indexOf(grant)`,
+		`reject(attachmentAbortError());`,
+		`function isAttachmentEntryActive(entry)`,
+		`releaseParseSlot = await acquireAttachmentParseSlot(fileEntry.abortController ? fileEntry.abortController.signal : null);`,
+		`if (!isAttachmentEntryActive(fileEntry)) return;`,
+		`entry.cancelled = true;`,
+		`function readAttachmentBlob(blob, entry, method)`,
+		`reader.abort()`,
+		`abortController: typeof AbortController === 'function' ? new AbortController() : null`,
+		`function runAttachmentOCR(dataUrl, entry)`,
+		`if (typeof tesseract.createWorker === 'function')`,
+		`worker.terminate`,
+		`let pdfDestroyPromise = null;`,
+		`function destroyActivePDF()`,
+		`activePDFLoadingTask && typeof activePDFLoadingTask.destroy === 'function'`,
+		`pdfDestroyPromise = Promise.resolve(target.destroy());`,
+		`function abortPDFParse()`,
+		`attachmentSignal.addEventListener('abort', abortPDFParse`,
+		`if (attachmentSignal.aborted) abortPDFParse();`,
+		`attachmentSignal.removeEventListener('abort', abortPDFParse);`,
+		`await destroyActivePDF();`,
+		`await readAttachmentAsArrayBuffer(file, fileEntry);`,
+		`await readAttachmentAsText(file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), fileEntry);`,
+		`fileEntry.extractionTruncated = true;`,
+		`window.addEventListener('drop'`,
+		`extractDocumentToMarkdown(dt.files[i]);`,
+		`entry.abortController.abort();`,
+		`file.abortController.abort();`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing bounded attachment marker %q", marker)
+		}
+	}
+	if strings.Contains(html, "function attachImageFile(file)") {
+		t.Fatal("legacy attachment reader must not remain alongside the universal extractor")
+	}
+	if strings.Contains(html, "dropZone.addEventListener(\"drop\"") {
+		t.Fatal("workspace drop handler must not duplicate the universal window drop handler")
+	}
+}
+
+func TestAttachmentControlsDoNotEmbedUntrustedIDsInInlineJavaScript(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`data-action="preview-attachment"`,
+		`data-action="remove-attachment"`,
+		`data-file-id="${escapeHtml(file.id)}"`,
+		`action === 'preview-attachment'`,
+		`action === 'remove-attachment'`,
+		`openDocPreviewModal(fileId)`,
+		`removeAttachedFile(fileId)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("attachment controls are missing safe delegated-action marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`onclick="openDocPreviewModal('${file.id}')"`,
+		`onclick="removeAttachedFile('${file.id}')"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("attachment control still embeds an untrusted ID in inline JavaScript %q", forbidden)
+		}
+	}
+}
+
+func TestPlaygroundHasOneCodeCopyHandler(t *testing.T) {
+	html := string(playgroundHTML)
+	if got := strings.Count(html, "function copyCode("); got != 1 {
+		t.Fatalf("playground has %d copyCode declarations, want exactly one", got)
+	}
+}
+
+func TestPersistedAttachmentIconsAreEscapedBeforeHistoryHTML(t *testing.T) {
+	html := string(playgroundHTML)
+	marker := `${escapeHtml(f.icon || '📄')}`
+	if strings.Count(html, marker) < 2 {
+		t.Fatalf("history attachment icon escaping marker %q must protect both rendered attachment paths", marker)
+	}
+	for _, forbidden := range []string{
+		`<span>${f.icon || '📄'}</span>`,
+		`<span>${f.icon || '📄'} </span>`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("persisted attachment icon is still inserted into HTML without escaping: %q", forbidden)
+		}
+	}
+}
+
+func TestAttachmentImagePreviewsUseAccessibleRasterOnlyControls(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const SAFE_ATTACHMENT_IMAGE_MIME_TYPES = new Set([`,
+		`function isSafeAttachmentImageDataURL(value`,
+		`data-action="preview-attachment-image"`,
+		`function openAttachmentImagePreview(button)`,
+		`openAttachmentImagePreview(target)`,
+		`window.open(src, '_blank', 'noopener,noreferrer')`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("attachment image preview is missing safe accessible marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`onclick="window.open(this.src)"`,
+		`<img src="${escapeHtml(f.dataUrl)}" class="user-attached-thumb"`,
+		`<img src="${escapeHtml(attachedImgCopy.dataUrl)}" class="user-attached-thumb"`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("attachment image preview still uses unsafe or inaccessible construction %q", forbidden)
+		}
 	}
 }
 
@@ -446,6 +743,92 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 	}
 }
 
+func TestRootCDNDependenciesHaveIntegrityPins(t *testing.T) {
+	html := string(playgroundHTML)
+	headEnd := strings.Index(html, "<body")
+	if headEnd < 0 {
+		t.Fatal("playground is missing a document body boundary")
+	}
+	for _, line := range strings.Split(html[:headEnd], "\n") {
+		line = strings.TrimSpace(line)
+		isExternalScript := strings.HasPrefix(line, "<script ") && strings.Contains(line, `src="http`)
+		isExternalStylesheet := strings.HasPrefix(line, "<link ") && strings.Contains(line, `href="http`)
+		if !isExternalScript && !isExternalStylesheet {
+			continue
+		}
+		if !strings.Contains(line, `integrity="sha384-`) || !strings.Contains(line, `crossorigin="anonymous"`) {
+			t.Fatalf("root CDN dependency is missing SRI/cross-origin attributes: %s", line)
+		}
+	}
+	if !strings.Contains(html, `tesseract.js@5.1.1/dist/tesseract.min.js`) {
+		t.Fatal("Tesseract.js must remain pinned to the verified v5.1.1 asset")
+	}
+	if strings.Contains(html, `tesseract.js@5/dist/tesseract.min.js`) {
+		t.Fatal("Tesseract.js must not use a floating major-version CDN URL")
+	}
+}
+
+func TestDynamicArtifactCDNBootstrapsArePinned(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`mermaid@10.9.0/dist/mermaid.min.js" integrity="sha384-6F4Ibv/ylL12O35KFWTeGTHuBKDz5L6yjKsgv3QHQ8s4NTqlDXq7kMlYXGs7MHFc" crossorigin="anonymous"`,
+		`pyodide/v0.26.2/full/pyodide.js" integrity="sha384-tVslJOEkg7nVRW3Y3/ReGX0NnonNrbcmt1R5qFbQXQdGa2chRkoJYHAjAsv3zoTq" crossorigin="anonymous"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("dynamic artifact CDN bootstrap is missing its pinned integrity contract: %q", marker)
+		}
+	}
+	for _, floating := range []string{
+		`cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js`,
+		`cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js" onerror`,
+	} {
+		if strings.Contains(html, floating) {
+			t.Fatalf("dynamic artifact CDN bootstrap remains mutable or unpinned: %q", floating)
+		}
+	}
+}
+
+func TestErrorRecoveryConfigActionsAvoidJavaScriptURLs(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`data-action="open-gateway-modal"`,
+		`action === 'open-gateway-modal'`,
+		`openGatewayModal();`,
+		`class="inline-action-link"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("error recovery config action is missing safe delegated marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `href="javascript:void(0)"`) {
+		t.Fatal("error recovery UI must not use javascript: URLs as button actions")
+	}
+}
+
+func TestMarkdownLinksUseStrictProtocolWhitelist(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const SAFE_EXTERNAL_LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);`,
+		`function sanitizeMarkdownHref(rawHref)`,
+		`return SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol) ? href : "#";`,
+		`rawHref = sanitizeMarkdownHref(rawHref);`,
+		`SAFE_EXTERNAL_LINK_PROTOCOLS.has(parsedURL.protocol)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing strict Markdown-link protocol marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`trimmedHref.startsWith('javascript:')`,
+		`trimmedHref.startsWith('vbscript:')`,
+		`trimmedHref.startsWith('data:text/html')`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("playground still relies on blacklist-only Markdown-link filtering %q", forbidden)
+		}
+	}
+}
+
 func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
@@ -481,6 +864,8 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 		`streamProtocolError = "Stream contained an invalid SSE event"`,
 		`if (data && data.error && data.error.message)`,
 		`if (finishReason === "error")`,
+		`const isGatewayAuthError = /invalid api key|gateway requires an api key|api key protection enabled/i.test(safeErrorMessage);`,
+		`session authentication|Google session|HTTP 401|HTTP 403`,
 		`Cookie pools do not bypass quotas or provider policy.`,
 	} {
 		if !strings.Contains(html, marker) {
@@ -511,4 +896,324 @@ func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	if strings.Contains(html, "enabling 100% free local access") || strings.Contains(html, "100% मुफ़्त स्थानीय उपयोग संभव") {
 		t.Fatal("playground still presents provider access as universally free")
 	}
+	if strings.Contains(html, `if (safeErrorMessage.includes("401"))`) {
+		t.Fatal("provider HTTP 401 must not be mislabeled as gateway API-key authentication")
+	}
+}
+
+func TestDeveloperAPIRouteToggleFailsClosedWithoutKey(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function toggleGeminiProviderRoute(enabled)")
+	if start < 0 {
+		t.Fatal("Developer API route toggle is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction toggleGeminiProviderKeyVisibility")
+	if endOffset < 0 {
+		t.Fatal("Developer API route toggle boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`if (enabled && !geminiProviderKey)`,
+		`useGeminiProvider = false;`,
+		`if (toggle) toggle.checked = false;`,
+		`Paste your own Google AI Studio key first`,
+		`if (enabled && !canSendGeminiProviderKey())`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Developer API route toggle is missing fail-closed marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "useGeminiProvider = Boolean(enabled);\n  if (!geminiProviderKey)") {
+		t.Fatal("Developer API route toggle enables an unusable provider state before validating the key")
+	}
+}
+
+func TestDeveloperAPIRouteRequiresSafeGatewayTransport(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function canSendGeminiProviderKey()")
+	if start < 0 {
+		t.Fatal("Developer API transport guard is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction isLoopbackGatewayURL")
+	if endOffset < 0 {
+		t.Fatal("Developer API transport guard boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`const endpoint = getGatewayBaseUrl();`,
+		`const endpointIsLoopback = isLoopbackGatewayURL(endpoint);`,
+		`if (!isSecureGatewayForProviderKey(endpoint)) return false;`,
+		`(isNativeDesktopStudio() || isLoopbackPage()) && endpointIsLoopback`,
+		`return hasExplicitGatewayEndpoint();`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Developer API transport guard is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(source, "if (isNativeDesktopStudio() || (isLoopbackPage() && isLoopbackGatewayURL(getGatewayBaseUrl())))") {
+		t.Fatal("native context still bypasses the configured gateway transport policy")
+	}
+
+	secureStart := strings.Index(html, "function isSecureGatewayForProviderKey(rawURL)")
+	if secureStart < 0 {
+		t.Fatal("Developer API secure transport helper is missing")
+	}
+	secureEndOffset := strings.Index(html[secureStart:], "\n}\n\nfunction openGatewayModal")
+	if secureEndOffset < 0 {
+		t.Fatal("Developer API secure transport helper boundary is missing")
+	}
+	secureSource := html[secureStart : secureStart+secureEndOffset]
+	for _, marker := range []string{
+		`parsedURL.protocol === "https:"`,
+		`parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href)`,
+		`if (!parsedURL.hostname || parsedURL.username || parsedURL.password) return false;`,
+	} {
+		if !strings.Contains(secureSource, marker) {
+			t.Fatalf("Developer API secure transport helper is missing marker %q", marker)
+		}
+	}
+}
+
+func TestPlaygroundAccessibilityFloorIsExplicit(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content">`,
+		`button:focus-visible`,
+		`@media (prefers-reduced-motion: reduce)`,
+		`const MANAGED_MODAL_SELECTOR = '.dialog-backdrop.open, .cmd-modal-backdrop.open';`,
+		`const modalReturnFocus = new WeakMap();`,
+		`function openManagedModal(modal, initialSelector)`,
+		`function closeManagedModal(modal)`,
+		`function trapManagedModalFocus(e, modal)`,
+		`if (openModal && trapManagedModalFocus(e, openModal)) return;`,
+		`target.click();`,
+		`function enhanceCommandPaletteAccessibility()`,
+		`list.setAttribute("role", "listbox");`,
+		`aria-activedescendant`,
+		`<button type="button" class="brand-anchor"`,
+		`class="inline-help-trigger" role="button" tabindex="0"`,
+		`class="token-pill" role="button" tabindex="0"`,
+		`<button type="button" class="active-model-chip"`,
+		`<button type="button" id="prompt-token-estimate"`,
+		`aria-labelledby="about-modal-title"`,
+		`id="about-modal-title"`,
+		`id="local-onboard-modal" class="dialog-backdrop open" role="dialog" aria-modal="true"`,
+		`function closeLocalOnboardingModal()`,
+		`aria-label="Chat prompt"`,
+		`aria-label="Attach or paste an image"`,
+		`aria-label="Gateway endpoint URL"`,
+		`aria-label="Gemini Developer API key"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing accessibility marker %q", marker)
+		}
+	}
+
+	for _, id := range []string{
+		"doc-preview-modal",
+		"confirm-modal",
+		"custom-theme-modal",
+		"about-modal",
+		"gateway-modal",
+		"artifact-modal",
+		"instructions-modal",
+		"tokenizer-modal",
+		"glossary-modal",
+		"cmd-modal",
+	} {
+		marker := `id="` + id + `"`
+		start := strings.Index(html, marker)
+		if start < 0 {
+			t.Fatalf("modal %q is missing", id)
+		}
+		end := strings.Index(html[start:], ">")
+		if end < 0 {
+			t.Fatalf("modal %q opening tag is incomplete", id)
+		}
+		openingTag := html[start : start+end]
+		if !strings.Contains(openingTag, `role="dialog"`) ||
+			!strings.Contains(openingTag, `aria-modal="true"`) ||
+			!strings.Contains(openingTag, `aria-hidden="true"`) {
+			t.Fatalf("modal %q is missing explicit dialog semantics", id)
+		}
+	}
+
+	if strings.Contains(html, `maximum-scale=1.0`) || strings.Contains(html, `user-scalable=no`) {
+		t.Fatal("the page must not disable browser text scaling")
+	}
+	if strings.Contains(html, `class="modal-overlay`) || strings.Contains(html, `class="modal-content`) {
+		t.Fatal("onboarding must use the shared dialog surface, not undefined modal classes")
+	}
+
+	aboutStart := strings.Index(html, "const aboutModal = document.getElementById(\"about-modal\")")
+	if aboutStart < 0 {
+		t.Fatal("about modal keyboard handler boundaries are missing")
+	}
+	aboutEnd := strings.Index(html[aboutStart:], "const gatewayModal = document.getElementById(\"gateway-modal\")")
+	if aboutEnd < 0 {
+		t.Fatal("about modal keyboard handler boundaries are missing")
+	}
+	if strings.Contains(html[aboutStart:aboutStart+aboutEnd], `e.key === 'Escape' || e.key === 'Enter'`) {
+		t.Fatal("pressing Enter inside the About dialog must not dismiss it")
+	}
+}
+
+func TestPlaygroundUsesNativeControlAndDrawerSemantics(t *testing.T) {
+	html := string(playgroundHTML)
+
+	buttonPattern := regexp.MustCompile(`(?s)<button\b[^>]*>`)
+	for _, openingTag := range buttonPattern.FindAllString(html, -1) {
+		if !strings.Contains(openingTag, `type="button"`) {
+			t.Errorf("button is missing an explicit non-submit type: %s", openingTag)
+		}
+	}
+
+	for _, marker := range []string{
+		`<a class="skip-link" href="#user-input">Skip to prompt</a>`,
+		`id="theme-selector" aria-label="Color theme"`,
+		`id="lang-selector" aria-label="UI language"`,
+		`id="btn-toggle-left"`,
+		`id="btn-toggle-right"`,
+		`aria-controls="sidebar-left"`,
+		`aria-controls="sidebar-right"`,
+		`aria-expanded="false"`,
+		`id="sidebar-left" aria-hidden="true" inert`,
+		`id="sidebar-right" aria-hidden="true" inert`,
+		`id="instr-modal-title"`,
+		`aria-labelledby="instr-modal-title"`,
+		`id="cmd-modal-title"`,
+		`aria-labelledby="cmd-modal-title"`,
+		`panel.setAttribute("aria-hidden", isOpen ? "false" : "true")`,
+		`panel.toggleAttribute("inert", !isOpen)`,
+		`btn.setAttribute("aria-expanded", isOpen ? "true" : "false")`,
+		`--bg-hover: var(--bg-card-hover);`,
+		`--bg-main: var(--bg-app);`,
+		`max-height: min(90dvh, calc(100dvh - 32px));`,
+		`min-height: 44px;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing native-control or responsive-semantics marker %q", marker)
+		}
+	}
+
+	for _, marker := range []string{
+		`<button type="button" class="brand-anchor"`,
+		`<button type="button" class="active-model-chip"`,
+		`<button type="button" class="starter-card"`,
+		`<button type="button" id="prompt-token-estimate"`,
+		`<button type="button" class="artifact-side-rail left"`,
+		`<button type="button" class="artifact-side-rail right"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("click-only core control was not promoted to a native button: %q", marker)
+		}
+	}
+
+	if strings.Contains(html, `class="brand-anchor" role="button"`) ||
+		strings.Contains(html, `class="active-model-chip" role="button"`) ||
+		strings.Contains(html, `class="starter-card" role="button"`) ||
+		strings.Contains(html, `class="token-live-chip" role="button"`) {
+		t.Fatal("core click-only controls still rely on generic role=button semantics")
+	}
+}
+
+func TestPlaygroundHeaderAndGenerationStatesHaveAccessibleNames(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="btn-gateway-status" aria-label="Gateway connection status and settings"`,
+		`id="btn-toggle-left" aria-label="Toggle configuration panel"`,
+		`id="btn-toggle-right" aria-label="Toggle integration code panel"`,
+		`id="btn-cmd-menu" aria-label="Open command palette"`,
+		`class="nav-pill-btn github-pill" aria-label="Open BOB Gemini Free on GitHub"`,
+		`id="btn-glossary" aria-label="Open AI and systems glossary"`,
+		`id="btn-translit" aria-label="Toggle Indic phonetic typing" aria-pressed="false"`,
+		`id="btn-mic" aria-label="Voice input" aria-pressed="false"`,
+		`id="send-btn" aria-label="Send prompt" aria-busy="false"`,
+		`statusButton.setAttribute("aria-label", online`,
+		`btn.setAttribute("aria-pressed", isTransliterationActive ? "true" : "false")`,
+		`micBtn.setAttribute("aria-pressed", "true")`,
+		`micBtn.setAttribute("aria-label", "Stop voice input")`,
+		`sendBtn.setAttribute("aria-label", dict.btnStop || "Stop generation")`,
+		`sendBtn.setAttribute("aria-busy", "true")`,
+		`sendBtn.setAttribute("aria-busy", "false")`,
+		`.btn-user-action:focus-visible`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing accessible name/state marker %q", marker)
+		}
+	}
+}
+
+func TestPlaygroundThemeTextContrast(t *testing.T) {
+	html := string(playgroundHTML)
+	blockPattern := regexp.MustCompile(`(?s)(:root|\[data-theme="([^"]+)"\]) \{(.*?)\n\}`)
+	variablePattern := regexp.MustCompile(`--([a-z-]+):\s*(#[0-9a-fA-F]{6})`)
+	blocks := blockPattern.FindAllStringSubmatch(html, -1)
+	if len(blocks) == 0 {
+		t.Fatal("playground theme token blocks are missing")
+	}
+
+	for _, block := range blocks {
+		name := block[2]
+		if name == "" {
+			name = "bob-builder"
+		}
+		vars := make(map[string]string)
+		for _, match := range variablePattern.FindAllStringSubmatch(block[3], -1) {
+			vars[match[1]] = match[2]
+		}
+		for _, foreground := range []string{"text-main", "text-muted", "text-subdued"} {
+			for _, background := range []string{"bg-app", "bg-card", "bg-modal", "bg-input"} {
+				fg, okFG := vars[foreground]
+				bg, okBG := vars[background]
+				if !okFG || !okBG {
+					continue
+				}
+				contrast, err := cssHexContrast(fg, bg)
+				if err != nil {
+					t.Fatalf("theme %s has invalid contrast tokens %s/%s: %v", name, fg, bg, err)
+				}
+				if contrast < 4.5 {
+					t.Errorf("theme %s has %s on %s contrast %.2f; normal text requires at least 4.5:1", name, foreground, background, contrast)
+				}
+			}
+		}
+	}
+}
+
+func cssHexContrast(foreground, background string) (float64, error) {
+	parse := func(value string) (float64, error) {
+		if len(value) != 7 || value[0] != '#' {
+			return 0, fmt.Errorf("invalid CSS hex color %q", value)
+		}
+		channels := make([]float64, 3)
+		for i := range channels {
+			parsed, err := strconv.ParseUint(value[1+i*2:3+i*2], 16, 8)
+			if err != nil {
+				return 0, err
+			}
+			channels[i] = float64(parsed) / 255
+		}
+		for i, channel := range channels {
+			if channel <= 0.03928 {
+				channels[i] = channel / 12.92
+			} else {
+				channels[i] = math.Pow((channel+0.055)/1.055, 2.4)
+			}
+		}
+		return 0.2126*channels[0] + 0.7152*channels[1] + 0.0722*channels[2], nil
+	}
+
+	fg, err := parse(foreground)
+	if err != nil {
+		return 0, err
+	}
+	bg, err := parse(background)
+	if err != nil {
+		return 0, err
+	}
+	if fg < bg {
+		fg, bg = bg, fg
+	}
+	return (fg + 0.05) / (bg + 0.05), nil
 }

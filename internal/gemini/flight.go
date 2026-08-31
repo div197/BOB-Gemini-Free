@@ -39,7 +39,10 @@ type activeStream struct {
 	historyBytes     int
 	historyTruncated bool
 	done             bool
+	abandoned        bool
 	err              error
+	ctx              context.Context
+	cancel           context.CancelFunc
 }
 
 type nonStreamFlight struct {
@@ -138,6 +141,21 @@ func (sf *StreamFlight) ExecuteStream(key string, runUpstream func(emit func(str
 }
 
 func (sf *StreamFlight) ExecuteStreamContext(ctx context.Context, key string, runUpstream func(emit func(string) error) error, emit func(string) error) error {
+	if runUpstream == nil {
+		return ErrStreamRunnerNil
+	}
+	return sf.ExecuteStreamContextWithRunner(ctx, key, func(_ context.Context, streamEmit func(string) error) error {
+		return runUpstream(streamEmit)
+	}, emit)
+}
+
+// ExecuteStreamContextWithRunner multiplexes a stream while giving the
+// upstream runner a context owned by the shared flight. A caller cancelling
+// its own request detaches only that caller; the shared upstream is cancelled
+// only after the last subscriber leaves or the runner completes. This is
+// important for coalesced classroom requests: the first HTTP client must not
+// be able to terminate another client's otherwise healthy response.
+func (sf *StreamFlight) ExecuteStreamContextWithRunner(ctx context.Context, key string, runUpstream func(context.Context, func(string) error) error, emit func(string) error) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -151,110 +169,148 @@ func (sf *StreamFlight) ExecuteStreamContext(ctx context.Context, key string, ru
 		return err
 	}
 	if key == "" {
-		return runUpstream(emit)
+		return runUpstream(ctx, emit)
 	}
 
-	sf.mu.Lock()
-	if sf.streams == nil {
-		sf.streams = make(map[string]*activeStream)
-	}
-	stream, exists := sf.streams[key]
-	if !exists {
-		// Leader request: initiates the upstream stream
-		stream = &activeStream{subscribers: make(map[*streamSubscriber]struct{})}
-		sf.streams[key] = stream
-		sf.mu.Unlock()
+	var (
+		stream    *activeStream
+		history   []string
+		streamErr error
+		start     bool
+	)
 
-		defer func() {
-			sf.mu.Lock()
-			delete(sf.streams, key)
-			sf.mu.Unlock()
-		}()
-
-		err := runUpstream(func(delta string) error {
-			if ctxErr := ctx.Err(); ctxErr != nil {
-				return ctxErr
-			}
-			stream.mu.Lock()
-			if !stream.historyTruncated {
-				if len(stream.history) >= maxStreamHistoryChunks || stream.historyBytes+len(delta) > maxStreamHistoryBytes {
-					stream.historyTruncated = true
-				} else {
-					stream.history = append(stream.history, delta)
-					stream.historyBytes += len(delta)
-				}
-			}
-			for sub := range stream.subscribers {
-				select {
-				case sub.ch <- delta:
-				default:
-					closeStreamSubscriberLocked(stream, sub, ErrStreamSubscriberTooSlow)
-				}
-			}
-			stream.mu.Unlock()
-
-			return emit(delta)
-		})
-
-		stream.mu.Lock()
-		stream.done = true
-		stream.err = err
-		for sub := range stream.subscribers {
-			closeStreamSubscriberLocked(stream, sub, nil)
+	// sf.mu -> stream.mu is the lock order whenever both locks are needed.
+	// The loop also handles a stream that was abandoned after its last caller
+	// disconnected but before its runner had returned.
+	for {
+		sf.mu.Lock()
+		if sf.streams == nil {
+			sf.streams = make(map[string]*activeStream)
 		}
-		stream.mu.Unlock()
+		stream = sf.streams[key]
+		if stream == nil {
+			sharedCtx, cancel := sharedStreamContext(ctx)
+			stream = &activeStream{
+				subscribers: make(map[*streamSubscriber]struct{}),
+				ctx:         sharedCtx,
+				cancel:      cancel,
+			}
+			sf.streams[key] = stream
+			start = true
+		}
 
-		return err
-	}
-
-	// Follower request: joins existing active stream
-	sub := &streamSubscriber{ch: make(chan string, maxStreamSubscriberBuffer)}
-	stream.mu.Lock()
-	if stream.done {
-		// Stream already finished: replay complete history
-		if stream.historyTruncated {
-			streamErr := stream.err
+		sub := &streamSubscriber{ch: make(chan string, maxStreamSubscriberBuffer)}
+		stream.mu.Lock()
+		if stream.abandoned {
+			stream.mu.Unlock()
+			if sf.streams[key] == stream {
+				delete(sf.streams, key)
+			}
+			sf.mu.Unlock()
+			start = false
+			continue
+		}
+		if stream.done {
+			if stream.historyTruncated {
+				streamErr = stream.err
+				stream.mu.Unlock()
+				sf.mu.Unlock()
+				if streamErr != nil {
+					return streamErr
+				}
+				return ErrStreamHistoryLimit
+			}
+			history = append([]string(nil), stream.history...)
+			streamErr = stream.err
 			stream.mu.Unlock()
 			sf.mu.Unlock()
-			if streamErr != nil {
-				return streamErr
-			}
+			break
+		}
+		if stream.historyTruncated {
+			stream.mu.Unlock()
+			sf.mu.Unlock()
 			return ErrStreamHistoryLimit
 		}
-		history := make([]string, len(stream.history))
-		copy(history, stream.history)
-		err := stream.err
+
+		// Register before replaying. The publisher holds stream.mu while it
+		// appends history and queues live deltas, so no boundary is lost.
+		history = append([]string(nil), stream.history...)
+		stream.subscribers[sub] = struct{}{}
 		stream.mu.Unlock()
 		sf.mu.Unlock()
 
-		for _, delta := range history {
-			if err := ctx.Err(); err != nil {
-				return err
-			}
-			if emitErr := emit(delta); emitErr != nil {
-				return emitErr
+		if start {
+			go sf.runStream(key, stream, runUpstream)
+		}
+		return sf.consumeStream(ctx, key, stream, sub, history, emit)
+	}
+
+	for _, delta := range history {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
+		if emitErr := emit(delta); emitErr != nil {
+			return emitErr
+		}
+	}
+	return streamErr
+}
+
+func sharedStreamContext(parent context.Context) (context.Context, context.CancelFunc) {
+	// A participant's deadline is a property of that HTTP request, not of the
+	// coalesced upstream operation. The actual runner owns its own total
+	// deadline (the Gemini client uses http.Client.Timeout); inheriting the
+	// first participant's deadline would let a short-lived caller terminate a
+	// longer-lived follower's shared request.
+	return context.WithCancel(context.WithoutCancel(parent))
+}
+
+func (sf *StreamFlight) runStream(key string, stream *activeStream, runUpstream func(context.Context, func(string) error) error) {
+	err := runUpstream(stream.ctx, func(delta string) error {
+		if ctxErr := stream.ctx.Err(); ctxErr != nil {
+			return ctxErr
+		}
+		stream.mu.Lock()
+		if !stream.historyTruncated {
+			if len(stream.history) >= maxStreamHistoryChunks || stream.historyBytes+len(delta) > maxStreamHistoryBytes {
+				stream.historyTruncated = true
+			} else {
+				stream.history = append(stream.history, delta)
+				stream.historyBytes += len(delta)
 			}
 		}
-		return err
-	}
-	if stream.historyTruncated {
+		for sub := range stream.subscribers {
+			select {
+			case sub.ch <- delta:
+			default:
+				closeStreamSubscriberLocked(stream, sub, ErrStreamSubscriberTooSlow)
+			}
+		}
 		stream.mu.Unlock()
-		sf.mu.Unlock()
-		return ErrStreamHistoryLimit
-	}
+		return nil
+	})
 
-	// Replay history accumulated so far
-	history := make([]string, len(stream.history))
-	copy(history, stream.history)
-	stream.subscribers[sub] = struct{}{}
-	stream.mu.Unlock()
-	sf.mu.Unlock()
-
-	defer func() {
-		stream.mu.Lock()
+	stream.mu.Lock()
+	stream.done = true
+	stream.err = err
+	for sub := range stream.subscribers {
 		closeStreamSubscriberLocked(stream, sub, nil)
-		stream.mu.Unlock()
-	}()
+	}
+	stream.mu.Unlock()
+	stream.cancel()
+
+	// Do not retain completed streams in the global map. A late caller can
+	// still replay the completed history during this short hand-off window;
+	// callers after deletion start a fresh flight.
+	sf.mu.Lock()
+	if sf.streams[key] == stream {
+		delete(sf.streams, key)
+	}
+	sf.mu.Unlock()
+}
+
+func (sf *StreamFlight) consumeStream(ctx context.Context, key string, stream *activeStream, sub *streamSubscriber, history []string, emit func(string) error) error {
+	defer sf.detachStreamSubscriber(key, stream, sub)
 
 	for _, delta := range history {
 		if err := ctx.Err(); err != nil {
@@ -265,12 +321,21 @@ func (sf *StreamFlight) ExecuteStreamContext(ctx context.Context, key string, ru
 		}
 	}
 
-	// Stream new live deltas as they arrive
 	for {
+		// Prefer a caller cancellation over a concurrently queued delta. A
+		// cancelled HTTP request must not report success merely because the
+		// upstream published one final item at the same time; the shared
+		// flight remains available to its other subscribers.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case delta, ok := <-sub.ch:
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if !ok {
 				stream.mu.Lock()
 				err := sub.err
@@ -285,6 +350,23 @@ func (sf *StreamFlight) ExecuteStreamContext(ctx context.Context, key string, ru
 			}
 		}
 	}
+}
+
+func (sf *StreamFlight) detachStreamSubscriber(key string, stream *activeStream, sub *streamSubscriber) {
+	// Serialize detachment with new subscriptions so the last caller cannot
+	// cancel a flight that a new caller has just joined.
+	sf.mu.Lock()
+	stream.mu.Lock()
+	closeStreamSubscriberLocked(stream, sub, nil)
+	if !stream.done && len(stream.subscribers) == 0 {
+		stream.abandoned = true
+		stream.cancel()
+		if sf.streams[key] == stream {
+			delete(sf.streams, key)
+		}
+	}
+	stream.mu.Unlock()
+	sf.mu.Unlock()
 }
 
 func closeStreamSubscriberLocked(stream *activeStream, sub *streamSubscriber, err error) {

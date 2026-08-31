@@ -16,6 +16,32 @@ var latencyBounds = [...]time.Duration{
 	5 * time.Second,
 }
 
+// Route identifies a bounded, user-visible protocol path. Keep this enum
+// deliberately finite: metric labels must never be derived from URLs, model
+// names, credentials, or other request-controlled values.
+type Route uint8
+
+const (
+	RouteOpenAIChatWebRPC Route = iota
+	RouteOpenAIResponsesWebRPC
+	RouteAnthropicWebRPC
+	RouteGoogleWebRPC
+	RouteGeminiDeveloperAPI
+	RouteImageGenerationWebRPC
+	RouteRefineWebRPC
+	routeCount
+)
+
+var routeNames = [...]string{
+	"openai_chat_web_rpc",
+	"openai_responses_web_rpc",
+	"anthropic_web_rpc",
+	"google_web_rpc",
+	"gemini_developer_api",
+	"image_generation_web_rpc",
+	"refine_web_rpc",
+}
+
 type Histogram struct {
 	count  atomic.Uint64
 	sumNS  atomic.Uint64
@@ -69,15 +95,30 @@ type Registry struct {
 	TokensEstimated    atomic.Uint64
 	RequestLatency     Histogram
 	UpstreamLatency    Histogram
+	routes             [routeCount]atomic.Uint64
 }
 
 func New() *Registry {
 	return &Registry{}
 }
 
+// ObserveRoute records one request against a fixed route name. Invalid enum
+// values are ignored so a future caller cannot panic or create an unbounded
+// metric dimension.
+func (r *Registry) ObserveRoute(route Route) {
+	if r == nil || route >= routeCount {
+		return
+	}
+	r.routes[route].Add(1)
+}
+
 func (r *Registry) Snapshot() map[string]any {
 	if r == nil {
 		return map[string]any{}
+	}
+	routes := make(map[string]uint64, routeCount)
+	for index, name := range routeNames {
+		routes[name] = r.routes[index].Load()
 	}
 	return map[string]any{
 		"requests_total":          r.RequestsTotal.Load(),
@@ -95,5 +136,6 @@ func (r *Registry) Snapshot() map[string]any {
 		"tokens_estimated":        r.TokensEstimated.Load(),
 		"request_latency":         r.RequestLatency.Snapshot(),
 		"upstream_latency":        r.UpstreamLatency.Snapshot(),
+		"routes":                  routes,
 	}
 }

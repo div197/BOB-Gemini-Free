@@ -3,6 +3,12 @@
 **Status:** Preview 7 enables a signed, user-consented preview updater; the
 public app remains ad-hoc signed and not Apple-notarized.
 
+The immutable public migration bridge is `v0.2.0-preview.1`. The current
+source defaults its next preview package to `v0.2.0-preview.2`; a local
+Keychain-backed candidate has been signed and verified, but it is not tagged or
+published yet. Stable `v0.2.0` remains gated on clean-device and pilot
+acceptance.
+
 This document is the operator and product boundary for the native updater. An
 updater can be correct in source and still be unsafe to announce if the
 release key, platform signatures, artifact list, or clean-device evidence is
@@ -19,6 +25,17 @@ current source also perform a delayed startup check and then check at most once
 per 24 hours; this background path only discovers and presents an update, and
 never installs without the same explicit user confirmation. Existing binaries
 keep the behavior compiled into their release.
+
+Before an installable update dialog is shown, the current source performs a
+local, no-network preflight of the running bundle. It rejects macOS App
+Translocation and read-only or non-writable same-filesystem locations with
+recovery guidance before downloading the release package. The staging step
+repeats this check because permissions can change after discovery; this is an
+error-prevention improvement, not a bypass of the signed-manifest boundary.
+
+This preflight does not make the updater silent: the user still chooses
+**Install Update**, and the helper still waits for a local healthy-startup
+confirmation before deleting the rollback copy.
 
 If the helper or machine is interrupted after the transaction starts, the next
 native launch inspects only a validated plan belonging to that exact install.

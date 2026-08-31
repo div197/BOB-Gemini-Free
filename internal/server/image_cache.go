@@ -4,13 +4,21 @@ import (
 	"context"
 	"errors"
 	"sync"
+	"time"
 )
 
-const maxImageCacheEntries = 256
+const (
+	maxImageCacheEntries = 256
+	// Scotty reference lifetime is provider-dependent and is not advertised as
+	// a durable contract. Expire local references conservatively so a stale
+	// reference cannot be reused indefinitely if the provider invalidates it.
+	maxImageCacheAge = 15 * time.Minute
+)
 
 type imageCacheEntry struct {
 	ref      string
 	lastUsed uint64
+	storedAt time.Time
 }
 
 type imageCacheFlight struct {
@@ -27,6 +35,18 @@ type imageRefCache struct {
 	entries map[string]imageCacheEntry
 	flights map[string]*imageCacheFlight
 	clock   uint64
+	nowFn   func() time.Time // test hook; nil uses time.Now
+}
+
+func (c *imageRefCache) now() time.Time {
+	if c != nil && c.nowFn != nil {
+		return c.nowFn()
+	}
+	return time.Now()
+}
+
+func imageCacheEntryExpired(entry imageCacheEntry, now time.Time) bool {
+	return !entry.storedAt.IsZero() && !now.Before(entry.storedAt.Add(maxImageCacheAge))
 }
 
 func (c *imageRefCache) Load(key string) (string, bool) {
@@ -37,6 +57,10 @@ func (c *imageRefCache) Load(key string) (string, bool) {
 	defer c.mu.Unlock()
 	entry, ok := c.entries[key]
 	if !ok || entry.ref == "" {
+		return "", false
+	}
+	if imageCacheEntryExpired(entry, c.now()) {
+		delete(c.entries, key)
 		return "", false
 	}
 	c.clock++
@@ -72,7 +96,7 @@ func (c *imageRefCache) storeLocked(key, ref string) {
 			delete(c.entries, oldestKey)
 		}
 	}
-	c.entries[key] = imageCacheEntry{ref: ref, lastUsed: c.clock}
+	c.entries[key] = imageCacheEntry{ref: ref, lastUsed: c.clock, storedAt: c.now()}
 }
 
 // Do returns a cached reference or shares one in-flight upload for the same
@@ -96,11 +120,15 @@ func (c *imageRefCache) Do(ctx context.Context, key string, fn func() (string, e
 
 	c.mu.Lock()
 	if entry, ok := c.entries[key]; ok && entry.ref != "" {
-		c.clock++
-		entry.lastUsed = c.clock
-		c.entries[key] = entry
-		c.mu.Unlock()
-		return entry.ref, true, nil
+		if imageCacheEntryExpired(entry, c.now()) {
+			delete(c.entries, key)
+		} else {
+			c.clock++
+			entry.lastUsed = c.clock
+			c.entries[key] = entry
+			c.mu.Unlock()
+			return entry.ref, true, nil
+		}
 	}
 	if flight, ok := c.flights[key]; ok {
 		done := flight.done

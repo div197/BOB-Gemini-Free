@@ -48,6 +48,18 @@ func createTestImage(width, height int) []byte {
 	return buf.Bytes()
 }
 
+func createSolidTestImage(width, height int) []byte {
+	img := image.NewRGBA(image.Rect(0, 0, width, height))
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			img.Set(x, y, color.RGBA{R: 20, G: 40, B: 80, A: 255})
+		}
+	}
+	var buf bytes.Buffer
+	_ = png.Encode(&buf, img)
+	return buf.Bytes()
+}
+
 func TestCompressImageBytesIfNeeded(t *testing.T) {
 	// Small image should not be compressed
 	smallImg := createTestImage(50, 50)
@@ -78,6 +90,31 @@ func TestCompressImageBytesIfNeeded(t *testing.T) {
 	}
 	if decodedImg.Bounds().Dx() > MaxImageDimension || decodedImg.Bounds().Dy() > MaxImageDimension {
 		t.Errorf("Expected dimensions <= %d, got %dx%d", MaxImageDimension, decodedImg.Bounds().Dx(), decodedImg.Bounds().Dy())
+	}
+}
+
+func TestCompressionNormalizesLargeDimensionsWithinByteBudget(t *testing.T) {
+	input := createSolidTestImage(2048, 1536)
+	if len(input) >= MaxImageByteSize {
+		t.Fatalf("test fixture unexpectedly exceeds byte budget: %d", len(input))
+	}
+
+	out, mime, err := CompressImageBytesIfNeeded(input, "image/png", MaxImageByteSize)
+	if err != nil {
+		t.Fatalf("compression error: %v", err)
+	}
+	if mime != "image/jpeg" {
+		t.Fatalf("mime = %q, want image/jpeg", mime)
+	}
+	decoded, _, err := image.Decode(bytes.NewReader(out))
+	if err != nil {
+		t.Fatalf("failed to decode normalized image: %v", err)
+	}
+	if decoded.Bounds().Dx() > MaxImageDimension || decoded.Bounds().Dy() > MaxImageDimension {
+		t.Fatalf("normalized dimensions = %dx%d, want each <= %d", decoded.Bounds().Dx(), decoded.Bounds().Dy(), MaxImageDimension)
+	}
+	if bytes.Equal(out, input) {
+		t.Fatal("oversized-dimension image was returned unchanged")
 	}
 }
 
@@ -317,6 +354,18 @@ func TestFetchImageBytesRejectsSpoofedImageHeader(t *testing.T) {
 	}
 }
 
+func TestFetchImageBytesRejectsImagesOutsideDecodeBudget(t *testing.T) {
+	// The encoded PNG is small because it is a solid image, but its dimensions
+	// would still force a downstream decoder to allocate an unsafe bitmap.
+	oversized := createSolidTestImage(MaxImageSourceDimension+1, 1)
+	_, err := fetchImageBytes(imageFixtureRequester{body: oversized}, "https://images.example.test/image.png", func(string) ([]net.IP, error) {
+		return []net.IP{net.ParseIP("203.0.113.10")}, nil
+	})
+	if err == nil || !strings.Contains(err.Error(), "dimensions exceed") {
+		t.Fatalf("oversized decoded image result = %v, want dimension-bound rejection", err)
+	}
+}
+
 func TestTokenCache(t *testing.T) {
 	cfg := config.Default()
 	cookie := gemini.NewCookieCache(cfg.CookieFile)
@@ -373,6 +422,59 @@ func TestTokenCacheRefreshesValidPageAndKeepsItAfterOversizedFailure(t *testing.
 	second := cache.GetContext(context.Background())
 	if second != first {
 		t.Fatalf("failed refresh replaced last good tokens: got %+v, want %+v", second, first)
+	}
+}
+
+func TestTokenCacheRetriesFailedRefreshAfterBoundedDelay(t *testing.T) {
+	responses := []*http.Response{
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"not":"a page-token payload"}`)),
+		},
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"qKIAYe":"recovered-push","Ylro7b":"recovered-pctx","SNlM0e":"recovered-at","cfb2h":"recovered-bl"}`)),
+		},
+	}
+	calls := 0
+	client := &http.Client{Transport: tokenRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		calls++
+		response := responses[0]
+		responses = responses[1:]
+		return response, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+	clock := time.Date(2026, time.August, 31, 12, 0, 0, 0, time.UTC)
+	cache.nowFn = func() time.Time { return clock }
+
+	first := cache.GetContext(context.Background())
+	if calls != 1 || first.PushID != DefaultPushID || first.Pctx != DefaultPctx {
+		t.Fatalf("first failed refresh = calls %d, tokens %+v", calls, first)
+	}
+
+	// A second request during the backoff must use the last-known-good/default
+	// set without starting another page request.
+	second := cache.GetContext(context.Background())
+	if calls != 1 || second != first {
+		t.Fatalf("immediate retry = calls %d, tokens %+v; want one call and unchanged tokens", calls, second)
+	}
+
+	clock = clock.Add(TokenCacheRetryDelay - time.Nanosecond)
+	_ = cache.GetContext(context.Background())
+	if calls != 1 {
+		t.Fatalf("refresh started before retry delay: %d calls", calls)
+	}
+
+	clock = clock.Add(time.Nanosecond)
+	recovered := cache.GetContext(context.Background())
+	if calls != 2 {
+		t.Fatalf("refresh did not retry after bounded delay: %d calls", calls)
+	}
+	want := PageTokens{PushID: "recovered-push", Pctx: "recovered-pctx", At: "recovered-at", BL: "recovered-bl"}
+	if recovered != want {
+		t.Fatalf("recovered tokens = %+v, want %+v", recovered, want)
 	}
 }
 

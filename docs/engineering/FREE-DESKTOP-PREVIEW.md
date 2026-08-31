@@ -82,10 +82,11 @@ From macOS:
 make desktop-preview-mac
 ```
 
-In the current source this command defaults to a new `v0.2.0-preview.1`
-migration-bridge candidate. Set `BOB_RELEASE_VERSION` explicitly for every
-publication; the already-published `v0.1.7-preview.7` package remains the
-historical public preview and is not rebuilt in place.
+In the current source this command defaults to a new `v0.2.0-preview.2`
+candidate. The signed `v0.2.0-preview.1` migration bridge is immutable and
+already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
+the already-published `v0.1.7-preview.7` package remains the historical public
+preview and is not rebuilt in place.
 
 The updater-capable preview packager requires the non-secret public trust key
 in `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`. The matching private key is never
@@ -100,15 +101,19 @@ The default output is a new directory at:
 /tmp/bob-gemini-free-preview/
 ```
 
-It contains:
+The release-asset directory contains only the files intended for signing and
+publication:
 
 ```text
-BOB Gemini Free.app
 bob-gemini-free-macos-universal.zip
 bob-gemini-free-macos-universal.dmg
 RELEASE-NOTICE.txt
 SHA256SUMS
 ```
+
+For local inspection, the signed app bundle is written beside the directory as
+`<output-directory>.app`; it is deliberately outside the release-asset
+directory because the signed manifest covers regular publication files only.
 
 The no-Actions release operator signs the exact inspected artifact directory
 with `scripts/sign-release-assets.sh`; the script regenerates any unsigned

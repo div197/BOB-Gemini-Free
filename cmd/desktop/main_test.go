@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/div197/bob-gemini-free/internal/updater"
 )
@@ -60,5 +61,28 @@ func TestDesktopUpdateChecksSkipDevelopmentBuilds(t *testing.T) {
 	desktopChannel = "unknown"
 	if desktopUpdateChecksEnabled() {
 		t.Fatal("unsupported update channel unexpectedly enabled automatic update checks")
+	}
+}
+
+func TestDesktopAutoUpdateStartupDelayClampsJitter(t *testing.T) {
+	original := desktopAutoUpdateJitterFn
+	t.Cleanup(func() { desktopAutoUpdateJitterFn = original })
+
+	for _, test := range []struct {
+		name   string
+		jitter time.Duration
+		want   time.Duration
+	}{
+		{name: "negative", jitter: -time.Second, want: desktopAutoUpdateInitialDelay},
+		{name: "bounded", jitter: 17 * time.Second, want: desktopAutoUpdateInitialDelay + 17*time.Second},
+		{name: "maximum", jitter: desktopAutoUpdateMaxJitter, want: desktopAutoUpdateInitialDelay + desktopAutoUpdateMaxJitter},
+		{name: "over maximum", jitter: desktopAutoUpdateMaxJitter + time.Second, want: desktopAutoUpdateInitialDelay + desktopAutoUpdateMaxJitter},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			desktopAutoUpdateJitterFn = func() time.Duration { return test.jitter }
+			if got := desktopAutoUpdateInitialWait(); got != test.want {
+				t.Fatalf("initial wait = %s, want %s", got, test.want)
+			}
+		})
 	}
 }
