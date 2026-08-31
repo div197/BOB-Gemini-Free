@@ -91,6 +91,24 @@ promise about future provider releases.
    provider-supported `gemini-*` model ID.
 6. Turn the toggle off to return to the default web-session route.
 
+### Config credential map
+
+The Studio's Config modal deliberately presents four separate concepts:
+
+| Config item | Meaning | Stored/sent boundary |
+|---|---|---|
+| **Gateway Endpoint URL** | Which BOB process receives the request | May be saved as a UI preference; remote endpoints require an explicit trust decision and HTTPS for provider-key use |
+| **BOB Gateway Access Key** | Optional authentication for an operator-protected BOB endpoint (`api_keys`) | Page memory only; sent as BOB request authorization; it is not a Google credential |
+| **Google Gemini Developer API key** | The student's own Google AI Studio project credential | Page memory only; sent only when the Developer API toggle is enabled, through BOB's dedicated request header |
+| **Web session / cookies** | The default reverse-engineered web-RPC identity | Managed by the running engine and its configured cookie state; there is no cookie input in the Studio and cookies must not be pasted into either key field |
+
+The gateway access key and the Developer API key are not interchangeable. The
+first controls entry to BOB; the second selects a different Google upstream and
+assigns provider quota/billing responsibility to the student's project. If the
+gateway has no `api_keys` configured, the BOB access field remains empty. If the
+Developer API toggle is off, BOB uses the default web-session route and does not
+silently fall back between provider paths.
+
 The UI key is held only in page memory and is sent only as
 `X-BOB-Gemini-API-Key` on generation requests. BOB translates it to the
 official upstream `x-goog-api-key` header. It is not sent on health, metrics,

@@ -216,7 +216,7 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
 
 The normal BOB route uses Google's web experience and does not require a Google
 AI Studio key. When that route is unavailable or a student explicitly wants to
-use their own project, open **Config → Gemini Developer API**, follow the
+use their own project, open **Config → Google Gemini Developer API**, follow the
 [Google AI Studio key page](https://aistudio.google.com/app/apikey), review the
 [current model list](https://ai.google.dev/gemini-api/docs/models) and
 [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits), paste the
@@ -235,6 +235,23 @@ If the Studio is hosted on a public origin, it will not send the key until the
 student explicitly saves a local or trusted gateway endpoint. Do not enter a
 provider key into a public demo whose gateway ownership and transport are not
 known.
+
+#### Credential map: what belongs in which place
+
+These values have different owners and different consequences:
+
+| Value | Owned by | What it does | Where it lives in BOB |
+|---|---|---|---|
+| **BOB Gateway Access Key** (`api_keys`) | The gateway operator | Protects access to a BOB endpoint when API-key protection is enabled; it is not a Google credential | Entered in Config for the current page session only; sent as BOB request authorization |
+| **Gemini Developer API key** | The student / Google AI Studio project owner | Selects the explicit Google Developer API route and consumes that project's model, quota, billing, and data-use policy | Entered separately in Config, enabled explicitly, and kept in page memory only |
+| **Web-session cookies** (`cookie_file` / cookie pool) | The person running the local engine | Authenticate BOB's default reverse-engineered Google web-session route when available | Managed by the engine on disk; never paste a cookie into either Config key field |
+| **Gateway Endpoint URL** | The person connecting the Studio | Chooses which BOB process receives the request; a remote endpoint is a separate trust decision | May be saved as a UI preference; use loopback locally or HTTPS with an explicitly trusted remote gateway |
+
+The gateway access key is optional on an unauthenticated local install. If it is
+configured, the same BOB access check applies whether the request then uses the
+default web-session route or the explicitly selected Developer API route. The
+Developer API key does not authenticate the BOB gateway, and the BOB access key
+does not grant Google Developer API access.
 
 If a gateway has optional BOB API-key protection enabled, its separate
 gateway-auth token is also held only in the current page session and must be

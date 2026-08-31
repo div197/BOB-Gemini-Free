@@ -286,7 +286,7 @@ clean-device प्रमाण अभी अलग gate है। Stable releas
 #### वैकल्पिक: छात्र की अपनी Gemini Developer API key
 
 सामान्य BOB web-session route के लिए Google AI Studio key की आवश्यकता नहीं है।
-यदि कोई छात्र अपने project का उपयोग करना चाहता है, तो **Config → Gemini
+यदि कोई छात्र अपने project का उपयोग करना चाहता है, तो **Config → Google Gemini
 Developer API** खोलें और [Google AI Studio key page](https://aistudio.google.com/app/apikey)
 पर अपनी key बनाएँ या प्रबंधित करें। [वर्तमान model list](https://ai.google.dev/gemini-api/docs/models) और
 [rate limits](https://ai.google.dev/gemini-api/docs/rate-limits) देखें, फिर Key को
@@ -301,6 +301,23 @@ current model, free-tier, rate-limit, billing और data-use नियम ल�
 gateway endpoint save करना अनिवार्य है; public demo में अज्ञात gateway को key
 न दें। Direct route provider के `gemini-*` model IDs को forward करता है, इसलिए
 भविष्य के model IDs को BOB alias समझकर silently बदलता नहीं है।
+
+#### Credential map: कौन-सी key कहाँ है
+
+इन values के owner और काम अलग-अलग हैं:
+
+| Value | Owner | काम | BOB में स्थिति |
+|---|---|---|---|
+| **BOB Gateway Access Key** (`api_keys`) | Gateway operator | API-key protection चालू होने पर BOB endpoint की access सुरक्षा; यह Google credential नहीं है | Config में केवल current page session के लिए; BOB authorization के रूप में भेजी जाती है |
+| **Gemini Developer API key** | Student / Google AI Studio project owner | स्पष्ट Google Developer API route चुनती है और उसी project के model, quota, billing और data-use नियम लागू करती है | अलग field में paste करें, route को स्पष्ट रूप से चालू करें; key केवल page memory में रहती है |
+| **Web-session cookies** (`cookie_file` / cookie pool) | Local engine चलाने वाला व्यक्ति | BOB के default reverse-engineered Google web-session route को उपलब्ध होने पर authenticate करती हैं | Engine इन्हें disk पर manage करता है; किसी भी Config key field में cookie paste न करें |
+| **Gateway Endpoint URL** | Studio से जुड़ने वाला व्यक्ति | तय करता है कि request किस BOB process को मिलेगी; remote endpoint अलग trust decision है | UI preference के रूप में save हो सकती है; local के लिए loopback या trusted remote के लिए HTTPS उपयोग करें |
+
+Local unauthenticated install में BOB access key आवश्यक नहीं है। यदि gateway
+में यह configured है, तो पहले BOB access check होगा, फिर request default web-session
+या स्पष्ट रूप से चुने गए Developer API route पर जाएगी। Developer API key BOB
+gateway को authenticate नहीं करती और BOB access key Google Developer API access
+नहीं देती।
 
 <p align="center">
   <img src="assets/bob-gemini-free-playground.png" alt="BOB Gemini Free वेब प्लेग्राउंड व टेलीमेट्री डैशबोर्ड — BOB Builder Theme Default" width="100%">
