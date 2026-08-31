@@ -4434,7 +4434,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <span class="about-star">⚡</span>
           <span class="about-title" id="gateway-modal-title">GATEWAY ENGINE STATUS</span>
         </div>
-        <span class="about-version-badge" id="modal-gateway-status-pill">Checking...</span>
+        <span class="about-version-badge" id="modal-gateway-status-pill">Not checked</span>
       </div>
       <div class="about-subtitle" id="gateway-modal-subtitle">Local-First RPC Bridge • On-Device • Provider limits still apply</div>
     </div>
@@ -5686,6 +5686,11 @@ let chatHistory = [];
 let userIsAtBottom = true;
 let pendingConfirmCallback = null;
 let activeAbortController = null;
+const GATEWAY_PING_TIMEOUT_MS = 8000;
+let gatewayPingController = null;
+let gatewayPingSequence = 0;
+let gatewayPingState = "not-checked";
+let gatewayPingVersion = "";
 let isGenerating = false;
 let manualRetriesSinceSuccess = 0;
 let lastManualRetryAt = 0;
@@ -5705,6 +5710,31 @@ try {
 // toggle prevents an accidentally pasted key from changing the route.
 let geminiProviderKey = "";
 let useGeminiProvider = false;
+
+function gatewayPingStatusLabel() {
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  const format = (template, value) => String(template || "").replace(/\{(?:value|version|ms)\}/g, String(value ?? ""));
+  switch (gatewayPingState) {
+    case "pending":
+      return ui.gatewayPing || "Pinging...";
+    case "online":
+      return format(ui.gatewayOnline || "ONLINE • {value}", gatewayPingVersion || "__BOB_DESKTOP_VERSION__");
+    case "secured":
+      return ui.gatewayOnlineSecured || "ONLINE (SECURED)";
+    case "blocked":
+      return ui.gatewayHttpsRequired || "HTTPS REQUIRED";
+    case "offline":
+      return ui.gatewayOffline || "OFFLINE";
+    default:
+      return ui.gatewayStatusNotChecked || "Not checked — choose Test Ping";
+  }
+}
+
+function renderGatewayPingStatus() {
+  const pill = document.getElementById("modal-gateway-status-pill");
+  if (pill) pill.innerText = gatewayPingStatusLabel();
+}
 
 const SAFE_EXTERNAL_LINK_PROTOCOLS = new Set(["http:", "https:", "mailto:", "tel:"]);
 
@@ -5972,6 +6002,9 @@ const I18N = {
       response: "BOB AI RESPONSE", streaming: "Streaming...", listen: "Listen", retry: "Retry", think: "Think", flash: "Flash",
       generationFailed: "Generation failed; this is not a successful answer.", generationStopped: "Generation stopped before completion; retry to continue.",
       copyMessage: "Copy", reasoning: "Step-by-Step Reasoning", save: "Save", reset: "Reset", testPing: "⚡ Test Ping",
+      gatewayStatusNotChecked: "Not checked — choose Test Ping", gatewayPing: "Pinging...", gatewayHttpsRequired: "HTTPS REQUIRED",
+      gatewayOnline: "ONLINE • {version}", gatewayOnlineSecured: "ONLINE (SECURED)", gatewayOffline: "OFFLINE",
+      gatewayLatency: "Latency: {ms}ms", gatewayUnreachable: "Latency: Unreachable", gatewayTimeout: "Latency: Timeout — endpoint did not respond",
       close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
       artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Pop Out",
       gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
@@ -6188,6 +6221,9 @@ const I18N = {
       response: "BOB AI उत्तर", streaming: "स्ट्रीमिंग...", listen: "सुनें", retry: "पुनः प्रयास", think: "सोचें", flash: "फ़ास्ट",
       generationFailed: "जनरेशन विफल हुई; इसे सफल उत्तर के रूप में सहेजा नहीं गया है।", generationStopped: "जनरेशन पूरा होने से पहले रोक दी गई; जारी रखने के लिए पुनः प्रयास करें।",
       copyMessage: "कॉपी", reasoning: "चरण-दर-चरण तर्क", save: "सहेजें", reset: "रीसेट", testPing: "⚡ टेस्ट पिंग",
+      gatewayStatusNotChecked: "अभी जाँच नहीं हुई — टेस्ट पिंग चुनें", gatewayPing: "जाँच हो रही है...", gatewayHttpsRequired: "HTTPS आवश्यक",
+      gatewayOnline: "ऑनलाइन • {version}", gatewayOnlineSecured: "ऑनलाइन (सुरक्षित)", gatewayOffline: "ऑफ़लाइन",
+      gatewayLatency: "विलंबता: {ms}ms", gatewayUnreachable: "विलंबता: पहुँच से बाहर", gatewayTimeout: "विलंबता: समय समाप्त — endpoint ने उत्तर नहीं दिया",
       close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
       artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "नई विंडो",
       gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
@@ -6593,6 +6629,7 @@ function applyLanguageUI(dict) {
     "gateway-route-session-state-label": ui.gatewayRouteSessionStateLabel,
     "gateway-route-model-state-label": ui.gatewayRouteModelStateLabel,
     "gateway-route-boundary": ui.gatewayRouteBoundary,
+    "modal-gateway-status-pill": gatewayPingStatusLabel(),
     "gateway-auth-title": dict.gatewayAuthTitle,
     "gateway-auth-optional": dict.gatewayAuthOptional,
     "gateway-auth-help": dict.gatewayAuthHelp,
@@ -7234,6 +7271,20 @@ function resetGatewayEndpoint() {
 }
 
 async function pingGatewayManual() {
+  const pingID = ++gatewayPingSequence;
+  if (gatewayPingController) gatewayPingController.abort();
+  const controller = typeof AbortController === "function" ? new AbortController() : null;
+  gatewayPingController = controller;
+  gatewayPingState = "pending";
+  gatewayPingVersion = "";
+  let timeoutID = null;
+  const isCurrentPing = () => pingID === gatewayPingSequence;
+  const releasePing = () => {
+    if (gatewayPingController === controller) gatewayPingController = null;
+  };
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  const formatUI = (template, value) => String(template || "").replace(/\{(?:value|version|ms)\}/g, String(value ?? ""));
   const pill = document.getElementById("modal-gateway-status-pill");
   const badge = document.getElementById("gateway-ping-badge");
   const card = document.getElementById("modal-gateway-stats-card");
@@ -7243,20 +7294,22 @@ async function pingGatewayManual() {
   updateGatewayCredentialStatus();
 
   if (pill) {
-    pill.innerText = "Pinging...";
+    renderGatewayPingStatus();
     pill.style.background = "rgba(245, 158, 11, 0.2)";
     pill.style.color = "#f59e0b";
   }
   const transportIssue = gatewayAccessKeyTransportIssue();
   if (transportIssue) {
+    gatewayPingState = "blocked";
     if (pill) {
-      pill.innerText = "HTTPS REQUIRED";
+      renderGatewayPingStatus();
       pill.style.background = "rgba(245, 158, 11, 0.2)";
       pill.style.color = "#f59e0b";
     }
     if (badge) badge.innerText = transportIssue;
     if (card) card.style.display = "none";
     updateGatewayCredentialStatus();
+    releasePing();
     return;
   }
   const start = performance.now();
@@ -7267,7 +7320,19 @@ async function pingGatewayManual() {
     if (baseUrl === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
       checkUrl = baseUrl + "/health";
     }
-    const res = await fetch(checkUrl, { method: "GET", headers: headers });
+    const request = fetch(checkUrl, {
+      method: "GET",
+      headers: headers,
+      signal: controller ? controller.signal : undefined
+    });
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutID = setTimeout(() => {
+        if (controller) controller.abort();
+        reject(new Error("Gateway ping timed out"));
+      }, GATEWAY_PING_TIMEOUT_MS);
+    });
+    const res = await Promise.race([request, timeoutPromise]);
+    if (!isCurrentPing()) return;
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
       gatewayAuthRequired = false;
@@ -7275,12 +7340,15 @@ async function pingGatewayManual() {
         setLocalPreference(EXPLICIT_ENDPOINT_KEY, 'true');
       }
       const data = await res.json().catch(() => ({ status: "ok", version: "__BOB_DESKTOP_VERSION__" }));
+      if (!isCurrentPing()) return;
+      gatewayPingState = "online";
+      gatewayPingVersion = data.version || "__BOB_DESKTOP_VERSION__";
       if (pill) {
-        pill.innerText = "ONLINE • " + (data.version || "__BOB_DESKTOP_VERSION__");
+        renderGatewayPingStatus();
         pill.style.background = "rgba(16, 185, 129, 0.2)";
         pill.style.color = "#10b981";
       }
-      if (badge) badge.innerText = "Latency: " + latency + "ms";
+      if (badge) badge.innerText = formatUI(ui.gatewayLatency || "Latency: {value}ms", latency);
       updateGatewayStatusIndicator(true, latency);
 
       if (card && content && data) {
@@ -7300,24 +7368,38 @@ async function pingGatewayManual() {
       if (!backendModelsLoaded) syncBackendModels();
 
       // Check for latest release updates from GitHub
-      fetch(baseUrl + "/v1/update/check")
+      const updateController = typeof AbortController === "function" ? new AbortController() : null;
+      let updateTimeoutID = null;
+      const updateRequest = fetch(baseUrl + "/v1/update/check", {
+        signal: updateController ? updateController.signal : undefined
+      });
+      const updateTimeoutPromise = new Promise((_, reject) => {
+        updateTimeoutID = setTimeout(() => {
+          if (updateController) updateController.abort();
+          reject(new Error("Gateway update check timed out"));
+        }, GATEWAY_PING_TIMEOUT_MS);
+      });
+      Promise.race([updateRequest, updateTimeoutPromise])
         .then(r => r.json())
         .then(up => {
-          if (up && up.has_update) {
+          if (isCurrentPing() && up && up.has_update) {
             const updateAction = isNativeDesktopStudio()
               ? "open Help → Check for Updates"
               : (up.channel === "preview" ? "open the official Releases page" : "run bob-gemini-free --update");
             if (badge) badge.innerHTML = `Latency: ${latency}ms • <span style="color:#f59e0b; font-weight:600;">✨ Update ${escapeHtml(up.latest_version)} Available</span> (${escapeHtml(updateAction)})`;
           }
-        }).catch(() => {});
+        }).catch(() => {}).finally(() => {
+          if (updateTimeoutID) clearTimeout(updateTimeoutID);
+        });
     } else if (res.status === 401) {
       gatewayAuthRequired = true;
+      gatewayPingState = "secured";
       if (pill) {
-        pill.innerText = "ONLINE (SECURED)";
+        renderGatewayPingStatus();
         pill.style.background = "rgba(16, 185, 129, 0.2)";
         pill.style.color = "#10b981";
       }
-      if (badge) badge.innerText = "Latency: " + latency + "ms";
+      if (badge) badge.innerText = formatUI(ui.gatewayLatency || "Latency: {value}ms", latency);
       updateGatewayStatusIndicator(true, latency);
       if (!backendModelsLoaded) syncBackendModels();
     } else {
@@ -7325,15 +7407,23 @@ async function pingGatewayManual() {
       throw new Error("HTTP " + res.status);
     }
   } catch(err) {
+    if (!isCurrentPing()) return;
     gatewayAuthRequired = null;
+    gatewayPingState = "offline";
     if (pill) {
-      pill.innerText = "OFFLINE";
+      renderGatewayPingStatus();
       pill.style.background = "rgba(239, 68, 68, 0.2)";
       pill.style.color = "#ef4444";
     }
-    if (badge) badge.innerText = "Latency: Unreachable";
+    const timedOut = err && (err.message === "Gateway ping timed out" || err.name === "AbortError");
+    if (badge) badge.innerText = timedOut
+      ? (ui.gatewayTimeout || "Latency: Timeout — endpoint did not respond")
+      : (ui.gatewayUnreachable || "Latency: Unreachable");
     if (card) card.style.display = "none";
     updateGatewayStatusIndicator(false, null);
+  } finally {
+    if (timeoutID) clearTimeout(timeoutID);
+    releasePing();
   }
 }
 
