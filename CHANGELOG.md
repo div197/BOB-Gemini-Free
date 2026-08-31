@@ -67,11 +67,17 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Corrects the Studio's HTTP 401 handling so a rejected Google Developer API
   key is not mislabeled as missing BOB gateway authentication; gateway errors
   now name the BOB access key explicitly.
-- Prepared a fresh local `v0.2.0-preview.5` macOS candidate from the merged
-  public-main commit `4beb127`; its universal package, signed manifest, bundle
-  layout, credential-map markers, and local `/healthz` startup smoke test
-  passed. Preview 5 is intentionally not public until fresh public-byte
-  reconciliation and installed-bundle update tests pass.
+- Adds an explicit route-status card to Config so students can see the active
+  web-session or Developer API path, gateway-auth state, provider-key state,
+  cookie ownership, and model guard before sending.
+- Blocks the Developer API route before chat history or network work when its
+  key, endpoint transport, or model/think-mode contract is invalid; the two
+  credential fields also have independent clear actions and are removed from
+  the retained modal DOM on close.
+- The earlier local `v0.2.0-preview.5` macOS candidate was built from merged
+  public-main commit `4beb127`; its package and local startup checks do not
+  include this route-clarity patch. Preview 5 remains intentionally unpublished
+  until a fresh candidate passes the public-byte and installed-bundle gates.
 
 ## [0.2.0-preview.4] - 2026-08-31
 

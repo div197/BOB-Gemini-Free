@@ -268,6 +268,15 @@ those named vendor models are available through the Developer API. Unsupported
 direct surfaces fail clearly; they are not silently sent to a different
 provider.
 
+The Config modal also shows the active request route before Send: default
+web-session or explicit Developer API. It reports whether the BOB endpoint has
+required authentication, whether a provider key is present and enabled, that
+cookies remain engine-owned, and whether the selected model/think mode is
+compatible with the direct route. Send is blocked before creating a chat turn
+when the explicit route has no key, an untrusted endpoint, or a web-RPC-only
+model setting. Closing Config clears secret input values from the hidden modal;
+the page-memory keys are still cleared on page unload and are never persisted.
+
 ---
 
 ### Option 1: CLI Installer (No Go Required)

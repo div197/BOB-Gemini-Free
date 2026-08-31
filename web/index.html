@@ -857,6 +857,126 @@ main {
   color: var(--accent-primary);
   font-family: var(--font-mono);
 }
+.route-status-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-left: 3px solid var(--accent-primary);
+  padding: 12px 14px;
+  border-radius: var(--radius-card);
+  margin-top: 10px;
+  box-shadow: var(--shadow-main);
+}
+.route-status-card[data-state="blocked"] {
+  border-left-color: #ef4444;
+}
+.route-status-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+.route-status-kicker {
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.route-status-title {
+  color: var(--text-main);
+  font-size: 0.88rem;
+  font-weight: 800;
+  margin-top: 3px;
+}
+.route-status-pill {
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.45);
+  border-radius: 999px;
+  color: #10b981;
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 4px 7px;
+}
+.route-status-card[data-route="provider"] .route-status-pill {
+  background: rgba(250, 204, 21, 0.16);
+  border-color: rgba(250, 204, 21, 0.45);
+  color: var(--accent-primary);
+}
+.route-status-card[data-state="blocked"] .route-status-pill {
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.45);
+  color: #ef4444;
+}
+.route-status-help {
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  line-height: 1.45;
+  margin: 8px 0 0;
+}
+.route-status-grid {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 10px;
+}
+.route-status-row {
+  align-items: baseline;
+  background: var(--bg-input);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 6px 8px;
+}
+.route-status-row span {
+  color: var(--text-muted);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+.route-status-row strong {
+  color: var(--text-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 560px) {
+  .route-status-grid {
+    grid-template-columns: 1fr;
+  }
+}
+#gateway-modal .about-body,
+#gateway-modal .control-card {
+  min-width: 0;
+}
+#gateway-modal .about-body {
+  overflow-x: hidden;
+}
+.gateway-field-row {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+}
+.gateway-field-row > input {
+  flex: 1 1 160px !important;
+  min-width: 0;
+}
+.gateway-field-row > button {
+  flex: 0 0 auto;
+}
+.gateway-command-row,
+.gateway-command-row > span {
+  min-width: 0;
+}
 select, textarea, input[type="range"] {
   width: 100%;
   background: var(--bg-input);
@@ -4292,7 +4412,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <span id="gateway-endpoint-label" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">Gateway Endpoint URL</span>
           <span id="gateway-ping-badge" style="font-size:0.75rem; color:var(--text-muted); font-family:var(--font-mono);">Latency: --</span>
         </label>
-        <div style="display:flex; gap:8px;">
+        <div class="gateway-field-row">
           <input type="text" id="gateway-url-input" aria-label="Gateway endpoint URL" value="http://127.0.0.1:9610" placeholder="http://127.0.0.1:9610" onkeydown="if(event.key==='Enter') saveGatewayEndpoint()" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-action" id="gateway-save-btn" onclick="saveGatewayEndpoint()" style="padding:0 14px; font-weight:700;">Save</button>
           <button type="button" class="btn-pill-subtle" id="gateway-reset-btn" onclick="resetGatewayEndpoint()" title="Reset to default local URL" style="padding:0 10px;">Reset</button>
@@ -4311,14 +4431,45 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         </div>
       </div>
 
+      <div class="route-status-card" id="gateway-route-status" data-route="web" data-state="ready" role="status" aria-live="polite" aria-atomic="true" aria-labelledby="gateway-route-status-title">
+        <div class="route-status-header">
+          <div>
+            <div class="route-status-kicker" id="gateway-route-status-kicker">Request route for this page</div>
+            <div class="route-status-title" id="gateway-route-status-title">Default web-session route</div>
+          </div>
+          <span class="route-status-pill" id="gateway-route-status-pill">DEFAULT</span>
+        </div>
+        <p class="route-status-help" id="gateway-route-status-help">Prompts use BOB's web-session engine. No Google AI Studio key is sent on this route.</p>
+        <div class="route-status-grid">
+          <div class="route-status-row">
+            <span id="gateway-route-access-state-label">BOB gateway door</span>
+            <strong id="gateway-route-access-state">Only needed if this endpoint is protected</strong>
+          </div>
+          <div class="route-status-row">
+            <span id="gateway-route-provider-state-label">Google provider key</span>
+            <strong id="gateway-route-provider-state">Off — not sent</strong>
+          </div>
+          <div class="route-status-row">
+            <span id="gateway-route-session-state-label">Web-session cookies</span>
+            <strong id="gateway-route-session-state">Engine-owned — never paste into Config</strong>
+          </div>
+          <div class="route-status-row">
+            <span id="gateway-route-model-state-label">Model guard</span>
+            <strong id="gateway-route-model-state">Model settings follow the selected route</strong>
+          </div>
+        </div>
+        <div id="gateway-route-boundary" style="color:var(--text-muted); font-size:0.68rem; line-height:1.4; margin-top:8px;">These credentials never substitute for one another.</div>
+      </div>
+
       <div class="control-card" style="margin-top:10px;">
         <label for="gateway-api-key-input" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
           <span id="gateway-auth-title" style="font-weight:700; font-size:0.75rem; text-transform:uppercase; letter-spacing:0.5px;">BOB Gateway Access Key (optional)</span>
           <span id="gateway-auth-optional" style="font-size:0.72rem; color:var(--text-muted);">Only when the gateway owner enabled api_keys</span>
         </label>
-        <div style="display:flex; gap:8px;">
+        <div class="gateway-field-row">
           <input type="password" id="gateway-api-key-input" aria-label="BOB Gateway Access Key" aria-describedby="gateway-auth-help" name="bearer_auth_token_string" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Only if the gateway owner gave you one" oninput="saveApiKeyFromInput(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-subtle" aria-label="Show or hide BOB Gateway Access Key" onclick="toggleApiKeyVisibility()" title="Show / Hide BOB Gateway Access Key" style="padding:0 10px;">👁️</button>
+          <button type="button" class="btn-pill-subtle" id="gateway-api-key-clear" onclick="clearGatewayApiKey()" title="Clear BOB Gateway Access Key" style="padding:0 10px;">Clear</button>
         </div>
         <div id="gateway-auth-help" style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no <code>api_keys</code> configured.</div>
       </div>
@@ -4331,9 +4482,10 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
             <span id="gemini-provider-session-label">Use your Google key for this session</span>
           </label>
         </div>
-        <div style="display:flex; gap:8px;">
+        <div class="gateway-field-row">
           <input type="password" id="gemini-provider-key-input" aria-label="Google Gemini Developer API key" aria-describedby="gemini-provider-help gemini-provider-route-note" name="gemini_developer_api_key" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-1p-ignore="true" data-bwignore="true" data-form-type="other" data-disable-password-manager="true" placeholder="Paste your own Google AI Studio key" oninput="saveGeminiProviderKey(this.value)" style="flex:1; background:var(--bg-input); border:1px solid var(--border-color); border-radius:8px; padding:8px 12px; color:var(--text-main); font-family:var(--font-mono); font-size:0.82rem; outline:none;">
           <button type="button" class="btn-pill-subtle" aria-label="Show or hide Gemini Developer API key" onclick="toggleGeminiProviderKeyVisibility()" title="Show / Hide Developer API Key" style="padding:0 10px;">👁️</button>
+          <button type="button" class="btn-pill-subtle" id="gemini-provider-key-clear" onclick="clearGeminiProviderKey()" title="Clear Google Gemini Developer API key" style="padding:0 10px;">Clear</button>
         </div>
         <div style="font-size:0.72rem; color:var(--text-muted); line-height:1.45; margin-top:7px;">
           <span id="gemini-provider-help">Optional direct route for your own Google AI Studio project. This is not the BOB Gateway Access Key. The key stays in this page's memory, is sent only when this route is enabled, and is never saved by BOB. Google project quotas, free-tier limits, and any billing settings still apply.</span>
@@ -4359,11 +4511,11 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           not download the native Wails app; use <b>View Releases</b> only when
           a native package is explicitly listed there.
         </div>
-        <div style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div class="gateway-command-row" style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</span>
           <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand(&quot;curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh&quot;)" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
         </div>
-        <div style="margin-top:6px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
+        <div class="gateway-command-row" style="margin-top:6px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
           <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1</span>
           <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand('curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
         </div>
@@ -5693,6 +5845,7 @@ function tryRemoveHistoryStorage() {
 let currentLang = "en";
 let isTransliterationActive = false;
 const translitCache = new Map();
+let gatewayRouteStateReady = false;
 
 /* Sacred Multi-Lingual Internationalization (i18n) Engine */
 const I18N = {
@@ -5792,6 +5945,31 @@ const I18N = {
       geminiProviderLimitsLink: "View current limits ↗",
       geminiProviderModelsLink: "View current models ↗",
       geminiProviderRouteNote: "Use the default web-session route when this is off. BOB does not rotate keys or automatically retry a request through a second provider.",
+      gatewayRouteStatusKicker: "Request route for this page",
+      gatewayRouteWebStatus: "Default web-session route",
+      gatewayRouteProviderStatus: "Direct Google Gemini API route",
+      gatewayRouteWebStatusHelp: "Prompts use BOB's web-session engine. No Google AI Studio key is sent on this route.",
+      gatewayRouteProviderStatusHelp: "Prompts use Google's Developer API with the key below. Google project quota, billing, and provider rules apply.",
+      gatewayRouteProviderBlockedHelp: "The Developer API route is selected, but this endpoint is not a safe saved HTTPS or local loopback destination. The key will not be sent.",
+      gatewayRouteProviderKeyMissing: "The Developer API route is selected, but no Google AI Studio key is entered. It will not send a request.",
+      gatewayRouteAccessStateLabel: "BOB gateway door",
+      gatewayRouteAccessReady: "Access key entered for this page",
+      gatewayRouteAccessRequired: "Required by this endpoint",
+      gatewayRouteAccessMissing: "Not entered — only needed if this endpoint is protected",
+      gatewayRouteAccessOpen: "Not required by this endpoint",
+      gatewayRouteAccessUnknown: "Only known after connection check",
+      gatewayRouteProviderStateLabel: "Google provider key",
+      gatewayRouteProviderOff: "Off — not sent",
+      gatewayRouteProviderReady: "On — held in page memory only",
+      gatewayRouteProviderPresentOff: "Present but off — not sent",
+      gatewayRouteProviderMissing: "On, but no key is entered",
+      gatewayRouteProviderBlocked: "On, but endpoint trust failed",
+      gatewayRouteSessionStateLabel: "Web-session cookies",
+      gatewayRouteSessionState: "Engine-owned — never paste into Config",
+      gatewayRouteModelStateLabel: "Model guard",
+      gatewayRouteModelState: "Model settings follow the selected route",
+      gatewayRouteModelWarning: "Selected model/think mode is web-RPC only; choose a Gemini model and Model Default for the Developer API route.",
+      gatewayRouteBoundary: "These credentials never substitute for one another.",
       endpoint: "Gateway Endpoint URL", modelDefault: "Model Default", deepThinking: "Deep Thinking (@think=0)",
       mediumThinking: "Medium Thinking (@think=2)", fastThinking: "Fast / Zero Thinking (@think=4)",
       systemPromptPlaceholder: "Set custom instructions for the model...", ttsAuto: "🌟 Auto Best Natural HD Voice (Recommended)",
@@ -5980,6 +6158,31 @@ const I18N = {
       geminiProviderLimitsLink: "वर्तमान सीमाएं देखें ↗",
       geminiProviderModelsLink: "वर्तमान मॉडल देखें ↗",
       geminiProviderRouteNote: "यह बंद होने पर default web-session route उपयोग होगा। BOB keys rotate नहीं करता और दूसरे provider पर automatic retry नहीं करता।",
+      gatewayRouteStatusKicker: "इस page का request route",
+      gatewayRouteWebStatus: "डिफ़ॉल्ट web-session route",
+      gatewayRouteProviderStatus: "Direct Google Gemini API route",
+      gatewayRouteWebStatusHelp: "Prompt BOB के web-session engine को जाता है। इस route पर Google AI Studio key नहीं भेजी जाती।",
+      gatewayRouteProviderStatusHelp: "Prompt नीचे दी गई key के साथ Google Developer API को जाता है। Quota, billing और provider नियम आपके Google project के हैं।",
+      gatewayRouteProviderBlockedHelp: "Developer API route चुना गया है, लेकिन endpoint सुरक्षित saved HTTPS या local loopback नहीं है। Key नहीं भेजी जाएगी।",
+      gatewayRouteProviderKeyMissing: "Developer API route चुना गया है, लेकिन Google AI Studio key दर्ज नहीं है। Request नहीं भेजी जाएगी।",
+      gatewayRouteAccessStateLabel: "BOB gateway door",
+      gatewayRouteAccessReady: "इस page के लिए access key दर्ज है",
+      gatewayRouteAccessRequired: "इस endpoint को आवश्यक है",
+      gatewayRouteAccessMissing: "दर्ज नहीं — केवल protected endpoint पर चाहिए",
+      gatewayRouteAccessOpen: "इस endpoint को आवश्यक नहीं",
+      gatewayRouteAccessUnknown: "connection check के बाद पता चलेगा",
+      gatewayRouteProviderStateLabel: "Google provider key",
+      gatewayRouteProviderOff: "बंद — भेजी नहीं जा रही",
+      gatewayRouteProviderReady: "चालू — केवल page memory में",
+      gatewayRouteProviderPresentOff: "मौजूद, पर बंद — भेजी नहीं जा रही",
+      gatewayRouteProviderMissing: "चालू, पर key दर्ज नहीं है",
+      gatewayRouteProviderBlocked: "चालू, पर endpoint trust विफल",
+      gatewayRouteSessionStateLabel: "Web-session cookies",
+      gatewayRouteSessionState: "Engine के पास — Config में कभी paste न करें",
+      gatewayRouteModelStateLabel: "Model guard",
+      gatewayRouteModelState: "Model settings चुने गए route के अनुसार हैं",
+      gatewayRouteModelWarning: "चुना model/think mode केवल web-RPC के लिए है; Developer API route के लिए Gemini model और Model Default चुनें।",
+      gatewayRouteBoundary: "ये credentials एक-दूसरे का स्थान नहीं लेते।",
       endpoint: "गेटवे एंडपॉइंट URL", modelDefault: "मॉडल डिफ़ॉल्ट", deepThinking: "गहन तर्क (@think=0)",
       mediumThinking: "मध्यम तर्क (@think=2)", fastThinking: "तेज़ / शून्य तर्क (@think=4)",
       systemPromptPlaceholder: "मॉडल के लिए कस्टम निर्देश सेट करें...", ttsAuto: "🌟 सर्वोत्तम प्राकृतिक HD आवाज़ स्वतः (अनुशंसित)",
@@ -6341,9 +6544,16 @@ function applyLanguageUI(dict) {
     "gateway-route-provider-help": ui.gatewayRouteProviderHelp,
     "gateway-route-access-label": ui.gatewayRouteAccessLabel,
     "gateway-route-access-help": ui.gatewayRouteAccessHelp,
+    "gateway-route-status-kicker": ui.gatewayRouteStatusKicker,
+    "gateway-route-access-state-label": ui.gatewayRouteAccessStateLabel,
+    "gateway-route-provider-state-label": ui.gatewayRouteProviderStateLabel,
+    "gateway-route-session-state-label": ui.gatewayRouteSessionStateLabel,
+    "gateway-route-model-state-label": ui.gatewayRouteModelStateLabel,
+    "gateway-route-boundary": ui.gatewayRouteBoundary,
     "gateway-auth-title": ui.gatewayAuthTitle,
     "gateway-auth-optional": ui.gatewayAuthOptional,
     "gateway-auth-help": ui.gatewayAuthHelp,
+    "gateway-api-key-clear": ui.clear,
     "gemini-provider-title": ui.geminiProviderTitle,
     "gemini-provider-session-label": ui.geminiProviderSession,
     "gemini-provider-help": ui.geminiProviderHelp,
@@ -6351,6 +6561,7 @@ function applyLanguageUI(dict) {
     "gemini-provider-limits-link": ui.geminiProviderLimitsLink,
     "gemini-provider-models-link": ui.geminiProviderModelsLink,
     "gemini-provider-route-note": ui.geminiProviderRouteNote,
+    "gemini-provider-key-clear": ui.clear,
     "gateway-endpoint-label": ui.endpoint,
     "gateway-save-btn": ui.save,
     "gateway-reset-btn": ui.reset,
@@ -6487,6 +6698,8 @@ function setLanguage(lang, isInitial = false) {
     visualizeTokens(tokInput.value);
   }
 
+  if (gatewayRouteStateReady) updateGatewayCredentialStatus();
+
   // Re-render stored messages only when no stream is active. Rebuilding the
   // DOM during an upstream stream would discard the live response cursor.
   if (!isGenerating) renderMessages();
@@ -6608,6 +6821,10 @@ const EXPLICIT_ENDPOINT_KEY = "bob_gemini_endpoint_explicit";
 const DEFAULT_GATEWAY_URL = "http://127.0.0.1:9610";
 const LOOPBACK_HOSTS = ['localhost', '127.0.0.1', '[::1]'];
 let isGatewayOnline = true;
+// null means the endpoint has not been checked yet; true/false are learned
+// only from the selected endpoint's response, never inferred from a field.
+let gatewayAuthRequired = null;
+gatewayRouteStateReady = true;
 
 function isLoopbackPage() {
   return LOOPBACK_HOSTS.includes(window.location.hostname);
@@ -6667,6 +6884,101 @@ function canSendGeminiProviderKey() {
   return hasExplicitGatewayEndpoint();
 }
 
+function selectedStudioModelName() {
+  const modelSelect = document.getElementById("model-select");
+  return modelSelect ? String(modelSelect.value || "").trim() : "";
+}
+
+function developerRouteModelIssue() {
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  const model = selectedStudioModelName();
+  const thinkSelect = document.getElementById("think-select");
+  const think = thinkSelect ? String(thinkSelect.value || "default") : "default";
+
+  // The direct Developer API adapter accepts provider Gemini model IDs with
+  // the model's own defaults. BOB web-RPC aliases, Imagen, and @think modes
+  // belong to the cookie-backed route and must not be sent as if equivalent.
+  if (!model || !/^gemini-/i.test(model) || model === "imagen-3" || /-thinking(?:$|[-_])/i.test(model) || /@think=/i.test(model) || think !== "default") {
+    return ui.gatewayRouteModelWarning || "Choose a Gemini provider model and Model Default for the Developer API route.";
+  }
+  return "";
+}
+
+function developerRouteSelectionIssue() {
+  if (!useGeminiProvider) return "";
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  if (!geminiProviderKey) {
+    return ui.gatewayRouteProviderKeyMissing || "The Developer API route is selected, but no Google AI Studio key is entered.";
+  }
+  if (!canSendGeminiProviderKey()) {
+    return ui.gatewayRouteProviderBlockedHelp || "The selected endpoint is not trusted for a provider key.";
+  }
+  return developerRouteModelIssue();
+}
+
+function updateGatewayCredentialStatus() {
+  const status = document.getElementById("gateway-route-status");
+  if (!status) return;
+
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  const providerRoute = Boolean(useGeminiProvider);
+  const providerKeyPresent = Boolean(geminiProviderKey);
+  const endpointSafe = !providerRoute || canSendGeminiProviderKey();
+  const modelIssue = providerRoute ? developerRouteModelIssue() : "";
+  const routeIssue = providerRoute ? developerRouteSelectionIssue() : "";
+
+  status.dataset.route = providerRoute ? "provider" : "web";
+  status.dataset.state = routeIssue ? "blocked" : "ready";
+
+  const kicker = document.getElementById("gateway-route-status-kicker");
+  const title = document.getElementById("gateway-route-status-title");
+  const pill = document.getElementById("gateway-route-status-pill");
+  const help = document.getElementById("gateway-route-status-help");
+  const accessState = document.getElementById("gateway-route-access-state");
+  const providerState = document.getElementById("gateway-route-provider-state");
+  const sessionState = document.getElementById("gateway-route-session-state");
+  const modelState = document.getElementById("gateway-route-model-state");
+
+  if (kicker) kicker.textContent = ui.gatewayRouteStatusKicker || "Request route for this page";
+  if (title) title.textContent = providerRoute
+    ? (ui.gatewayRouteProviderStatus || "Direct Google Gemini API route")
+    : (ui.gatewayRouteWebStatus || "Default web-session route");
+  if (pill) pill.textContent = routeIssue ? "BLOCKED" : (providerRoute ? "PROVIDER" : "DEFAULT");
+  if (help) help.textContent = routeIssue || (providerRoute
+    ? (ui.gatewayRouteProviderStatusHelp || "Prompts use Google's Developer API with the key below.")
+    : (ui.gatewayRouteWebStatusHelp || "Prompts use BOB's web-session engine."));
+
+  if (accessState) {
+    if (gatewayAuthRequired === true && !gatewayApiKey) {
+      accessState.textContent = ui.gatewayRouteAccessRequired || "Required by this endpoint";
+    } else if (gatewayApiKey) {
+      accessState.textContent = ui.gatewayRouteAccessReady || "Access key entered for this page";
+    } else if (gatewayAuthRequired === false) {
+      accessState.textContent = ui.gatewayRouteAccessOpen || "Not required by this endpoint";
+    } else {
+      accessState.textContent = ui.gatewayRouteAccessUnknown || "Only known after connection check";
+    }
+  }
+  if (providerState) {
+    if (!providerRoute && providerKeyPresent) {
+      providerState.textContent = ui.gatewayRouteProviderPresentOff || "Present but off — not sent";
+    } else if (!providerRoute) {
+      providerState.textContent = ui.gatewayRouteProviderOff || "Off — not sent";
+    } else if (!providerKeyPresent) {
+      providerState.textContent = ui.gatewayRouteProviderMissing || "On, but no key is entered";
+    } else if (!endpointSafe) {
+      providerState.textContent = ui.gatewayRouteProviderBlocked || "On, but endpoint trust failed";
+    } else {
+      providerState.textContent = ui.gatewayRouteProviderReady || "On — held in page memory only";
+    }
+  }
+  if (sessionState) sessionState.textContent = ui.gatewayRouteSessionState || "Engine-owned — never paste into Config";
+  if (modelState) modelState.textContent = modelIssue || (ui.gatewayRouteModelState || "Model settings follow the selected route");
+}
+
 function isLoopbackGatewayURL(rawURL) {
   try {
     const parsed = new URL(rawURL, window.location.href);
@@ -6693,17 +7005,45 @@ function openGatewayModal() {
     providerKeyInput.value = geminiProviderKey;
   }
   if (providerToggle) providerToggle.checked = useGeminiProvider;
+  updateGatewayCredentialStatus();
   openManagedModal(modal, "#gateway-url-input");
 }
 
 function closeGatewayModal() {
   const modal = document.getElementById("gateway-modal");
   closeManagedModal(modal);
+  // Keep credentials out of the retained modal DOM. The page-session values
+  // are rehydrated only when the owner explicitly opens Config again.
+  const keyInput = document.getElementById("gateway-api-key-input");
+  const providerKeyInput = document.getElementById("gemini-provider-key-input");
+  if (keyInput) {
+    keyInput.value = "";
+    keyInput.type = "password";
+  }
+  if (providerKeyInput) {
+    providerKeyInput.value = "";
+    providerKeyInput.type = "password";
+  }
 }
 
 function saveApiKeyFromInput(val) {
   const clean = (val || "").trim();
   gatewayApiKey = clean;
+  updateGatewayCredentialStatus();
+  refreshTelemetry();
+  if (!backendModelsLoaded) syncBackendModels();
+}
+
+function clearGatewayApiKey() {
+  gatewayApiKey = "";
+  gatewayAuthRequired = null;
+  const input = document.getElementById("gateway-api-key-input");
+  if (input) {
+    input.value = "";
+    input.type = "password";
+    input.focus();
+  }
+  updateGatewayCredentialStatus();
   refreshTelemetry();
   if (!backendModelsLoaded) syncBackendModels();
 }
@@ -6722,6 +7062,22 @@ function saveGeminiProviderKey(val) {
     if (toggle) toggle.checked = false;
     showToast("Developer API route disabled; using the default web-session route", "🌐");
   }
+  updateGatewayCredentialStatus();
+}
+
+function clearGeminiProviderKey() {
+  geminiProviderKey = "";
+  useGeminiProvider = false;
+  const input = document.getElementById("gemini-provider-key-input");
+  const toggle = document.getElementById("gemini-provider-toggle");
+  if (input) {
+    input.value = "";
+    input.type = "password";
+    input.focus();
+  }
+  if (toggle) toggle.checked = false;
+  updateGatewayCredentialStatus();
+  showToast("Google Developer API key cleared; using the default web-session route", "🔒");
 }
 
 function toggleGeminiProviderRoute(enabled) {
@@ -6732,6 +7088,7 @@ function toggleGeminiProviderRoute(enabled) {
     showToast("Paste your own Google AI Studio key first", "🔑");
     const input = document.getElementById("gemini-provider-key-input");
     if (input) input.focus();
+    updateGatewayCredentialStatus();
     return;
   }
   if (enabled && !canSendGeminiProviderKey()) {
@@ -6739,6 +7096,7 @@ function toggleGeminiProviderRoute(enabled) {
     const toggle = document.getElementById("gemini-provider-toggle");
     if (toggle) toggle.checked = false;
     showToast("For safety, configure a local or explicitly trusted gateway endpoint first; remote endpoints must use HTTPS", "🔒");
+    updateGatewayCredentialStatus();
     return;
   }
   useGeminiProvider = Boolean(enabled);
@@ -6746,9 +7104,11 @@ function toggleGeminiProviderRoute(enabled) {
     const input = document.getElementById("gemini-provider-key-input");
     if (input) input.value = geminiProviderKey;
     showToast("Using the default web-session route", "🌐");
+    updateGatewayCredentialStatus();
     return;
   }
   showToast("Using your Gemini Developer API project for this session", "⚡");
+  updateGatewayCredentialStatus();
 }
 
 function toggleGeminiProviderKeyVisibility() {
@@ -6767,6 +7127,7 @@ function saveGatewayEndpoint() {
     setLocalPreference(ENDPOINT_KEY, val.replace(/\/+$/, ''));
     setLocalPreference(EXPLICIT_ENDPOINT_KEY, 'true');
   }
+  updateGatewayCredentialStatus();
   showToast("Gateway endpoint updated: " + getGatewayBaseUrl(), "⚡");
   refreshTelemetry();
   updateSnippet();
@@ -6779,6 +7140,7 @@ function resetGatewayEndpoint() {
   removeLocalPreference(EXPLICIT_ENDPOINT_KEY);
   const input = document.getElementById("gateway-url-input");
   if (input) input.value = getGatewayBaseUrl();
+  updateGatewayCredentialStatus();
   showToast("Reset to default: " + getGatewayBaseUrl(), "🔄");
   refreshTelemetry();
   updateSnippet();
@@ -6791,6 +7153,9 @@ async function pingGatewayManual() {
   const badge = document.getElementById("gateway-ping-badge");
   const card = document.getElementById("modal-gateway-stats-card");
   const content = document.getElementById("modal-gateway-stats-content");
+
+  gatewayAuthRequired = null;
+  updateGatewayCredentialStatus();
 
   if (pill) {
     pill.innerText = "Pinging...";
@@ -6811,6 +7176,7 @@ async function pingGatewayManual() {
     const res = await fetch(checkUrl, { method: "GET", headers: headers });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
+      gatewayAuthRequired = false;
       if (isHostedStudio()) {
         setLocalPreference(EXPLICIT_ENDPOINT_KEY, 'true');
       }
@@ -6848,6 +7214,7 @@ async function pingGatewayManual() {
           }
         }).catch(() => {});
     } else if (res.status === 401) {
+      gatewayAuthRequired = true;
       if (pill) {
         pill.innerText = "ONLINE (SECURED)";
         pill.style.background = "rgba(16, 185, 129, 0.2)";
@@ -6857,9 +7224,11 @@ async function pingGatewayManual() {
       updateGatewayStatusIndicator(true, latency);
       if (!backendModelsLoaded) syncBackendModels();
     } else {
+      gatewayAuthRequired = null;
       throw new Error("HTTP " + res.status);
     }
   } catch(err) {
+    gatewayAuthRequired = null;
     if (pill) {
       pill.innerText = "OFFLINE";
       pill.style.background = "rgba(239, 68, 68, 0.2)";
@@ -6890,6 +7259,7 @@ function updateGatewayStatusIndicator(online, latency) {
       ? `Gateway online at ${displayHost}. Open gateway settings.`
       : "Gateway offline. Open gateway settings.");
   }
+  updateGatewayCredentialStatus();
 }
 
 async function copyTextToClipboard(text, successMessage, failureMessage) {
@@ -7306,6 +7676,7 @@ function selectModel(modelName) {
   sel.value = modelName;
   updateSnippet();
   updateActiveModelBadge();
+  updateGatewayCredentialStatus();
   toggleCmdPalette();
   showToast("Selected model: " + modelName, "⚡");
 }
@@ -7317,6 +7688,7 @@ function handleGenerationSafeModelChange(selectEl) {
   }
   updateSnippet();
   updateActiveModelBadge();
+  updateGatewayCredentialStatus();
 }
 
 function setGenerationControlsDisabled(disabled) {
@@ -8121,6 +8493,7 @@ function updateActiveModelBadge() {
 
 async function refreshTelemetry() {
   if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
+    gatewayAuthRequired = null;
     updateGatewayStatusIndicator(false, null);
     return;
   }
@@ -8139,6 +8512,7 @@ async function refreshTelemetry() {
     const res = await fetch(statsUrl, { method: "GET", headers: headers });
     const latency = Math.round(performance.now() - start);
     if (res.ok) {
+      gatewayAuthRequired = false;
       const data = await res.json().catch(() => ({}));
       document.getElementById("stat-uptime").innerText = (data.uptime_seconds || data.uptime_sec || 0) + "s";
       document.getElementById("stat-requests").innerText = data.requests_served || 0;
@@ -8146,16 +8520,20 @@ async function refreshTelemetry() {
       document.getElementById("stat-savings").innerText = data.estimated_savings_usd || (data.estimated_usd_saved ? "$" + data.estimated_usd_saved.toFixed(2) : "$0.00");
       updateGatewayStatusIndicator(true, latency);
     } else if (res.status === 401) {
+      gatewayAuthRequired = true;
       updateGatewayStatusIndicator(true, latency);
     } else {
       const healthRes = await fetch(baseUrl + "/healthz").catch(() => null);
       if (healthRes && healthRes.ok) {
+        gatewayAuthRequired = false;
         updateGatewayStatusIndicator(true, latency);
       } else {
+        gatewayAuthRequired = null;
         updateGatewayStatusIndicator(false, null);
       }
     }
   } catch(e) {
+    gatewayAuthRequired = null;
     updateGatewayStatusIndicator(false, null);
   }
 }
@@ -11840,6 +12218,12 @@ async function sendMessage() {
   if ((!text && !currentAttachedImage && !currentAttachedDoc && attachedFilesList.length === 0) || isGenerating) return;
   if (isHostedStudio() && !hasExplicitGatewayEndpoint()) {
     showLocalOnboardingModal();
+    return;
+  }
+  const routeIssue = developerRouteSelectionIssue();
+  if (routeIssue) {
+    updateGatewayCredentialStatus();
+    showToast(routeIssue, "⚠️");
     return;
   }
 
