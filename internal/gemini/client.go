@@ -283,6 +283,17 @@ func (c *Client) triageStatus(resp *http.Response) error {
 	return nil
 }
 
+func (c *Client) invalidateSessionAfterAuthRejection(err error) {
+	if c == nil || c.Cookies == nil {
+		return
+	}
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) || upstreamErr == nil || upstreamErr.Kind != "auth" {
+		return
+	}
+	c.Cookies.InvalidateSession()
+}
+
 // shouldRetryUpstream classifies failures where another attempt could have a
 // reasonable chance of succeeding without amplifying a provider policy
 // decision. The generation operation applies the stricter idempotency policy
@@ -488,6 +499,7 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 			} else if err := c.triageStatus(resp); err != nil {
 				closeResponseBody(resp)
 				lastErr = err
+				c.invalidateSessionAfterAuthRejection(err)
 				if session != nil {
 					c.Pool.MarkFailure(session.ID)
 				}
@@ -655,6 +667,7 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			} else if err := c.triageStatus(resp); err != nil {
 				closeResponseBody(resp)
 				lastErr = err
+				c.invalidateSessionAfterAuthRejection(err)
 				if session != nil {
 					c.Pool.MarkFailure(session.ID)
 				}

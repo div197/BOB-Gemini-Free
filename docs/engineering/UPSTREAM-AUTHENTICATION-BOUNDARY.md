@@ -100,6 +100,12 @@ account/session/network dependent.
 | Cookie pool has healthy entries | Local cookie files parsed and are not in local cooldown | The accounts have independent quota or permission |
 | A completed local update | The app replacement path succeeded | The updated app can generate through Google's current web service |
 
+For an explicit HTTP 401/403, the local client clears only its cached dynamic
+`/app` page token and build identifier. The configured cookie file is retained,
+the rejected POST is not replayed, and the next request performs a fresh
+bootstrap. This can recover from stale page-token material; it cannot
+reauthenticate a revoked cookie or override Google's access policy.
+
 ## Student-facing product wording
 
 The honest description for the preview is:

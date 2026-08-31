@@ -472,3 +472,14 @@ complete evidence is in
 | Preview 3 is built from the current public source and carries the current updater trust anchor | VERIFIED_LIVE | Release-source verification passed at public-main `284b7d1`; the Keychain-backed signer accepted the private/public pair and the Wails build embedded the checked-in public key | Keychain presence and manifest signing do not prove future key custody, Apple trust, or a live installed-bundle update. |
 | The exact Preview 3 artifact launches locally and owns a healthy loopback gateway | VERIFIED_LIVE | Fresh artifact launch bound to `127.0.0.1:8081` when 9610 was occupied, returned `{"status":"ok"}` from `/healthz`, and shut down cleanly | This is one host's package smoke test; it does not prove Google acceptance, provider quota, clean-device replacement, rollback, or fleet rollout. |
 | Existing Preview 7/Preview 2 users will silently update to Preview 3 | STALE_OR_INCORRECT | The updater is explicit and user-consented; public metadata and source selection are verified, but installed replacement has not been observed on a clean student device | Use **Help → Check for Updates**, verify the exact target, install from a writable app location, and record restart/rollback evidence before a 20–30-device rollout. |
+
+## Current session rejection recovery addendum — 2026-08-31
+
+The Gemini client now treats an explicit upstream HTTP 401/403 as a local
+session-cache invalidation event. It does not retry the rejected generation,
+rotate identities, erase the configured cookie file, or claim that the next
+bootstrap will be accepted by Google.
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| A rejected dynamic Gemini session is not reused indefinitely by the local client | VERIFIED_BY_UNIT_TEST | `internal/gemini/auth.go` clears only cached `at`/`bl` values and increments a generation; `internal/gemini/client.go` invokes it for buffered and streaming 401/403 responses; `auth_test.go` covers forced refresh, configured-cookie preservation, and an in-flight bootstrap race, while `client_test.go` covers both response paths and confirms 429 does not invalidate | Google may reject the refreshed session again; cookie reauthentication, expiry detection, account entitlement, and live provider behavior remain external. The previously rejected request is intentionally not replayed. |

@@ -138,6 +138,7 @@ func TestGenerateDoesNotAmplifyHTTP429(t *testing.T) {
 		},
 	}}}
 	client := testClientWithRequester(requester, 3)
+	primeCachedSession(client.Cookies)
 
 	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
 	if err == nil {
@@ -153,6 +154,26 @@ func TestGenerateDoesNotAmplifyHTTP429(t *testing.T) {
 	if called != 1 {
 		t.Fatalf("HTTP 429 request count = %d, want 1", called)
 	}
+	assertSessionTokens(t, client.Cookies, "cached-at", "cached-bl")
+}
+
+func TestGenerateInvalidatesCachedSessionAfterHTTP401(t *testing.T) {
+	requester := &goldenRequester{responses: []goldenHTTPResponse{{
+		response: &http.Response{
+			StatusCode: http.StatusUnauthorized,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader("unauthorized")),
+		},
+	}}}
+	client := testClientWithRequester(requester, 3)
+	primeCachedSession(client.Cookies)
+
+	_, err := client.GenerateContext(context.Background(), "fixture", 1, 4, nil, nil)
+	var upstreamErr *UpstreamError
+	if !errors.As(err, &upstreamErr) || upstreamErr.Kind != "auth" {
+		t.Fatalf("HTTP 401 error = %#v, want auth UpstreamError", err)
+	}
+	assertSessionTokens(t, client.Cookies, "", "")
 }
 
 func TestGenerateDoesNotAmplifyBardRateLimit(t *testing.T) {
@@ -433,6 +454,7 @@ func TestGenerateStreamDoesNotAmplifyHTTP403(t *testing.T) {
 		},
 	}}}
 	client := testClientWithRequester(requester, 3)
+	primeCachedSession(client.Cookies)
 
 	err := client.GenerateStreamContext(context.Background(), "fixture", 1, 4, nil, nil, func(string) error { return nil })
 	if err == nil {
@@ -443,5 +465,25 @@ func TestGenerateStreamDoesNotAmplifyHTTP403(t *testing.T) {
 	requester.mu.Unlock()
 	if called != 1 {
 		t.Fatalf("HTTP 403 stream request count = %d, want 1", called)
+	}
+	assertSessionTokens(t, client.Cookies, "", "")
+}
+
+func primeCachedSession(cache *CookieCache) {
+	cache.mu.Lock()
+	cache.info.At = "cached-at"
+	cache.info.BL = "cached-bl"
+	cache.info.AtTime = time.Now()
+	cache.mu.Unlock()
+}
+
+func assertSessionTokens(t *testing.T, cache *CookieCache, wantAt, wantBL string) {
+	t.Helper()
+	info, err := cache.Load()
+	if err != nil {
+		t.Fatalf("Load session cache: %v", err)
+	}
+	if info.At != wantAt || info.BL != wantBL {
+		t.Fatalf("session tokens = %q %q, want %q %q", info.At, info.BL, wantAt, wantBL)
 	}
 }

@@ -50,6 +50,7 @@ type CookieCache struct {
 	info           CookieInfo
 	refreshing     bool
 	refreshCh      chan struct{}
+	sessionVersion uint64
 }
 
 func NewCookieCache(file string) *CookieCache {
@@ -161,6 +162,7 @@ func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, 
 	// Designated refresher goroutine
 	c.refreshing = true
 	c.refreshCh = make(chan struct{})
+	refreshVersion := c.sessionVersion
 	cookieStr := c.info.Cookie
 	sapi := c.info.SAPISID
 	lastAt := c.info.At
@@ -238,6 +240,16 @@ func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, 
 
 	c.mu.Lock()
 	defer c.mu.Unlock()
+	// An upstream auth rejection can invalidate the session while this
+	// bootstrap request is still in flight. Do not let a response started
+	// before that invalidation repopulate the rejected dynamic tokens.
+	if refreshVersion != c.sessionVersion {
+		finalCookie := c.info.Cookie
+		if finalCookie == "" {
+			finalCookie = c.info.GuestCookies
+		}
+		return c.info.At, c.info.BL, finalCookie, c.info.SAPISID
+	}
 	if m := reAt.FindStringSubmatch(html); len(m) > 1 {
 		c.info.At = m[1]
 		c.info.AtTime = time.Now()
@@ -254,6 +266,23 @@ func (c *CookieCache) GetSessionInfo(ctx context.Context, httpClient Requester, 
 		finalCookie = c.info.GuestCookies
 	}
 	return c.info.At, c.info.BL, finalCookie, c.info.SAPISID
+}
+
+// InvalidateSession discards dynamic /app session values after an explicit
+// upstream authentication rejection. The configured cookie file and guest
+// cookie remain available for the next bootstrap; only the short-lived page
+// token and build identifier are forced to refresh. The generation counter
+// also prevents an older in-flight bootstrap from restoring rejected values.
+func (c *CookieCache) InvalidateSession() {
+	if c == nil {
+		return
+	}
+	c.mu.Lock()
+	c.info.At = ""
+	c.info.BL = ""
+	c.info.AtTime = time.Time{}
+	c.sessionVersion++
+	c.mu.Unlock()
 }
 
 func (c *CookieCache) GetAtToken(ctx context.Context, httpClient Requester, authUser string) string {

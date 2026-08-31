@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestAnonymousCookieCache(t *testing.T) {
@@ -278,5 +279,134 @@ func TestGetSessionInfoGuestAndCookie(t *testing.T) {
 	at2, bl2, _, _ := cache.GetSessionInfo(t.Context(), nil, "")
 	if at2 != "guest-at-token" || bl2 != "guest-bl-build" {
 		t.Fatalf("expected cached tokens, got %q %q", at2, bl2)
+	}
+}
+
+type rotatingSessionRequester struct {
+	responses []string
+	calls     int
+}
+
+func (r *rotatingSessionRequester) Do(req *http.Request) (*http.Response, error) {
+	index := r.calls
+	if index >= len(r.responses) {
+		index = len(r.responses) - 1
+	}
+	r.calls++
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(r.responses[index])),
+	}, nil
+}
+
+func TestCookieCacheInvalidateSessionForcesBootstrapRefresh(t *testing.T) {
+	requester := &rotatingSessionRequester{responses: []string{
+		`"SNlM0e":"first-at-token","cfb2h":"first-bl-build"`,
+		`"SNlM0e":"second-at-token","cfb2h":"second-bl-build"`,
+	}}
+	cache := NewCookieCache("")
+
+	at, bl, _, _ := cache.GetSessionInfo(t.Context(), requester, "")
+	if at != "first-at-token" || bl != "first-bl-build" {
+		t.Fatalf("initial session = %q %q, want first bootstrap", at, bl)
+	}
+
+	cache.InvalidateSession()
+	at, bl, _, _ = cache.GetSessionInfo(t.Context(), requester, "")
+	if at != "second-at-token" || bl != "second-bl-build" {
+		t.Fatalf("refreshed session = %q %q, want second bootstrap", at, bl)
+	}
+	if requester.calls != 2 {
+		t.Fatalf("bootstrap calls = %d, want 2 after invalidation", requester.calls)
+	}
+}
+
+type blockingRotatingSessionRequester struct {
+	responses []string
+	started   chan struct{}
+	release   chan struct{}
+	calls     int
+}
+
+func (r *blockingRotatingSessionRequester) Do(req *http.Request) (*http.Response, error) {
+	index := r.calls
+	r.calls++
+	if index == 0 {
+		close(r.started)
+		<-r.release
+	}
+	if index >= len(r.responses) {
+		index = len(r.responses) - 1
+	}
+	return &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     make(http.Header),
+		Body:       io.NopCloser(strings.NewReader(r.responses[index])),
+	}, nil
+}
+
+func TestCookieCacheInvalidationWinsOverInFlightBootstrap(t *testing.T) {
+	requester := &blockingRotatingSessionRequester{
+		responses: []string{
+			`"SNlM0e":"old-at-token","cfb2h":"old-bl-build"`,
+			`"SNlM0e":"fresh-at-token","cfb2h":"fresh-bl-build"`,
+		},
+		started: make(chan struct{}),
+		release: make(chan struct{}),
+	}
+	cache := NewCookieCache("")
+	result := make(chan struct {
+		at string
+		bl string
+	}, 1)
+	go func() {
+		at, bl, _, _ := cache.GetSessionInfo(t.Context(), requester, "")
+		result <- struct {
+			at string
+			bl string
+		}{at: at, bl: bl}
+	}()
+
+	<-requester.started
+	cache.InvalidateSession()
+	close(requester.release)
+
+	first := <-result
+	if first.at != "" || first.bl != "" {
+		t.Fatalf("in-flight bootstrap restored rejected tokens: %q %q", first.at, first.bl)
+	}
+	at, bl, _, _ := cache.GetSessionInfo(t.Context(), requester, "")
+	if at != "fresh-at-token" || bl != "fresh-bl-build" {
+		t.Fatalf("next bootstrap = %q %q, want fresh tokens", at, bl)
+	}
+	if requester.calls != 2 {
+		t.Fatalf("bootstrap calls = %d, want 2", requester.calls)
+	}
+}
+
+func TestCookieCacheInvalidateSessionPreservesConfiguredCookie(t *testing.T) {
+	cache := NewCookieCache("")
+	cache.mu.Lock()
+	cache.info = CookieInfo{
+		Cookie:       "SID=configured; SAPISID=secret",
+		GuestCookies: "guest=1",
+		SAPISID:      "secret",
+		At:           "stale-at",
+		BL:           "stale-bl",
+		AtTime:       time.Now(),
+	}
+	cache.mu.Unlock()
+
+	cache.InvalidateSession()
+	info, err := cache.Load()
+	if err != nil {
+		t.Fatalf("Load after invalidation: %v", err)
+	}
+	if info.Cookie != "SID=configured; SAPISID=secret" || info.SAPISID != "secret" {
+		t.Fatalf("configured credentials changed during invalidation: %+v", info)
+	}
+	if info.GuestCookies != "guest=1" || info.At != "" || info.BL != "" || !info.AtTime.IsZero() {
+		t.Fatalf("unexpected session state after invalidation: %+v", info)
 	}
 }
