@@ -34,6 +34,18 @@ This is a controlled public beta, not a stable or unattended fleet release.
 The remaining gates are deliberate rollback, clean-device and pilot evidence,
 Apple/Windows platform trust, and live provider/network validation.
 
+## Current source continuation — 2026-08-31
+
+Public `main` has since advanced to `9f11eef922e09110df923205eb9aad90da35e236`
+through protected PRs #77–#83. Those source follow-ups are not contained in the
+immutable Preview 5 package. A universal `v0.2.0-preview.6` candidate was
+built, signed, package-verified, and coexistence-smoke-tested locally; it has
+not been uploaded or published. The exact evidence and hashes are recorded in
+[`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
+The new updater regression matrix covers Preview 6 discovery from legacy
+`v0.1.7-preview.7`, the `v0.2.0-preview.1` bridge, and Preview 5 through a
+mocked release listing.
+
 ## Preview 4 publication refresh — 2026-08-31 (historical)
 
 The Preview 4 package source is `main` at merge commit

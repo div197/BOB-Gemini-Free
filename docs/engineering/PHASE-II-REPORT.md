@@ -700,8 +700,10 @@ immutable macOS `v0.2.0-preview.5` package was built from source baseline
 `c28d787`. After publication, protected PR #77 merged real in-app-browser
 evidence for the cross-port localhost origin boundary, and protected PR #78
 stopped the Studio from probing the gateway while a student was still typing a
-partial BOB access key. Public `main` is now `ade691d`; the two follow-ups are
-source-verified but require a new package before students receive them.
+partial BOB access key. Public `main` was then advanced through PRs #80–#83 to
+`9f11eef`; the latest desktop-coexistence follow-up is source-verified and has
+a locally signed Preview 6 candidate, but that candidate requires publication
+before students receive it.
 
 The credential model is now documented as four separate boundaries: the BOB
 Gateway Access Key protects entry to an operator-configured gateway; the

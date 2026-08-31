@@ -66,6 +66,14 @@ to an earlier implementation. The current contract supersedes those phrases:
   fallback port instead. Same-version reuse remains supported and owned
   gateways still shut down with the desktop lifecycle.
 
+### Updater verification
+
+- Adds a mocked release-list regression matrix proving that a published
+  `v0.2.0-preview.6` candidate would be offered to legacy `v0.1.7-preview.7`,
+  `v0.2.0-preview.1`, and Preview 5 installations, while the same Preview 6
+  build would not update itself. This does not publish the candidate or claim a
+  real-device migration.
+
 ## [0.2.0-preview.5] - 2026-08-31
 
 ### Browser streaming
