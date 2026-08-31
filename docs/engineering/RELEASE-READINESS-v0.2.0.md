@@ -43,6 +43,11 @@ current local truth is:
   surfaces, accessible selector names, a prompt skip link, and synchronized
   generated web output. These are source/regression results, not visual
   browser acceptance.
+- Follow-up commit `b136724` hardens updater transaction durability with
+  flushed metadata commits, Unix directory synchronization around swaps and
+  recovery, and a fault-injected rollback regression. Recursive app-bundle
+  durability, Windows directory-flush semantics, physical power interruption,
+  and clean-device acceptance remain open gates.
 
 This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,

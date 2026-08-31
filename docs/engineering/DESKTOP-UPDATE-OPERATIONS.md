@@ -45,6 +45,16 @@ ambiguous state, BOB refuses to guess and shows a visible startup error for
 manual recovery. The recovery path is fixture-tested but is not a substitute
 for a clean-device interrupted-update acceptance run.
 
+The updater's small plan, confirmation, failure, and warning records are
+written to a same-directory temporary file, flushed, atomically replaced, and
+followed by a Unix directory sync. The helper also flushes the install
+directory after moving the old app to rollback, activating the candidate, or
+restoring the previous app; startup recovery does the same after its cleanup
+transitions. This reduces the window in which a power interruption can lose the
+transaction decision, but it is not a recursive fsync of every file in a macOS
+app bundle, and Windows does not have a portable directory-fsync contract.
+`b136724` and its updater tests protect this boundary.
+
 The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The

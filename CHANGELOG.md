@@ -225,6 +225,12 @@ This remains an ad-hoc-signed, non-notarized controlled preview. Stable
   stable-first migration, legacy Preview 7 bridge discovery, direct-stable
   rejection, and rollback. Tests never replace the developer's running
   executable.
+- Hardened native updater durability: updater metadata is privately written via
+  flushed same-directory atomic replacement, Unix transaction directories are
+  synchronized after swap/recovery transitions, and an injected activation-sync
+  failure is regression-tested to restore the previous install. This reduces
+  interrupted-update ambiguity but does not claim recursive app-bundle fsync,
+  Windows directory-fsync semantics, or real power-cut proof.
 - Added a local no-Actions `scripts/sign-release-assets.sh` operator step and
   documented release-key custody, platform signing, clean-device acceptance,
   and the 30-device rollout gate.

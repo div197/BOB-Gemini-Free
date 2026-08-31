@@ -54,6 +54,18 @@ public `v0.2.0-preview.1` remains immutable, Preview 2 remains a locally
 verified but unpublished candidate, and stable `v0.2.0` remains unpublished.
 No GitHub Actions workflow was added or run.
 
+## Follow-up updater durability hardening — 2026-08-31
+
+The isolated follow-up commit `b136724` keeps the release trust and migration
+design unchanged while strengthening the local filesystem transaction. Plan,
+confirmation, failure, and warning records now use flushed private temporary
+files followed by same-directory replacement. Backup, candidate activation,
+rollback, and startup-recovery directory transitions flush on Unix; a focused
+fault-injection test proves candidate activation is rolled back when that flush
+fails. This is local source/test evidence, not a physical power-loss or clean
+installed-bundle acceptance result, and it does not alter the no-Actions or
+user-consent requirements.
+
 The public bridge ZIP reports `CFBundleShortVersionString` and
 `CFBundleVersion` as `0.2.0`; the full preview channel/version is carried by
 the injected desktop updater version and release metadata. This is expected
