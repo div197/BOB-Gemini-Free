@@ -12,6 +12,14 @@ import (
 	"time"
 )
 
+const (
+	serviceHealthPath     = "/healthz"
+	serviceHealthGateway  = "bob-gemini-free"
+	serviceHealthProtocol = "1"
+	serviceHealthHeader   = "X-BOB-Gateway"
+	serviceProtocolHeader = "X-BOB-Protocol"
+)
+
 // ServiceConfig holds parameters needed to render service unit files.
 type ServiceConfig struct {
 	ExePath   string
@@ -265,15 +273,18 @@ func Status(port int, logFn func(string, ...any)) error {
 		logFn("[!] Service Definition: Not Installed (run: bob-gemini-free service install)")
 	}
 
-	// Check HTTP ping — accept both 200 (no API keys) and 401 (API keys configured)
-	// as evidence the daemon is alive and listening.
-	targetURL := fmt.Sprintf("http://127.0.0.1:%d/", port)
+	// Probe the dedicated, unauthenticated health contract rather than the human
+	// root endpoint. The root endpoint may require an API key and a different
+	// process can also return 200/401 there, producing a false "running" state.
+	targetURL := fmt.Sprintf("http://127.0.0.1:%d%s", port, serviceHealthPath)
 	client := &http.Client{Timeout: 1500 * time.Millisecond}
 	resp, err := client.Get(targetURL)
 	if err == nil {
 		defer resp.Body.Close() // Always close body to prevent TCP socket leak
-		if resp.StatusCode == http.StatusOK || resp.StatusCode == http.StatusUnauthorized {
+		if isCompatibleHealthResponse(resp) {
 			logFn("[✔] Daemon Gateway Process: RUNNING (listening on http://127.0.0.1:%d)", port)
+		} else if resp.StatusCode == http.StatusOK {
+			logFn("[!] Daemon Gateway Process: RESPONDING but not a compatible BOB gateway (HTTP %d) on port %d", resp.StatusCode, port)
 		} else {
 			logFn("[!] Daemon Gateway Process: RESPONDING but unhealthy (HTTP %d) on port %d", resp.StatusCode, port)
 		}
@@ -282,6 +293,12 @@ func Status(port int, logFn func(string, ...any)) error {
 	}
 
 	return nil
+}
+
+func isCompatibleHealthResponse(resp *http.Response) bool {
+	return resp != nil && resp.StatusCode == http.StatusOK &&
+		resp.Header.Get(serviceHealthHeader) == serviceHealthGateway &&
+		resp.Header.Get(serviceProtocolHeader) == serviceHealthProtocol
 }
 
 // Start instructs the OS daemon manager to start the service.
