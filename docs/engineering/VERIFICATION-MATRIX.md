@@ -265,7 +265,7 @@ two justified protected-core changes described in
 
 The historical Mission 0 statements above were not the branch status at that
 audit boundary. The following evidence was recorded then. It is retained for
-  provenance; the current Preview 6 publication and migration evidence in the
+  provenance; the current Preview 8 publication and migration evidence in the
   final addendum below supersedes its release-specific rows.
 
 | Claim at the 2026-08-21 audit boundary | Classification | Evidence | Boundary |
@@ -281,9 +281,9 @@ audit boundary. The following evidence was recorded then. It is retained for
 | `main` requires pull requests and blocks force-push/deletion | VERIFIED_LIVE | GitHub branch protection reports enforced admins, pull-request review gate, conversation resolution, and disabled force pushes/deletions | No hosted status check is required because this project intentionally does not use GitHub Actions; local validation remains mandatory. |
 | The native desktop process honors a user's local config/cookie without widening its network boundary | VERIFIED_BY_UNIT_TEST | `cmd/desktop/config_test.go` verifies cookie discovery while forcing loopback, empty API keys, and empty remote origins | First-run login UX is not implemented; authenticated features remain per-user/session-dependent. |
 | The public release is a student-ready cross-platform native installer set | UNKNOWN | GitHub release inspection found CLI assets in `v0.1.5` but no trusted native installer set; the current public desktop preview is macOS-only and only macOS ARM64 ad-hoc native smoke testing is complete | Requires native Windows/Linux builds, clean-device tests, platform signing, macOS notarization, and manual release publication. |
-| A public native desktop preview is available for controlled evaluation at the historical Preview 5 boundary | VERIFIED_LIVE | At that historical boundary, manually published prerelease `v0.2.0-preview.5` contained the branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This historical beta evidence does not replace the current Preview 6 addendum: there is still no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Installed replacement remains a device gate. |
+| A public native desktop preview is available for controlled evaluation at the historical Preview 5 boundary | VERIFIED_LIVE | At that historical boundary, manually published prerelease `v0.2.0-preview.5` contained the branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This historical beta evidence does not replace the current Preview 8 addendum: there is still no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Installed replacement remains a device gate. |
 | A free branded macOS preview package can be created without Apple membership | VERIFIED_BY_INTEGRATION_TEST | `scripts/package-wails-preview.sh` creates a branded `BOB Gemini Free.app`, `.zip`, `.dmg`, release notice, and checksums without Developer ID credentials; the bundle metadata uses the `com.abcsteps` identity | This proves local packaging only; it does not establish Gatekeeper trust, notarization, clean-device acceptance, or public student readiness. |
-| The native desktop app exposes an explicit update check at the historical Preview 5 boundary | VERIFIED_BY_UNIT_TEST | At that historical boundary, `internal/updater/desktop.go` selected only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covered branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current Preview 6 source adds the published-candidate matrix in the final addendum. Neither source evidence nor the published package silently installs, removes the macOS warning, or replaces platform publisher trust. |
+| The native desktop app exposes an explicit update check at the historical Preview 5 boundary | VERIFIED_BY_UNIT_TEST | At that historical boundary, `internal/updater/desktop.go` selected only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covered branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current Preview 8 source adds the published-candidate matrix in the final addendum. Neither source evidence nor the published package silently installs, removes the macOS warning, or replaces platform publisher trust. |
 | The embedded Studio update status uses the same release channel as the native desktop updater | VERIFIED_BY_UNIT_TEST | `cmd/desktop/main.go` passes its build-pinned channel to `server.NewWithUpdateChannel`; `internal/server/server_test.go` verifies preview forwarding to the channel-aware checker, while `playground_test.go` verifies native/preview-specific status guidance | The status route only discovers metadata. It does not prove public Preview 7 publication, installed-device replacement, rollback, Apple trust, or fleet rollout. |
 
 ## Preview 3 v0.2.0 release-readiness update — 2026-08-31 (historical)
@@ -422,7 +422,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31 (historical snapshot)
 
 This continuation snapshot supersedes older commit labels in the historical
-sections above, but is itself retained for provenance. The current Preview 6
+sections above, but is itself retained for provenance. The current Preview 8
 publication addendum at the end is authoritative for the present release.
 The reviewed code tip at the start of this continuation was `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
@@ -543,9 +543,9 @@ the release-state documentation and updater-matrix reconciliation. PR #86 then
 moved it to `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d` with the fail-closed
 gateway access-key transport guard. The Preview 6 release source target is
 `f9b3410e74d7ccc08487dc03788b54a201e12ade`; its package contains these
-post-publication follow-ups. Preview 4 and Preview 5 remain immutable
-historical inputs, while Preview 6 is the current public macOS prerelease
-package. The complete package receipt is in
+post-publication follow-ups. Preview 4, Preview 5, and Preview 6 remain
+immutable historical inputs. The current Preview 8 package receipt is in
+the current addendum below; the historical Preview 6 receipt is in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
 
 | Claim at the Preview 5 boundary | Classification | Evidence | Boundary |
@@ -621,7 +621,7 @@ the current downloadable-version statement.
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
 | Preview 8 is the current public macOS prerelease | VERIFIED_LIVE | GitHub release [`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8) is published as a prerelease with the universal DMG, ZIP, release notice, `SHA256SUMS`, and `SHA256SUMS.sig`; all five public assets were downloaded into a fresh directory, verified, and compared byte-for-byte with the local signed inputs | The package is ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
-| Preview 8 contains the reviewed current runtime source | VERIFIED_LIVE | The package was built from reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`; later `main` commit `364fb0b` is documentation-only relative to that runtime source | This release does not include later runtime changes unless a new uniquely versioned release is built and reconciled. |
+| Preview 8 contains the reviewed current runtime source | VERIFIED_LIVE | The package was built from reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`; current `main` commit `2b7785d` adds documentation-only reconciliation relative to that runtime source | This release does not include later runtime changes unless a new uniquely versioned release is built and reconciled. |
 | An installed Preview 5 app can discover Preview 8 | VERIFIED_LIVE | On the audit Mac, **Help → Check for Updates** displayed a signed Preview 8 update offer from the public release | The install action was canceled; installed-bundle replacement, restart, rollback, clean-device, and fleet acceptance remain unproven. |
 | Preview 8 silently updates every student computer | STALE_OR_INCORRECT | The updater performs bounded metadata checks and asks for explicit consent before staging, replacing, and restarting the app | Each device requires a writable application path and a user-approved install; no GitHub Actions or classroom-wide push exists. |
 | A stable `v0.2.0` student release is ready | UNKNOWN | Source, package, signature, public-byte, and discovery gates are green | Apple Developer ID/notarization, clean-device and rollback, Windows/Linux, live Google behavior, and staged pilot gates remain open. |
