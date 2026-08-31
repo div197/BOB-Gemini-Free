@@ -167,8 +167,8 @@ future candidate.
 
 ## Current Preview 8 candidate — 2026-09-01
 
-The current source candidate is `v0.2.0-preview.8`, built from current `main`
-tip `7395243c90eec3f884dd49067b64dd549aab1956`. It is freshly packaged,
+The current source candidate is `v0.2.0-preview.8`, built from reviewed runtime
+source commit `7395243c90eec3f884dd49067b64dd549aab1956`. It is freshly packaged,
 signed, and verified; the exact package hashes and local startup evidence are
 recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
