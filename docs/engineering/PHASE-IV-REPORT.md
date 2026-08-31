@@ -3,19 +3,20 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `2a36ba1`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `d598721`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces six real failure classes: coalesced
+This continuation materially reduces seven real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
-read-only or translocated location, and stale attachment parsing/OCR work after
-the user removes a file, plus initialization failures when browser preference
-storage is denied, plus execution risk from mutable root CDN dependencies. The
-source and deterministic test gates are green.
+read-only or translocated location, stale attachment parsing/OCR work after the
+user removes a file, initialization failures when browser preference storage
+is denied, execution risk from mutable root CDN dependencies, and
+false-positive optional service health reports. The source and deterministic
+test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -219,6 +220,17 @@ does not make the app offline. Dynamic artifact `srcdoc` libraries, PDF worker
 and language assets, Prism autoloader language files, and network availability
 remain separately open and browser-dependent.
 
+### 13. Dedicated service health contract — `d598721`
+
+The optional `service status` command no longer treats an HTTP 200/401 response
+from the human root endpoint as proof that BOB is the process listening on the
+configured port. It probes the unauthenticated `/healthz` contract and requires
+the BOB gateway identity and protocol-version headers. A test server returning
+200 without that contract is reported as an unrelated process, while a valid
+health response remains a running gateway. This is a local compatibility
+diagnostic, not an authentication mechanism, and OS service-manager/device
+behavior remains external.
+
 ## Verification completed
 
 | Gate | Result | Evidence boundary |
@@ -233,6 +245,7 @@ remain separately open and browser-dependent.
 | `git diff --check` | PASS | No whitespace errors. |
 | `bash -n scripts/*.sh` | PASS | Local release scripts parse successfully. |
 | `scripts/verify-release-source.sh v0.2.0` | PASS | Clean source, key/version coherence, installer trust-anchor, and web parity passed at the packaging source commit. |
+| Dedicated service-health probe tests | PASS | `internal/service` tests cover the `/healthz` path and reject an unrelated HTTP 200 process. |
 | macOS Preview package | PASS locally | Universal Wails app, ZIP, DMG, visible `/Applications` shortcut, release notice, and ad-hoc `codesign --verify` passed. The package was not published and its local checksum manifest was not signed. |
 | Browser desktop/tablet/phone walk | NOT AVAILABLE | The configured browser runtime reported no available browser; source tests are not rendered interaction proof. |
 | Live Google/provider run | NOT RUN | No provider credential or cookie was used. |
