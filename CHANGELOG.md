@@ -77,6 +77,10 @@ to an earlier implementation. The current contract supersedes those phrases:
   connects), the optional BOB Gateway Access Key (only for a protected BOB
   endpoint), and the optional Google Gemini Developer API key (the student's
   own provider route).
+- Places an explicit, live route-choice guide immediately after the endpoint,
+  before the detailed credential map, so the default web-session path and the
+  opt-in Developer API path are understandable before a student sees either
+  key field. The existing provider toggle remains the only route control.
 - Adds an accessible description relationship for the endpoint field and
   removes the internal `api_keys` configuration name from the student-facing
   helper text without changing route selection, headers, storage, or security

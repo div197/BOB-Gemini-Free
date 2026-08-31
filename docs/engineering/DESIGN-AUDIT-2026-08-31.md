@@ -423,3 +423,24 @@ requirement. No request is made by the selector itself, and no key is persisted.
 `TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the helper,
 status wiring, and toggle guard. The server-side credential-routing matrix and
 browser smoke remain complementary evidence.
+
+## 15. Route-choice hierarchy follow-up — 2026-09-01
+
+The settings review found a presentation defect in the otherwise-correct
+credential model: the detailed four-boundary map appeared before the route
+decision, so the first-open dialog could show a long explanatory block while
+the actual web-session/provider distinction remained below the fold. This made
+the settings surface technically accurate but operationally harder for a
+student to scan.
+
+The minimum L1 correction moves a compact route-choice guide immediately after
+the endpoint field and before the detailed credential map. It presents the
+recommended default web-session path beside the explicit Developer API path,
+highlights the live selected route, and states that the existing provider
+toggle remains the only route control. It does not add a second selector or
+change request headers, storage, endpoint trust, provider limits, or fallback
+behavior. `TestGatewayRouteChoiceGuideTracksSelectedRoute` and the ordering
+assertion in `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`
+protect the source contract; current-source desktop and Hindi browser checks
+confirmed the guide is visible on first open and remains localized. Phone and
+native-WebView rendering remain separate release evidence gates.
