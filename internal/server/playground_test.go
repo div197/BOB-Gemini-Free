@@ -62,6 +62,36 @@ func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
 	}
 }
 
+func TestGatewayAuthInputDoesNotProbeUntilExplicitPing(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function saveApiKeyFromInput(val)")
+	if start < 0 {
+		t.Fatal("gateway access-key input handler boundaries are missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction clearGatewayApiKey")
+	if endOffset < 0 {
+		t.Fatal("gateway access-key input handler end is missing")
+	}
+	source := html[start : start+endOffset]
+	if !strings.Contains(source, "gatewayApiKey = clean;") || !strings.Contains(source, "updateGatewayCredentialStatus();") {
+		t.Fatal("gateway access-key input must update only session state and route status")
+	}
+	for _, forbidden := range []string{"refreshTelemetry();", "syncBackendModels();", "fetch("} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("gateway access-key input must not probe the network while typing: %q", forbidden)
+		}
+	}
+	for _, marker := range []string{
+		"After entering a key, choose Test Ping to verify the endpoint.",
+		"Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
+		"function pingGatewayManual()",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("gateway access-key flow is missing explicit verification marker %q", marker)
+		}
+	}
+}
+
 func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	html := string(playgroundHTML)
 	functionStart := strings.Index(html, "async function sendMessage()")
