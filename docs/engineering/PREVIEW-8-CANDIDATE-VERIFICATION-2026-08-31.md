@@ -2,8 +2,8 @@
 
 **Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `240b57b72c8575b0f14204b052f40e15385a277c` (clean reviewed
-checkpoint; the package was built from this commit)
+**Source snapshot:** `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` (clean reviewed
+`main` tip; the package was built from this commit)
 **Public baseline:** `v0.2.0-preview.6` remains the current downloadable
 macOS preview. The earlier local Preview 7 candidate was never published and
 is superseded by this source.
@@ -24,13 +24,13 @@ package, manifest, signature, and public-byte reconciliation are completed.
   Google Gemini Developer API key. Route headers, in-memory handling, HTTPS
   guards, and no-fallback behavior are unchanged.
 
-## Post-receipt source follow-up — 2026-09-01
+## Earlier candidate follow-up — 2026-09-01
 
-This receipt's package and hashes were produced from the earlier clean source
-snapshot `240b57b`. The later `main` merge `4b69496` fixed generation terminal
-state handling, and the current follow-up adds a separate gateway-diagnostics
-lifecycle fix. Therefore the signed package and hashes below are historical
-for that earlier snapshot and must not be reused for a new release.
+The earlier local Preview 8 package and hashes were produced from the clean
+source snapshot `240b57b`. The later `main` merge `4b69496` fixed generation
+terminal state handling, and the current follow-up adds a separate
+gateway-diagnostics lifecycle fix. Those earlier package bytes were therefore
+historical for that source snapshot and were not reused.
 
 The follow-up keeps the credential contract unchanged while making the Config
 experience truthful during connectivity failure:
@@ -57,6 +57,27 @@ Fresh local browser evidence from the current source follow-up:
 
 Re-run the full source, packaging, signing, public-byte, installed-device,
 rollback, Apple trust, provider, and pilot gates before publishing a successor.
+
+## Final package refresh — 2026-09-01
+
+After the source follow-up merged, the candidate was rebuilt from the exact
+clean `main` tip `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` into the isolated
+directory `/tmp/bob-gemini-free-preview-20260901-main638aa1d`. The old
+`/tmp/bob-gemini-free-preview-20260901` directory was not reused because its
+DMG, ZIP, manifest, and signature belonged to the superseded `240b57b` source.
+
+The fresh universal Wails bundle was signed ad hoc for bundle integrity, then
+its exact three payload files were signed through the owner-controlled macOS
+Keychain manifest path. The fresh signed directory passed checksum,
+detached-signature, app-bundle, architecture, and DMG-layout verification.
+Launching that exact app while an occupied/unresponsive process held
+`127.0.0.1:8081` selected `http://127.0.0.1:57770`; `/healthz` returned HTTP
+200 with `X-BOB-Version: v0.2.0-preview.8`, and `/`, `/playground`,
+`/manifest.json`, `/sw.js`, and `/favicon.ico` all returned HTTP 200. The
+packaged Studio Config surface showed the separate BOB access-key and Google
+Developer API-key fields, the default web-session route, and the engine-owned
+cookie boundary. No provider key, Google cookie, or generation request was
+used.
 
 ## Evidence completed before packaging
 
@@ -95,7 +116,7 @@ BOB_WAILS_PLATFORM=darwin/universal
 | macOS DMG layout | PASS; app plus `/Applications` shortcut |
 | Keychain-backed Ed25519 manifest signing | PASS; private value stayed in the local Keychain path |
 | `scripts/verify-release-assets.sh` | PASS; exact signed directory |
-| Local packaged startup | PASS; incompatible process on `127.0.0.1:8081` was not reused; candidate selected `127.0.0.1:49238` |
+| Local packaged startup | PASS; occupied/unresponsive process on `127.0.0.1:8081` was not reused; current candidate selected `127.0.0.1:57770` |
 | Local packaged health | PASS; HTTP 200, `X-Bob-Version: v0.2.0-preview.8`, `X-Bob-Auth-Required: false` |
 | Local packaged static routes | PASS; `/playground`, `/manifest.json`, `/sw.js`, and `/favicon.ico` returned 200 |
 | Installed Preview 6 → Preview 8 replacement | OPEN; requires a writable device |
@@ -103,16 +124,16 @@ BOB_WAILS_PLATFORM=darwin/universal
 
 ## Signed asset hashes
 
-The exact local publication directory was
-`/tmp/bob-gemini-free-preview-20260901`:
+The exact local candidate directory was
+`/tmp/bob-gemini-free-preview-20260901-main638aa1d`:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `dee95f9374865479c343d76e210710b060b150dd8892556e1561fae068c075db` |
-| `bob-gemini-free-macos-universal.dmg` | `5981e07f827fc7598a2da0a13304fbdc097003be93f67e1cd6d44bf2784324f5` |
-| `bob-gemini-free-macos-universal.zip` | `bb3123b115c23a98d17e3865fd5232a38aa40d2294370b294333f25259664194` |
-| `SHA256SUMS` | `7bc40807e5e509269e620ee30dc2a76c773a41dd55eaa5d78f7d6eddc5f1ad04` |
-| `SHA256SUMS.sig` | `dda86e12b17ef9b70ffa1f4bbea04366e8617c37693af3fe496d8274192ad928` |
+| `bob-gemini-free-macos-universal.dmg` | `5dccce41a8404e8257dd7064807133c911aa68a160cd5310117a60452fe8690b` |
+| `bob-gemini-free-macos-universal.zip` | `d319e9b3679fb0422d3f58e0382e52df925534ac1f6a313fb64b1c798236fc1f` |
+| `SHA256SUMS` | `b93f31ccefb38a712e7e5688108654a371693354d81ee600a38e914212610c18` |
+| `SHA256SUMS.sig` | `ec18086a0e6a8eff487497e2d4b98550eb20683f2db7f227d73156c5d1ab52d9` |
 
 The manifest contains one entry for each of the three release payloads and was
 verified against the checked-in public trust anchor. The private signing
