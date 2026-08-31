@@ -54,6 +54,14 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased] — 2026-08-31
 
+### Responsive drawer accessibility
+
+- Responsive configuration and integration drawers now expose temporary
+  dialog semantics, move focus into the opened drawer, trap Tab navigation,
+  close on Escape, and return focus to the opening control. The implementation
+  preserves the existing desktop sidebar behavior and does not change the
+  navigation model.
+
 ### Explicit Gemini Developer API route (local preview work)
 
 #### Added
