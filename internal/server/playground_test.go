@@ -1133,6 +1133,29 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	}
 }
 
+func TestGatewayModalControlsMeetTouchTargetContract(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "/* Gateway modal touch targets */")
+	if start < 0 {
+		t.Fatal("gateway modal touch-target contract is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}")
+	if endOffset < 0 {
+		t.Fatal("gateway modal touch-target contract is incomplete")
+	}
+	source := html[start : start+endOffset+2]
+	for _, marker := range []string{
+		`#gateway-modal button,`,
+		`#gateway-modal input:not([type="checkbox"]) {`,
+		`min-height: 44px;`,
+		`touch-action: manipulation;`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("gateway modal touch-target contract is missing marker %q", marker)
+		}
+	}
+}
+
 func TestPlaygroundCredentialTranslationsUseTheCorrectDictionaryScope(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

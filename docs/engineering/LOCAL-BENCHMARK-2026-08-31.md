@@ -5,7 +5,8 @@ formatting, and HTTP concurrency only. This run did not contact Google,
 GitHub, or any student session.
 
 **Environment:** macOS 26.2 (build 25C56), Apple Silicon
-(`darwin/arm64`), Go 1.26.6, source checkout `2d42d44`.
+(`darwin/arm64`), Go 1.26.6, source snapshot `2d42d44` (documentation-only
+PR #92 later advanced `main` to `67e5337`).
 **Command:** `go run ./cmd/benchmark-local -profiles 1,10,20,30 -requests 100`
 **Upstream:** deterministic in-process requester.
 

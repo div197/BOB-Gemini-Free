@@ -973,6 +973,12 @@ main {
 .gateway-field-row > button {
   flex: 0 0 auto;
 }
+/* Gateway modal touch targets */
+#gateway-modal button,
+#gateway-modal input:not([type="checkbox"]) {
+  min-height: 44px;
+  touch-action: manipulation;
+}
 .gateway-command-row,
 .gateway-command-row > span {
   min-width: 0;
