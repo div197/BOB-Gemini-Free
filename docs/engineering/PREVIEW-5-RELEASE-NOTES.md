@@ -3,8 +3,9 @@
 ## Controlled macOS beta
 
 Preview 5 is the next immutable macOS universal preview, built from public
-`main` merge commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`. It is intended
-for controlled evaluation before the `v0.2.0` stable gate. The release does
+`main` merge commit `757898cadd45904b0c0f0f454bb5ab30096e974c` (the signed
+package receipt records clean build checkout `88f2881`). It is intended for
+controlled evaluation before the `v0.2.0` stable gate. The release does
 not require GitHub Actions, a Go installation on the student's Mac, a database,
 or a separate memory service.
 
