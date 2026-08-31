@@ -319,7 +319,7 @@ func TestCORSPreflight(t *testing.T) {
 	handler := app.Handler()
 
 	req := httptest.NewRequest("OPTIONS", "/v1/chat/completions", nil)
-	req.Header.Set("Access-Control-Request-Headers", "content-type, x-bob-gemini-api-key")
+	req.Header.Set("Access-Control-Request-Headers", "content-type, x-bob-gemini-api-key, x-bob-gemini-route")
 	rec := httptest.NewRecorder()
 
 	handler.ServeHTTP(rec, req)
@@ -332,6 +332,9 @@ func TestCORSPreflight(t *testing.T) {
 	}
 	if !strings.Contains(strings.ToLower(rec.Header().Get("Access-Control-Allow-Headers")), "x-bob-gemini-api-key") {
 		t.Errorf("Expected CORS headers to allow x-bob-gemini-api-key, got %s", rec.Header().Get("Access-Control-Allow-Headers"))
+	}
+	if !strings.Contains(strings.ToLower(rec.Header().Get("Access-Control-Allow-Headers")), "x-bob-gemini-route") {
+		t.Errorf("Expected CORS headers to allow x-bob-gemini-route, got %s", rec.Header().Get("Access-Control-Allow-Headers"))
 	}
 }
 

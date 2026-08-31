@@ -228,6 +228,58 @@ func TestDeveloperAPIKeyValidationDoesNotEchoCredential(t *testing.T) {
 	}
 }
 
+func TestConfiguredDeveloperAPIKeyHonorsExplicitWebRouteOverride(t *testing.T) {
+	const providerKey = "test-provider-key"
+	cfg := config.Default()
+	cfg.GeminiAPIKey = providerKey
+	app := New(cfg, "test-version")
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`))
+	req.Header.Set(geminiProviderRouteHeader, "web")
+
+	key, selected, err := app.geminiAPIKeyForRequest(req)
+	if err != nil {
+		t.Fatalf("route override returned an error: %v", err)
+	}
+	if key != "" || selected {
+		t.Fatalf("explicit web route selected provider key %q (selected=%v)", key, selected)
+	}
+}
+
+func TestGeminiRouteOverrideRejectsProviderKeyConflict(t *testing.T) {
+	app := New(config.Default(), "test-version")
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`))
+	req.Header.Set(geminiProviderRouteHeader, "web")
+	req.Header.Set(geminiProviderKeyHeader, "test-provider-key")
+
+	if _, _, err := app.geminiAPIKeyForRequest(req); err == nil || !strings.Contains(err.Error(), "cannot be combined") {
+		t.Fatalf("route/provider conflict error = %v", err)
+	}
+}
+
+func TestChatConfiguredDeveloperAPIKeyCanBePinnedToWebRoute(t *testing.T) {
+	cfg := config.Default()
+	cfg.GeminiAPIKey = "test-provider-key"
+	app := New(cfg, "test-version")
+	app.Gem.HTTP = fakeGeminiRequester{body: mockGeminiBody("explicit web route")}
+	providerCalls := 0
+	app.GeminiAPI.HTTP = &http.Client{Transport: developerRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		providerCalls++
+		return developerResponse(http.StatusInternalServerError, "application/json", `{"error":{"message":"provider must not be called"}}`), nil
+	})}
+
+	req := httptest.NewRequest(http.MethodPost, "/v1/chat/completions", strings.NewReader(`{"model":"gemini-3.7-flash","messages":[{"role":"user","content":"hello"}]}`))
+	req.Header.Set(geminiProviderRouteHeader, "web")
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK || !strings.Contains(rec.Body.String(), "explicit web route") {
+		t.Fatalf("web route response = status %d body=%s", rec.Code, rec.Body.String())
+	}
+	if providerCalls != 0 {
+		t.Fatalf("configured provider was called %d times despite explicit web route", providerCalls)
+	}
+}
+
 func TestCredentialRoutingMatrixKeepsGatewayAndProviderKeysSeparate(t *testing.T) {
 	const (
 		localKey    = "local-gateway-key"

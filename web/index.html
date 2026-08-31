@@ -4450,6 +4450,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       <div class="legal-notice-box" id="gateway-credential-map" role="note" aria-labelledby="gateway-credential-map-title" style="margin-top:10px; line-height:1.5;">
         <strong id="gateway-credential-map-title">Credential map — these are different</strong>
         <div id="gateway-credential-map-lead" style="margin-top:6px; color:var(--text-main);">Start here: most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.</div>
+        <div id="gateway-desktop-boundary" style="margin-top:6px; color:var(--text-muted);">Native desktop note: the embedded gateway stays on loopback and disables BOB <code>api_keys</code>; enter the access key only when this Studio connects to a separate protected BOB endpoint.</div>
         <div style="margin-top:6px; display:grid; gap:4px;">
           <div><b id="gateway-route-web-label">Default web-session route:</b> <span id="gateway-route-web-help">uses the running engine's guest/account session when available; no Google AI Studio key is required here.</span></div>
           <div><b id="gateway-route-provider-label">Google Developer API route:</b> <span id="gateway-route-provider-help">uses the student's own Google AI Studio project and its quotas/billing when explicitly enabled below.</span></div>
@@ -5931,6 +5932,7 @@ const I18N = {
     modalGatewayReset: "Reset",
     gatewayCredentialMapTitle: "Credential map — these are different",
     gatewayCredentialMapLead: "Start here: most students should leave both key fields empty and use the default web-session route. Enter a BOB Gateway Access Key only when the gateway owner gives you one. Enable the Google Developer API route only when you intentionally want to use your own AI Studio project and its limits.",
+    gatewayDesktopBoundary: "Native desktop note: the embedded gateway stays on loopback and disables BOB api_keys; enter the access key only when this Studio connects to a separate protected BOB endpoint.",
     gatewayRouteWebLabel: "Default web-session route:",
     gatewayRouteWebHelp: "uses the running engine's guest/account session when available; no Google AI Studio key is required here.",
     gatewayRouteProviderLabel: "Google Developer API route:",
@@ -6146,6 +6148,7 @@ const I18N = {
     modalGatewayReset: "रीसेट",
     gatewayCredentialMapTitle: "क्रेडेंशियल मानचित्र — ये अलग-अलग हैं",
     gatewayCredentialMapLead: "यहाँ से शुरू करें: अधिकांश छात्रों को दोनों key field खाली रखकर default web-session route उपयोग करना चाहिए। BOB Gateway Access Key केवल gateway owner के देने पर दर्ज करें। Google Developer API route तभी चालू करें जब आप जानबूझकर अपना AI Studio project और उसकी सीमाएँ उपयोग करना चाहते हों।",
+    gatewayDesktopBoundary: "Native desktop note: embedded gateway loopback पर रहता है और BOB api_keys बंद रखता है; access key केवल तब दर्ज करें जब यह Studio किसी अलग protected BOB endpoint से जुड़े।",
     gatewayRouteWebLabel: "डिफ़ॉल्ट web-session route:",
     gatewayRouteWebHelp: "उपलब्ध होने पर चल रहे इंजन का guest/account session उपयोग करता है; यहाँ Google AI Studio key की आवश्यकता नहीं है।",
     gatewayRouteProviderLabel: "Google Developer API route:",
@@ -6569,6 +6572,7 @@ function applyLanguageUI(dict) {
     "gateway-modal-subtitle": ui.gatewaySubtitle,
     "gateway-credential-map-title": dict.gatewayCredentialMapTitle,
     "gateway-credential-map-lead": dict.gatewayCredentialMapLead,
+    "gateway-desktop-boundary": dict.gatewayDesktopBoundary,
     "gateway-route-web-label": dict.gatewayRouteWebLabel,
     "gateway-route-web-help": dict.gatewayRouteWebHelp,
     "gateway-route-provider-label": dict.gatewayRouteProviderLabel,
@@ -12530,6 +12534,10 @@ async function sendMessage() {
     };
     if (useGeminiProvider && geminiProviderKey) {
       headers["X-BOB-Gemini-API-Key"] = geminiProviderKey;
+    } else if (!useGeminiProvider) {
+      // Keep the visible Studio route authoritative even when the process
+      // owner configured a Developer API key for other clients.
+      headers["X-BOB-Gemini-Route"] = "web";
     }
     const res = await fetch(baseUrl + "/v1/chat/completions", {
       method: "POST",
