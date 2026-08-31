@@ -1,8 +1,8 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS Preview 6 and an older Windows preview artifact are
-published; production trust, Linux acceptance, and broad student rollout
-remain pending.
+**Status:** public macOS Preview 8 and an older Windows preview artifact are
+published; production trust, Linux acceptance, installed replacement, and
+broad student rollout remain pending.
 
 This document separates the working native application shown in the local
 screenshots from a product release that students can download and trust.
@@ -19,8 +19,10 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.6` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6)
-  is the current same-key updater candidate for controlled evaluation. The
+- The public [`v0.2.0-preview.8` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+  is the current same-key updater candidate for controlled evaluation. Its
+  five release assets were re-downloaded, signature-verified, and reconciled
+  byte-for-byte with the local signed inputs. The
   immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
   remains available, and Preview 5 is historical. Stable `v0.2.0` remains
   gated on clean-device and pilot acceptance.
@@ -104,22 +106,22 @@ only.
 
 The native Help menu now offers a user-initiated metadata check. It does not
 perform a silent replacement. Until platform-trusted production packages and
-manifests are published, students must use the Preview 6 release page or the
+manifests are published, students must use the Preview 8 release page or the
 documented pilot path.
 
 ## Automatic update plan and 30-device rollout gate
 
-The current Preview 6 is a public native preview with a signed, build-pinned
+The current Preview 8 is a public native preview with a signed, build-pinned
 update channel. A newly built current-key preview can discover a newer stable
 release from the Help menu and migrate after user consent; when stable has no
 update, a newer signed preview can be discovered, verified, staged, and rolled
 back. The already-published `v0.1.7-preview.7` binary predates the stable-first
-change, but its preview-only path can select the published same-key Preview 6;
+change, but its preview-only path can select the published same-key Preview 8;
 the installed transition still needs a live pilot. Historical
 `v0.1.7-preview.3` still requires one manual migration because it has no
 embedded desktop trust key. Legacy `v0.1.7-preview.6` also requires one manual
 migration because its original project signing key was not recoverable. Current
-`v0.2.0-preview.6` installations already carry the current key and do not need
+`v0.2.0-preview.8` installations already carry the current key and do not need
 that migration.
 
 The source contains the tested user-consented updater that
@@ -184,9 +186,10 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.2.0-preview.6` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6):
+[`v0.2.0-preview.8` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8):
 macOS universal `.dmg`/`.zip`. Existing `v0.1.7-preview.7` devices should be
-piloted through **Help → Check for Updates** before any broad wave; legacy
+piloted through **Help → Check for Updates** before any broad wave; the audit
+Mac discovered Preview 8 but did not install it. Legacy
 `v0.1.7-preview.6` devices need the one-time manual migration described in the
 release notes. Windows `v0.1.7-preview.3` remains available separately; Linux
 is not included in the current native preview.

@@ -1,23 +1,25 @@
 # Release Transition Audit — 2026-08-31
 
 > Historical transition chronology. The current public release is the
-> immutable `v0.2.0-preview.6`; see
-> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md) and the Preview 6
+> published `v0.2.0-preview.8`; see
+> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md) and the Preview 8
 > verification receipt for current operational truth.
 
 ## Decision
 
 The immutable `v0.2.0-preview.1` tag was not reused. This document records the
 historical Preview 5 transition from public `main` target `c28d787`; Preview 5
-is no longer the current public preview. The immutable `v0.2.0-preview.6`
-macOS prerelease is now current, built from target `f9b3410`. Preview 4,
-Preview 3, Preview 5, and the superseded `v0.2.0-preview.2` remain available
-as historical release inputs. Stable `v0.2.0` remains a later release
-candidate, not a release to publish until the device and pilot gates pass.
+is no longer the current public preview. The later `v0.2.0-preview.6` and
+`v0.2.0-preview.8` macOS prereleases are recorded in their respective
+publication receipts. Preview 4, Preview 3, Preview 5, and the superseded
+`v0.2.0-preview.2` remain available as historical release inputs. The
+`v0.2.0-preview.7` candidate was never published. Stable `v0.2.0` remains a
+later release candidate, not a release to publish until the device and pilot
+gates pass.
 
 The current publication and byte-reconciliation evidence is recorded in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md) and
-[`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
 the Preview 5 publication record and earlier Preview 2 record remain
 historical provenance.
 
@@ -256,9 +258,9 @@ This proves one same-key installed migration; deliberate rollback, clean-device
 acceptance, Apple platform trust, live Google behavior, and staged pilot/fleet
 rollout remain open.
 
-## Preview 6 publication and current boundary — 2026-08-31
+## Preview 6 publication and current boundary — 2026-08-31 (historical)
 
-The current public macOS prerelease is the immutable
+At that historical boundary, the public macOS prerelease was the immutable
 [`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
 packaged from source target `f9b3410`. It was signed through the
 owner-controlled local Keychain, published manually without GitHub Actions,
@@ -266,10 +268,26 @@ and independently re-downloaded from GitHub. The DMG, ZIP, release notice,
 `SHA256SUMS`, and `SHA256SUMS.sig` all passed detached-signature, checksum, and
 byte-for-byte verification.
 
-Preview 6 is a controlled public beta, not a stable or silent fleet release.
+Preview 6 was a controlled public beta, not a stable or silent fleet release.
 The updater matrix selects it for legacy Preview 7 and Preview 5 clients, but a
 real installed Preview 7/Preview 5 → Preview 6 transition, deliberate rollback,
 clean-device acceptance, Apple platform trust, live Google behavior, and the
 20–30-device pilot remain open. The next source candidate is explicitly
-`v0.2.0-preview.7`; the published Preview 6 tag and assets must remain
-immutable.
+`v0.2.0-preview.7`; the published Preview 6 tag and assets remain unchanged.
+
+## Preview 8 publication and current boundary — 2026-09-01
+
+The current public macOS prerelease is the published
+[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8),
+packaged from reviewed runtime source target `bfa68ff`. It was published
+manually without GitHub Actions. The DMG, ZIP, release notice,
+`SHA256SUMS`, and `SHA256SUMS.sig` were downloaded again from GitHub,
+signature- and checksum-verified, and compared byte-for-byte with the local
+signed inputs.
+
+On the audit Mac, the installed Preview 5 app discovered Preview 8 through
+**Help → Check for Updates**. The install action was canceled, so this proves
+metadata discovery but not installed-bundle replacement. Apple trust, clean
+device, rollback, live Google behavior, and staged 20–30-device pilot gates
+remain open. The updater remains explicit and user-consented; it does not
+silently push a release to student computers.

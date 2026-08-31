@@ -4,30 +4,27 @@
 **Audit continuation:** 2026-09-01 (Asia/Kolkata)
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
-**Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
-**Current source candidate:** `v0.2.0-preview.8` from reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`; freshly packaged, signed, and verified, not published
+**Published Preview 8 release source target:** commit `bfa68ff5926924d1c0b35410e8d8175c404002d6` (PRs #111–#112; interactive route controls, endpoint-scoped gateway preflight, responsive drawer, request-flight identity, generated-bundle, generation-terminal-state, and bounded diagnostics reconciliation)
+**Current public release:** `v0.2.0-preview.8`, manually published and byte-reconciled from the reviewed Preview 8 package
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
 ## Decision
 
-The repository is source-ready and has now published the signed, verified
-`v0.2.0-preview.6` macOS prerelease from packaged source target `f9b3410`.
-Its five assets were re-downloaded and reconciled byte-for-byte after manual
-publication. The earlier Preview 5 installation migration remains a one-host
-observation; Preview 6 is not yet a fleet-ready update. The existing Preview 4
-and Preview 5 assets were not overwritten during this audit. GitHub currently
-reports the Preview 6 release as `immutable: false`; the project treats every
-published tag and asset set as operationally write-once, but does not claim a
-GitHub immutable-release lock.
+The repository has now published the signed, verified
+[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+macOS prerelease from packaged source target `bfa68ff`. Its five assets were
+re-downloaded and reconciled byte-for-byte after manual publication. The
+earlier Preview 5 installation migration remains a one-host observation;
+Preview 8 is not yet a fleet-ready update. The existing Preview 4–6 assets were
+not overwritten during this audit. GitHub reports the Preview 8 release as
+`immutable: false`; the project treats every published tag and asset set as
+operationally write-once, but does not claim a GitHub immutable-release lock.
 
-The Preview 6 package was built from the recorded release source target. The
-browser-boundary, credential-input, telemetry, release-version, settings,
-desktop-coexistence, release-state, and gateway-key transport follow-ups are
-included in the newly published Preview 6 bytes. Current `main` continues the
-release reconciliation, while the published package remains the current public
-baseline; all of it still requires staged device acceptance before broad
-rollout.
+The Preview 8 package contains the reviewed settings-route, endpoint-preflight,
+responsive-drawer, request-flight, generated-bundle, generation-terminal-state,
+and bounded-diagnostics follow-ups. The published package remains a controlled
+macOS beta and still requires staged device acceptance before broad rollout.
 
 Do not call the current state a stable student release. Apple Developer ID,
 notarization, clean-device replacement/rollback, Windows/Linux acceptance,
@@ -77,10 +74,10 @@ This candidate was never tagged, uploaded, or published and is retained only
 for provenance. The public downloadable version remains
 `v0.2.0-preview.6`; no installed device can discover it.
 
-## Current source Preview 8 candidate — 2026-09-01
+## Current public Preview 8 release — 2026-09-01
 
 The reviewed runtime source commit `bfa68ff5926924d1c0b35410e8d8175c404002d6`
-advances the next candidate to `v0.2.0-preview.8`. It includes the request-flight
+is the release source for `v0.2.0-preview.8`. It includes the request-flight
 identity fix, responsive drawer fix, synchronized generated Studio bundle,
 settings credential-map and interactive route-choice clarification, endpoint-scoped
 gateway-auth preflight/checking state, generation terminal-state fix, and
@@ -91,14 +88,18 @@ smoke, Keychain-backed manifest signing, and exact local asset verification all
 passed. The detailed receipt and exact hashes are in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
 
-Preview 8 has not been tagged, uploaded, or published. The public downloadable
-version remains `v0.2.0-preview.6`; installed devices cannot discover Preview 8
-until a new release is explicitly published. Installed Preview 6 → Preview 8,
+The exact five-file package was published manually at
+[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8),
+then downloaded into a fresh directory, signature- and checksum-verified, and
+compared byte-for-byte with the local signed inputs. The installed Preview 5
+app on the audit Mac discovered Preview 8 through **Help → Check for Updates**;
+the install action was canceled, so the Preview 5 → Preview 8 replacement,
 rollback, clean-device, Apple trust, provider, and pilot gates remain open.
 
-## Preview 6 publication continuation — 2026-08-31
+## Preview 6 publication continuation — 2026-08-31 (historical)
 
-Public `v0.2.0-preview.6` is now the latest downloadable desktop release.
+Public `v0.2.0-preview.6` was the latest downloadable desktop release at that
+historical audit boundary.
 The release source at `f9b3410e74d7ccc08487dc03788b54a201e12ade` contains the
 version-aware desktop gateway handshake and the fail-closed gateway access-key
 transport guard. A universal Preview 6 package was rebuilt from that exact
@@ -125,11 +126,11 @@ The updater is user-consented. “Automatic update” means a bounded metadata
 check and a visible install choice; it does not mean a silent classroom-wide
 push.
 
-| Installed build | Candidate behavior now that Preview 6 is published | Required condition |
+| Installed build | Candidate behavior now that Preview 8 is published | Required condition |
 |---|---|---|
-| `v0.1.7-preview.7` | Legacy preview-only lookup selects the published `v0.2.0-preview.6` candidate in the mocked matrix | Same current project key, macOS package/manifest published, app copied to a writable location; live device transition remains open |
-| Installed `v0.2.0-preview.1`–`preview.5` lineage | The preview-channel lookup selects the newest published preview when no newer stable exists; the only live migration observed was Preview 1 → Preview 5 on one Mac | Same key and explicit consent; Preview 4 and Preview 5 assets remain unchanged; Preview 6 device transition remains open |
-| Current-source `v0.2.0-preview.6` | No update to itself; later previews are selected by semver | A later signed successor and writable install target |
+| `v0.1.7-preview.7` | Legacy preview-only lookup can select the published `v0.2.0-preview.8` candidate in the mocked matrix when the same project key is trusted | Same current project key, macOS package/manifest published, app copied to a writable location; live device transition remains open |
+| Installed `v0.2.0-preview.1`–`preview.7` lineage | The preview-channel lookup selects the newest published preview when no newer stable exists; the only live migration observed was Preview 1 → Preview 5 on one Mac | Same key and explicit consent; Preview 8 device transition remains open |
+| Current-source `v0.2.0-preview.8` | No update to itself; later previews are selected by semver | A later signed successor and writable install target |
 | `v0.2.0` stable build | Checks only the stable endpoint; it never downgrades into preview | A newer public stable release must exist |
 | `v0.1.7-preview.6` or a build with the unrecoverable old key | Cannot verify a current-key release | One manual installation of a current-key package |
 | Mounted DMG, App Translocation, or read-only app path | Update is refused before download/staging | Copy the app to `/Applications` or another writable location and relaunch |
@@ -140,7 +141,7 @@ helper restart, and preservation of visible local state are now observed; a
 deliberate rollback and broader device acceptance remain device evidence rather
 than source-test claims.
 
-## Preview 6 release gate
+## Preview 8 release gate
 
 Complete these in order, from a clean checkout based on public `main`:
 
@@ -149,7 +150,7 @@ Complete these in order, from a clean checkout based on public `main`:
 2. **COMPLETED locally:** the host currently reports about 7.9 GiB available;
    Wails staging and temporary DMG/ZIP copies completed without cleanup of
    project data.
-3. **COMPLETED locally:** built exactly `v0.2.0-preview.6` with the checked-in
+3. **COMPLETED locally:** built exactly `v0.2.0-preview.8` with the checked-in
    public key embedded.
 4. **COMPLETED locally:** inspected the app bundle, version/channel, universal
    slices, ad-hoc signature, ZIP layout, DMG `/Applications` shortcut, and
@@ -159,13 +160,15 @@ Complete these in order, from a clean checkout based on public `main`:
    clipboard, shell history, chat, or a student device.
 6. **COMPLETED locally:** `scripts/verify-release-assets.sh` passed. The
    detailed current candidate receipt is in
-   [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).
+   [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
 7. **COMPLETED:** publish the uniquely versioned GitHub prerelease manually, including
    the exact five assets and signed manifest. GitHub Actions were not used.
 8. **COMPLETED:** download every public asset into a fresh directory, re-run
    verification, and compare public bytes with the signed local input.
-9. **COMPLETED for coexistence on one host / OPEN for rollout:** test one writable
-   `/Applications` Mac; then test two or three pilots before any 20–30-device
+9. **COMPLETED for local coexistence and public discovery / OPEN for rollout:**
+   the exact package coexisted on one host and the installed Preview 5 app
+   discovered Preview 8; install on one writable `/Applications` Mac, then test
+   two or three pilots before any 20–30-device
    wave. Record only version, OS/architecture, health result, generation
    class, and update result.
 
