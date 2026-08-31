@@ -125,6 +125,20 @@ func TestCreateSignedManifestRejectsSymlinkAsset(t *testing.T) {
 	}
 }
 
+func TestCreateSignedManifestRejectsDirectoryAsset(t *testing.T) {
+	directory := t.TempDir()
+	if err := os.WriteFile(filepath.Join(directory, "bob.zip"), []byte("package"), 0600); err != nil {
+		t.Fatalf("write asset: %v", err)
+	}
+	if err := os.Mkdir(filepath.Join(directory, "BOB Gemini Free.app"), 0700); err != nil {
+		t.Fatalf("mkdir directory asset: %v", err)
+	}
+	_, _, err := CreateSignedManifest(directory, make(ed25519.PrivateKey, ed25519.PrivateKeySize))
+	if err == nil || !strings.Contains(err.Error(), "not a regular file") {
+		t.Fatalf("directory asset result = %v, want regular-file rejection", err)
+	}
+}
+
 func TestVerifySignedReleaseDirectoryReconcilesEveryAsset(t *testing.T) {
 	directory := t.TempDir()
 	if err := os.WriteFile(filepath.Join(directory, "bob.zip"), []byte("package"), 0600); err != nil {

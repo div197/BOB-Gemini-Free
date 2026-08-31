@@ -38,8 +38,11 @@ func CreateSignedManifest(directory string, privateKey ed25519.PrivateKey) ([]by
 	}
 	manifestEntries := make([]manifestEntry, 0, len(entries))
 	for _, entry := range entries {
-		if entry.IsDir() || entry.Name() == "SHA256SUMS" || entry.Name() == "SHA256SUMS.sig" {
+		if entry.Name() == "SHA256SUMS" || entry.Name() == "SHA256SUMS.sig" {
 			continue
+		}
+		if entry.IsDir() {
+			return nil, nil, fmt.Errorf("release asset %s is not a regular file", entry.Name())
 		}
 		if entry.Type()&os.ModeSymlink != 0 {
 			return nil, nil, fmt.Errorf("release asset %s is a symlink; refusing to sign an indirect file", entry.Name())

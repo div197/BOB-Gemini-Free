@@ -116,6 +116,9 @@ live provider key, or enabled GitHub Actions.
 - Made a cancelled coalesced-stream subscriber win over a concurrently queued
   final delta, preventing a false successful completion while preserving the
   shared response for remaining subscribers.
+- Corrected native macOS packaging so the inspectable `.app` stays outside the
+  signed release-asset directory, and made manifest creation reject accidental
+  directory assets instead of silently skipping them.
 - Added a release-source preflight that treats the canonical Ed25519 public-key
   block, standalone macOS/Linux and Windows installer trust anchors, Docker
   base version, and preview packager defaults as one checked matrix. A key or
