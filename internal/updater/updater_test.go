@@ -60,12 +60,50 @@ func TestIsDesktopVersionCheckable(t *testing.T) {
 	}{
 		{version: "v0.2.0", want: true},
 		{version: "v0.1.7-preview.7", want: true},
+		{version: "0.2.0", want: true},
 		{version: "dev", want: false},
 		{version: "local-ui", want: false},
+		{version: "v0.2.0-preview.1.0.20260831062407-8ce3483234a4", want: false},
+		{version: "v0.2.0-rc.1", want: false},
+		{version: "v0.2-preview.1", want: false},
+		{version: "v0.2.0+local", want: false},
 		{version: "", want: false},
 	} {
 		if got := IsDesktopVersionCheckable(test.version); got != test.want {
 			t.Errorf("IsDesktopVersionCheckable(%q) = %v, want %v", test.version, got, test.want)
+		}
+	}
+}
+
+func TestReleaseTagClassificationRequiresCanonicalPublishedShape(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		tag     string
+		stable  bool
+		preview bool
+	}{
+		{name: "stable", tag: "v0.2.0", stable: true},
+		{name: "preview", tag: "v0.2.0-preview.3", preview: true},
+		{name: "missing core component", tag: "v0.2-preview.3"},
+		{name: "build metadata", tag: "v0.2.0-preview.3+local"},
+		{name: "pseudo version", tag: "v0.2.0-preview.3.0.20260831062407-deadbeef"},
+		{name: "release candidate", tag: "v0.2.0-rc.1"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			if got := isStableReleaseTag(test.tag); got != test.stable {
+				t.Fatalf("isStableReleaseTag(%q) = %v, want %v", test.tag, got, test.stable)
+			}
+			if got := isPreviewReleaseTag(test.tag); got != test.preview {
+				t.Fatalf("isPreviewReleaseTag(%q) = %v, want %v", test.tag, got, test.preview)
+			}
+		})
+	}
+}
+
+func TestCheckLatestRejectsUnpublishedCurrentVersionBeforeNetwork(t *testing.T) {
+	for _, version := range []string{"dev", "", "v0.2.0-preview.1.0.20260831062407-8ce3483234a4"} {
+		if _, err := CheckLatest(version); err == nil || !strings.Contains(err.Error(), "not a published release") {
+			t.Fatalf("CheckLatest(%q) error = %v, want unpublished-release rejection", version, err)
 		}
 	}
 }

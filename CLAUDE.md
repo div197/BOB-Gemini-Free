@@ -152,7 +152,7 @@ The root `README.md` is the primary English user-facing document. It describes B
 
 ## 6. Root Entrypoint And CLI Flow
 
-`main.go` is the root executable entrypoint. It declares `Version = "dev"` and uses `resolveVersion()` to prefer an injected ldflag version or module build info. It implements several CLI modes before normal server startup:
+`main.go` is the root executable entrypoint. It declares `Version = "dev"` and uses `resolveVersion()` to accept only the explicit build-time version injected by a release/packaging command; unflagged source builds remain `dev` and are not presented as published releases. It implements several CLI modes before normal server startup:
 
 - `--login` calls `handleBrowserLogin`, launches a Chromium-based browser through `internal/browser`, extracts Google Gemini cookies through CDP, and saves cookies to both local `./cookie.txt` and the user's config directory with secure permissions.
 - `--setup-cookie` and `--cookie-string` call `handleCookieSetup`, parse user-provided raw cookie material, validate token extraction, and write the session cookie into the user config path.

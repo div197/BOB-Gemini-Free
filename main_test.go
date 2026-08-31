@@ -28,6 +28,27 @@ func TestLaunchStudioOrFallbackRunsFallbackOnce(t *testing.T) {
 	}
 }
 
+func TestResolveVersionUsesOnlyExplicitReleaseMetadata(t *testing.T) {
+	originalVersion := Version
+	t.Cleanup(func() { Version = originalVersion })
+
+	Version = "dev"
+	if got := resolveVersion(); got != "dev" {
+		t.Fatalf("unflagged version = %q, want dev", got)
+	}
+
+	Version = "v9.9.9-preview.42"
+	if got := resolveVersion(); got != Version {
+		t.Fatalf("injected version = %q, want %q", got, Version)
+	}
+
+	Version = ""
+	if got := resolveVersion(); got != "dev" {
+		emptyVersion := got
+		t.Fatalf("empty injected version = %q, want dev", emptyVersion)
+	}
+}
+
 func TestLaunchStudioOrFallbackReportsFallbackFailure(t *testing.T) {
 	launch := func(context.Context, int, func(string, ...any)) error {
 		return errors.New("no app-mode browser")
