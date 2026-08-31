@@ -13,9 +13,10 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-# The default is a migration bridge candidate for the already-published
-# Preview 7 binary. Set BOB_RELEASE_VERSION explicitly for every publication.
-VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.1}"
+# The published migration bridge is v0.2.0-preview.1. The next source
+# candidate therefore defaults to a new immutable preview version. Set
+# BOB_RELEASE_VERSION explicitly for every publication.
+VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.2}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 EXPECTED_PUBLIC_KEY="$(awk '
 	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
