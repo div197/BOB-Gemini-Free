@@ -6,7 +6,7 @@ verified after public download. Preview 5 and its source baseline `c28d787`
 remain historical provenance; the current source continues the reviewed
 browser-boundary, credential-input, telemetry, release-version, settings, and
 desktop-coexistence follow-ups.
-**Audit date:** 2026-08-31 (Asia/Kolkata)
+**Audit date:** 2026-09-01 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is
 not a promise that Google accepts every model alias, account, key, image, or
@@ -171,6 +171,16 @@ true:
 - the saved endpoint is not loopback HTTP or an explicitly saved HTTPS endpoint;
 - the selected model is a BOB/vendor alias, Imagen route, thinking suffix, or
   non-default `@think` mode that the direct adapter does not translate.
+
+The same pre-send boundary applies to the BOB gateway door on both routes. If
+the endpoint has positively reported that access-key protection is enabled, the
+Studio reports the separate BOB key requirement before creating a chat turn.
+Immediately after an endpoint change or an explicit **Test Ping**, the Studio
+shows **CHECKING** and keeps the prompt intact until that probe settles. Probe
+results are scoped to the endpoint and stale telemetry cannot change the route
+state for a newer endpoint. This is client-side error prevention; it does not
+authenticate a key, extend provider quotas, or prove that Google will accept a
+request.
 
 The two key fields have independent **Clear** actions. Closing Config clears
 their DOM input values while retaining neither credential in browser storage;

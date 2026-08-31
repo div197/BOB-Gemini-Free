@@ -82,6 +82,9 @@ status copy. The same settings surface now blocks the optional Developer API
 route when a prior connection check has positively identified `api_keys`
 protection but the separate BOB Gateway Access Key is absent; this is a
 pre-send error-prevention state, not an alternate authentication mechanism.
+The probe state is endpoint-scoped, and Send stays blocked while an explicit
+endpoint check is still pending so a fast click cannot create a known 401
+failure. Stale telemetry from an older endpoint is ignored.
 `TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the source
 boundary. When the Developer API toggle is off, the Studio also sends an
 explicit `X-BOB-Gemini-Route: web` selector so a process-level provider key
