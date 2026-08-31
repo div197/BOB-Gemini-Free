@@ -2,8 +2,8 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `daaea6198ae8a30b4c021fa29ab3e7b581cea187` (merged `main`
-after PR #98; this fresh receipt supersedes the earlier local same-version
+**Source snapshot:** `0c6a6ff12c3f2ff9963b73837933b2abae676270` (main tip after
+PR #99; this fresh receipt supersedes the earlier local same-version
 candidate built from `6c27ac88944351e04f08a62d078caed9d6711178`)
 **Public baseline:** `v0.2.0-preview.6` remains the current published macOS
 preview.
@@ -39,17 +39,17 @@ The following checks passed:
 The private signing value was not displayed, exported, copied, committed, or
 placed in the package. The signed asset receipt was written outside the
 worktree at audit time; its manifest SHA-256 is
-`21ee12fd0236f61b622fbdee6127b77a2afd9ff35565b871c14211d704747af9`.
+`0e627dad789bfe5d049f6214d479133cd9820469c5b2d9a0ad9a332d92fbfa92`.
 
 The exact local candidate hashes are:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `8cdf026e0ed515392fea734a839fa010f3e467d6c83396b971c2537a459ba557` |
-| `bob-gemini-free-macos-universal.dmg` | `8b964c2644c16120d84a8e64e1b5952fec3baafb083674f3832f5601b4f0e3a8` |
-| `bob-gemini-free-macos-universal.zip` | `27906833cb5dc48dfe5d63226c59ecbfbf925c8ec6ce714e09cec6f7575a3c7c` |
-| `SHA256SUMS` | `21ee12fd0236f61b622fbdee6127b77a2afd9ff35565b871c14211d704747af9` |
-| `SHA256SUMS.sig` | `bbc5df254733ef625a500b05f2acb0c26283e153877b2699cab1424364c785a8` |
+| `bob-gemini-free-macos-universal.dmg` | `04c63eb9890629927ad41b055572938123fdb9f56031bc57618fa3bf566bf75d` |
+| `bob-gemini-free-macos-universal.zip` | `c3aa93128df760eaf893fe7126c268c24dc0b88324d820a34f2819f93b9b9ee4` |
+| `SHA256SUMS` | `0e627dad789bfe5d049f6214d479133cd9820469c5b2d9a0ad9a332d92fbfa92` |
+| `SHA256SUMS.sig` | `a7d581de4bb7f6e73d668234d8fd9429ce87cb18bfa1990cabcea6ed9da9aca7` |
 
 ## Bundle identity and runtime proof
 
@@ -64,7 +64,7 @@ The updater must use the injected channel-aware identity, not Finder's numeric
 bundle field, when deciding whether a preview update exists.
 
 The bundled executable was started directly from the candidate app on an
-isolated loopback port (`127.0.0.1:18088`) while the installed app was left
+isolated loopback port (`127.0.0.1:18089`) while the installed app was left
 untouched. The candidate:
 
 - returned HTTP 200 from `/healthz` with `X-BOB-Version:
@@ -89,7 +89,7 @@ gateway as `ONLINE (SECURED)`; with the BOB access field empty, the Developer
 API toggle remained off and the route card was `BLOCKED` with the explicit
 separate-gateway-key message. After entering the synthetic BOB key, the same
 page could deliberately select the Developer API route. The signed packaged
-desktop candidate on `127.0.0.1:18088` separately reported
+desktop candidate on `127.0.0.1:18089` separately reported
 `X-BOB-Auth-Required: false`, matching the desktop boundary that strips BOB
 `api_keys` from its embedded loopback gateway. No provider request was made.
 

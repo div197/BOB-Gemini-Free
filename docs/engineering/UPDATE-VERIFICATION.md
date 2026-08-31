@@ -153,8 +153,8 @@ Preview 7/Preview 5 → Preview 6 remains a staged device gate.
 
 ## Current source candidate — 2026-08-31
 
-The merged `main` source snapshot at `daaea6198ae8a30b4c021fa29ab3e7b581cea187`
-was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #98.
+The `main` source snapshot at `0c6a6ff12c3f2ff9963b73837933b2abae676270`
+was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #99.
 This supersedes the earlier local same-version candidate built from `6c27ac8`
 (which superseded `8c35a11`, `049ca2f`, and `2d42d44`). The fresh candidate
 receipt is tied to the merged source snapshot.
