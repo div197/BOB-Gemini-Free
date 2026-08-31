@@ -3,17 +3,17 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4666dba`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4522e2b`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces three real failure classes: coalesced
+This continuation materially reduces four real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
-compressible remote images, and late updater failure when the app is running
-from a read-only or translocated location. The source and deterministic test
-gates are green.
+compressible remote images, late updater failure when the app is running from a
+read-only or translocated location, and stale attachment parsing/OCR work after
+the user removes a file. The source and deterministic test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -184,6 +184,18 @@ stream setup, block flush/stop, tool block events, `message_delta`, and
 continues toward a success response. Deterministic fixtures cover ordered
 success lifecycle and upstream-error termination; complete Claude Code event
 parity and real client compatibility remain open.
+
+### 10. Attachment parsing cancellation — `4522e2b`
+
+The Web Studio now associates each attachment parse with an abort controller.
+FileReader-based reads are interrupted when a student removes an attachment,
+and late results from compatibility Promise readers are discarded before they
+can mutate the shelf or prompt state. Tesseract.js v5 uses a terminable worker
+when the worker API is available; older OCR helpers remain an explicit fallback
+whose in-flight CPU work cannot be interrupted by BOB. The existing 32 MiB
+file, extraction-character, PDF-page, and two-job concurrency limits are
+unchanged. Main-thread document parsing, OCR cost, and device behavior remain
+partial until measured on representative Macs.
 
 ## Verification completed
 
