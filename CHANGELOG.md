@@ -57,21 +57,6 @@ to an earlier implementation. The current contract supersedes those phrases:
 - This remains an ad-hoc signed, non-notarized, macOS-only controlled beta;
   clean-device replacement, rollback, and broad student rollout remain open.
 
-## [0.2.0-preview.2] - 2026-08-31
-
-### Controlled macOS preview publication
-
-- Published a macOS universal prerelease from public-main commit
-  `6d3a0cfc0a7a0bf05a3c136baf96a48f503b45ef` with the current updater key and
-  signed `SHA256SUMS` manifest.
-- Re-downloaded all five GitHub assets, verified the detached signature, and
-  reconciled every downloaded byte with the locally signed publication input.
-- Kept the release explicitly ad-hoc signed, non-notarized, macOS-only, and
-  suitable for controlled preview testing rather than a silent fleet rollout.
-- Existing same-key Preview 7 installations can now discover Preview 2 through
-  their preview-channel updater path; actual replacement and rollback remain
-  clean-device and pilot gates.
-
 ## [0.2.0-preview.3] - 2026-08-31
 
 ### Controlled macOS preview publication
@@ -91,6 +76,21 @@ to an earlier implementation. The current contract supersedes those phrases:
   and re-downloaded, signature-verified, and byte-reconciled.
 - This remains an ad-hoc signed, non-notarized, macOS-only controlled beta;
   clean-device replacement, rollback, and broad student rollout remain open.
+
+## [0.2.0-preview.2] - 2026-08-31
+
+### Controlled macOS preview publication
+
+- Published a macOS universal prerelease from public-main commit
+  `6d3a0cfc0a7a0bf05a3c136baf96a48f503b45ef` with the current updater key and
+  signed `SHA256SUMS` manifest.
+- Re-downloaded all five GitHub assets, verified the detached signature, and
+  reconciled every downloaded byte with the locally signed publication input.
+- Kept the release explicitly ad-hoc signed, non-notarized, macOS-only, and
+  suitable for controlled preview testing rather than a silent fleet rollout.
+- Existing same-key Preview 7 installations can now discover Preview 2 through
+  their preview-channel updater path; actual replacement and rollback remain
+  clean-device and pilot gates.
 
 ---
 
