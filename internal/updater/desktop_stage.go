@@ -504,12 +504,7 @@ func writeDesktopUpdatePlan(plan *DesktopUpdatePlan) error {
 	if err != nil {
 		return fmt.Errorf("encode desktop update plan: %w", err)
 	}
-	temporary := plan.PlanPath + ".tmp"
-	if err := os.WriteFile(temporary, append(data, '\n'), 0600); err != nil {
-		return fmt.Errorf("write desktop update plan: %w", err)
-	}
-	if err := os.Rename(temporary, plan.PlanPath); err != nil {
-		_ = os.Remove(temporary)
+	if err := writeAtomicDesktopUpdateFile(plan.PlanPath, append(data, '\n'), 0600); err != nil {
 		return fmt.Errorf("commit desktop update plan: %w", err)
 	}
 	return nil

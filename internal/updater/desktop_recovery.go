@@ -116,9 +116,15 @@ func recoverDesktopUpdatePlan(plan *DesktopUpdatePlan) error {
 		if err := os.RemoveAll(plan.BackupPath); err != nil {
 			return fmt.Errorf("remove confirmed desktop rollback backup: %w", err)
 		}
+		if err := syncDesktopUpdateDirectory(filepath.Dir(plan.BackupPath)); err != nil {
+			return fmt.Errorf("persist confirmed desktop rollback cleanup: %w", err)
+		}
 		_ = os.Remove(failureRecordPath(plan))
 		if err := os.RemoveAll(plan.StageDir); err != nil {
 			return fmt.Errorf("remove confirmed desktop staging directory: %w", err)
+		}
+		if err := syncDesktopUpdateDirectory(filepath.Dir(plan.StageDir)); err != nil {
+			return fmt.Errorf("persist confirmed desktop staging cleanup: %w", err)
 		}
 		return nil
 	}
@@ -138,12 +144,21 @@ func recoverDesktopUpdatePlan(plan *DesktopUpdatePlan) error {
 		if err := os.RemoveAll(plan.InstallTarget); err != nil {
 			return fmt.Errorf("remove interrupted desktop candidate: %w", err)
 		}
+		if err := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget)); err != nil {
+			return fmt.Errorf("persist removal of interrupted desktop candidate: %w", err)
+		}
 	}
 	if err := os.Rename(plan.BackupPath, plan.InstallTarget); err != nil {
 		return fmt.Errorf("restore desktop install after interruption: %w", err)
 	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.InstallTarget)); err != nil {
+		return fmt.Errorf("persist desktop install recovery: %w", err)
+	}
 	if err := os.RemoveAll(plan.StageDir); err != nil {
 		return fmt.Errorf("remove recovered desktop staging directory: %w", err)
+	}
+	if err := syncDesktopUpdateDirectory(filepath.Dir(plan.StageDir)); err != nil {
+		return fmt.Errorf("persist recovered desktop staging cleanup: %w", err)
 	}
 	return nil
 }
