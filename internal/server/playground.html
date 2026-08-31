@@ -5915,7 +5915,7 @@ const I18N = {
     gatewayAuthTitle: "BOB Gateway Access Key (optional)",
     gatewayAuthOptional: "Only when the gateway owner enabled api_keys",
     gatewayAuthPlaceholder: "Only if the gateway owner gave you one",
-    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no api_keys configured. After entering a key, choose Test Ping to verify the endpoint.",
+    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only over HTTPS, or to a local loopback gateway. Leave it empty when the local gateway has no api_keys configured. Cleartext HTTP is allowed only without this key. After entering a key, choose Test Ping to verify the endpoint.",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "Universal Local AI Gateway Engine • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "Close",
@@ -5956,6 +5956,7 @@ const I18N = {
       gatewayRouteProviderKeyMissing: "The Developer API route is selected, but no Google AI Studio key is entered. It will not send a request.",
       gatewayRouteAccessStateLabel: "BOB gateway door",
       gatewayRouteAccessReady: "Access key entered for this page",
+      gatewayRouteAccessBlocked: "Access key withheld — use HTTPS for a non-local endpoint",
       gatewayRouteAccessRequired: "Required by this endpoint",
       gatewayRouteAccessMissing: "Not entered — only needed if this endpoint is protected",
       gatewayRouteAccessOpen: "Not required by this endpoint",
@@ -6129,7 +6130,7 @@ const I18N = {
     gatewayAuthTitle: "BOB Gateway Access Key (वैकल्पिक)",
     gatewayAuthOptional: "केवल तब जब gateway owner ने api_keys चालू किया हो",
     gatewayAuthPlaceholder: "केवल gateway owner द्वारा दी गई key होने पर",
-    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें। Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
+    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल HTTPS या local loopback gateway पर BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें। Cleartext HTTP पर यह key नहीं भेजी जाएगी। Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • __BOB_DESKTOP_VERSION__",
     modalAboutClose: "बंद करें",
@@ -6170,6 +6171,7 @@ const I18N = {
       gatewayRouteProviderKeyMissing: "Developer API route चुना गया है, लेकिन Google AI Studio key दर्ज नहीं है। Request नहीं भेजी जाएगी।",
       gatewayRouteAccessStateLabel: "BOB gateway door",
       gatewayRouteAccessReady: "इस page के लिए access key दर्ज है",
+      gatewayRouteAccessBlocked: "Access key नहीं भेजी जाएगी — non-local endpoint के लिए HTTPS उपयोग करें",
       gatewayRouteAccessRequired: "इस endpoint को आवश्यक है",
       gatewayRouteAccessMissing: "दर्ज नहीं — केवल protected endpoint पर चाहिए",
       gatewayRouteAccessOpen: "इस endpoint को आवश्यक नहीं",
@@ -6862,7 +6864,7 @@ function isNativeDesktopStudio() {
   return Boolean(window.runtime && typeof window.runtime.BrowserOpenURL === "function");
 }
 
-function isSecureGatewayForProviderKey(rawURL) {
+function isSecureGatewayForAccessKey(rawURL) {
   let parsedURL;
   try {
     parsedURL = new URL(rawURL, window.location.href);
@@ -6870,8 +6872,12 @@ function isSecureGatewayForProviderKey(rawURL) {
     return false;
   }
   if (!parsedURL.hostname || parsedURL.username || parsedURL.password) return false;
-  if (parsedURL.protocol === "https:") return true;
-  return parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href);
+  return parsedURL.protocol === "https:" ||
+    (parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href));
+}
+
+function isSecureGatewayForProviderKey(rawURL) {
+  return isSecureGatewayForAccessKey(rawURL);
 }
 
 function canSendGeminiProviderKey() {
@@ -6922,6 +6928,21 @@ function developerRouteSelectionIssue() {
   return developerRouteModelIssue();
 }
 
+function gatewayAccessKeyTransportIssue() {
+  if (!gatewayApiKey || isSecureGatewayForAccessKey(getGatewayBaseUrl())) return "";
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  return ui.gatewayRouteAccessBlocked || "Access key withheld — use HTTPS for a non-local endpoint.";
+}
+
+function gatewayRequestHeaders() {
+  const headers = {};
+  if (gatewayApiKey && isSecureGatewayForAccessKey(getGatewayBaseUrl())) {
+    headers["Authorization"] = "Bearer " + gatewayApiKey;
+  }
+  return headers;
+}
+
 function updateGatewayCredentialStatus() {
   const status = document.getElementById("gateway-route-status");
   if (!status) return;
@@ -6932,7 +6953,8 @@ function updateGatewayCredentialStatus() {
   const providerKeyPresent = Boolean(geminiProviderKey);
   const endpointSafe = !providerRoute || canSendGeminiProviderKey();
   const modelIssue = providerRoute ? developerRouteModelIssue() : "";
-  const routeIssue = providerRoute ? developerRouteSelectionIssue() : "";
+  const accessIssue = gatewayAccessKeyTransportIssue();
+  const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;
 
   status.dataset.route = providerRoute ? "provider" : "web";
   status.dataset.state = routeIssue ? "blocked" : "ready";
@@ -6958,6 +6980,8 @@ function updateGatewayCredentialStatus() {
   if (accessState) {
     if (gatewayAuthRequired === true && !gatewayApiKey) {
       accessState.textContent = ui.gatewayRouteAccessRequired || "Required by this endpoint";
+    } else if (accessIssue) {
+      accessState.textContent = accessIssue;
     } else if (gatewayApiKey) {
       accessState.textContent = ui.gatewayRouteAccessReady || "Access key entered for this page";
     } else if (gatewayAuthRequired === false) {
@@ -7166,16 +7190,25 @@ async function pingGatewayManual() {
     pill.style.background = "rgba(245, 158, 11, 0.2)";
     pill.style.color = "#f59e0b";
   }
-  const start = performance.now();
-  const apiKey = gatewayApiKey;
-  const headers = {};
-  if (apiKey) {
-    headers["Authorization"] = "Bearer " + apiKey;
+  const transportIssue = gatewayAccessKeyTransportIssue();
+  if (transportIssue) {
+    if (pill) {
+      pill.innerText = "HTTPS REQUIRED";
+      pill.style.background = "rgba(245, 158, 11, 0.2)";
+      pill.style.color = "#f59e0b";
+    }
+    if (badge) badge.innerText = transportIssue;
+    if (card) card.style.display = "none";
+    updateGatewayCredentialStatus();
+    return;
   }
+  const start = performance.now();
+  const headers = gatewayRequestHeaders();
   try {
-    let checkUrl = getGatewayBaseUrl() + "/";
-    if (getGatewayBaseUrl() === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
-      checkUrl = getGatewayBaseUrl() + "/health";
+    const baseUrl = getGatewayBaseUrl();
+    let checkUrl = baseUrl + "/";
+    if (baseUrl === window.location.origin && !['localhost', '127.0.0.1', '[::1]'].includes(window.location.hostname)) {
+      checkUrl = baseUrl + "/health";
     }
     const res = await fetch(checkUrl, { method: "GET", headers: headers });
     const latency = Math.round(performance.now() - start);
@@ -7210,7 +7243,7 @@ async function pingGatewayManual() {
       if (!backendModelsLoaded) syncBackendModels();
 
       // Check for latest release updates from GitHub
-      fetch(getGatewayBaseUrl() + "/v1/update/check")
+      fetch(baseUrl + "/v1/update/check")
         .then(r => r.json())
         .then(up => {
           if (up && up.has_update) {
@@ -7911,9 +7944,7 @@ function updatePromptTokenEstimate(text) {
 let backendModelsLoaded = false;
 async function syncBackendModels() {
   const baseUrl = getGatewayBaseUrl();
-  const apiKey = gatewayApiKey;
-  const headers = {};
-  if (apiKey) headers["Authorization"] = "Bearer " + apiKey;
+  const headers = gatewayRequestHeaders();
 
   try {
     const res = await fetch(baseUrl + "/v1/models", { headers: headers });
@@ -8516,10 +8547,7 @@ async function refreshTelemetry() {
   }
   const baseUrl = getGatewayBaseUrl();
   const apiKey = gatewayApiKey;
-  const headers = {};
-  if (apiKey) {
-    headers["Authorization"] = "Bearer " + apiKey;
-  }
+  const headers = gatewayRequestHeaders();
   try {
     const start = performance.now();
     // Healthz is intentionally public and reports whether the protected
@@ -8527,7 +8555,7 @@ async function refreshTelemetry() {
     // normal secured-endpoint state into a repeated unauthorised stats poll.
     const healthRes = await fetch(baseUrl + "/healthz", { method: "GET", headers: headers }).catch(() => null);
     const healthAuthRequired = Boolean(healthRes && healthRes.ok && healthRes.headers.get("X-BOB-Auth-Required") === "true");
-    if (healthAuthRequired && !apiKey) {
+    if (healthAuthRequired && !headers.Authorization) {
       gatewayAuthRequired = true;
       clearTelemetryStats();
       updateGatewayStatusIndicator(true, Math.round(performance.now() - start));
@@ -12441,7 +12469,6 @@ async function sendMessage() {
   let lastMathRenderTime = 0;
 
     const baseUrl = getGatewayBaseUrl();
-    const apiKey = gatewayApiKey;
     if (useGeminiProvider && !geminiProviderKey) {
       throw new Error("Gemini Developer API is selected, but no session key has been entered. Open Config and paste your own Google AI Studio key.");
     }
@@ -12449,12 +12476,10 @@ async function sendMessage() {
       throw new Error("For safety, configure a local or explicitly trusted gateway endpoint before sending a Gemini Developer API key.");
     }
     const headers = {
+      ...gatewayRequestHeaders(),
       "Content-Type": "application/json",
       "X-Client-Request-Id": "studio-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8)
     };
-    if (apiKey) {
-      headers["Authorization"] = "Bearer " + apiKey;
-    }
     if (useGeminiProvider && geminiProviderKey) {
       headers["X-BOB-Gemini-API-Key"] = geminiProviderKey;
     }

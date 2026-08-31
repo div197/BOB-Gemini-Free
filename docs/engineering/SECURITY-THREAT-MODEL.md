@@ -106,6 +106,25 @@ header markers, and common credential-shaped tokens before they reach a client
 or optional local log. This does not protect reverse proxies, browser history,
 or third-party provider logs from values outside the gateway's control.
 
+## Browser gateway-key transport follow-up — 2026-08-31
+
+The settings audit reproduced a separate browser-side boundary failure: a
+student-entered BOB gateway access key was attached as `Authorization` to a
+configured non-loopback `http://` endpoint. The endpoint may intentionally be
+open, but a configured access key must never cross a cleartext network path.
+
+The Studio now uses one shared header constructor. It permits the BOB access
+key only for loopback HTTP or HTTPS, withholds it for non-loopback HTTP, and
+reports `HTTPS REQUIRED` in the settings dialog. Ping does not probe the
+unsafe endpoint while the key is present; telemetry, model discovery, and
+generation also use the guarded constructor. The provider-key guard remains a
+separate opt-in rule and is not merged with gateway authorization semantics.
+
+This is transport confidentiality, not full endpoint authentication. HTTPS
+does not prove that a remote endpoint is operated by the intended person, and
+loopback HTTP does not make an arbitrary browser origin trusted. The existing
+exact-origin CORS policy and explicit remote endpoint choice remain required.
+
 ## Chosen minimum change
 
 Implement strict origin filtering now:
@@ -119,6 +138,12 @@ Implement strict origin filtering now:
    query-string compatibility disabled by default;
 7. keep `/playground` publicly navigable, but do not grant its API calls to
    an unapproved remote origin.
+
+The browser-side access-key policy is an additional defense within that
+boundary: local loopback HTTP remains compatible, while a non-loopback HTTP
+endpoint can be used only without a BOB access key. A remote protected
+deployment must provide HTTPS; the UI must not silently downgrade or attach
+the credential to cleartext traffic.
 
 The hosted static Studio also must not probe `127.0.0.1` during page startup.
 It remains browser-only until the user explicitly opens the gateway controls,
