@@ -44,6 +44,8 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Caps responsive configuration and integration drawers at 320px on phones;
   the previous `min-width: 85vw` rule could override that cap on a 390px
   viewport.
+- Gives Gateway settings buttons and text/password fields a scoped 44px minimum
+  interaction height while keeping the dialog internally scrollable.
 - Adds a source regression for the phone-control containment and drawer-width
   contract, and keeps the generated `web/index.html` bundle synchronized.
 

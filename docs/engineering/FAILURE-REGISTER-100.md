@@ -183,6 +183,20 @@ horizontal overflow. This is source-candidate evidence; it does not claim the
 immutable Preview 6 package, native WebView rendering, provider behavior, or
 clean-device/fleet acceptance.
 
+### Gateway settings touch-target evidence — 2026-08-31
+
+The same current-source browser audit reproduced a separate interaction-floor
+issue: Gateway-modal controls were 28–38px high at phone and tablet widths.
+The scoped CSS fix now gives every Gateway-modal button and non-checkbox text
+or password input a 44px minimum height, while retaining the modal's bounded
+scroll container. The source regression is
+`TestGatewayModalControlsMeetTouchTargetContract`; rendered checks at
+390×844, 1024×768, and 1440×900 found no sub-44px controls, no page-level
+horizontal overflow, and correct focus return on close. This closes the
+observed settings touch-target defect for the current bundle only; native
+WebView, assistive technology, provider, clean-device, and fleet evidence
+remain open.
+
 ## Required execution order
 
 1. Close release/provenance rows 1–6, 11–20, and 40 before another public

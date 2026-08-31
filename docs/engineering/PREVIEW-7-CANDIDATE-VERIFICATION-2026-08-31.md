@@ -2,7 +2,9 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source:** `main` / `2d42d4443818f594bc8d27f906977b30acce7495`
+**Source snapshot:** `2d42d4443818f594bc8d27f906977b30acce7495` (the clean
+`main` tree used for packaging; documentation-only PR #92 later advanced
+`main` to `67e5337f0a76a9efabb334a3240411d15821a4c9`)
 **Public baseline:** `v0.2.0-preview.6` remains the current published macOS
 preview.
 

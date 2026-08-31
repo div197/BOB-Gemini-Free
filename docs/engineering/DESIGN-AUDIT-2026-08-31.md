@@ -246,7 +246,7 @@ provider state, or clean device.
 | Dialogs and command palette | All | Missing semantics, focus trap/return, consistent Escape behavior, and short-viewport clipping | High | **Source-fixed**; responsive drawer focus/return smoke-tested, modal and 200% zoom paths pending |
 | Hosted onboarding dialog | All | Undefined modal classes and long command content could render poorly | High | **Source-fixed**; browser resize/wrap test pending |
 | Configuration/code drawers | Tablet/phone | Dense controls, panel coverage, hidden-panel focus, and compact actions may be difficult to operate by touch | High | **Browser-smoke passed** for 390x844 focus/Tab/Escape/return and no document overflow; touch target, 768x1024, and native-WebView evidence remain |
-| Gateway/configuration panel | Tablet/phone | Dense controls and compact actions may be difficult to operate by touch | Medium | **Open**; assess target size and panel overflow in browser |
+| Gateway/configuration panel | Tablet/phone | Dense controls and compact actions may be difficult to operate by touch | Medium | **Source-fixed and browser-smoke passed**; modal scroll remains bounded and all gateway-modal buttons/text inputs meet the 44px target; native-WebView evidence remains |
 | Artifact Preview/Code | All | Empty/error/loading/source-limit states and generated game launch | High | **Open for rendered acceptance**; source-level sandbox/recovery tests pass |
 | Language selector and Hindi UI | All | Translation coverage and text expansion | Medium | **Open**; docs correctly classify coverage as English/Hindi plus partial targets |
 | Theme surfaces | All built-in themes | Subdued/muted text contrast | High | **Source-fixed** with numeric contrast regression; browser visual sampling pending |
@@ -382,3 +382,25 @@ Settings-dialog scrolling, credential-field separation, focus trapping, and
 focus return were rechecked. This closes the observed L1 geometry defect; it
 does not close the deliberate L2 header-hierarchy proposal or the remaining
 artifact, provider, 200% zoom, native-WebView, clean-device, and fleet gates.
+
+## 13. Gateway settings touch-target follow-up — 2026-08-31
+
+The browser audit then measured the Gateway dialog itself at 390×844 and
+1024×768. Before the fix, its Save/Reset, reveal/Clear, installer Copy,
+Test Ping, and Close controls rendered between 28px and 38px high. The dialog
+had no page-level horizontal overflow, but those controls were below the
+44px interaction floor and the issue was reproducible without a provider
+request or credential.
+
+The smallest justified change scopes `min-height:44px` and
+`touch-action:manipulation` to Gateway-modal buttons and non-checkbox inputs.
+`TestGatewayModalControlsMeetTouchTargetContract` protects the source CSS;
+`make web` synchronizes the static bundle. Post-fix browser evidence reports
+no controls below 44px at 390×844, 1024×768, or 1440×900; the modal remains
+scrollable (`overflow-y:auto`) with matching document/body widths. Closing the
+dialog returned focus to the Gateway status trigger.
+
+This fixes an interaction-floor defect only. It does not alter the four
+credential boundaries, route selection, key retention, provider quotas, or
+remote endpoint trust policy. Native WebView and assistive-technology
+acceptance remain separate release gates.

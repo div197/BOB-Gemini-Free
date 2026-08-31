@@ -105,3 +105,24 @@ containment floor, not a claim that every secondary header action is a full
 experiment; no navigation or feature removal was smuggled into this fix.
 Artifact/provider/native-WebView, 200% browser zoom, clean-device, and fleet
 acceptance remain separate gates.
+
+## Gateway settings touch-target follow-up — 2026-08-31
+
+The current source bundle was opened in the in-app browser with no provider
+credential, cookie, or Google request. The Gateway dialog was inspected at
+390×844, 1024×768, and 1440×900.
+
+- Before the scoped fix, Gateway-modal controls measured 28–38px high.
+- After the fix, every Gateway-modal button and every non-checkbox text or
+  password input measured at least 44px high at all three widths.
+- At 390×844, the dialog was 350px wide, its internal body remained
+  `overflow-y:auto`, and the document/body widths both remained 390px.
+- At 1024×768 and 1440×900, the dialog remained within the viewport and the
+  page widths matched their viewports; no controls below 44px were observed.
+- Closing the dialog returned focus to `btn-gateway-status` and the modal's
+  two credential fields remained separately labelled and masked.
+
+The focused source regression is
+`TestGatewayModalControlsMeetTouchTargetContract`. This is local rendered
+browser evidence; it is not proof of native-WebView, provider, clean-device,
+or fleet behavior.
