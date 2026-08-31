@@ -4,6 +4,15 @@ This is the next controlled macOS universal preview, built from the reviewed
 public `main` source after Preview 3. It is intended for owner and pilot
 validation before any stable or broad student rollout.
 
+Published manually as a GitHub prerelease from public `main` commit
+`abfeebaaaaabc740ea29602b602591a0b707fbc2`:
+
+[`v0.2.0-preview.4`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4)
+
+The five public assets were downloaded again after publication, passed the
+detached Ed25519 signature/checksum verifier, and matched the locally signed
+inputs byte-for-byte. No GitHub Actions workflow was used.
+
 ## What changed since v0.2.0-preview.3
 
 - Explicit Google HTTP 401/403 responses now invalidate only the cached

@@ -4,10 +4,35 @@
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
 **Current public previews:** immutable `v0.2.0-preview.1` migration bridge,
-superseded `v0.2.0-preview.2`, and current controlled macOS `v0.2.0-preview.3`
+historical `v0.2.0-preview.3`, and current controlled macOS `v0.2.0-preview.4`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
-## Current publication refresh — 2026-08-31
+## Current Preview 4 publication refresh — 2026-08-31
+
+The authoritative public source is `main` at merge commit
+`abfeebaaaaabc740ea29602b602591a0b707fbc2`. Protected PR #58 merged the
+explicit Google 401/403 session-cache recovery fix, and PR #59 merged the
+Preview 4 packaging/versioning correction. The current controlled macOS
+universal preview is published at
+[`v0.2.0-preview.4`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4).
+
+The exact five assets were signed through the owner-controlled macOS Keychain,
+downloaded again from the public release into a fresh directory, verified with
+the checked-in Ed25519 public key, and matched the local signed input
+byte-for-byte. The local package passed universal-binary inspection, ad-hoc
+code-signature verification, branded DMG-layout checks, fresh launch on the
+audit Mac, loopback `/healthz`, rendered Preview 4 version, occupied-port
+fallback, and clean shutdown. The local full test, race, vet, module, build,
+and release-source gates also passed before publication.
+
+This closes Preview 4 source/package/public-byte publication integrity. It does
+not close Apple Developer ID/notarization, clean-device replacement, rollback
+after interruption, live Google acceptance, or 20–30-device rollout gates.
+The private signing key remains outside GitHub and the repository; only its
+matching public key is embedded in the application. No GitHub Actions workflow
+was added or used.
+
+## Preview 3 publication refresh — 2026-08-31 (historical)
 
 The current public-main tip is merge commit `284b7d1a9a2e7c45402318f29f08f0c1dba36d43`.
 Protected PRs [#53](https://github.com/div197/BOB-Gemini-Free/pull/53),
@@ -26,7 +51,7 @@ platform trust, clean-device updater replacement, rollback, Google provider
 availability, or 20–30-device rollout acceptance. The matching private key
 remains outside the repository in the owner-controlled local secret store.
 
-## Current repository refresh — 2026-08-31
+## Repository refresh before Preview 4 publication — 2026-08-31 (historical)
 
 The historical publication entries below are retained as provenance. The
 current local truth is:
