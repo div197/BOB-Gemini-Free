@@ -4,7 +4,7 @@
 the public app remains ad-hoc signed and not Apple-notarized.
 
 The current release audit is in
-[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The immutable
+[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The published
 public `v0.2.0-preview.6` assets use packaged source target `f9b3410` and have
 passed signature and public-byte reconciliation. The earlier Preview 1 →
 Preview 5 installed migration remains the one-host update observation. The
@@ -13,7 +13,7 @@ older gateway that still owns the configured port, because reuse requires an
 exact `X-BOB-Version` match. It also withholds a BOB access key from
 non-loopback cleartext HTTP endpoints.
 
-The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
+The published public migration bridge is `v0.2.0-preview.1`. Controlled macOS
 Preview 6 (`v0.2.0-preview.6`) is published from source target `f9b3410`;
 Preview 5, Preview 4, and Preview 3 remain historical provenance. The five
 Preview 6 assets were re-downloaded, signature-verified, and byte-reconciled.
@@ -99,9 +99,11 @@ embedded.
 - The matching public key is embedded into a release build at build time. A
   desktop process cannot replace this trust anchor with an environment
   variable or downloaded configuration.
-- Each release tag is immutable in practice: never reuse a version after
-  publishing an artifact or manifest. Publish a new patch/pre-release version
-  for every changed byte.
+- Treat each published release identifier as operationally write-once: never
+  reuse a version after publishing an artifact or manifest. Publish a new
+  patch/pre-release version for every changed byte. GitHub's current release
+  metadata reports `immutable: false`, so this is a project release discipline,
+  not a platform-enforced lock.
 - Keep a private, offline backup of the release key. Key loss prevents future
   signed updates for already-installed builds; key compromise requires a
   documented rotation and a migration release.

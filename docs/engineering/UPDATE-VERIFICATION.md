@@ -112,7 +112,7 @@ private key is exposed.
 
 ## Preview 6 publication evidence — 2026-08-31
 
-The current public macOS preview is the immutable
+The current public macOS preview is the published
 [`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
 packaged from source target `f9b3410`. The exact universal DMG, ZIP, release
 notice, `SHA256SUMS`, and `SHA256SUMS.sig` were signed locally through the
@@ -125,6 +125,18 @@ prove Apple Developer ID/notarization, a clean-device replacement or rollback,
 live Google availability, or a 20–30-device rollout. The earlier Preview 1 →
 Preview 5 installed migration is the only live installed-update observation;
 Preview 7/Preview 5 → Preview 6 remains a staged device gate.
+
+## Current source candidate — 2026-08-31
+
+The current `main` source has also been packaged and signed locally as
+`v0.2.0-preview.7` from commit `2d42d4443818f594bc8d27f906977b30acce7495`.
+Its candidate receipt is in
+[`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).
+It is not a public GitHub release yet, so it must not be presented as an
+available update or used for installed-fleet instructions. GitHub currently
+reports `immutable: false` for Preview 6; the project's write-once release
+policy therefore requires a new tag and fresh public-byte reconciliation for
+Preview 7.
 
 ## Preview 2 publication evidence — 2026-08-31
 

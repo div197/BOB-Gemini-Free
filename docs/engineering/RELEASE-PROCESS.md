@@ -22,12 +22,19 @@ It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
 Preview versioning is explicit and fail-closed. `PREVIEW_VERSION` in the
-Makefile names the next immutable candidate (`v0.2.0-preview.7` in the current
-source), and the `desktop-preview-*` targets pass it as `BOB_RELEASE_VERSION`.
+Makefile names the next uniquely versioned candidate (`v0.2.0-preview.7` in the
+current source), and the `desktop-preview-*` targets pass it as
+`BOB_RELEASE_VERSION`.
 The three preview packagers refuse to guess a version when called directly.
 Before any publication, advance `PREVIEW_VERSION` to a new unused
 `-preview.N` value, review the resulting source commit, and never rebuild a
 published tag from a later checkout.
+
+As of the 2026-08-31 audit, `v0.2.0-preview.7` has been packaged and signed
+locally from current `main` but has not been tagged or published. The public
+downloadable macOS preview remains `v0.2.0-preview.6`. macOS bundle metadata
+uses numeric base version `0.2.0`; the injected updater/About/health identity
+retains the full `v0.2.0-preview.7` channel-aware version.
 
 The preview packager requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` even though
 the app remains ad-hoc signed. This public value is the updater trust anchor;
@@ -71,7 +78,7 @@ local file; do not pipe an unpinned branch directly into a shell.
 The current public native preview is `v0.2.0-preview.6`, built with the
 desktop trust key and a signed preview manifest. It performs an explicit
 metadata check, and a user can approve a verified staged update with health
-confirmation and rollback. The immutable `v0.2.0-preview.1` package remains
+confirmation and rollback. The public `v0.2.0-preview.1` package remains
 the migration bridge; Preview 2–5 are historical release inputs. Preview 6
 embeds the desktop trust key and remains an explicit, user-consented updater.
 The current public source includes the post-Preview-4 artifact-preview,
@@ -83,6 +90,8 @@ explicit user consent.
 
 The exact Preview 6 public-byte evidence is recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
+the locally verified but unpublished Preview 7 candidate is recorded in
+[`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md);
 the one-host installed migration evidence remains the earlier Preview 1 →
 Preview 5 observation.
 Platform publisher signing and clean-device verification remain required for a
@@ -101,11 +110,12 @@ The implementation sequence is:
 5. keep the background metadata check low-frequency and non-installing, while
   retaining a visible “Check for Updates” action and a manual release fallback.
 
-This removes repeated delete/download/install work after the migration bridge
-is installed and the user approves the update. For the existing public Preview
-7 fleet, install the published same-key bridge first, then use its stable-first
-path after stable acceptance is complete. No silent install is enabled by the
-current preview.
+This removes repeated delete/download/install work after the user approves the
+update. For the existing public `v0.1.7-preview.7` fleet, the current public
+same-key `v0.2.0-preview.6` is the direct preview target; use the published
+Preview 1 bridge only when a device has already selected that intermediate
+step. A current-source preview can then use its stable-first path after stable
+acceptance is complete. No silent install is enabled by the current preview.
 
 The non-technical rollout risks and operator checklist are recorded in
 [`DESKTOP-UPDATE-OPERATIONS.md`](DESKTOP-UPDATE-OPERATIONS.md).

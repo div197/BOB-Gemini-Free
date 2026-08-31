@@ -3,7 +3,9 @@
 **Current public target:** controlled macOS preview `v0.2.0-preview.6`, for
 controlled evaluation of the existing public `v0.1.7-preview.7` fleet and
 earlier `v0.2.0` previews. Preview 5, Preview 4, and Preview 3 are historical,
-and the immutable `v0.2.0-preview.1` migration bridge remains available.
+and a locally verified but unpublished `v0.2.0-preview.7` candidate is the
+next source version. The published `v0.2.0-preview.1` migration bridge remains
+available.
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -20,10 +22,11 @@ provider check; it cannot be certified by a local benchmark.
 
 The current source has a build-pinned update policy, a signed manifest
 verifier, and a low-frequency background metadata check for newly built
-published desktop packages. A newly built preview first checks the fixed official stable endpoint
-so it can migrate to a newer stable release; when stable has no update, it
-checks the preview listing. The already-published Preview 7 binary predates
-that stable-first behavior and checks only the preview listing. The updater:
+published desktop packages. A newly built preview first checks the fixed
+official stable endpoint so it can migrate to a newer stable release; when
+stable has no update, it checks the preview listing. The already-published
+`v0.1.7-preview.7` binary predates that stable-first behavior and checks only
+the preview listing. The updater:
 
 - contacts the fixed official GitHub release API after the user selects
   **Help → Check for Updates**, or through one delayed and once-daily
@@ -101,10 +104,10 @@ Do not open 30 live generations at once. Use this order:
 - run a local `GET /healthz` check;
 - send one short text request using the student's own authorized path, if
   that capability is required;
-- for the existing public Preview 7 path, check the published same-key
-  published Preview 6 candidate (or the immutable Preview 1 bridge), then check stable
-  from that bridge (and separately verify a later preview when no stable update
-  exists);
+- for the existing public `v0.1.7-preview.7` path, check the published
+  same-key Preview 6 candidate (or the published Preview 1 bridge only if that
+  intermediate step was selected), then check stable from that bridge (and
+  separately verify a later preview when no stable update exists);
 - verify that an intentionally failed candidate leaves the original app,
   cookies, preferences, and chat history usable.
 
@@ -152,12 +155,13 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-The `v0.2.0-preview.1` bridge and controlled macOS `v0.2.0-preview.6` are
-published. Preview 6's exact public macOS assets have been re-downloaded,
+The published `v0.2.0-preview.1` bridge and controlled macOS
+`v0.2.0-preview.6` are public. Preview 6's exact public macOS assets have been re-downloaded,
 signature-verified, and byte-reconciled with the local Keychain-backed
 publication input. The earlier Preview 1 → Preview 5 installed migration is
 verified on one writable host; a Preview 7/Preview 5 → Preview 6 installed
-transition remains a device gate. The remaining
+transition remains a device gate. The local Preview 7 candidate is not yet a
+public downloadable release. The remaining
 rollout gates are:
 
 1. **COMPLETED:** the full local test/race/vet/build gate passes;
