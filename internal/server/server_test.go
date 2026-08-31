@@ -1048,6 +1048,66 @@ func TestAnthropicMessagesStreamWithToolCalls(t *testing.T) {
 	}
 }
 
+func TestAnthropicMessagesStreamHasCompleteSuccessLifecycle(t *testing.T) {
+	cfg := config.Default()
+	app := New(cfg, "anthropic-lifecycle-test")
+	app.Gem.HTTP = fakeGeminiRequester{body: mockGeminiBody("hello from Gemini")}
+	payload := `{
+		"model": "claude-3-7-sonnet",
+		"max_tokens": 1000,
+		"stream": true,
+		"messages": [{"role": "user", "content": "Say hello"}]
+	}`
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(payload)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	ordered := []string{
+		"event: message_start",
+		"event: content_block_start",
+		"event: content_block_delta",
+		"event: content_block_stop",
+		"event: message_delta",
+		"event: message_stop",
+	}
+	last := -1
+	for _, marker := range ordered {
+		idx := strings.Index(body, marker)
+		if idx < 0 || idx <= last {
+			t.Fatalf("Anthropic lifecycle marker %q missing or out of order in:\n%s", marker, body)
+		}
+		last = idx
+	}
+	if !strings.Contains(body, `"stop_reason":"end_turn"`) {
+		t.Fatalf("successful Anthropic stream lacked end_turn: %s", body)
+	}
+}
+
+func TestAnthropicMessagesStreamFailureDoesNotEmitSuccessStop(t *testing.T) {
+	app := New(config.Default(), "anthropic-stream-error-test")
+	app.Gem.HTTP = streamFailureRequester{}
+	payload := `{
+		"model": "claude-3-7-sonnet",
+		"max_tokens": 1000,
+		"stream": true,
+		"messages": [{"role": "user", "content": "Say hello"}]
+	}`
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/v1/messages", strings.NewReader(payload)))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, body = %s", rec.Code, rec.Body.String())
+	}
+	body := rec.Body.String()
+	if !strings.Contains(body, "event: error") {
+		t.Fatalf("stream failure lacked Anthropic error event: %s", body)
+	}
+	if strings.Contains(body, "event: message_stop") || strings.Contains(body, `"stop_reason":"end_turn"`) {
+		t.Fatalf("stream failure was serialized as successful completion: %s", body)
+	}
+}
+
 func TestRefineEndpoint(t *testing.T) {
 	fakeBody := mockGeminiBody("1. Objective: Build game.\n2. Invariants: 60 FPS.\n3. Verified output.")
 	cfg := config.Default()
