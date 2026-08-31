@@ -8,6 +8,11 @@ set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 OUTPUT_DIR="${1:-/tmp/bob-gemini-free-preview}"
+OUTPUT_DIR="${OUTPUT_DIR%/}"
+if [[ -z "$OUTPUT_DIR" || "$OUTPUT_DIR" == "/" || "$OUTPUT_DIR" == "." || "$OUTPUT_DIR" == ".." ]]; then
+	echo "refusing unsafe output directory: $OUTPUT_DIR" >&2
+	exit 1
+fi
 PLATFORM="${BOB_WAILS_PLATFORM:-darwin/universal}"
 STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
@@ -57,6 +62,11 @@ if [[ -e "$OUTPUT_DIR" ]]; then
 	echo "output already exists; choose a clean path: $OUTPUT_DIR" >&2
 	exit 1
 fi
+INSPECTION_APP="${OUTPUT_DIR}.app"
+if [[ -e "$INSPECTION_APP" ]]; then
+	echo "inspection app already exists; choose a clean output path: $INSPECTION_APP" >&2
+	exit 1
+fi
 for command_name in rsync codesign ditto hdiutil shasum; do
 	if ! command -v "$command_name" >/dev/null; then
 		echo "required command not found: $command_name" >&2
@@ -87,7 +97,7 @@ cd "$STAGE_ROOT/cmd/desktop"
 "${WAILS[@]}" build -clean -platform "$PLATFORM" "${WAILS_LDFLAGS[@]}"
 
 SOURCE_APP="$STAGE_ROOT/cmd/desktop/build/bin/${INTERNAL_APP_NAME}.app"
-DEST_APP="$OUTPUT_DIR/${PUBLIC_APP_NAME}.app"
+DEST_APP="$INSPECTION_APP"
 if [[ ! -d "$SOURCE_APP" ]]; then
 	echo "desktop build did not produce the expected app bundle: $SOURCE_APP" >&2
 	exit 1
@@ -141,5 +151,6 @@ NOTICE
 	shasum -a 256 "$ZIP_PATH" "$DMG_PATH" "RELEASE-NOTICE.txt" > SHA256SUMS
 )
 
-echo "BOB Gemini Free macOS preview artifacts ready in: $OUTPUT_DIR"
+echo "BOB Gemini Free macOS preview release assets ready in: $OUTPUT_DIR"
+echo "inspectable app bundle: $DEST_APP"
 ls -lh "$OUTPUT_DIR"

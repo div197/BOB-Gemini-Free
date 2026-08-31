@@ -101,15 +101,19 @@ The default output is a new directory at:
 /tmp/bob-gemini-free-preview/
 ```
 
-It contains:
+The release-asset directory contains only the files intended for signing and
+publication:
 
 ```text
-BOB Gemini Free.app
 bob-gemini-free-macos-universal.zip
 bob-gemini-free-macos-universal.dmg
 RELEASE-NOTICE.txt
 SHA256SUMS
 ```
+
+For local inspection, the signed app bundle is written beside the directory as
+`<output-directory>.app`; it is deliberately outside the release-asset
+directory because the signed manifest covers regular publication files only.
 
 The no-Actions release operator signs the exact inspected artifact directory
 with `scripts/sign-release-assets.sh`; the script regenerates any unsigned
