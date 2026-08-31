@@ -48,9 +48,9 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 The current [v0.2.0-preview.5 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5)
 contains the universal macOS package shape and current-key signed manifest.
-The current public source is `0cc81b2`; its next `v0.2.0-preview.6`
-candidate has passed local package, signature, and old-gateway coexistence
-checks but is not yet published.
+The current public source is `49e0d3b`; its next `v0.2.0-preview.6`
+candidate has passed fresh local package, signature, secure-key transport, and
+old-gateway coexistence checks but is not yet published.
 Existing Preview 7 users can discover Preview 5 directly through their preview-only
 lookup. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.

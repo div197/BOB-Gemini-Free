@@ -2,9 +2,10 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Candidate:** `v0.2.0-preview.6` / preview channel
-**Public source:** `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`
+**Public source:** `49e0d3b29cffe54642fc9f2d43fc3b9d3aba511d`
 **Merged change:** PR #83, version-aware desktop gateway coexistence; PR #84,
-release-state documentation and updater-matrix reconciliation
+release-state documentation and updater-matrix reconciliation; PR #86,
+fail-closed gateway access-key transport guard
 **Status:** locally verified candidate; not uploaded or published
 
 This receipt records the exact local candidate produced after the public
@@ -20,9 +21,9 @@ Developer ID/notarized release, and it does not prove Google availability or
 - `go test -race -count=1 ./...` — PASS
 - `go vet ./...` — PASS
 - `go mod verify` — PASS
-- `go build -o /tmp/bob-gemini-free-v02-preview6-gate .` — PASS
+- `go build -o /tmp/bob-gemini-free-v02-preview6-gate-current .` — PASS
 - `go run ./cmd/benchmark-local -profiles 1,10,20,30 -requests 100` — PASS;
-  all 400 mocked requests succeeded
+  all 400 mocked requests succeeded on the current source
 - `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` — PASS; the mocked
   preview listing offers Preview 6 to legacy Preview 7, Preview 1, and Preview
   5 clients, and offers no update to Preview 6 itself
@@ -46,26 +47,26 @@ not exported, printed, committed, or placed in the package.
 - release asset verifier: `scripts/verify-release-assets.sh` — PASS
 
 Local candidate directory:
-`/tmp/bob-gemini-free-preview6-main-0cc81b2`
+`/tmp/bob-gemini-free-preview6-main-49e0d3b`
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `b8e6a1e686da5c51e9d82852c4aa91b88e996e78ac3166e3d882b11c0fa5bfef` |
-| `SHA256SUMS` | `cfd45fdd9e4c7875bd09b62d00655278164134c2562062cd6099dd5a5b752e36` |
-| `SHA256SUMS.sig` | `12a46631d60b0e5eef0305a259e4efd992c6beb2c07dd9a9fdc2e4a2fcfce025` |
-| `bob-gemini-free-macos-universal.dmg` | `7eaacc9cc451b45432f12bbab83eb0916ac3d89c0473f611c5848e3663e99b04` |
-| `bob-gemini-free-macos-universal.zip` | `7b156b787bc20d0670f0ba42c240f822fa8834654cd2ce1e2cb6790168fb0643` |
+| `SHA256SUMS` | `7e29ee62882ffca81226da7694f347e85ba20731dac1a268ae01059b60cf0897` |
+| `SHA256SUMS.sig` | `2d6af2d928f818afe4228d0cea642a022325456b1e6b24aa856326d8d997d21c` |
+| `bob-gemini-free-macos-universal.dmg` | `377b4e11764355c7d63d3a5e0bca74133eff9ae567ce2e00417fe1008c55e621` |
+| `bob-gemini-free-macos-universal.zip` | `b6269f9d2f17d980c411766b2d3585e429cdaa112882d4ff6aeaa3ef71d03429` |
 
 ## Native coexistence proof
 
 The older installed `/Applications/BOB Gemini Free.app` process was left
-running on `127.0.0.1:8081`. The exact merged-main Preview 6 candidate was
-opened separately.
-Because the old gateway had no matching `X-BOB-Version` marker, the new app
-did not reuse it. It selected `127.0.0.1:63768`, returned local `/healthz`
-JSON `{"status":"ok"}` with `X-BOB-Version: v0.2.0-preview.6`, rendered
-`v0.2.0-preview.6` in the native footer, and passed the macOS zoom/maximize
-action. The old process remained on 8081 throughout this check.
+running on `127.0.0.1:8081`. The exact current-main Preview 6 candidate was
+opened separately. Because the old gateway had no matching `X-BOB-Version`
+marker, the new app did not reuse it. It selected the safe loopback port
+`127.0.0.1:51802` in this run, returned local `/healthz` JSON
+`{"status":"ok"}` with `X-BOB-Version: v0.2.0-preview.6`, rendered
+`v0.2.0-preview.6` in the native root page, and shut down cleanly. The old
+process remained on 8081 throughout this check.
 
 This closes the reproduced stale-gateway attachment defect for the tested
 source/package path. Same-version reuse remains intentional; a different,
@@ -84,10 +85,12 @@ The current source loaded at a local loopback endpoint and showed:
 - gateway endpoint URL: the process destination, not a credential.
 
 The smoke also confirmed the first-use guidance, English route-status card,
-Google AI Studio key/limits/model links, and no horizontal overflow at the
-tested desktop viewport. The earlier desktop/tablet/phone browser matrix
-remains the broader responsive evidence; 200% text zoom, long live streams,
-CDN failure, and assistive-technology coverage remain separate gates.
+Google AI Studio key/limits/model links, the current-main access-key transport
+guard, and no horizontal overflow at desktop/tablet/phone widths. Unsafe
+non-loopback HTTP withheld the BOB access key and performed no ping; loopback
+HTTP and HTTPS remained eligible. The earlier browser matrix remains the
+broader responsive evidence; 200% text zoom, long live streams, CDN failure,
+and assistive-technology coverage remain separate gates.
 
 ## Publication boundary
 

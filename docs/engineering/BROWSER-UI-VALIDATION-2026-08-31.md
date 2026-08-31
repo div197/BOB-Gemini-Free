@@ -68,8 +68,9 @@ behaviors were included in that package after clean-source packaging and
 signature verification. At that intermediate checkpoint, public `main` had
 advanced to `ade691d` through PR #77 (browser security evidence) and PR #78
 (credential-input probe hygiene). It then advanced through PRs #80–#83 to
-`9f11eef`, and documentation/test reconciliation PR #84 moved public `main` to
-`0cc81b2`; all of these post-publication source changes require a new package
-and are not claimed for Preview 5. Native macOS, Windows, Linux, CDN/offline, and clean-device
-acceptance remain open gates in
+`9f11eef`, documentation/test reconciliation PR #84 moved public `main` to
+`0cc81b2`, and PR #86 added the browser gateway-key transport guard at
+`49e0d3b`; all of these post-publication source changes require a new package
+and are not claimed for Preview 5. Native macOS, Windows, Linux, CDN/offline,
+and clean-device acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).
