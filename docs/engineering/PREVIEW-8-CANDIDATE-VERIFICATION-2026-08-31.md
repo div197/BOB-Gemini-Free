@@ -2,8 +2,9 @@
 
 **Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `7395243c90eec3f884dd49067b64dd549aab1956` (clean reviewed
-`main` tip; the package was built from this commit)
+**Runtime source snapshot:** `7395243c90eec3f884dd49067b64dd549aab1956` (the
+clean reviewed code commit used to build the package; later receipt-only
+documentation commits do not change its bytes)
 **Public baseline:** `v0.2.0-preview.6` remains the current downloadable
 macOS preview. The earlier local Preview 7 candidate was never published and
 is superseded by this source.
@@ -61,7 +62,7 @@ rollback, Apple trust, provider, and pilot gates before publishing a successor.
 ## Final package refresh — 2026-09-01
 
 After the source follow-up merged, the candidate was rebuilt from the exact
-clean `main` tip `7395243c90eec3f884dd49067b64dd549aab1956` into the isolated
+clean runtime source commit `7395243c90eec3f884dd49067b64dd549aab1956` into the isolated
 directory `/tmp/bob-gemini-free-preview-20260901-main7395243`. The old
 `/tmp/bob-gemini-free-preview-20260901` directory was not reused because its
 DMG, ZIP, manifest, and signature belonged to the superseded `240b57b` source.
