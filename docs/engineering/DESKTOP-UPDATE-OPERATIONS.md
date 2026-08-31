@@ -7,7 +7,10 @@ The current release audit is in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The immutable
 public `v0.2.0-preview.5` assets use packaged source target `c28d787` and have
 passed signature, byte-reconciliation, and one-host installed migration
-checks.
+checks. Public `main` is now `9f11eef`; the local `v0.2.0-preview.6` candidate
+also proves that a new desktop build does not attach to an older gateway that
+still owns the configured port, because reuse requires an exact
+`X-BOB-Version` match.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
 Preview 5 (`v0.2.0-preview.5`) is published from public `main`; Preview 4 and
@@ -191,7 +194,8 @@ For the exact existing-fleet sequence, use the
 
 ## Current decision
 
-The code path is appropriate for the signed Preview 7 pilot, but the
+The code path is appropriate for the controlled Preview 6 candidate, but the
 repository must not label an ad-hoc/unsigned package as a production
-auto-updating student release. The remaining gates are Apple/Windows platform
-trust and clean-device acceptance, not a missing fake fallback.
+auto-updating student release. The remaining gates are publication of the
+exact candidate, Apple/Windows platform trust, clean-device rollback, and
+pilot acceptance—not a missing fake fallback.

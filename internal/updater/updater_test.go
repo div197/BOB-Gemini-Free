@@ -589,6 +589,52 @@ func TestPublishedPreviewFleetMatrixSelectsCurrentCandidate(t *testing.T) {
 	}
 }
 
+func TestPublishedPreviewFleetMatrixSelectsPreview6Candidate(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/preview" {
+			t.Errorf("preview 6 lookup requested %s; want preview channel only", r.URL.Path)
+			http.NotFound(w, r)
+			return
+		}
+		w.Header().Set("Content-Type", "application/json")
+		_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+			TagName:    "v0.2.0-preview.6",
+			Prerelease: true,
+			HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6",
+			Assets: []ReleaseAsset{
+				{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.6/bob-gemini-free-macos-universal.zip", Size: 4096},
+				{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.6/SHA256SUMS"},
+				{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.6/SHA256SUMS.sig"},
+			},
+		}})
+	}))
+	defer server.Close()
+
+	for _, test := range []struct {
+		name           string
+		currentVersion string
+		wantUpdate     bool
+	}{
+		{name: "legacy preview 7", currentVersion: "v0.1.7-preview.7", wantUpdate: true},
+		{name: "migration bridge", currentVersion: "v0.2.0-preview.1", wantUpdate: true},
+		{name: "published preview 5", currentVersion: "v0.2.0-preview.5", wantUpdate: true},
+		{name: "current preview 6", currentVersion: "v0.2.0-preview.6", wantUpdate: false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", test.currentVersion, DesktopChannelPreview, "darwin", "arm64")
+			if err != nil {
+				t.Fatalf("preview 6 fleet lookup: %v", err)
+			}
+			if result.LatestVersion != "v0.2.0-preview.6" || result.HasUpdate != test.wantUpdate {
+				t.Fatalf("preview 6 result = %#v, want update %v", result, test.wantUpdate)
+			}
+			if test.wantUpdate && (!result.AssetAvailable || !result.ManifestAvailable || result.AssetName != "bob-gemini-free-macos-universal.zip") {
+				t.Fatalf("preview 6 candidate is not installable: %#v", result)
+			}
+		})
+	}
+}
+
 func TestLegacyPreview7CannotDiscoverStableWithoutBridge(t *testing.T) {
 	var requests int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

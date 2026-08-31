@@ -39,10 +39,11 @@ that stable-first behavior and checks only the preview listing. The updater:
   helper/rollback path; and
 - requires explicit user consent.
 
-Preview 6 installations cannot verify Preview 7 because the original Preview
-6 project signing key was not recoverable. Install Preview 7 manually once on
-those devices; later releases signed with the Preview 7 key can then use this
-updater. A newly built current-source preview can migrate to a newer stable
+Legacy `v0.1.7-preview.6` installations cannot verify Preview 7 because the
+original Preview 6 project signing key was not recoverable. Install Preview 7
+manually once on those devices; later releases signed with the Preview 7 key
+can then use this updater. This is separate from the current `v0.2.0-preview.6`
+source candidate. A newly built current-source preview can migrate to a newer stable
 release after the stable candidate is published with the same project key. An
 existing public Preview 7 installation must first update to the published
 same-key current preview, or be manually replaced with stable.

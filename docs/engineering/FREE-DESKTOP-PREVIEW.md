@@ -48,6 +48,9 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 The current [v0.2.0-preview.5 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5)
 contains the universal macOS package shape and current-key signed manifest.
+The current public source is `9f11eef`; its next `v0.2.0-preview.6`
+candidate has passed local package, signature, and old-gateway coexistence
+checks but is not yet published.
 Existing Preview 7 users can discover Preview 5 directly through their preview-only
 lookup. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
@@ -61,8 +64,9 @@ contains:
 
 Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
-Preview 6 installations require a one-time manual migration because their
-older project signing key cannot verify Preview 7. Windows and Linux require
+legacy `v0.1.7-preview.6` installations require a one-time manual migration
+because their older project signing key cannot verify Preview 7. This is
+separate from the new `v0.2.0-preview.6` source candidate. Windows and Linux require
 their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
@@ -87,8 +91,9 @@ From macOS:
 make desktop-preview-mac
 ```
 
-In the current source this command defaults to the published
-`v0.2.0-preview.5` package identity. The signed `v0.2.0-preview.1` migration
+In the current source this command defaults to the explicit next candidate
+`v0.2.0-preview.6`; that candidate is not the current public release. The
+signed `v0.2.0-preview.1` migration
 bridge is immutable and already public. Set `BOB_RELEASE_VERSION` explicitly
 for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public

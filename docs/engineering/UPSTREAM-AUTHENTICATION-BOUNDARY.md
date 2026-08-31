@@ -1,6 +1,11 @@
 # Upstream Authentication and Shared-Network Boundary
 
-**Status:** Current Preview 7 engineering truth
+**Status:** Current v0.2 source / public Preview 5 engineering truth
+
+Public `main` is `9f11eef`; the downloadable macOS package remains immutable
+`v0.2.0-preview.5`. A locally verified Preview 6 candidate exists but is not a
+public release. Earlier Preview 7 references below describe the legacy fleet
+boundary and are not the current package identity.
 
 This document defines what BOB Gemini Free does and does not authenticate.
 It exists because “API-free” is easy to misunderstand: BOB does not require a
