@@ -729,6 +729,26 @@ func TestRootCDNDependenciesHaveIntegrityPins(t *testing.T) {
 	}
 }
 
+func TestDynamicArtifactCDNBootstrapsArePinned(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`mermaid@10.9.0/dist/mermaid.min.js" integrity="sha384-6F4Ibv/ylL12O35KFWTeGTHuBKDz5L6yjKsgv3QHQ8s4NTqlDXq7kMlYXGs7MHFc" crossorigin="anonymous"`,
+		`pyodide/v0.26.2/full/pyodide.js" integrity="sha384-tVslJOEkg7nVRW3Y3/ReGX0NnonNrbcmt1R5qFbQXQdGa2chRkoJYHAjAsv3zoTq" crossorigin="anonymous"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("dynamic artifact CDN bootstrap is missing its pinned integrity contract: %q", marker)
+		}
+	}
+	for _, floating := range []string{
+		`cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js`,
+		`cdn.jsdelivr.net/pyodide/v0.26.2/full/pyodide.js" onerror`,
+	} {
+		if strings.Contains(html, floating) {
+			t.Fatalf("dynamic artifact CDN bootstrap remains mutable or unpinned: %q", floating)
+		}
+	}
+}
+
 func TestErrorRecoveryConfigActionsAvoidJavaScriptURLs(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
