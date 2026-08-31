@@ -48,6 +48,16 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Extends the release-source gate to validate the explicit candidate and the
   packager fail-closed contract.
 
+### Settings clarity
+
+- Adds a first-use credential decision line for students: leave both key fields
+  empty for the default route, use a BOB Gateway Access Key only when the
+  gateway owner requires it, and enable the Developer API route only for an
+  intentional student-owned AI Studio project.
+- Fixes the Config modal's English/Hindi translation binding so gateway access
+  labels, help, and placeholders are rendered from the correct language
+  dictionary instead of disappearing after a language switch.
+
 ## [0.2.0-preview.5] - 2026-08-31
 
 ### Browser streaming

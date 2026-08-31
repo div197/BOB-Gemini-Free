@@ -105,6 +105,14 @@ The Studio's Config modal deliberately presents four separate concepts:
 | **Google Gemini Developer API key** | The student's own Google AI Studio project credential | Page memory only; sent only when the Developer API toggle is enabled, through BOB's dedicated request header |
 | **Web session / cookies** | The default reverse-engineered web-RPC identity | Managed by the running engine and its configured cookie state; there is no cookie input in the Studio and cookies must not be pasted into either key field |
 
+For most students, the correct first setup is to leave both key fields empty
+and use the default web-session route. Enter a **BOB Gateway Access Key** only
+when the gateway owner has provided one for a protected endpoint. Enable the
+**Google Gemini Developer API** route only when the student intentionally wants
+to use their own AI Studio project and its provider limits. The Config modal
+shows this choice before either credential is entered, and it keeps the two
+fields independent.
+
 The gateway access key and the Developer API key are not interchangeable. The
 first controls entry to BOB; the second selects a different Google upstream and
 assigns provider quota/billing responsibility to the student's project. If the
