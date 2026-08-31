@@ -504,10 +504,11 @@ verified, and byte-reconciled. The complete evidence is in
 ## Post-Preview 4 source state — 2026-08-31
 
 Protected PR #62 merged the artifact-preview lifecycle and responsive-header
-fix, generated-bundle update, focused tests, and browser evidence into public
-`main` at merge commit `5530edb`. The latest public package remains immutable
-Preview 4, built from `abfeeba`; it does not contain this post-publication
-source fix. The next source package candidate is explicitly
+fix, generated-bundle update, focused tests, and browser evidence; protected PR
+#64 then merged the Studio multiline-SSE framing fix and regression coverage
+into public `main` at merge commit `cd44b2c`. The latest public package remains
+immutable Preview 4, built from `abfeeba`; it contains neither of the
+post-publication source fixes. The next source package candidate is explicitly
 `v0.2.0-preview.5`, and it has not been tagged or published. No current release
-claim should imply that Preview 4 already contains the post-release source
+claim should imply that Preview 4 already contains either post-release source
 change.

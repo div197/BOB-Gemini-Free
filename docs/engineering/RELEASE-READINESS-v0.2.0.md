@@ -7,8 +7,9 @@
 historical `v0.2.0-preview.3`, and current controlled macOS `v0.2.0-preview.4`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
-**Current public `main`:** merge commit `5530edb` (PR #62), containing the
-post-Preview-4 artifact-preview and responsive-header fix. **Next preview
+**Current public `main`:** merge commit `cd44b2c` (PRs #62 and #64), containing
+the post-Preview-4 artifact-preview, responsive-header, and multiline-SSE fixes.
+**Next preview
 candidate:** `v0.2.0-preview.5`, not yet published.
 
 ## Current Preview 4 publication refresh — 2026-08-31
@@ -21,9 +22,9 @@ universal preview is published at
 [`v0.2.0-preview.4`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4).
 
 After that publication, protected PR #62 merged the artifact-preview and
-responsive-header fix into `main` at `5530edb`. The published Preview 4 assets
-were not rebuilt or overwritten; the next package must be explicitly labelled
-`v0.2.0-preview.5`.
+responsive-header fix, followed by PR #64's multiline-SSE framing fix, into
+`main` at `cd44b2c`. The published Preview 4 assets were not rebuilt or
+overwritten; the next package must be explicitly labelled `v0.2.0-preview.5`.
 
 The exact five assets were signed through the owner-controlled macOS Keychain,
 downloaded again from the public release into a fresh directory, verified with
