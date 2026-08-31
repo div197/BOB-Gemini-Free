@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `5eae3e2`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4a0f15d`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -97,8 +97,11 @@ Developer API base64 processing.
 
 The change is intentionally narrow. It does not enable new image formats, make
 OCR automatic, or claim live Google vision capability. Browser previews,
-OCR CPU limits, provider session requirements, and Scotty reference lifetime
-remain separately documented boundaries.
+OCR CPU limits, and provider session requirements remain separately documented
+boundaries. The local image-reference cache now also applies a conservative
+15-minute age limit before reusing a Scotty reference; the provider's actual
+expiry remains unknown, so this is a stale-reference guard rather than a
+provider-lifetime claim.
 
 ### 3. Updater install-location preflight — `8651eba`
 
@@ -129,6 +132,16 @@ path register, and verification matrix now record the continuation truth:
 - older commit labels are not used as current-tip evidence;
 - no browser claim is upgraded without a real browser runtime;
 - no GitHub Actions workflow is required or invoked.
+
+### 5. Session-bound image-reference age guard — `4a0f15d`
+
+The bounded Scotty reference cache now records insertion time and expires a
+local reference after a conservative 15-minute age. An expired entry is
+removed before lookup and causes a fresh upload; it is never silently reused.
+The cache remains scoped to a single authenticated cookie source and bounded
+by entry count. The provider's actual reference lifetime is undocumented, so
+the local age is explicitly a stale-reference guard rather than a claim about
+Google's TTL. Clock-injected tests cover both expiry and refresh.
 
 ## Verification completed
 
