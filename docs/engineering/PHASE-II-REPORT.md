@@ -701,7 +701,8 @@ immutable macOS `v0.2.0-preview.5` package was built from source baseline
 evidence for the cross-port localhost origin boundary, and protected PR #78
 stopped the Studio from probing the gateway while a student was still typing a
 partial BOB access key. Public `main` was then advanced through PRs #80–#83 to
-`9f11eef`; the latest desktop-coexistence follow-up is source-verified and has
+`9f11eef`, and documentation/test reconciliation PR #84 moved it to
+`0cc81b2`; the latest desktop-coexistence follow-up is source-verified and has
 a locally signed Preview 6 candidate, but that candidate requires publication
 before students receive it.
 

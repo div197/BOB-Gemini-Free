@@ -2,8 +2,9 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Candidate:** `v0.2.0-preview.6` / preview channel
-**Public source:** `9f11eef922e09110df923205eb9aad90da35e236`
-**Merged change:** PR #83, version-aware desktop gateway coexistence
+**Public source:** `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`
+**Merged change:** PR #83, version-aware desktop gateway coexistence; PR #84,
+release-state documentation and updater-matrix reconciliation
 **Status:** locally verified candidate; not uploaded or published
 
 This receipt records the exact local candidate produced after the public
@@ -45,22 +46,23 @@ not exported, printed, committed, or placed in the package.
 - release asset verifier: `scripts/verify-release-assets.sh` — PASS
 
 Local candidate directory:
-`/tmp/bob-gemini-free-preview6-gateway-handshake`
+`/tmp/bob-gemini-free-preview6-main-0cc81b2`
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `b8e6a1e686da5c51e9d82852c4aa91b88e996e78ac3166e3d882b11c0fa5bfef` |
-| `SHA256SUMS` | `c453a05be343d7ef9c1a650c6bc84cfe17030cdec33b65671097318645ff0e7e` |
-| `SHA256SUMS.sig` | `ad1bed1b79d642f46fd6370e023e8d8119b283fa81bfc55e69d7708cc9114e24` |
-| `bob-gemini-free-macos-universal.dmg` | `f02e9a7f80e2934bcedd532ec1da6eaf07ddf2b1905242e8e87ebc5a6dfe19de` |
-| `bob-gemini-free-macos-universal.zip` | `f7c61ef334d5ae2975727aa824a5d44ed101ffadecd4e398eac4bd3aacc72523` |
+| `SHA256SUMS` | `cfd45fdd9e4c7875bd09b62d00655278164134c2562062cd6099dd5a5b752e36` |
+| `SHA256SUMS.sig` | `12a46631d60b0e5eef0305a259e4efd992c6beb2c07dd9a9fdc2e4a2fcfce025` |
+| `bob-gemini-free-macos-universal.dmg` | `7eaacc9cc451b45432f12bbab83eb0916ac3d89c0473f611c5848e3663e99b04` |
+| `bob-gemini-free-macos-universal.zip` | `7b156b787bc20d0670f0ba42c240f822fa8834654cd2ce1e2cb6790168fb0643` |
 
 ## Native coexistence proof
 
 The older installed `/Applications/BOB Gemini Free.app` process was left
-running on `127.0.0.1:8081`. The Preview 6 candidate was opened separately.
+running on `127.0.0.1:8081`. The exact merged-main Preview 6 candidate was
+opened separately.
 Because the old gateway had no matching `X-BOB-Version` marker, the new app
-did not reuse it. It selected `127.0.0.1:60864`, returned local `/healthz`
+did not reuse it. It selected `127.0.0.1:63768`, returned local `/healthz`
 JSON `{"status":"ok"}` with `X-BOB-Version: v0.2.0-preview.6`, rendered
 `v0.2.0-preview.6` in the native footer, and passed the macOS zoom/maximize
 action. The old process remained on 8081 throughout this check.

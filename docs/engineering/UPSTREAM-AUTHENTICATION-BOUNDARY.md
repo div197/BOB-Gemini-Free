@@ -2,7 +2,7 @@
 
 **Status:** Current v0.2 source / public Preview 5 engineering truth
 
-Public `main` is `9f11eef`; the downloadable macOS package remains immutable
+Public `main` is `0cc81b2`; the downloadable macOS package remains immutable
 `v0.2.0-preview.5`. A locally verified Preview 6 candidate exists but is not a
 public release. Earlier Preview 7 references below describe the legacy fleet
 boundary and are not the current package identity.

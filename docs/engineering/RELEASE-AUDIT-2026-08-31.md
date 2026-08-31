@@ -3,7 +3,7 @@
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Current audited packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
-**Current public-main head after Preview 5 publication:** commit `9f11eef922e09110df923205eb9aad90da35e236` (PRs #77–#83; browser-boundary, credential-input, telemetry, release-version, settings, and desktop-coexistence hardening; not included in immutable Preview 5 assets)
+**Current public-main head after Preview 5 publication:** commit `0cc81b2029d5dd467f7c96b26a8b812bee1ab461` (PRs #77–#84; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, and release-state reconciliation; not included in immutable Preview 5 assets)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -31,7 +31,7 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `9f11eef922e09110df923205eb9aad90da35e236` through PRs #77–#83 | VERIFIED |
+| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `0cc81b2029d5dd467f7c96b26a8b812bee1ab461` through PRs #77–#84 | VERIFIED |
 | Public releases | Latest desktop preview is immutable `v0.2.0-preview.5`; Preview 4 remains available as historical input | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
@@ -47,12 +47,12 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 ## Preview 6 candidate continuation — 2026-08-31
 
 Public `v0.2.0-preview.5` remains the latest downloadable desktop release.
-The merged public source at `9f11eef922e09110df923205eb9aad90da35e236`
+The merged public source at `0cc81b2029d5dd467f7c96b26a8b812bee1ab461`
 contains the version-aware desktop gateway handshake. A local universal
-`v0.2.0-preview.6` candidate was built from the merged PR #83 source tree,
-signed with the owner-controlled Keychain path, verified against its detached
+`v0.2.0-preview.6` candidate was rebuilt from the exact merged public-main tree
+at `0cc81b2`, signed with the owner-controlled Keychain path, verified against its detached
 manifest, and launched while the older installed gateway continued to own
-`127.0.0.1:8081`. The new app selected `127.0.0.1:60864`, exposed the exact
+`127.0.0.1:8081`. The new app selected `127.0.0.1:63768`, exposed the exact
 `X-BOB-Version: v0.2.0-preview.6` marker, rendered its own version, and passed
 the native maximize/zoom action. Full details and hashes are in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md).

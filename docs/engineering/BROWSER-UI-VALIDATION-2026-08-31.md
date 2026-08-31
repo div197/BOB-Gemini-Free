@@ -67,8 +67,9 @@ ran before the immutable `v0.2.0-preview.5` package was built, but those three
 behaviors were included in that package after clean-source packaging and
 signature verification. At that intermediate checkpoint, public `main` had
 advanced to `ade691d` through PR #77 (browser security evidence) and PR #78
-(credential-input probe hygiene). It has since advanced through PRs #80–#83 to
-`9f11eef`; all of these post-publication source changes require a new package
+(credential-input probe hygiene). It then advanced through PRs #80–#83 to
+`9f11eef`, and documentation/test reconciliation PR #84 moved public `main` to
+`0cc81b2`; all of these post-publication source changes require a new package
 and are not claimed for Preview 5. Native macOS, Windows, Linux, CDN/offline, and clean-device
 acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).
