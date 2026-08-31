@@ -129,6 +129,7 @@ func TestStreamFlightReportsSlowSubscriberInsteadOfDropping(t *testing.T) {
 	upstreamStarted := make(chan struct{})
 	startEmitting := make(chan struct{})
 	followerRelease := make(chan struct{})
+	leaderConsumed := make(chan struct{}, maxStreamSubscriberBuffer+2)
 	leaderDone := make(chan error, 1)
 	followerDone := make(chan error, 1)
 
@@ -140,9 +141,17 @@ func TestStreamFlightReportsSlowSubscriberInsteadOfDropping(t *testing.T) {
 				if err := emit(fmt.Sprintf("chunk-%03d", i)); err != nil {
 					return err
 				}
+				select {
+				case <-leaderConsumed:
+				case <-time.After(2 * time.Second):
+					return errors.New("healthy leader did not consume the burst item")
+				}
 			}
 			return nil
-		}, func(string) error { return nil })
+		}, func(string) error {
+			leaderConsumed <- struct{}{}
+			return nil
+		})
 	}()
 
 	<-upstreamStarted
