@@ -57,6 +57,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Fixes the Config modal's English/Hindi translation binding so gateway access
   labels, help, and placeholders are rendered from the correct language
   dictionary instead of disappearing after a language switch.
+- Prevents the page-session BOB Gateway Access Key from being sent to a
+  non-loopback cleartext HTTP endpoint. Loopback HTTP remains compatible,
+  HTTPS remains supported, and the settings dialog reports `HTTPS REQUIRED`
+  while ping, telemetry, model discovery, and generation share the same guard.
 
 ### Desktop coexistence
 

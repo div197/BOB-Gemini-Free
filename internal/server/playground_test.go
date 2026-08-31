@@ -110,7 +110,7 @@ func TestTelemetryUsesHealthzBeforeProtectedStats(t *testing.T) {
 	}
 	for _, marker := range []string{
 		`healthRes.headers.get("X-BOB-Auth-Required") === "true"`,
-		`if (healthAuthRequired && !apiKey)`,
+		`if (healthAuthRequired && !headers.Authorization)`,
 		`clearTelemetryStats();`,
 		`updateGatewayStatusIndicator(true, Math.round(performance.now() - start));`,
 	} {
@@ -1222,22 +1222,87 @@ func TestDeveloperAPIRouteRequiresSafeGatewayTransport(t *testing.T) {
 		t.Fatal("native context still bypasses the configured gateway transport policy")
 	}
 
-	secureStart := strings.Index(html, "function isSecureGatewayForProviderKey(rawURL)")
+	secureStart := strings.Index(html, "function isSecureGatewayForAccessKey(rawURL)")
 	if secureStart < 0 {
 		t.Fatal("Developer API secure transport helper is missing")
 	}
-	secureEndOffset := strings.Index(html[secureStart:], "\n}\n\nfunction openGatewayModal")
+	secureEndOffset := strings.Index(html[secureStart:], "\n}\n\nfunction isSecureGatewayForProviderKey")
 	if secureEndOffset < 0 {
 		t.Fatal("Developer API secure transport helper boundary is missing")
 	}
 	secureSource := html[secureStart : secureStart+secureEndOffset]
 	for _, marker := range []string{
-		`parsedURL.protocol === "https:"`,
-		`parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href)`,
+		`return parsedURL.protocol === "https:" ||`,
+		`(parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href))`,
 		`if (!parsedURL.hostname || parsedURL.username || parsedURL.password) return false;`,
 	} {
 		if !strings.Contains(secureSource, marker) {
 			t.Fatalf("Developer API secure transport helper is missing marker %q", marker)
+		}
+	}
+}
+
+func TestGatewayAccessKeyRequiresSecureTransport(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function isSecureGatewayForAccessKey(rawURL)`,
+		`function gatewayAccessKeyTransportIssue()`,
+		`function gatewayRequestHeaders()`,
+		`gatewayRouteAccessBlocked:`,
+		`return parsedURL.protocol === "https:" ||`,
+		`(parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href))`,
+		`if (gatewayApiKey && isSecureGatewayForAccessKey(getGatewayBaseUrl()))`,
+		`const transportIssue = gatewayAccessKeyTransportIssue();`,
+		`pill.innerText = "HTTPS REQUIRED"`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("gateway access-key transport guard is missing marker %q", marker)
+		}
+	}
+
+	functionBounds := []struct {
+		name string
+		end  string
+	}{
+		{"async function pingGatewayManual()", "\n}\n\nfunction updateGatewayStatusIndicator"},
+		{"async function syncBackendModels()", "\n}\n\nfunction autoResize"},
+		{"async function refreshTelemetry()", "\n}\n\nfunction showLocalOnboardingModal"},
+		{"async function sendMessage()", "\n}\n\n// Progressive Web App (PWA) Offline Service Worker Registration"},
+	}
+	for _, functionBound := range functionBounds {
+		start := strings.Index(html, functionBound.name)
+		if start < 0 {
+			t.Fatalf("gateway request function %q is missing", functionBound.name)
+		}
+		endOffset := strings.Index(html[start:], functionBound.end)
+		if endOffset < 0 {
+			t.Fatalf("gateway request function %q boundary is missing", functionBound.name)
+		}
+		source := html[start : start+endOffset]
+		if !strings.Contains(source, "gatewayRequestHeaders()") {
+			t.Fatalf("gateway request function %q does not use the shared transport guard", functionBound.name)
+		}
+		if strings.Contains(source, `headers["Authorization"] = "Bearer " + apiKey`) {
+			t.Fatalf("gateway request function %q can attach an unguarded access key", functionBound.name)
+		}
+	}
+
+	statusStart := strings.Index(html, "function updateGatewayCredentialStatus()")
+	if statusStart < 0 {
+		t.Fatal("gateway credential status function is missing")
+	}
+	statusEndOffset := strings.Index(html[statusStart:], "\n}\n\nfunction isLoopbackGatewayURL")
+	if statusEndOffset < 0 {
+		t.Fatal("gateway credential status function boundary is missing")
+	}
+	statusSource := html[statusStart : statusStart+statusEndOffset]
+	for _, marker := range []string{
+		`const accessIssue = gatewayAccessKeyTransportIssue();`,
+		`const routeIssue = providerRoute ? (developerRouteSelectionIssue() || accessIssue) : accessIssue;`,
+		`accessState.textContent = accessIssue;`,
+	} {
+		if !strings.Contains(statusSource, marker) {
+			t.Fatalf("gateway credential status is missing marker %q", marker)
 		}
 	}
 }

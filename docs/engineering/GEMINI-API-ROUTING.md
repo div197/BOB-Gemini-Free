@@ -102,8 +102,8 @@ The Studio's Config modal deliberately presents four separate concepts:
 
 | Config item | Meaning | Stored/sent boundary |
 |---|---|---|
-| **Gateway Endpoint URL** | Which BOB process receives the request | May be saved as a UI preference; remote endpoints require an explicit trust decision and HTTPS for provider-key use |
-| **BOB Gateway Access Key** | Optional authentication for an operator-protected BOB endpoint (`api_keys`) | Page memory only; sent as BOB request authorization; it is not a Google credential |
+| **Gateway Endpoint URL** | Which BOB process receives the request | May be saved as a UI preference; remote endpoints require an explicit trust decision |
+| **BOB Gateway Access Key** | Optional authentication for an operator-protected BOB endpoint (`api_keys`) | Page memory only; sent as BOB request authorization only to loopback HTTP or an HTTPS endpoint; it is not a Google credential |
 | **Google Gemini Developer API key** | The student's own Google AI Studio project credential | Page memory only; sent only when the Developer API toggle is enabled, through BOB's dedicated request header |
 | **Web session / cookies** | The default reverse-engineered web-RPC identity | Managed by the running engine and its configured cookie state; there is no cookie input in the Studio and cookies must not be pasted into either key field |
 
@@ -183,6 +183,15 @@ endpoint is an explicit trust decision; use HTTPS and an application API key
 when the endpoint is not on the same machine. Never paste a provider key into
 a public demo whose gateway ownership and transport you have not verified.
 
+The Studio applies the same transport boundary to the optional **BOB Gateway
+Access Key**. Loopback HTTP is permitted for a local engine; a non-loopback
+cleartext HTTP endpoint causes the browser to withhold the key and display an
+`HTTPS REQUIRED` state. This does not mark an otherwise open endpoint offline
+or prevent keyless HTTP use, but a protected remote endpoint must use HTTPS.
+The guard is applied centrally to ping, telemetry, model discovery, and
+generation request headers so a new caller cannot accidentally bypass the
+policy.
+
 For a controlled CLI process, the only supported environment form is one key:
 
 ```bash
@@ -247,7 +256,9 @@ tests in:
 
 - `internal/geminiapi/geminiapi_test.go`;
 - `internal/config/config_test.go`; and
-- `internal/server/gemini_api_test.go`.
+- `internal/server/gemini_api_test.go`; and
+- `internal/server/playground_test.go` for the browser credential and route
+  boundary.
 
 Before each preview/release, maintainers should re-check the official links,
 the current supported model IDs, and the UI wording. Update the matrix and
