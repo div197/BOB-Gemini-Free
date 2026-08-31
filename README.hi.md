@@ -32,7 +32,9 @@
 
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
 bridge, historical Preview 3 और current controlled preview `v0.2.0-preview.4`
-शामिल हैं; stable
+शामिल हैं। Public `main` में Preview 4 के बाद का artifact-preview और
+responsive-header सुधार भी आ चुका है; प्रकाशित Preview 4 assets अपरिवर्तनीय
+हैं और अगला package candidate `v0.2.0-preview.5` है। Stable
 `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,

@@ -212,3 +212,18 @@ reconciliation, not clean-device replacement, restart confirmation,
 interrupted-update rollback, Apple platform trust, Google provider behavior,
 or 20–30-device pilot acceptance. The private key remains outside the public
 repository and release assets.
+
+## Post-Preview 4 source reconciliation — 2026-08-31
+
+Protected PR #62 merged the artifact-preview lifecycle fix, responsive-header
+fix, generated web bundle, focused regression tests, and dated browser evidence
+into public `main` at merge commit `5530edb`. This source change was not
+retroactively inserted into the immutable Preview 4 assets, and GitHub Actions
+was not used.
+
+The three Wails preview packagers now default to the next explicit candidate,
+`v0.2.0-preview.5`; no Preview 5 tag or release exists yet. The current source
+is therefore ahead of the latest public package by one reviewed UI/reliability
+change. Preview 5 requires the clean-source gate, local package build,
+Keychain-backed manifest signing, fresh public-byte reconciliation, and
+installed-bundle acceptance before publication.

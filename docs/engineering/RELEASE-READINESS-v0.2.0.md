@@ -7,14 +7,23 @@
 historical `v0.2.0-preview.3`, and current controlled macOS `v0.2.0-preview.4`
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
+**Current public `main`:** merge commit `5530edb` (PR #62), containing the
+post-Preview-4 artifact-preview and responsive-header fix. **Next preview
+candidate:** `v0.2.0-preview.5`, not yet published.
+
 ## Current Preview 4 publication refresh — 2026-08-31
 
-The authoritative public source is `main` at merge commit
+The Preview 4 package source is `main` at merge commit
 `abfeebaaaaabc740ea29602b602591a0b707fbc2`. Protected PR #58 merged the
 explicit Google 401/403 session-cache recovery fix, and PR #59 merged the
 Preview 4 packaging/versioning correction. The current controlled macOS
 universal preview is published at
 [`v0.2.0-preview.4`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4).
+
+After that publication, protected PR #62 merged the artifact-preview and
+responsive-header fix into `main` at `5530edb`. The published Preview 4 assets
+were not rebuilt or overwritten; the next package must be explicitly labelled
+`v0.2.0-preview.5`.
 
 The exact five assets were signed through the owner-controlled macOS Keychain,
 downloaded again from the public release into a fresh directory, verified with
@@ -250,7 +259,7 @@ artifact, platform-trust, clean-device, provider, or fleet gates.
 | Exact artifact integrity | Updater verifies the signed `SHA256SUMS` entry, size, package type, and platform magic; Preview 3's five public assets were re-downloaded and byte-reconciled | Repeat the same regeneration, signature, and public-byte checks for every future release |
 | macOS platform trust | No Apple Developer ID certificate, hardened-runtime notarization, or stapled ticket is available in this workflow | The result must remain clearly labelled project-signed/ad-hoc and may require first-launch approval |
 | Windows publisher trust | No Windows publisher-signed installer has been accepted in this audit | Windows cannot be called production-ready from this branch |
-| Release channel | Signed previews `v0.2.0-preview.1`, superseded `v0.2.0-preview.2`, and current controlled macOS `v0.2.0-preview.3` are public; stable `v0.2.0` is not | Existing same-key Preview 7 devices have a current Preview 3 candidate through the preview path; installed replacement and stable remain gated |
+| Release channel | Signed previews `v0.2.0-preview.1`, superseded `v0.2.0-preview.2`, historical Preview 3, and current controlled macOS `v0.2.0-preview.4` are public; stable `v0.2.0` is not | Existing same-key Preview 7 devices have a current Preview 4 candidate through the preview path; installed replacement and stable remain gated |
 | Private-key custody | Keychain presence was checked without reading the secret | Keep it out of Git, chat, screenshots, student machines, and shell transcripts |
 
 The stable Wails targets now fail closed when the public key file is absent.
@@ -288,15 +297,15 @@ For the 30 devices, the result depends on the installed version and location:
 
 | Existing device state | Can it update to a published signed `v0.2.0` stable package? | Required action |
 |---|---|---|
-| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | It has a current same-key `v0.2.0-preview.3` candidate through its preview lookup; it still cannot jump directly to stable | Use **Help → Check for Updates**, confirm Preview 3 (or Preview 1 first if it is the displayed candidate), then use the current preview's stable-first updater after stable is published; alternatively install stable manually |
-| A newly built current-source preview bridge, current key, writable directory | Yes, it can discover a newer signed Preview 3 or stable package | User performs the explicit update, then selects Check for Updates again for Preview → Stable |
+| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | It has a current same-key `v0.2.0-preview.4` candidate through its preview lookup; it still cannot jump directly to stable | Use **Help → Check for Updates**, confirm Preview 4 (or Preview 1 first if it is the displayed candidate), then use the current preview's stable-first updater after stable is published; alternatively install stable manually |
+| A newly built current-source preview bridge, current key, writable directory | Yes, it can discover a newer signed Preview 4 or stable package | User performs the explicit update, then selects Check for Updates again for Preview → Stable |
 | Preview 4–6 or another build with the old/unrecoverable project key | No, not cryptographically | One manual install of a package carrying the current public key, then later updates can be verified |
 | Historical `v0.1.7-preview.3` or older without an embedded updater key | No | Manual installation; do not use an environment variable as a production trust substitute |
 | App still running from a mounted DMG or App Translocation path | No | Copy it to `/Applications` or another writable application directory and relaunch |
 | A package with no signed manifest or wrong platform asset | No | Updater must refuse it; use the official release page for recovery |
 
 Therefore, if all 30 students truly have the public Preview 7 binary, the
-published Preview 3 candidate provides the current updater step, but not a
+published Preview 4 candidate provides the current updater step, but not a
 direct one-step Preview 7 → stable migration. Pilot the explicit update steps,
 and only then publish/announce stable. This still does **not** prove that all 30
 machines will update: OS version, architecture, permissions, network access,

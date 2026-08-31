@@ -56,8 +56,10 @@ not create page-level horizontal scroll.
 ## Release boundary
 
 This validation covers the local hosted bundle after the working-tree fix. The
-published `v0.2.0-preview.4` assets are immutable and were built before this
-change; the fix must be included in the next packaged preview after the merged
-commit is rebuilt and signed. Native macOS, Windows, Linux, CDN/offline, and
+fix is now merged into public `main` at `5530edb`; the published
+`v0.2.0-preview.4` assets are immutable and were built before this change. It
+must be included in the next packaged preview, whose source default is
+`v0.2.0-preview.5`, after that commit is rebuilt and signed. Native macOS,
+Windows, Linux, CDN/offline, and
 clean-device acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).
