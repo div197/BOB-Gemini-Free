@@ -685,8 +685,9 @@ routing, or stream deduplication.
 
 The current source-hardening code tip is on the local branch
 `codex/release-readiness-v0.2.0` at `cec4c8e`; subsequent documentation
-reconciliation is being kept separate, while `origin/main` remains a separate
-branch at `523ceeb`. A local Preview 2 candidate has been signed and verified
+reconciliation is being kept separate from the reviewed code, which is now
+published in public `main` through PR #42 at `ba1b562`. A local Preview 2
+candidate has been signed and verified
 through the Keychain-backed release flow, but no public Preview 2 or stable
 release, tag, or GitHub Actions workflow was created by this continuation. The
 browser viewport acceptance matrix and clean-device/provider/public-release

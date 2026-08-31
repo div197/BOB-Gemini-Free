@@ -288,8 +288,9 @@ and is preserved in the current `main` history. The release-coherence
 follow-up was merged through protected PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33);
 the installer trust-anchor follow-up was merged through protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36),
 and the session-only gateway-auth follow-up through protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38).
-The current public `main` tip at this audit checkpoint is merge commit
-`523ceeb`.
+The current public `main` tip at the pre-PR #42 audit checkpoint was merge
+commit `523ceeb`; protected PR #42 subsequently merged the reviewed source at
+`ba1b562`.
 The final local native package evidence in this section was produced from
 clean source commit `cec4c8e`; its release directory was signed and verified
 through the local Keychain signer, and a 0600 receipt was recorded outside the
@@ -413,8 +414,8 @@ deterministic history-limit stream regression. The signed public
 immutable; the next source candidate is `v0.2.0-preview.2` and is not yet
 published.
 The local branch is
-`codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
-release was tagged, no GitHub Actions
+`codex/release-readiness-v0.2.0`; its reviewed source is now included in
+public `main` through PR #42. No stable release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider or release secret was used.
 
 | Current claim | Classification | Evidence | Boundary |

@@ -12,7 +12,7 @@ not a silent fleet push: a running app may perform a delayed metadata check,
 but it does not download, replace, or restart until the user selects
 **Install Update**.
 
-## Evidence snapshot
+## Evidence snapshot before PR #42
 
 This audit was run on 2026-08-31 from
 `/Users/apple31/Documents/BOB-Gemini-Free` without using a PAT, provider key,
@@ -42,6 +42,17 @@ RELEASE-NOTICE.txt                   efa4907841a16a96f3931a9331e779fb9ae2c7964ab
 SHA256SUMS                           56b1d9d4bcb005caa300f5221de9d90c4a5a030003d0462eb7e27eb6cee198f8
 SHA256SUMS.sig                       18b969bad7d3de108d135e34d845a6f98385ff92c00e510a0a26423565c3e79d
 ```
+
+## Post-merge reconciliation — 2026-08-31
+
+Protected PR [#42](https://github.com/div197/BOB-Gemini-Free/pull/42) merged
+the reviewed source and release-readiness documentation into public `main` at
+`ba1b56228f999bcded0fc6539ddb8ccca1935a11`. The reviewed code tip `cec4c8e`
+and the final documentation-only reconciliation commits are therefore part of
+the public source history. This merge did not create a tag or GitHub Release:
+public `v0.2.0-preview.1` remains immutable, Preview 2 remains a locally
+verified but unpublished candidate, and stable `v0.2.0` remains unpublished.
+No GitHub Actions workflow was added or run.
 
 The public bridge ZIP reports `CFBundleShortVersionString` and
 `CFBundleVersion` as `0.2.0`; the full preview channel/version is carried by
