@@ -126,6 +126,36 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	}
 }
 
+func TestStudioSSEParserAcceptsStandardDataFieldForms(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "function processSSELines(buffer)")
+	if start < 0 {
+		t.Fatal("processSSELines function start is missing")
+	}
+	end := strings.Index(html[start:], "\n    while (true) {")
+	if end <= 0 {
+		t.Fatal("processSSELines function boundaries are missing")
+	}
+	source := html[start : start+end]
+	for _, marker := range []string{
+		`const streamData = trimmed.startsWith("data:") ? trimmed.slice(5).trimStart() : null;`,
+		`if (streamData === "[DONE]") { streamDone = true; break; }`,
+		`const data = JSON.parse(streamData);`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("Studio SSE parser is missing standard data-field marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`trimmed.startsWith("data: ")`,
+		`trimmed === "data: [DONE]"`,
+	} {
+		if strings.Contains(source, forbidden) {
+			t.Fatalf("Studio SSE parser still requires non-standard spacing: %q", forbidden)
+		}
+	}
+}
+
 func TestReachableGatewayIsNotShownOfflineAfterHTTPOrStreamFailure(t *testing.T) {
 	html := string(playgroundHTML)
 	functionStart := strings.Index(html, "async function sendMessage()")

@@ -11944,10 +11944,11 @@ async function sendMessage() {
       const remaining = lines.pop(); // Incomplete tail
       for (const line of lines) {
         const trimmed = line.trim();
-        if (trimmed === "data: [DONE]") { streamDone = true; break; }
-        if (trimmed.startsWith("data: ")) {
+        const streamData = trimmed.startsWith("data:") ? trimmed.slice(5).trimStart() : null;
+        if (streamData === "[DONE]") { streamDone = true; break; }
+        if (streamData) {
 	          try {
-	            const data = JSON.parse(trimmed.slice(6));
+	            const data = JSON.parse(streamData);
 	            if (data && data.error && data.error.message) {
 	              streamProtocolError = String(data.error.message).slice(0, MAX_HISTORY_ERROR_CHARS);
 	              streamDone = true;
