@@ -105,8 +105,16 @@ private key is exposed.
 
 ## Remaining release gate
 
-This checkout contains the enforcement and local packaging command, but no
-authoritative release key or published signed release was exercised in this
-audit. Therefore a live successful update cannot be claimed until the operator
-configures the matching local values, publishes a release through the chosen
-channel, and performs a clean-machine verification.
+The owner-controlled macOS Keychain signer was exercised for a local
+`v0.2.0-preview.2` candidate: the exact release directory received a detached
+Ed25519 signature, passed `scripts/verify-release-assets.sh`, and produced a
+0600 evidence receipt outside the worktree. The public `v0.2.0-preview.1`
+bridge was also downloaded and re-verified from GitHub. This proves local
+signing and verification, not a successful installed-app replacement.
+
+No `v0.2.0-preview.2` or stable `v0.2.0` release was published in this audit.
+A live successful update cannot be claimed until the owner publishes a new
+candidate through the chosen channel, re-verifies the exact uploaded bytes
+from a clean machine, and completes clean-device replacement, rollback, and
+pilot acceptance. The private key remains outside the repository and must
+stay in the local secret store.

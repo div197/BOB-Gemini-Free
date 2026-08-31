@@ -400,7 +400,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The current reviewed code tip is `cec4c8e`; it contains the
+The reviewed code tip at the start of this continuation was `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
@@ -415,8 +415,19 @@ immutable; the next source candidate is `v0.2.0-preview.2` and is not yet
 published.
 The local branch is
 `codex/release-readiness-v0.2.0`; its reviewed source is now included in
-public `main` through PR #42. No stable release was tagged, no GitHub Actions
-workflow was added or invoked, and no provider or release secret was used.
+public `main` through protected PRs #42–#46. The local file tree was rechecked
+against public `main` after PR #46. No stable release was tagged, no GitHub Actions
+workflow was added or invoked, and no provider secret was used. The release
+private key was used only inside the owner-controlled local Keychain signing
+operation and was never exposed to source, Git, chat, or a student package.
+
+The updater durability continuation is now part of the public source history:
+`b136724` flushes and synchronizes Unix transaction state around swaps and
+recovery, while `fd279aa` uses Windows `MoveFileExW` replace-existing and
+write-through semantics for updater metadata. Their documentation commits are
+also merged through PRs #44–#46. The release candidate remains source-ready
+only: public `v0.2.0-preview.1` is immutable, `v0.2.0-preview.2` is not
+published, and stable `v0.2.0` is not published.
 
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
