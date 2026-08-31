@@ -32,13 +32,12 @@ current local truth is:
   release artifact download and explains App Translocation/read-only paths;
   the preflight is source- and fixture-tested but still needs a real
   `/Applications` installed-bundle run.
-- The latest local macOS Preview package was built from clean commit
-  `16f3aec`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
+- The final local macOS Preview 2 package was built from clean commit
+  `cec4c8e`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
   contained a visible `/Applications` shortcut, and the package was signed
-  and verified through the local Keychain-backed Ed25519 release signer. This
-  is local package evidence, not a publication or clean-device update proof;
-  the post-package `49080a5` change is test-only and requires a fresh receipt
-  before any public upload.
+  and verified through the local Keychain-backed Ed25519 release signer. A
+  0600 local evidence receipt was recorded outside the worktree. This is local
+  package evidence, not a publication or clean-device update proof.
 - The current tip also contains the isolated Studio correctness pass: native
   button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
   surfaces, accessible selector names, a prompt skip link, and synchronized
