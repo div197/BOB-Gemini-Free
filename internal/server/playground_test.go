@@ -447,10 +447,19 @@ func TestAttachmentParsingIsBoundedAndCancellable(t *testing.T) {
 		`const releaseParseSlot = await acquireAttachmentParseSlot();`,
 		`if (!isAttachmentEntryActive(fileEntry)) return;`,
 		`entry.cancelled = true;`,
-		`await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();`,
+		`function readAttachmentBlob(blob, entry, method)`,
+		`reader.abort()`,
+		`abortController: typeof AbortController === 'function' ? new AbortController() : null`,
+		`function runAttachmentOCR(dataUrl, entry)`,
+		`if (typeof tesseract.createWorker === 'function')`,
+		`worker.terminate`,
+		`await readAttachmentAsArrayBuffer(file, fileEntry);`,
+		`await readAttachmentAsText(file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), fileEntry);`,
 		`fileEntry.extractionTruncated = true;`,
 		`window.addEventListener('drop'`,
 		`extractDocumentToMarkdown(dt.files[i]);`,
+		`entry.abortController.abort();`,
+		`file.abortController.abort();`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("playground is missing bounded attachment marker %q", marker)

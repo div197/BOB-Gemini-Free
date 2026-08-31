@@ -9709,6 +9709,143 @@ function clipAttachmentExtraction(value) {
   return { value: text.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), truncated: true };
 }
 
+function attachmentAbortError() {
+  const error = new Error('Attachment operation aborted');
+  error.name = 'AbortError';
+  return error;
+}
+
+// FileReader is used where available because its work can be interrupted when
+// a user removes an attachment. Blob.arrayBuffer()/text() remain an explicit
+// compatibility fallback for older embedded webviews; their result is still
+// discarded after cancellation.
+function readAttachmentBlob(blob, entry, method) {
+  const signal = entry && entry.abortController ? entry.abortController.signal : null;
+  if (signal && signal.aborted) return Promise.reject(attachmentAbortError());
+  if (!blob || !['readAsArrayBuffer', 'readAsText', 'readAsDataURL'].includes(method)) {
+    return Promise.reject(new Error('Attachment reader received an invalid input'));
+  }
+
+  if (typeof FileReader === 'undefined') {
+    let fallback;
+    if (method === 'readAsArrayBuffer' && typeof blob.arrayBuffer === 'function') {
+      fallback = blob.arrayBuffer();
+    } else if (method === 'readAsText' && typeof blob.text === 'function') {
+      fallback = blob.text();
+    } else {
+      return Promise.reject(new Error('This browser cannot read attachments'));
+    }
+    return Promise.resolve(fallback).then(value => {
+      if (signal && signal.aborted) throw attachmentAbortError();
+      return value;
+    });
+  }
+
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    let settled = false;
+    let abortRead = () => {};
+
+    const cleanup = () => {
+      if (signal && typeof signal.removeEventListener === 'function') {
+        signal.removeEventListener('abort', abortRead);
+      }
+      reader.onload = null;
+      reader.onerror = null;
+      reader.onabort = null;
+    };
+    const settle = (ok, value) => {
+      if (settled) return;
+      settled = true;
+      cleanup();
+      if (ok) resolve(value);
+      else reject(value);
+    };
+
+    abortRead = () => {
+      if (settled) return;
+      try { reader.abort(); } catch (_) {}
+      settle(false, attachmentAbortError());
+    };
+    reader.onload = event => settle(true, event && event.target ? event.target.result : null);
+    reader.onerror = () => settle(false, reader.error || new Error('Attachment read failed'));
+    reader.onabort = () => settle(false, attachmentAbortError());
+
+    if (signal && typeof signal.addEventListener === 'function') {
+      signal.addEventListener('abort', abortRead, { once: true });
+      if (signal.aborted) {
+        abortRead();
+        return;
+      }
+    }
+
+    try {
+      reader[method](blob);
+    } catch (error) {
+      settle(false, error);
+    }
+  });
+}
+
+function readAttachmentAsArrayBuffer(file, entry) {
+  return readAttachmentBlob(file, entry, 'readAsArrayBuffer');
+}
+
+function readAttachmentAsText(blob, entry) {
+  return readAttachmentBlob(blob, entry, 'readAsText');
+}
+
+async function runAttachmentOCR(dataUrl, entry) {
+  const tesseract = window.Tesseract;
+  if (!tesseract) return null;
+  const signal = entry && entry.abortController ? entry.abortController.signal : null;
+  if (signal && signal.aborted) throw attachmentAbortError();
+
+  let worker = null;
+  let workerTerminated = false;
+  let abortHandler = null;
+  const terminateWorker = async () => {
+    if (!worker || workerTerminated || typeof worker.terminate !== 'function') return;
+    workerTerminated = true;
+    try { await worker.terminate(); } catch (_) {}
+  };
+  const throwIfAborted = () => {
+    if (signal && signal.aborted) throw attachmentAbortError();
+  };
+
+  try {
+    if (signal && typeof signal.addEventListener === 'function') {
+      abortHandler = () => { void terminateWorker(); };
+      signal.addEventListener('abort', abortHandler, { once: true });
+    }
+    throwIfAborted();
+
+    // Tesseract.js v5 exposes an independently terminable worker. Prefer it
+    // so removing an image can release OCR CPU/WASM resources immediately.
+    if (typeof tesseract.createWorker === 'function') {
+      worker = await tesseract.createWorker('eng', 1, { logger: () => {} });
+      throwIfAborted();
+      const result = await worker.recognize(dataUrl);
+      throwIfAborted();
+      return result;
+    }
+
+    // Compatibility path for older Tesseract builds. The legacy helper owns
+    // its worker, so cancellation can only suppress stale UI state afterwards.
+    if (typeof tesseract.recognize === 'function') {
+      const result = await tesseract.recognize(dataUrl, 'eng', { logger: () => {} });
+      throwIfAborted();
+      return result;
+    }
+    throw new Error('OCR engine is unavailable');
+  } finally {
+    if (signal && abortHandler && typeof signal.removeEventListener === 'function') {
+      signal.removeEventListener('abort', abortHandler);
+    }
+    await terminateWorker();
+  }
+}
+
 function getFileCategory(filename, mimeType) {
   const safeName = filename || 'attachment';
   const safeMime = mimeType || '';
@@ -9759,7 +9896,8 @@ async function extractDocumentToMarkdown(file) {
     statusText: 'Extracting...',
     estTokens: 0,
     cancelled: false,
-    extractionTruncated: false
+    extractionTruncated: false,
+    abortController: typeof AbortController === 'function' ? new AbortController() : null
   };
   
   attachedFilesList.push(fileEntry);
@@ -9771,7 +9909,7 @@ async function extractDocumentToMarkdown(file) {
   try {
     if (!isAttachmentEntryActive(fileEntry)) return;
     if (meta.cat === 'pdf') {
-      const arrayBuffer = await file.arrayBuffer();
+      const arrayBuffer = await readAttachmentAsArrayBuffer(file, fileEntry);
       if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.pdfjsLib) {
         activePDFLoadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
@@ -9819,7 +9957,7 @@ async function extractDocumentToMarkdown(file) {
         fileEntry.markdown = `[PDF document attached: ${fileName} (${(fileEntry.size/1024).toFixed(1)} KB)]`;
       }
     } else if (meta.cat === 'docx') {
-      const arrayBuffer = await file.arrayBuffer();
+      const arrayBuffer = await readAttachmentAsArrayBuffer(file, fileEntry);
       if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.mammoth) {
         const result = await mammoth.convertToHtml({ arrayBuffer });
@@ -9843,7 +9981,7 @@ async function extractDocumentToMarkdown(file) {
         fileEntry.markdown = `[Word document attached: ${fileName}]`;
       }
     } else if (meta.cat === 'spreadsheet') {
-      const arrayBuffer = await file.arrayBuffer();
+      const arrayBuffer = await readAttachmentAsArrayBuffer(file, fileEntry);
       if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.XLSX) {
         const workbook = XLSX.read(arrayBuffer, { type: 'array' });
@@ -9865,7 +10003,7 @@ async function extractDocumentToMarkdown(file) {
         fileEntry.rawText = clippedMarkdown.value;
         fileEntry.extractionTruncated = fileEntry.extractionTruncated || clippedMarkdown.truncated;
       } else {
-        const text = await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();
+        const text = await readAttachmentAsText(file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), fileEntry);
         if (!isAttachmentEntryActive(fileEntry)) return;
         const clippedText = clipAttachmentExtraction(text);
         fileEntry.markdown = `### Spreadsheet: ${fileName}\n\`\`\`csv\n${clippedText.value.trim()}\n\`\`\``;
@@ -9873,12 +10011,7 @@ async function extractDocumentToMarkdown(file) {
         fileEntry.extractionTruncated = fileEntry.size > MAX_ATTACHMENT_EXTRACTED_CHARS || clippedText.truncated;
       }
     } else if (meta.cat === 'image') {
-      const dataUrl = await new Promise((res, rej) => {
-        const reader = new FileReader();
-        reader.onload = e => res(e.target.result);
-        reader.onerror = rej;
-        reader.readAsDataURL(file);
-      });
+      const dataUrl = await readAttachmentBlob(file, fileEntry, 'readAsDataURL');
       if (!isAttachmentEntryActive(fileEntry)) return;
       fileEntry.dataUrl = dataUrl;
       currentAttachedImage = { dataUrl, name: fileName, type: file.type, size: file.size, id: fileId };
@@ -9888,7 +10021,7 @@ async function extractDocumentToMarkdown(file) {
         fileEntry.statusText = 'Running OCR...';
         renderAttachmentsShelf();
         try {
-          const result = await Tesseract.recognize(dataUrl, 'eng', { logger: () => {} });
+          const result = await runAttachmentOCR(dataUrl, fileEntry);
           if (!isAttachmentEntryActive(fileEntry)) return;
           const extracted = (result && result.data && result.data.text) ? result.data.text.trim() : '';
           if (extracted) {
@@ -9920,7 +10053,7 @@ async function extractDocumentToMarkdown(file) {
       }
     } else {
       // Plain text, Code, JSON, Logs, Markdown
-      const text = await file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS).text();
+      const text = await readAttachmentAsText(file.slice(0, MAX_ATTACHMENT_EXTRACTED_CHARS), fileEntry);
       if (!isAttachmentEntryActive(fileEntry)) return;
       const codeLang = meta.ext || 'text';
       const clippedText = clipAttachmentExtraction(text);
@@ -10033,7 +10166,12 @@ function renderAttachmentsShelf() {
 
 function removeAttachedFile(fileId) {
   const entry = attachedFilesList.find(f => f.id === fileId);
-  if (entry) entry.cancelled = true;
+  if (entry) {
+    entry.cancelled = true;
+    if (entry.abortController && typeof entry.abortController.abort === 'function') {
+      entry.abortController.abort();
+    }
+  }
   attachedFilesList = attachedFilesList.filter(f => f.id !== fileId);
   if (currentAttachedImage && currentAttachedImage.id === fileId) {
     currentAttachedImage = null;
@@ -10044,7 +10182,12 @@ function removeAttachedFile(fileId) {
 }
 
 function removeAttachedAttachment() {
-  attachedFilesList.forEach(file => { file.cancelled = true; });
+  attachedFilesList.forEach(file => {
+    file.cancelled = true;
+    if (file.abortController && typeof file.abortController.abort === 'function') {
+      file.abortController.abort();
+    }
+  });
   attachedFilesList = [];
   currentAttachedImage = null;
   currentAttachedDoc = null;
