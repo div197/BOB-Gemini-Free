@@ -1,6 +1,6 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS Preview 2 and an older Windows preview artifact are
+**Status:** public macOS Preview 3 and an older Windows preview artifact are
 published; production trust, Linux acceptance, and broad student rollout
 remain pending.
 
@@ -19,8 +19,8 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.2` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2)
-  is the current same-key updater candidate for existing Preview 7 Macs. The
+- The public [`v0.2.0-preview.3` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3)
+  is the current same-key updater candidate for controlled evaluation. The
   immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
   remains available. Stable `v0.2.0` remains gated on clean-device and pilot
   acceptance.
@@ -114,8 +114,9 @@ release from the Help menu and migrate after user consent; when stable has no
 update, a newer signed preview can be discovered, verified, staged, and rolled
 back. The already-published Preview 7 binary predates the stable-first change,
 so it must first receive the published same-key bridge preview to reach stable
-through the updater, or be manually replaced with stable. Preview 3 still requires one
-manual migration because it has no embedded desktop trust key. Preview 6
+through the updater, or be manually replaced with stable. Historical
+`v0.1.7-preview.3` still requires one manual migration because it has no
+embedded desktop trust key. Preview 6
 installations also require one manual migration to Preview 7 because the
 original project signing key was not recoverable.
 
@@ -181,7 +182,7 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.2.0-preview.2` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.2):
+[`v0.2.0-preview.3` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3):
 macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
-one-time manual migration described in the release notes. Windows Preview 3
+one-time manual migration described in the release notes. Windows `v0.1.7-preview.3`
 remains available separately; Linux is not included in Preview 7.

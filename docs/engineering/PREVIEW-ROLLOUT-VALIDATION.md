@@ -1,7 +1,7 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current public target:** controlled macOS preview `v0.2.0-preview.2`, for the
-existing public `v0.1.7-preview.7` fleet. The immutable `v0.2.0-preview.1`
+**Current public target:** controlled macOS preview `v0.2.0-preview.3`, for
+controlled evaluation of the existing public `v0.1.7-preview.7` fleet. The immutable `v0.2.0-preview.1`
 migration bridge remains available.
 
 This runbook separates three different questions that are often accidentally
@@ -44,7 +44,7 @@ those devices; later releases signed with the Preview 7 key can then use this
 updater. A newly built current-source preview can migrate to a newer stable
 release after the stable candidate is published with the same project key. An
 existing public Preview 7 installation must first update to the published
-same-key Preview 2 bridge, or be manually replaced with stable.
+same-key current preview, or be manually replaced with stable.
 
 It does **not** silently download, replace, or restart the application, and it
 does not push a release to 30 machines. A new signed preview can therefore
@@ -99,7 +99,7 @@ Do not open 30 live generations at once. Use this order:
 - send one short text request using the student's own authorized path, if
   that capability is required;
 - for the existing public Preview 7 path, check the published same-key
-  Preview 2 candidate (or the immutable Preview 1 bridge), then check stable
+  Preview 3 candidate (or the immutable Preview 1 bridge), then check stable
   from that bridge (and separately verify a later preview when no stable update
   exists);
 - verify that an intentionally failed candidate leaves the original app,
@@ -149,8 +149,8 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-The `v0.2.0-preview.1` bridge and controlled macOS `v0.2.0-preview.2` are
-published. Preview 2's exact public macOS assets have been re-downloaded,
+The `v0.2.0-preview.1` bridge and controlled macOS `v0.2.0-preview.3` are
+published. Preview 3's exact public macOS assets have been re-downloaded,
 signature-verified, and byte-reconciled with the local Keychain-backed
 publication input. The remaining
 rollout gates are:

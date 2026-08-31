@@ -276,9 +276,9 @@ The following later evidence is now available:
 | `main` requires pull requests and blocks force-push/deletion | VERIFIED_LIVE | GitHub branch protection reports enforced admins, pull-request review gate, conversation resolution, and disabled force pushes/deletions | No hosted status check is required because this project intentionally does not use GitHub Actions; local validation remains mandatory. |
 | The native desktop process honors a user's local config/cookie without widening its network boundary | VERIFIED_BY_UNIT_TEST | `cmd/desktop/config_test.go` verifies cookie discovery while forcing loopback, empty API keys, and empty remote origins | First-run login UX is not implemented; authenticated features remain per-user/session-dependent. |
 | The public release is a student-ready cross-platform native installer set | UNKNOWN | GitHub release inspection found CLI assets in `v0.1.5` but no trusted native installer set; only macOS ARM64 ad-hoc native smoke testing is complete | Requires native Windows/Linux builds, clean-device tests, platform signing, macOS notarization, and manual release publication. |
-| A public native desktop preview is available for controlled evaluation | VERIFIED_LIVE | Manually published prerelease `v0.2.0-preview.2` contains the current branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This is a beta preview only: no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Existing Preview 6 installations require one manual migration because the original project signing key was not recoverable. The released Preview 7 updater predates the current stable-first source change, so an existing Preview 7 fleet uses the published same-key Preview 2 candidate or a manual stable installation. |
+| A public native desktop preview is available for controlled evaluation | VERIFIED_LIVE | Manually published prerelease `v0.2.0-preview.3` contains the current branded macOS universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig` assets; all five were re-downloaded, signature-verified, and byte-compared with the local signed candidate | This is a beta preview only: no Apple notarization, Windows publisher signature, Linux asset, clean-device matrix, silent updater, or production student-readiness claim. Existing Preview 6 installations require one manual migration because the original project signing key was not recoverable. The released Preview 7 updater predates the current stable-first source change, so an existing Preview 7 fleet has a current same-key preview candidate available, but installed replacement remains a device gate. |
 | A free branded macOS preview package can be created without Apple membership | VERIFIED_BY_INTEGRATION_TEST | `scripts/package-wails-preview.sh` creates a branded `BOB Gemini Free.app`, `.zip`, `.dmg`, release notice, and checksums without Developer ID credentials; the bundle metadata uses the `com.abcsteps` identity | This proves local packaging only; it does not establish Gatekeeper trust, notarization, clean-device acceptance, or public student readiness. |
-| The native desktop app exposes an explicit update check | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` selects only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covers branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current source can offer a consented verified update; the already-published Preview 7 binary can now discover the published same-key Preview 2 candidate, but still needs the bridge step to reach stable through the updater. It does not silently install, remove the macOS warning, or replace platform publisher trust. |
+| The native desktop app exposes an explicit update check | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` selects only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covers branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current source can offer a consented verified update; the already-published Preview 7 binary has a current same-key Preview 3 candidate available through its preview-only path, but still needs the bridge/current-preview step to reach stable through the updater. It does not silently install, remove the macOS warning, or replace platform publisher trust. |
 
 ## Current v0.2.0 release-readiness update (2026-08-31)
 
@@ -291,12 +291,13 @@ and the session-only gateway-auth follow-up through protected PR [#38](https://g
 The current public `main` tip at the pre-PR #42 audit checkpoint was merge
 commit `523ceeb`; protected PR #42 subsequently merged the reviewed source at
 `ba1b562`.
-The final public native package evidence in this section was produced from
-public-main commit `6d3a0cfc`; its release directory was signed and verified
+The historical Preview 2 native package evidence in this section was produced
+from public-main commit `6d3a0cfc`; its release directory was signed and verified
 through the local Keychain signer, and a fresh download of every public asset
 was byte-compared with the local publication input. The signed
-`v0.2.0-preview.1` migration bridge and controlled macOS `v0.2.0-preview.2`
-preview are published; stable `v0.2.0` has not been tagged or published. The
+`v0.2.0-preview.1` migration bridge, superseded `v0.2.0-preview.2`, and
+current controlled macOS `v0.2.0-preview.3` preview are published; stable
+`v0.2.0` has not been tagged or published. The
 separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
@@ -412,11 +413,11 @@ CORS, page-token-retry, and Studio SSE-field-compatibility follow-ups
 after the evidence documents, including the Preview 1 → Preview 2
 version-transition fixtures, strict release-asset validation, and a
 deterministic history-limit stream regression. The signed public
-`v0.2.0-preview.1` bridge is immutable; controlled macOS `v0.2.0-preview.2`
-is now published from public-main commit `6d3a0cfc`.
+`v0.2.0-preview.1` bridge is immutable; controlled macOS `v0.2.0-preview.3`
+is now published from public-main commit `284b7d1a`.
 The local branch is
 `codex/release-readiness-v0.2.0`; its reviewed source is now included in
-public `main` through protected PRs #42–#48. The Preview 2 publication baseline
+public `main` through protected PRs #42–#48 and #53–#55. The Preview 3 publication baseline
 was rechecked against public `main` before publication. No stable release was tagged, no GitHub Actions
 workflow was added or invoked, and no provider secret was used. The release
 private key was used only inside the owner-controlled local Keychain signing
@@ -426,7 +427,7 @@ The updater durability continuation is now part of the public source history:
 `b136724` flushes and synchronizes Unix transaction state around swaps and
 recovery, while `fd279aa` uses Windows `MoveFileExW` replace-existing and
 write-through semantics for updater metadata. Their documentation commits are
-also merged through PRs #44–#46. Controlled macOS `v0.2.0-preview.2` is
+also merged through PRs #44–#46. Controlled macOS `v0.2.0-preview.3` is
 published and its public bytes are reconciled; stable `v0.2.0` is not
 published.
 
@@ -436,7 +437,7 @@ published.
 | Cancelling a leader or follower does not cancel an independent healthy subscriber, while the last subscriber cancels an abandoned flight | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight_test.go` covers follower cancellation, leader cancellation, leader deadline, and last-subscriber cleanup under the race detector | The upstream client's own total timeout remains the final bound; this is not a provider retry guarantee. |
 | A fetched remote image cannot bypass downstream decode dimensions through high compression | VERIFIED_BY_UNIT_TEST | `internal/multimodal/upload.go` validates fetched bytes with `inspectImageData`; `TestFetchImageBytesRejectsImagesOutsideDecodeBudget` covers a highly-compressible image over the source-dimension budget | OCR/browser CPU pressure and live remote-image egress remain external. |
 | The native updater explains an unwriteable or translocated install before downloading a package | VERIFIED_BY_UNIT_TEST | `CheckDesktopInstallTarget` performs a no-network same-filesystem preflight; tests cover a writable bundle, App Translocation, and unsupported OS, while `cmd/desktop/updates.go` defers background prompts and surfaces manual guidance | A real mounted-DMG, `/Applications`, Gatekeeper, helper restart, rollback, and 30-device run remain external. |
-| The current source can prove Preview 7 → bridge → stable selection without pretending it performed a live install | VERIFIED_BY_UNIT_TEST | `internal/updater/updater_test.go` covers the legacy preview-only lookup, same-key bridge discovery, stable-first migration, preview continuation, and stable-check failure | The published Preview 2 bytes are reconciled separately; private release-key custody and clean-device replacement still require operator evidence. |
+| The current source can prove Preview 7 → bridge → stable selection without pretending it performed a live install | VERIFIED_BY_UNIT_TEST | `internal/updater/updater_test.go` covers the legacy preview-only lookup, same-key bridge discovery, stable-first migration, preview continuation, and stable-check failure | The published Preview 3 bytes are reconciled separately; private release-key custody and clean-device replacement still require operator evidence. |
 | Removing an attachment can leave a FileReader, active PDF.js task, or supported OCR worker running and later mutate removed UI state | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` binds each attachment to an `AbortController`, removes cancelled queued parses, aborts `FileReader` reads on removal, destroys active PDF.js loading/document tasks, suppresses stale fallback results, and terminates a Tesseract.js v5 worker when available; `internal/server/playground_test.go` locks the cancellation markers | Main-thread DOCX/XLSX work, older browser fallbacks, OCR CPU cost, and rendered device behavior remain partial. |
 | Denied browser storage can break preference initialization or click handlers | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` routes language, transliteration, panel, theme, endpoint, speech, reading-zoom, and custom-instruction preferences through fail-closed helpers; `internal/server/playground_test.go` rejects direct preference-storage bypasses | Preferences intentionally remain session/default-only when storage is unavailable; chat-history quota and long-session CPU remain separate browser gates. |
 | A changed root CDN script or stylesheet can execute without an integrity check | VERIFIED_BY_UNIT_TEST | The playground head pins every external script/stylesheet with SHA-384 SRI and anonymous CORS, and pins Tesseract.js to `5.1.1`; `playground_test.go` rejects root dependencies without integrity attributes or a floating Tesseract major URL | Dynamic artifact `srcdoc` libraries, PDF worker/language assets, CDN availability, CSP behavior, and offline acceptance remain separate browser/runtime gates. |
@@ -447,3 +448,20 @@ published.
 | The Studio drops a valid SSE frame when the `data:` field omits the optional space or uses CRLF | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` extracts the payload after the SSE field name and trims only the optional separator; `TestStudioSSEParserAcceptsStandardDataFieldForms` rejects the old space-dependent branch and checks `[DONE]` handling | Browser rendering and full multi-line event assembly remain unverified; the parser still deliberately treats the gateway's one-frame JSON events as the supported shape. |
 | The local Studio shell is browser-verified at desktop, tablet, and phone widths | VERIFIED_LIVE | A fresh in-app browser loaded `http://127.0.0.1:19613/playground` and was checked at 1440x900, 1024x768, and 390x844; each viewport retained `document.documentElement.scrollWidth === innerWidth`, the shell rendered without console warnings/errors, and responsive drawer open/close behavior was exercised | This is live evidence for the local cold shell and drawer interaction only. Long streamed responses, provider errors, artifact execution, 200% zoom, and a clean-device/native package walkthrough remain separate gates. |
 | A responsive drawer can strand keyboard focus outside its visible surface | VERIFIED_LIVE | On the phone viewport, opening both configuration and integration drawers focused the first drawer control, Shift+Tab/Tab wrapped within the drawer, Escape closed it, and focus returned to `btn-toggle-left`/`btn-toggle-right`; source regression markers cover the lifecycle | This proves the current local browser build, not every embedded WebView or assistive-technology combination. |
+
+## Current Preview 3 publication addendum — 2026-08-31
+
+The current public release is the controlled macOS universal prerelease
+[`v0.2.0-preview.3`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3),
+targeting public `main` commit `284b7d1a`. Its five public assets were built
+from the clean public tip, signed through the owner-controlled macOS Keychain,
+freshly downloaded, detached-signature-verified, and byte-reconciled. The
+complete evidence is in
+[`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md).
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| The current public macOS preview is a complete, branded, signed-project artifact set | VERIFIED_LIVE | Preview 3 includes the branded universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig`; the exact public assets match the local signed inputs byte-for-byte | The project signature authenticates release bytes, not Apple Developer ID identity; the package remains ad-hoc signed, non-notarized, and macOS-only. |
+| Preview 3 is built from the current public source and carries the current updater trust anchor | VERIFIED_LIVE | Release-source verification passed at public-main `284b7d1`; the Keychain-backed signer accepted the private/public pair and the Wails build embedded the checked-in public key | Keychain presence and manifest signing do not prove future key custody, Apple trust, or a live installed-bundle update. |
+| The exact Preview 3 artifact launches locally and owns a healthy loopback gateway | VERIFIED_LIVE | Fresh artifact launch bound to `127.0.0.1:8081` when 9610 was occupied, returned `{"status":"ok"}` from `/healthz`, and shut down cleanly | This is one host's package smoke test; it does not prove Google acceptance, provider quota, clean-device replacement, rollback, or fleet rollout. |
+| Existing Preview 7/Preview 2 users will silently update to Preview 3 | STALE_OR_INCORRECT | The updater is explicit and user-consented; public metadata and source selection are verified, but installed replacement has not been observed on a clean student device | Use **Help → Check for Updates**, verify the exact target, install from a writable app location, and record restart/rollback evidence before a 20–30-device rollout. |

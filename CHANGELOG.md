@@ -52,9 +52,9 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [0.2.0-preview.3] - 2026-08-31
 
-### Controlled source candidate
+### Controlled macOS preview publication
 
-- Advances the immutable macOS preview candidate after Preview 2 with the
+- Advances the immutable macOS preview line after Preview 2 with the
   bounded updater metadata retry and calm update/staging failure dialogs
   merged on public `main`.
 - Adds responsive drawer dialog semantics, focus-in, Tab trapping, Escape
@@ -62,9 +62,13 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Ensures the ZIP and DMG both present the branded `BOB Gemini Free.app`
   bundle name instead of leaking a temporary build-directory name.
 - Local browser smoke evidence covers 1440x900, 1024x768, and 390x844 with no
-  document horizontal overflow or console warnings/errors. This candidate
-  remains ad-hoc signed, non-notarized, macOS-only, and controlled until its
-  exact release assets are built, signed, published, and re-verified.
+  document horizontal overflow or console warnings/errors.
+- The exact macOS universal assets were built from public-main `284b7d1`,
+  signed through the owner-controlled macOS Keychain, published at
+  [`v0.2.0-preview.3`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3),
+  and re-downloaded, signature-verified, and byte-reconciled.
+- This remains an ad-hoc signed, non-notarized, macOS-only controlled beta;
+  clean-device replacement, rollback, and broad student rollout remain open.
 
 ---
 

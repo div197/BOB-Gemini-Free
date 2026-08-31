@@ -1,10 +1,10 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 2 enables a signed, user-consented macOS preview updater;
+**Status:** Preview 3 enables a signed, user-consented macOS preview updater;
 the public app remains ad-hoc signed and not Apple-notarized.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
-Preview 2 (`v0.2.0-preview.2`) is now published from public-main and its five
+Preview 3 (`v0.2.0-preview.3`) is now published from public-main and its five
 public assets were re-downloaded, signature-verified, and byte-reconciled.
 Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
@@ -60,13 +60,14 @@ The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The
 released Preview 7 binary predates the later stable-first source change and
-therefore discovers only newer previews. The same-key Preview 2 is now the
-published bridge candidate for that path; the bridge can then discover a newer
-stable release. A direct stable install is the simpler alternative. Preview 6
+therefore discovers only newer previews. The same-key Preview 3 is now the
+latest published preview candidate for that path; a current-source preview
+can then discover a newer stable release. A direct stable install is the
+simpler alternative. Preview 6
 installations require a one-time manual
 migration because the original Preview 6 project signing key was not
-recoverable. Preview 3 also remains a manual migration path because it
-predates the trust key.
+recoverable. Historical `v0.1.7-preview.3` also remains a manual migration
+path because it predates the trust key.
 
 The local macOS, Windows, and Linux preview packagers now fail closed when a
 non-development package is built without `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY`.

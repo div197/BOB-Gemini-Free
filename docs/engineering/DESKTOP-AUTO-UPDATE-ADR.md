@@ -9,7 +9,7 @@
 The native application is distributed as a macOS app bundle and a Windows
 executable. The existing public Preview 7 is an ad-hoc,
 project-manifest-signed preview whose released binary performs an explicit
-preview-channel metadata check. The public `v0.2.0-preview.2` package is the
+preview-channel metadata check. The public `v0.2.0-preview.3` package is the
 current same-key controlled macOS preview and contains the later stable-first
 migration path for newly built previews. It must not silently replace itself.
 
@@ -98,7 +98,7 @@ It becomes eligible for a student-facing production channel only after the
   manifests, completed Apple/Windows publisher signing, and passed clean-device
   rollback tests. Preview-to-stable migration remains explicit and
   user-consented. Existing public Preview 7 installations use the published
-  same-key Preview 2 bridge or a manual stable install because the released
+  same-key current preview or a manual stable install because the released
   binary predates stable-first discovery; builds without the current trust anchor
   still need a manual migration. See
 `DESKTOP-UPDATE-OPERATIONS.md` for the operator and classroom rollout gate.

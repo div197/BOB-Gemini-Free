@@ -3,9 +3,28 @@
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
-**Current public previews:** `v0.2.0-preview.1` migration bridge and
-`v0.2.0-preview.2` controlled macOS preview
+**Current public previews:** immutable `v0.2.0-preview.1` migration bridge,
+superseded `v0.2.0-preview.2`, and current controlled macOS `v0.2.0-preview.3`
 **Decision:** **NOT READY for publication as a student-facing stable release**
+
+## Current publication refresh — 2026-08-31
+
+The current public-main tip is merge commit `284b7d1a9a2e7c45402318f29f08f0c1dba36d43`.
+Protected PRs [#53](https://github.com/div197/BOB-Gemini-Free/pull/53),
+[#54](https://github.com/div197/BOB-Gemini-Free/pull/54), and
+[#55](https://github.com/div197/BOB-Gemini-Free/pull/55) placed the responsive
+drawer focus fix, Preview 3 versioning, and branded ZIP packaging on public
+`main`. The current macOS universal preview is publicly published at
+[`v0.2.0-preview.3`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.3).
+
+The exact five public assets were re-downloaded into a fresh directory,
+verified with the checked-in public Ed25519 key, and byte-compared with the
+local Keychain-signed inputs. The universal app passed ad-hoc code-signature,
+DMG-layout, launch, loopback `/healthz`, and clean-shutdown checks. This
+closes Preview 3 source/package/public-byte publication integrity, not Apple
+platform trust, clean-device updater replacement, rollback, Google provider
+availability, or 20–30-device rollout acceptance. The matching private key
+remains outside the repository in the owner-controlled local secret store.
 
 ## Current repository refresh — 2026-08-31
 
@@ -20,31 +39,31 @@ current local truth is:
   public-main provenance note, and protected PR
   [#46](https://github.com/div197/BOB-Gemini-Free/pull/46) merged the native
   Windows metadata replacement path.
-- The Preview 2 release source baseline is public-main merge commit
-  `6d3a0cfc`; protected PR #47 established the preceding readiness record and
-  PR #48 reconciled the publication state after the updater hardening merges.
-  No runtime source remains only on the
-  preserved `codex/release-readiness-v0.2.0` branch, and the exact public merge
-  commit was rechecked before this documentation refresh.
-- The immutable public `v0.2.0-preview.1` bridge was not rebuilt or
-  overwritten. Controlled macOS Preview 2 is now published as
-  `v0.2.0-preview.2` from public-main commit `6d3a0cfc`; its exact asset and
-  signature reconciliation is recorded in
-  [`PREVIEW-2-PUBLICATION-2026-08-31.md`](PREVIEW-2-PUBLICATION-2026-08-31.md).
+- The Preview 3 release source baseline is public-main merge commit
+  `284b7d1a`; protected PR #53 merged the responsive drawer focus fix, PR #54
+  established the Preview 3 versioning candidate, and PR #55 corrected the
+  branded ZIP bundle name. No runtime source remains only on the preserved
+  `codex/release-readiness-v0.2.0` branch, and the exact public merge commit
+  was rechecked before this documentation refresh.
+- The immutable public `v0.2.0-preview.1` bridge and superseded Preview 2
+  were not rebuilt or overwritten. Controlled macOS Preview 3 is now
+  published as `v0.2.0-preview.3` from public-main commit `284b7d1a`; its
+  exact asset and signature reconciliation is recorded in
+  [`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md).
 - The merged source contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
   attachment/image controls, and JavaScript-URL-free gateway recovery.
 - No stable `v0.2.0` tag or release was created here, and no GitHub Actions
   workflow was added or run.
 - This refresh closes signed-asset publication for the controlled macOS
-  Preview 2; it does not close Apple/Windows platform trust, clean-device
+  Preview 3; it does not close Apple/Windows platform trust, clean-device
   updater, live provider, browser, or 30-device rollout gates.
 - The native updater now preflights the current install location before any
   release artifact download and explains App Translocation/read-only paths;
   the preflight is source- and fixture-tested but still needs a real
   `/Applications` installed-bundle run.
-- The public macOS Preview 2 package was rebuilt from clean public-main commit
-  `6d3a0cfc`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
+- The public macOS Preview 3 package was rebuilt from clean public-main commit
+  `284b7d1a`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
   contained a visible `/Applications` shortcut, and the exact uploaded assets
   were downloaded and reverified through the local Keychain-backed Ed25519
   release signer. A 0600 local evidence receipt was recorded outside the
@@ -99,8 +118,8 @@ The following paragraph is retained as historical provenance for the earlier
 PR-based publication sequence. The current source and package truth is in the
 refresh above and in
 [`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](RELEASE-TRANSITION-AUDIT-2026-08-31.md).
-The signed `v0.2.0-preview.1` migration bridge and controlled macOS
-`v0.2.0-preview.2` are publicly published. Stable `v0.2.0` remains unpublished
+The signed `v0.2.0-preview.1` migration bridge, superseded `v0.2.0-preview.2`,
+and current controlled macOS `v0.2.0-preview.3` are publicly published. Stable `v0.2.0` remains unpublished
 until the clean-device and pilot gates pass.
 
 ## Evidence already available
@@ -139,7 +158,7 @@ Google capacity or latency result.
 
 An earlier clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
 package run on this Mac. That historical package was an unsigned-manifest
-candidate. The later Preview 2 candidate was signed and verified through the
+candidate. The later Preview 3 candidate was signed and verified through the
 Keychain-backed manifest flow as recorded in the current refresh; clean-device
 updater and pilot gates remain open.
 `spctl` rejection remains expected for a package without Apple Developer ID
@@ -148,14 +167,14 @@ to fail closed; the real private key was not read.
 
 The public GitHub state was also checked:
 
-- the newest preview release is `v0.2.0-preview.2`, published as a controlled
-  macOS preview from public-main commit `6d3a0cfc`;
+- the newest preview release is `v0.2.0-preview.3`, published as a controlled
+  macOS preview from public-main commit `284b7d1a`;
 - its macOS universal DMG/ZIP, release notice, checksum manifest, and detached
   signature are present, were re-downloaded, signature-verified, and matched
   the locally signed files byte-for-byte;
 - the reviewed source hardening and release record were published to `main`
-  through protected PRs #31, #42, #44, #46, #47, and #48; the Preview 2
-  publication baseline is `6d3a0cfc`;
+  through protected PRs #31, #42, #44, #46, #47, #48, #53, #54, and #55; the
+  current Preview 3 publication baseline is `284b7d1a`;
 - the release-source coherence, installer trust-anchor, and session-only
   gateway-auth follow-ups were subsequently merged through PRs #33, #36, and
   #38; that historical snapshot recorded `origin/main` as `f3a0a8c`; the
@@ -197,10 +216,10 @@ artifact, platform-trust, clean-device, provider, or fleet gates.
 | Gate | Current truth | Release consequence |
 |---|---|---|
 | Project manifest authenticity | Ed25519 public key is in the repository; private key is local-only | Can be completed by the owner with a local signing operation |
-| Exact artifact integrity | Updater verifies the signed `SHA256SUMS` entry, size, package type, and platform magic; Preview 2's five public assets were re-downloaded and byte-reconciled | Repeat the same regeneration, signature, and public-byte checks for every future release |
+| Exact artifact integrity | Updater verifies the signed `SHA256SUMS` entry, size, package type, and platform magic; Preview 3's five public assets were re-downloaded and byte-reconciled | Repeat the same regeneration, signature, and public-byte checks for every future release |
 | macOS platform trust | No Apple Developer ID certificate, hardened-runtime notarization, or stapled ticket is available in this workflow | The result must remain clearly labelled project-signed/ad-hoc and may require first-launch approval |
 | Windows publisher trust | No Windows publisher-signed installer has been accepted in this audit | Windows cannot be called production-ready from this branch |
-| Release channel | Signed previews `v0.2.0-preview.1` and controlled macOS `v0.2.0-preview.2` are public; stable `v0.2.0` is not | Existing same-key Preview 7 devices can discover Preview 2 through the preview path; installed replacement and stable remain gated |
+| Release channel | Signed previews `v0.2.0-preview.1`, superseded `v0.2.0-preview.2`, and current controlled macOS `v0.2.0-preview.3` are public; stable `v0.2.0` is not | Existing same-key Preview 7 devices have a current Preview 3 candidate through the preview path; installed replacement and stable remain gated |
 | Private-key custody | Keychain presence was checked without reading the secret | Keep it out of Git, chat, screenshots, student machines, and shell transcripts |
 
 The stable Wails targets now fail closed when the public key file is absent.
@@ -238,16 +257,16 @@ For the 30 devices, the result depends on the installed version and location:
 
 | Existing device state | Can it update to a published signed `v0.2.0` stable package? | Required action |
 |---|---|---|
-| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | It can now discover published `v0.2.0-preview.2` directly through its preview lookup; it still cannot jump directly to stable | Use **Help → Check for Updates**, install Preview 2 (or Preview 1 first if it is the displayed candidate), then use the bridge's stable-first updater after stable is published; alternatively install stable manually |
-| A newly built current-source preview bridge, current key, writable directory | Yes, it can discover a newer signed Preview 2 or stable package | User performs the explicit update, then selects Check for Updates again for Preview → Stable |
+| Already-installed public `v0.1.7-preview.7` binary, current Preview-7 key, app copied to a writable directory | It has a current same-key `v0.2.0-preview.3` candidate through its preview lookup; it still cannot jump directly to stable | Use **Help → Check for Updates**, confirm Preview 3 (or Preview 1 first if it is the displayed candidate), then use the current preview's stable-first updater after stable is published; alternatively install stable manually |
+| A newly built current-source preview bridge, current key, writable directory | Yes, it can discover a newer signed Preview 3 or stable package | User performs the explicit update, then selects Check for Updates again for Preview → Stable |
 | Preview 4–6 or another build with the old/unrecoverable project key | No, not cryptographically | One manual install of a package carrying the current public key, then later updates can be verified |
-| Preview 3 or older without an embedded updater key | No | Manual installation; do not use an environment variable as a production trust substitute |
+| Historical `v0.1.7-preview.3` or older without an embedded updater key | No | Manual installation; do not use an environment variable as a production trust substitute |
 | App still running from a mounted DMG or App Translocation path | No | Copy it to `/Applications` or another writable application directory and relaunch |
 | A package with no signed manifest or wrong platform asset | No | Updater must refuse it; use the official release page for recovery |
 
 Therefore, if all 30 students truly have the public Preview 7 binary, the
-published bridge now provides the first updater step, but not a direct
-one-step Preview 7 → stable migration. Pilot the two explicit update steps,
+published Preview 3 candidate provides the current updater step, but not a
+direct one-step Preview 7 → stable migration. Pilot the explicit update steps,
 and only then publish/announce stable. This still does **not** prove that all 30
 machines will update: OS version, architecture, permissions, network access,
 release-asset availability, and provider usage are independent gates. If a
