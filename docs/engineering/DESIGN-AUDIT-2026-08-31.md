@@ -6,7 +6,7 @@
 
 **Audited surface:** local and hosted-capable Web Studio (`internal/server/playground.html`, generated `web/index.html`)
 
-**Git baseline:** `523ceeb` (`origin/main`); this design-audit continuation is reviewed through `5eae3e2` on `codex/release-readiness-v0.2.0`, with the generated `web/index.html` synchronized from the source studio.
+**Git baseline:** `523ceeb` (`origin/main`); the source/design audit is reviewed through local commit `fe6e91b` on `codex/release-readiness-v0.2.0` (one local commit ahead of `origin/codex/release-readiness-v0.2.0`), with the generated `web/index.html` synchronized from the source studio.
 
 **Audit status:** source and regression checks complete; interactive browser/viewport evidence blocked in this session
 
@@ -35,14 +35,13 @@ register and release docs. The result is not yet a visual release sign-off
 because the real browser session required for desktop, tablet, phone,
 keyboard, focus, and artifact walkthroughs was unavailable.
 
-This continuation adds a narrow L1 correctness pass at `7efb6b7`: every static
-and generated button declares `type="button"`, the brand/model/starter/token
-and artifact controls are native buttons, collapsed drawers are removed from
-the interaction tree with `inert`, drawer triggers expose expanded state,
-modal surfaces are bounded and scrollable at short viewports, the primary
-prompt has a skip link, and theme/language selectors have accessible names.
-The changes preserve the navigation model and feature set; they do not turn
-source-level proof into browser proof.
+The final L1 delta in this audit is `fe6e91b`: compact attachment, session, and
+user-edit actions now have a 24px minimum hit area and keyboard focus reveals
+actions that are otherwise hover-only; mobile-collapsed header controls retain
+stable accessible names; gateway, voice, transliteration, and Send controls
+expose their current state to assistive technology. The changes preserve the
+navigation model and feature set; they do not turn source-level proof into
+browser proof.
 
 ## 1. Product intent in three lines
 
@@ -88,6 +87,7 @@ signals than the aspirational adjectives in the CSS comments.
 | 2a | High | Core click-only controls used generic `role="button"` elements and button templates omitted an explicit non-submit type. | L1 | **Fixed in source.** Brand, model, starter, token-estimate, artifact-rail, static, and generated controls now use native buttons; a source regression scans every button opening tag. |
 | 2b | High | Collapsed configuration/code drawers were visually hidden but did not explicitly leave the keyboard and assistive-technology interaction tree. | L1 | **Fixed in source.** Drawer panels now synchronize `aria-hidden`/`inert` with `aria-expanded` trigger state. Live drawer focus and coverage still require the browser matrix. |
 | 2c | Medium | Modal surfaces could clip long content at short viewports or large browser zoom. | L1 | **Fixed in source.** Shared dialog surfaces use a bounded dynamic viewport height and internal vertical scrolling. Rendered 200% zoom evidence remains pending. |
+| 2d | Medium | On narrow widths, header labels are intentionally hidden; several compact attachment/session/edit actions were also too small or only visible on hover, making the mobile and keyboard experience ambiguous. | L1 | **Fixed in source.** Header and dynamic action states now have stable accessible names, and compact actions have a 24px minimum containment with focus-visible disclosure. Rendered touch and keyboard evidence remains pending. |
 | 3 | High | The viewport disabled browser text scaling with `maximum-scale=1.0` and `user-scalable=no`. This directly contradicted the reading-zoom and accessibility intent. | L1 | **Fixed.** The scale lock was removed while preserving `viewport-fit` and keyboard-resize behavior. |
 | 4 | High | `--text-subdued` failed normal-text contrast in the default theme and several selectable themes; muted text also failed in the Tokyo Night and Solarized Light themes. | L1 | **Fixed.** Theme token values were corrected and covered by a contrast regression test. |
 | 5 | High | The responsive shell has enough density to make overlap, drawer coverage, composer collision, and New Chat visibility a real risk at tablet and phone widths. Source CSS contains mitigation, and drawer semantics are now explicit, but no live viewport evidence was available. | L2 evidence gate | **Open.** Verify before restructuring; keep the change isolated if a section-level fix is needed. |
@@ -116,6 +116,7 @@ signals than the aspirational adjectives in the CSS comments.
 | Made secondary click-only controls keyboard-usable | Reasoning headers, glossary help affordances, and tokenizer pills can still be activated with Enter or Space; primary surfaces now use native buttons instead of relying on the global shim. | `internal/server/playground.html:7545-7557`, secondary role-button renderers; `TestPlaygroundAccessibilityFloorIsExplicit`, `TestPlaygroundUsesNativeControlAndDrawerSemantics` |
 | Completed keyboard semantics for secondary controls | Command-palette options expose listbox/option state and active descendant tracking; the brand, glossary help affordances, and tokenizer pills are keyboard-operable. | `internal/server/playground.html:6782-6915`, `7435-7444`, `4969-5090`, tokenizer renderer |
 | Added accessible names and label associations | Composer tools, gateway fields, provider key controls, model settings, tokenizer search, audio actions, and message actions no longer rely on emoji or title text alone. | `internal/server/playground.html:5043-5254`, dynamic message renderers |
+| Made compact and dynamic controls self-describing | CSS hides low-width header labels, so stable ARIA names keep gateway/config/code/command/GitHub/glossary actions understandable. Send, voice, and transliteration states now announce their active/busy state; compact attachment/session/edit actions have a 24px minimum and reveal hover-only edit actions on keyboard focus. | `internal/server/playground.html:1514-1546,3838-3865,5106-5125,5364-5374,6024-6089,6322-6333,6700-6705,11352-11355,11901-11905`; `TestPlaygroundHeaderAndGenerationStatesHaveAccessibleNames` |
 | Removed accidental Enter-to-close behavior in About | Enter should activate the focused control, not dismiss an unrelated dialog. | `internal/server/playground.html:7436-7443` |
 | Corrected all built-in subdued-text tokens | Small labels and metadata retain hierarchy while meeting a 4.5:1 normal-text contrast threshold on declared app/card/modal/input surfaces. | `internal/server/playground.html:46-300`; `TestPlaygroundThemeTextContrast` |
 | Removed duplicate legacy attachment dispatch | A file drop no longer enters both the old unbounded `FileReader` path and the bounded universal extractor; one event now gets one bounded parse lifecycle. | `internal/server/playground.html:6221-6230`, `9477-9868`; `TestAttachmentParsingIsBoundedAndCancellable` |
@@ -228,6 +229,7 @@ unavailable.
 | Studio shell `/playground` | Phone 390x844 and 320x844 | Narrow header, two-column starter cards, touch targets, safe-area behavior | High | **Browser pending**; source has phone rules, visual proof absent |
 | Page typography | All | Browser text scaling was disabled | High | **Source-fixed**; scale lock removed and regression-tested |
 | Primary prompt/composer | All | Accessible name, focus visibility, loading/stop/error recovery | High | **Partially source-fixed**; native control/selector tests pass, browser state walk pending |
+| Header and compact row actions | Phone/tablet/keyboard | Hidden labels, dynamic state announcements, sub-24px attachment/session/edit targets, and hover-only edit visibility | Medium | **Source-fixed** in `fe6e91b`; rendered touch and keyboard walk pending |
 | Chat scrolling | All | Top/bottom navigation, streaming bottom anchor, composer offset | High | **Source-supported** by existing regression tests; real scroll walk pending |
 | Starter cards | Desktop/tablet/phone | Click-only activation excluded keyboard users and used invalid generic control semantics | Medium | **Source-fixed** with native buttons and phrasing-content markup; browser keyboard walk pending |
 | Model chip and token estimate | Desktop/tablet/phone | Click-only controls lacked native button semantics | Medium | **Source-fixed**; browser keyboard walk pending |
@@ -258,19 +260,19 @@ before/after screenshots for every L2 change:
 
 For each path verify: no horizontal scroll, no clipping, visible focus, Tab
 containment and focus return, usable Escape behavior, 24px minimum pointer
-target at absolute minimum, comfortable touch targets for the primary actions,
-stable layout while content streams, explicit loading/empty/error/disabled
-states, and no lost New Chat or Send action.
+target containment at absolute minimum, comfortable touch targets for the
+primary actions, stable layout while content streams, explicit
+loading/empty/error/disabled states, and no lost New Chat or Send action.
 
 ## 9. Verification run
 
-The initial design-correctness pass completed on clean source commit
-`7efb6b7`; the continuation hardening was then completed through `8651eba`:
+The design-correctness source pass is recorded through `fe6e91b`; related
+release-hardening commits remain independently reviewable:
 
 ```text
 make web                                      PASS
 go test -count=1 ./...                        PASS
-go test -race ./...                           PASS
+go test -race -count=1 ./...                  PASS
 go vet ./...                                  PASS
 go build ./...                                PASS
 go mod verify                                 PASS
@@ -282,8 +284,10 @@ scripts/verify-release-source.sh              PASS
 
 `make web` regenerated the checked-in static bundle from the source studio.
 The source tests verify native button semantics, drawer state markers, modal
-height bounds, theme aliases, and the existing focus/contrast contracts. A
-real-browser connection was attempted for this audit, but the configured
+height bounds, theme aliases, and the existing focus/contrast contracts. The
+new source regression also checks stable names and state markers for
+mobile header, composer, voice, transliteration, and compact action controls.
+A real-browser connection was attempted for this audit, but the configured
 browser runtime reported no available browser and an empty browser list. No
 layout, keyboard focus, touch, rendering-library, artifact, or provider claim
 is upgraded on the basis of the source checks.
@@ -298,13 +302,13 @@ Changed:
 
 - `internal/server/playground.html` — L1 accessibility, modal, keyboard,
   reduced-motion, onboarding, contrast-token, attachment-dispatch, image
-  preview, duplicate-handler, and native-control/drawer-semantics corrections
-  (the current continuation is commit `7efb6b7`).
+  preview, duplicate-handler, native-control/drawer-semantics, and compact
+  control-state corrections (current source commit `fe6e91b`).
 - `internal/server/playground_test.go` — source-level accessibility, theme
   contrast, single-dispatch attachment, clipboard failure-safety, Markdown
-  link-protocol, artifact-action, and Developer API route-state regression
-  tests, including persisted-attachment, image-preview, and native-control /
-  drawer-state boundaries.
+  link-protocol, artifact-action, Developer API route-state, and compact
+  control-state regression tests, including persisted-attachment, image-preview,
+  and native-control / drawer-state boundaries.
 - `internal/updater/desktop_stage.go` — actionable permission-denied staging
   error classification plus a no-download install-location preflight.
 - `internal/updater/desktop_stage_test.go` — read-only, permission-denied,
