@@ -7,7 +7,7 @@ The current release audit is in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The immutable
 public `v0.2.0-preview.5` assets use packaged source target `c28d787` and have
 passed signature, byte-reconciliation, and one-host installed migration
-checks. Public `main` is now `9f11eef`; the local `v0.2.0-preview.6` candidate
+checks. Public `main` is now `0cc81b2`; the local `v0.2.0-preview.6` candidate
 also proves that a new desktop build does not attach to an older gateway that
 still owns the configured port, because reuse requires an exact
 `X-BOB-Version` match.
