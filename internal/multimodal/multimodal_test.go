@@ -425,6 +425,59 @@ func TestTokenCacheRefreshesValidPageAndKeepsItAfterOversizedFailure(t *testing.
 	}
 }
 
+func TestTokenCacheRetriesFailedRefreshAfterBoundedDelay(t *testing.T) {
+	responses := []*http.Response{
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"not":"a page-token payload"}`)),
+		},
+		{
+			StatusCode: http.StatusOK,
+			Header:     make(http.Header),
+			Body:       io.NopCloser(strings.NewReader(`{"qKIAYe":"recovered-push","Ylro7b":"recovered-pctx","SNlM0e":"recovered-at","cfb2h":"recovered-bl"}`)),
+		},
+	}
+	calls := 0
+	client := &http.Client{Transport: tokenRoundTripFunc(func(*http.Request) (*http.Response, error) {
+		calls++
+		response := responses[0]
+		responses = responses[1:]
+		return response, nil
+	})}
+	cache := NewTokenCache(config.Default(), nil, client)
+	clock := time.Date(2026, time.August, 31, 12, 0, 0, 0, time.UTC)
+	cache.nowFn = func() time.Time { return clock }
+
+	first := cache.GetContext(context.Background())
+	if calls != 1 || first.PushID != DefaultPushID || first.Pctx != DefaultPctx {
+		t.Fatalf("first failed refresh = calls %d, tokens %+v", calls, first)
+	}
+
+	// A second request during the backoff must use the last-known-good/default
+	// set without starting another page request.
+	second := cache.GetContext(context.Background())
+	if calls != 1 || second != first {
+		t.Fatalf("immediate retry = calls %d, tokens %+v; want one call and unchanged tokens", calls, second)
+	}
+
+	clock = clock.Add(TokenCacheRetryDelay - time.Nanosecond)
+	_ = cache.GetContext(context.Background())
+	if calls != 1 {
+		t.Fatalf("refresh started before retry delay: %d calls", calls)
+	}
+
+	clock = clock.Add(time.Nanosecond)
+	recovered := cache.GetContext(context.Background())
+	if calls != 2 {
+		t.Fatalf("refresh did not retry after bounded delay: %d calls", calls)
+	}
+	want := PageTokens{PushID: "recovered-push", Pctx: "recovered-pctx", At: "recovered-at", BL: "recovered-bl"}
+	if recovered != want {
+		t.Fatalf("recovered tokens = %+v, want %+v", recovered, want)
+	}
+}
+
 func TestTokenCacheRejectsRedirectWithoutFollowingIt(t *testing.T) {
 	var calls int
 	client := &http.Client{Transport: tokenRoundTripFunc(func(req *http.Request) (*http.Response, error) {
