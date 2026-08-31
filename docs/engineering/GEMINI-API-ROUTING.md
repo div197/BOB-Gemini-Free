@@ -1,11 +1,11 @@
 # Gemini Developer API Routing and Student Limits
 
-**Status:** implemented in the v0.2 milestone; immutable Preview 5 was built
-from packaged source baseline `c28d787`. Public `main` is now at `49e0d3b`
-after the post-publication browser-boundary, credential-input, telemetry,
-release-version, settings, and desktop-coexistence follow-ups, while the
-current public desktop package remains macOS `v0.2.0-preview.5`. A signed
-Preview 6 candidate exists locally but is not yet a public release.
+**Status:** implemented in the v0.2 milestone; the current public desktop
+package is macOS `v0.2.0-preview.6`, built from source target `f9b3410` and
+verified after public download. Preview 5 and its source baseline `c28d787`
+remain historical provenance; the current source continues the reviewed
+browser-boundary, credential-input, telemetry, release-version, settings, and
+desktop-coexistence follow-ups.
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is
@@ -217,7 +217,6 @@ universal `15 RPM`, `1,500 RPD`, or “until midnight” promise.
 
 Authoritative references for release reviews:
 
-- [Gemini API pricing and free tier](https://ai.google.dev/gemini-api/docs/pricing)
 - [Gemini API rate limits](https://ai.google.dev/gemini-api/docs/rate-limits)
 - [Gemini API models](https://ai.google.dev/gemini-api/docs/models)
 - [Gemini API billing](https://ai.google.dev/gemini-api/docs/billing)

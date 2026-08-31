@@ -1,9 +1,9 @@
 # Free Native Desktop Beta
 
-**Status:** branded public macOS preview `v0.2.0-preview.5` is the current
-controlled candidate; Preview 4 and Preview 3 remain historical, the immutable
-`v0.2.0-preview.1` migration bridge remains available, and `v0.1.7-preview.7`
-remains the existing fleet baseline.
+**Status:** branded public macOS preview `v0.2.0-preview.6` is the current
+controlled candidate; Preview 5, Preview 4, and Preview 3 remain historical, the
+immutable `v0.2.0-preview.1` migration bridge remains available, and
+`v0.1.7-preview.7` remains the existing fleet baseline.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -46,13 +46,13 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 ## Public preview releases
 
-The current [v0.2.0-preview.5 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5)
+The current [v0.2.0-preview.6 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6)
 contains the universal macOS package shape and current-key signed manifest.
-The current public source is `49e0d3b`; its next `v0.2.0-preview.6`
-candidate has passed fresh local package, signature, secure-key transport, and
-old-gateway coexistence checks but is not yet published.
-Existing Preview 7 users can discover Preview 5 directly through their preview-only
-lookup. The immutable [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
+It was built from public source target `f9b3410`, passed fresh local package,
+signature, secure-key transport, and old-gateway coexistence checks, and was
+re-downloaded and byte-verified after publication. Existing Preview 7 users can
+discover Preview 6 directly through their preview-only lookup. The immutable
+[v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
 
 The manually published [v0.1.7-preview.7 native desktop beta](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
@@ -66,14 +66,14 @@ Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
 legacy `v0.1.7-preview.6` installations require a one-time manual migration
 because their older project signing key cannot verify Preview 7. This is
-separate from the new `v0.2.0-preview.6` source candidate. Windows and Linux require
+separate from the published `v0.2.0-preview.6` package. Windows and Linux require
 their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-The current Preview 5 package carries the branded package refresh, signed
+The current Preview 6 package carries the branded package refresh, signed
 preview updater, native window/browser refinements, language coverage, and the
 Web Studio generation lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
@@ -92,7 +92,8 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to the explicit next candidate
-`v0.2.0-preview.6`; that candidate is not the current public release. The
+`v0.2.0-preview.7`; the published `v0.2.0-preview.6` package remains
+immutable. The
 signed `v0.2.0-preview.1` migration
 bridge is immutable and already public. Set `BOB_RELEASE_VERSION` explicitly
 for every publication;
@@ -120,6 +121,7 @@ bob-gemini-free-macos-universal.zip
 bob-gemini-free-macos-universal.dmg
 RELEASE-NOTICE.txt
 SHA256SUMS
+SHA256SUMS.sig
 ```
 
 For local inspection, the signed app bundle is written beside the directory as

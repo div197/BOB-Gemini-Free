@@ -2,7 +2,7 @@ BOB Gemini Free project updater public key
 
 Status: Project key generated 2026-08-25 and first published with GitHub release
 v0.1.7-preview.7. The same public key is used by the current v0.2 preview
-release line, including the local v0.2.0-preview.6 candidate. The matching
+release line, including the published v0.2.0-preview.6 preview. The matching
 private signing seed is stored only in the owner-controlled macOS Keychain and
 must never enter Git, chat, screenshots, release notes, or student packages.
 
@@ -12,7 +12,7 @@ ba7854781bca2a14da4f1ec5e931ff45f458ac9377c42ac127c349e5ecad2dff
 SHA-256 fingerprint of the public-key bytes:
 ac862068215d2944d76bee896b46a4a7ca165acfa7f51135a25bb8c2366b0c38
 
-This key is different from the public key embedded in Preview 6. Existing
-Preview 6 installations therefore require a one-time manual migration to a
-Preview 7 build carrying this key; later signed releases can update from
-Preview 7 onward.
+This key is different from the legacy public key embedded in the old
+v0.1.7-preview.6 build. Those legacy installations require a one-time manual
+migration to a build carrying this key; the published v0.2.0-preview.6 package
+and later signed releases use this key.

@@ -530,7 +530,7 @@ func TestLegacyPreview7CanDiscoverNextPreviewCandidate(t *testing.T) {
 	}
 }
 
-func TestPublishedPreviewFleetMatrixSelectsCurrentCandidate(t *testing.T) {
+func TestPublishedPreviewFleetMatrixSelectsPreview5WhenPreview6Unavailable(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/preview" {
 			t.Errorf("preview fleet lookup requested %s; want preview channel only", r.URL.Path)
@@ -572,7 +572,7 @@ func TestPublishedPreviewFleetMatrixSelectsCurrentCandidate(t *testing.T) {
 		{name: "legacy preview 7", currentVersion: "v0.1.7-preview.7", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
 		{name: "migration bridge", currentVersion: "v0.2.0-preview.1", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
 		{name: "preview 4", currentVersion: "v0.2.0-preview.4", wantVersion: "v0.2.0-preview.5", wantUpdate: true},
-		{name: "current candidate", currentVersion: "v0.2.0-preview.5", wantVersion: "v0.2.0-preview.5", wantUpdate: false},
+		{name: "historical preview 5", currentVersion: "v0.2.0-preview.5", wantVersion: "v0.2.0-preview.5", wantUpdate: false},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/preview", test.currentVersion, DesktopChannelPreview, "darwin", "arm64")

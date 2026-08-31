@@ -9,7 +9,7 @@ VERSION=v0.2.0
 # The next immutable preview candidate is deliberately explicit. Preview
 # packagers refuse to guess a version so a previously published tag cannot be
 # rebuilt accidentally from a later source tree.
-PREVIEW_VERSION=v0.2.0-preview.6
+PREVIEW_VERSION=v0.2.0-preview.7
 UPDATE_PUBLIC_KEY_FILE=docs/engineering/UPDATE-PUBLIC-KEY.txt
 UPDATE_PUBLIC_KEY=$(shell awk '/^Encoding: hexadecimal Ed25519 public key$$/ { in_key=1; next } in_key && /^[[:space:]]*$$/ { in_key=0 } in_key && length($$0)==64 && $$0 !~ /[^0-9a-fA-F]/ { print; exit }' $(UPDATE_PUBLIC_KEY_FILE))
 LDFLAGS=-s -w -X main.Version=$(VERSION) -X github.com/div197/bob-gemini-free/internal/updater.BuildUpdatePublicKey=$(UPDATE_PUBLIC_KEY)

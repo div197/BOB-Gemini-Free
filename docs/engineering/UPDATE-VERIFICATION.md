@@ -44,11 +44,12 @@ The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
 declared size, signed manifest, and official GitHub URLs. Public Preview 7 has
-the current key, but its released updater predates stable-first discovery; a
-same-key bridge preview or manual install is required before it can reach a
-new stable release through the updater. Historical `v0.1.7-preview.3` has no
-embedded desktop key and therefore cannot install a native update; the current
-`v0.2.0-preview.5` package embeds the current project public key.
+the current key, but its released updater predates stable-first discovery; it
+can now discover the published same-key `v0.2.0-preview.6` through its
+preview-only path, subject to a live installed-device test. Historical
+`v0.1.7-preview.3` has no embedded desktop key and therefore cannot install a
+native update; the current `v0.2.0-preview.6` package embeds the current
+project public key.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
 injects it into every CLI matrix binary. On macOS,
@@ -108,6 +109,22 @@ developer's running binary.
 The private key must never be placed in the repository, shell history, command
 output, issue comments, or a local fixture. Rotate both values together if the
 private key is exposed.
+
+## Preview 6 publication evidence — 2026-08-31
+
+The current public macOS preview is the immutable
+[`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
+packaged from source target `f9b3410`. The exact universal DMG, ZIP, release
+notice, `SHA256SUMS`, and `SHA256SUMS.sig` were signed locally through the
+owner-controlled Keychain, published manually without GitHub Actions, then
+downloaded again from GitHub. Signature verification, checksum verification,
+and byte-for-byte comparison all passed.
+
+This proves release-byte authenticity and publication integrity. It does not
+prove Apple Developer ID/notarization, a clean-device replacement or rollback,
+live Google availability, or a 20–30-device rollout. The earlier Preview 1 →
+Preview 5 installed migration is the only live installed-update observation;
+Preview 7/Preview 5 → Preview 6 remains a staged device gate.
 
 ## Preview 2 publication evidence — 2026-08-31
 

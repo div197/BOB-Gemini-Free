@@ -1,6 +1,6 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS Preview 5 and an older Windows preview artifact are
+**Status:** public macOS Preview 6 and an older Windows preview artifact are
 published; production trust, Linux acceptance, and broad student rollout
 remain pending.
 
@@ -19,11 +19,11 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.5` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5)
+- The public [`v0.2.0-preview.6` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6)
   is the current same-key updater candidate for controlled evaluation. The
   immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
-  remains available. Stable `v0.2.0` remains gated on clean-device and pilot
-  acceptance.
+  remains available, and Preview 5 is historical. Stable `v0.2.0` remains
+  gated on clean-device and pilot acceptance.
 
 ## Student artifact matrix
 
@@ -104,28 +104,29 @@ only.
 
 The native Help menu now offers a user-initiated metadata check. It does not
 perform a silent replacement. Until platform-trusted production packages and
-manifests are published, students must use the Preview 5 release page or the
+manifests are published, students must use the Preview 6 release page or the
 documented pilot path.
 
 ## Automatic update plan and 30-device rollout gate
 
-The current Preview 5 is a public native preview with a signed, build-pinned
+The current Preview 6 is a public native preview with a signed, build-pinned
 update channel. A newly built current-key preview can discover a newer stable
 release from the Help menu and migrate after user consent; when stable has no
 update, a newer signed preview can be discovered, verified, staged, and rolled
-back. The already-published Preview 7 binary predates the stable-first change,
-so it must first receive the published same-key bridge preview to reach stable
-through the updater, or be manually replaced with stable. Historical
+back. The already-published `v0.1.7-preview.7` binary predates the stable-first
+change, but its preview-only path can select the published same-key Preview 6;
+the installed transition still needs a live pilot. Historical
 `v0.1.7-preview.3` still requires one manual migration because it has no
-embedded desktop trust key. Preview 6
-installations also require one manual migration to Preview 7 because the
-original project signing key was not recoverable.
+embedded desktop trust key. Legacy `v0.1.7-preview.6` also requires one manual
+migration because its original project signing key was not recoverable. Current
+`v0.2.0-preview.6` installations already carry the current key and do not need
+that migration.
 
 The source contains the tested user-consented updater that
 downloads a platform-matching package, verifies a release manifest with the
 embedded Ed25519 public key, asks the user to restart, replaces the app via a
 platform-specific helper, and retains rollback evidence. It is enabled for
-Preview 7's preview/stable migration policy but never treats an unsigned
+the current preview/stable migration policy but never treats an unsigned
 archive as trusted.
 Apple Developer
 ID/notarization and Windows publisher signing remain separate trust
@@ -183,7 +184,9 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.2.0-preview.5` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5):
-macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
-one-time manual migration described in the release notes. Windows `v0.1.7-preview.3`
-remains available separately; Linux is not included in Preview 7.
+[`v0.2.0-preview.6` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6):
+macOS universal `.dmg`/`.zip`. Existing `v0.1.7-preview.7` devices should be
+piloted through **Help → Check for Updates** before any broad wave; legacy
+`v0.1.7-preview.6` devices need the one-time manual migration described in the
+release notes. Windows `v0.1.7-preview.3` remains available separately; Linux
+is not included in the current native preview.
