@@ -1,7 +1,9 @@
 package main
 
 import (
+	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -37,6 +39,21 @@ func TestDesktopUpdateMessagesUseNativeLineBreaks(t *testing.T) {
 	}
 	if !strings.Contains(desktopUpdateAvailableMessage("v0.2.0"), "\n\n") {
 		t.Fatal("update dialog message is missing paragraph separation")
+	}
+}
+
+func TestDesktopUpdateCheckErrorMessageHidesTransportDetails(t *testing.T) {
+	timeout := desktopUpdateCheckErrorMessage(fmt.Errorf("GitHub request failed: %w", context.DeadlineExceeded))
+	if strings.Contains(timeout, "context deadline exceeded") || strings.Contains(timeout, "Client.Timeout") {
+		t.Fatalf("timeout details leaked into update dialog: %q", timeout)
+	}
+	if !strings.Contains(timeout, "Nothing was changed") || !strings.Contains(timeout, "try again") {
+		t.Fatalf("timeout dialog is not actionable: %q", timeout)
+	}
+
+	policy := desktopUpdateCheckErrorMessage(errors.New("desktop update server returned HTTP 429"))
+	if strings.Contains(policy, "HTTP 429") || strings.Contains(policy, "desktop update server") {
+		t.Fatalf("release metadata details leaked into update dialog: %q", policy)
 	}
 }
 

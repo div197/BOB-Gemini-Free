@@ -124,6 +124,10 @@ Actions workflow was used.
 ### Reliability and release hardening
 
 #### Added
+- Made the native update-check dialog classify cancellation, timeout, network,
+  and release-metadata failures into calm actionable messages without exposing
+  raw transport or GitHub response details; it clearly states that no app
+  change occurred.
 - Made official GitHub release-metadata checks retry one transient transport or
   client-timeout failure, with a short cancellation-aware budget. HTTP status
   errors, redirect-policy failures, malformed metadata, and signed asset

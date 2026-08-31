@@ -4,8 +4,10 @@ import (
 	"context"
 	cryptorand "crypto/rand"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"log"
+	"net"
 	"time"
 
 	"github.com/wailsapp/wails/v2/pkg/runtime"
@@ -119,7 +121,7 @@ func (a *App) checkDesktopUpdate(ctx context.Context, automatic bool) {
 			log.Printf("automatic desktop update check skipped: %v", err)
 			return
 		}
-		a.showDesktopError(ctx, "Update check failed", desktopUpdateErrorMessage("BOB could not check for desktop updates", err))
+		a.showDesktopInfo(ctx, "Update check unavailable", desktopUpdateCheckErrorMessage(err))
 		return
 	}
 	if !update.HasUpdate {
@@ -278,4 +280,25 @@ func desktopUpdateErrorMessage(summary string, err error) string {
 		return summary + "."
 	}
 	return fmt.Sprintf("%s.\n\nDetails: %s", summary, err)
+}
+
+// desktopUpdateCheckErrorMessage keeps low-level network and GitHub response
+// details out of the native dialog. A metadata check is read-only: a
+// temporary failure did not download, stage, or replace the application, so
+// the user needs a calm recovery action rather than an alarming raw error.
+func desktopUpdateCheckErrorMessage(err error) string {
+	if err == nil {
+		return "BOB could not check for desktop updates. Nothing was changed; try again from Help → Check for Updates."
+	}
+	if errors.Is(err, context.Canceled) {
+		return "The desktop update check was canceled. Nothing was changed; try again from Help → Check for Updates."
+	}
+	if errors.Is(err, context.DeadlineExceeded) {
+		return "GitHub did not respond in time. Nothing was changed; check the network connection and try again from Help → Check for Updates."
+	}
+	var networkErr net.Error
+	if errors.As(err, &networkErr) {
+		return "BOB could not reach GitHub to check for updates. Nothing was changed; check the network connection and try again from Help → Check for Updates."
+	}
+	return "BOB could not verify the official release metadata. Nothing was changed; try again from Help → Check for Updates or open the official Releases page."
 }
