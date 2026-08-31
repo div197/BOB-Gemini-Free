@@ -4,7 +4,7 @@
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
 **Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
-**Current source candidate:** `v0.2.0-preview.7` from merged `main` source snapshot `8c35a11960d2ed9c50c5986e11a5b03beba6777d` after PR #95; freshly packaged and signed, not published
+**Current source candidate:** `v0.2.0-preview.7` from merged `main` source snapshot `daaea6198ae8a30b4c021fa29ab3e7b581cea187` after PR #98; freshly packaged and signed, not published
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -39,7 +39,7 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 | Public source | Preview 6 is packaged from `f9b3410e74d7ccc08487dc03788b54a201e12ade`; the earlier Preview 5 source baseline `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` remains historical | VERIFIED |
 | Public releases | Latest desktop preview is the published `v0.2.0-preview.6`; GitHub currently reports `immutable: false`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED_LIVE |
 | Historical Preview 7 public package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED_LIVE_HISTORICAL |
-| Current Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from merged `main` source snapshot `8c35a11` after PR #95, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
+| Current Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from merged `main` source snapshot `daaea61` after PR #98, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
 | Source gate | `scripts/verify-release-source.sh v0.2.0-preview.7` passes on current `main` for the unpublished candidate; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
@@ -55,11 +55,13 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 ## Current source Preview 7 candidate — 2026-08-31
 
-The merged `main` source snapshot at `8c35a11` was freshly packaged as the
+The merged `main` source snapshot at `daaea61` was freshly packaged as the
 explicit next candidate `v0.2.0-preview.7` after the Gateway-settings
-touch-target fix merged in PR #93 and the channel-aware Studio updater fix in
-PR #95. This supersedes the earlier local same-version candidate built from
-`049ca2f` (which itself superseded `2d42d44`). The universal macOS bundle,
+touch-target fix merged in PR #93, the channel-aware Studio updater fix in
+PR #95, the protected-gateway route guard merged in PR #97, and the Studio
+route pin merged in PR #98. This supersedes
+the earlier local same-version candidate built from `6c27ac8` (which itself
+superseded `8c35a11`, `049ca2f`, and `2d42d44`). The universal macOS bundle,
 signed manifest, ZIP, DMG, release notice, version injection, local runtime
 startup, and local updater matrix all passed. The detailed receipt is in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).

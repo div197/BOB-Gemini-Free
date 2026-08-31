@@ -84,7 +84,10 @@ route when a prior connection check has positively identified `api_keys`
 protection but the separate BOB Gateway Access Key is absent; this is a
 pre-send error-prevention state, not an alternate authentication mechanism.
 `TestCredentialRouteBlocksKnownGatewayAuthRequirement` protects the source
-boundary.
+boundary. When the Developer API toggle is off, the Studio also sends an
+explicit `X-BOB-Gemini-Route: web` selector so a process-level provider key
+cannot silently contradict the route shown in Config; clients that omit that
+selector retain the existing process-level behavior.
 
 ## Replacement boundary
 
@@ -150,11 +153,11 @@ Preview 7/Preview 5 → Preview 6 remains a staged device gate.
 
 ## Current source candidate — 2026-08-31
 
-The merged `main` source snapshot at `8c35a11960d2ed9c50c5986e11a5b03beba6777d`
-was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #95.
-This supersedes the earlier local same-version candidate built from `049ca2f`
-(which superseded `2d42d44`). The fresh candidate receipt is tied to the
-merged source snapshot.
+The merged `main` source snapshot at `daaea6198ae8a30b4c021fa29ab3e7b581cea187`
+was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #98.
+This supersedes the earlier local same-version candidate built from `6c27ac8`
+(which superseded `8c35a11`, `049ca2f`, and `2d42d44`). The fresh candidate
+receipt is tied to the merged source snapshot.
 Its candidate receipt is in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).
 It is not a public GitHub release yet, so it must not be presented as an

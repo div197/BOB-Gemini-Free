@@ -63,14 +63,21 @@ to an earlier implementation. The current contract supersedes those phrases:
   the Config route selector now blocks the Developer API route until the separate
   BOB Gateway Access Key is entered; the status copy names that requirement in
   English and Hindi instead of waiting for a failed generation request.
+- Pins the Studio's visible default route with an explicit web-route marker, so
+  a process-level `BOB_GEMINI_FREE_GEMINI_API_KEY` configured for other clients
+  cannot silently override the route shown in Config; the existing process-level
+  behavior remains available to clients that omit the marker.
+- Clarifies that native desktop mode keeps its embedded gateway on loopback and
+  disables BOB `api_keys`; the Config access-key field is for a separately
+  running protected gateway.
 
 ### Release candidate verification
 
 - Packaged and locally verified the next `v0.2.0-preview.7` macOS universal
-  candidate from merged `main` (`8c35a11`), including the signed manifest, DMG
-  layout, bundle architecture, bundled runtime startup, and updater transition
-  matrix. The candidate remains unpublished pending installed-base and pilot
-  gates.
+  candidate from merged `main` (`daaea61`), including the signed manifest, DMG
+  layout, bundle architecture, bundled runtime startup, updater transition
+  matrix, the protected-gateway route guard, and the Studio route pin. The
+  candidate remains unpublished pending installed-base and pilot gates.
 - Recorded the current 1/10/20/30-concurrency local benchmark against the
   current source commit. This remains a local-only measurement, not a Google
   quota or classroom-capacity claim.
