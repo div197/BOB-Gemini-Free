@@ -1,9 +1,9 @@
 # Gemini Developer API Routing and Student Limits
 
-**Status:** implemented in the v0.2 milestone; current source is public `main`
-at `a68eb39` after the route-clarity patch was merged, and the public desktop
-package remains Preview 4 until the
-Preview 5 publication gates pass
+**Status:** implemented in the v0.2 milestone; the packaged source baseline is
+public `main` at `c28d787` after the route-clarity and Preview 5
+release-reconciliation merges, and the current public desktop package is macOS
+`v0.2.0-preview.5`
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is
@@ -111,6 +111,25 @@ assigns provider quota/billing responsibility to the student's project. If the
 gateway has no `api_keys` configured, the BOB access field remains empty. If the
 Developer API toggle is off, BOB uses the default web-session route and does not
 silently fall back between provider paths.
+
+### Settings naming map
+
+These names refer to four different boundaries; none is a universal “API key”
+for the others:
+
+| Setting or field | Authenticates | Where it is used |
+|---|---|---|
+| **BOB Gateway Access Key** / `api_keys` / `BOB_GEMINI_FREE_API_KEYS` | The BOB HTTP gateway | `Authorization` or `x-api-key` on requests entering BOB; optional operator control |
+| **Google Gemini Developer API key** / `X-BOB-Gemini-API-Key` / `BOB_GEMINI_FREE_GEMINI_API_KEY` | The student's Google AI Studio project | Translated to `x-goog-api-key` only for the explicit Developer API route |
+| `cookie.txt`, cookie pool, and `auth_user` | The engine's Google web session | Used only by the reverse-engineered web-RPC route; managed by the engine, not by the Studio key fields |
+| **Gateway Endpoint URL** | No account or provider | Selects which BOB process receives the request; remote use is an explicit trust decision |
+
+The process environment form is intentionally singular: one operator- or
+student-owned Developer API key per process. BOB does not rotate a key pool,
+turn a provider key into gateway authorization, or silently retry a request
+through the other upstream. The Studio's page-memory key and the process-level
+key are separate configurations; the Studio cannot display or clear a key that
+was supplied to the engine process.
 
 ### Runtime route status and guards
 

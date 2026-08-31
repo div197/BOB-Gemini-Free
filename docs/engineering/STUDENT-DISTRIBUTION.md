@@ -1,6 +1,6 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS Preview 4 and an older Windows preview artifact are
+**Status:** public macOS Preview 5 and an older Windows preview artifact are
 published; production trust, Linux acceptance, and broad student rollout
 remain pending.
 
@@ -19,7 +19,7 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.4` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4)
+- The public [`v0.2.0-preview.5` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5)
   is the current same-key updater candidate for controlled evaluation. The
   immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
   remains available. Stable `v0.2.0` remains gated on clean-device and pilot
@@ -71,10 +71,11 @@ fall back to an unsigned binary. Hosts without an Ed25519-capable verifier
 fail closed and must use a reviewed alternative or a developer-only source
 build.
 
-The `v0.1.7-preview.1` release is an explicit exception to the production
-artifact contract below: it contains only macOS and Windows preview packages,
-an unsigned checksum manifest, and a warning notice. It must not be presented
-as a signed production release.
+The `v0.2.0-preview.1` release is an explicit historical exception to the
+production artifact contract below: it contains a macOS-only preview package,
+a signed project checksum manifest, and a warning notice, but it is not Apple
+Developer ID signed or notarized. It must not be presented as a platform-trusted
+production release.
 
 Every release must include:
 
@@ -102,13 +103,13 @@ ad-hoc signature is useful for local testing and an explicitly labelled preview
 only.
 
 The native Help menu now offers a user-initiated metadata check. It does not
-perform a silent replacement. Until signed production packages and manifests
-are published, students must use the preview release page or the documented
-pilot path.
+perform a silent replacement. Until platform-trusted production packages and
+manifests are published, students must use the Preview 5 release page or the
+documented pilot path.
 
 ## Automatic update plan and 30-device rollout gate
 
-The current Preview 4 is a public native preview with a signed, build-pinned
+The current Preview 5 is a public native preview with a signed, build-pinned
 update channel. A newly built current-key preview can discover a newer stable
 release from the Help menu and migrate after user consent; when stable has no
 update, a newer signed preview can be discovered, verified, staged, and rolled
@@ -182,7 +183,7 @@ student can start today without installing Go:
 This path is a CLI plus browser experience. It is not a native desktop download,
 and the hosted Cloudflare Studio alone does not silently access a student's
 local machine. For the native beta, use the exact files listed on the
-[`v0.2.0-preview.4` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4):
+[`v0.2.0-preview.5` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.5):
 macOS universal `.dmg`/`.zip`. Existing Preview 6 devices require the
 one-time manual migration described in the release notes. Windows `v0.1.7-preview.3`
 remains available separately; Linux is not included in Preview 7.

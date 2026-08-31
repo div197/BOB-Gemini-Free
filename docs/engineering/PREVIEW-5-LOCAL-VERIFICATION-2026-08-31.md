@@ -3,16 +3,18 @@
 ## Scope and decision
 
 This record covers the freshly produced macOS `v0.2.0-preview.5` candidate
-from the clean checkout at commit `92a703952736e97de44a3e6fb9de3d3dc631e3bb`,
-which is a documentation-only reconciliation commit descended from public
-`main` merge commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`.
-It is a local package and startup receipt, not a GitHub publication receipt.
+from clean checkout `88f288151b35273bb2ba06b770c8da0050b9e8e4`. Its source tree
+matches the public `main` release target `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`;
+the later public merge is documentation-only with respect to the packaged
+source.
+It is the local build and installed-update portion of the Preview 5 receipt;
+the public publication reconciliation is recorded separately in
+[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md).
 
-The candidate passed the local source, package, signature, and one-host startup
-checks listed below. It has **not** been published, byte-reconciled from
-GitHub, or accepted as an installed-bundle update from Preview 4 or Preview 7.
-The public downloadable desktop release therefore remains the immutable
-`v0.2.0-preview.4` package.
+The candidate passed the local source, package, signature, one-host startup,
+and one-host installed-update checks listed below. It was published as the
+immutable `v0.2.0-preview.5` prerelease and its public bytes were independently
+reconciled. Preview 4 remains immutable historical input.
 
 ## Operator boundary
 
@@ -28,7 +30,7 @@ The public downloadable desktop release therefore remains the immutable
 
 | Check | Result | Evidence |
 |---|---|---|
-| Public source identity | PASS | Candidate built from clean checkout `92a703952736e97de44a3e6fb9de3d3dc631e3bb`; its changes after `a68eb39` are documentation-only and do not alter packaged code |
+| Public source identity | PASS | Candidate built from clean checkout `88f288151b35273bb2ba06b770c8da0050b9e8e4`; its source tree matches public release target `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` |
 | Release-source preflight | PASS | `scripts/verify-release-source.sh v0.2.0-preview.5` |
 | Full Go suite | PASS | `go test -count=1 ./...` |
 | Race-sensitive suite | PASS | `go test -race -count=1 ./internal/server ./internal/updater ./internal/gemini ./internal/geminiapi ./internal/config ./cmd/desktop` |
@@ -80,18 +82,21 @@ This proves the candidate can bootstrap on this Mac. It does not prove Google
 generation, a clean-device Gatekeeper experience, update replacement,
 rollback, or classroom-scale operation.
 
-## Publication and installed-base gates still open
+## Publication complete; installed-base gates remaining
 
-Before calling Preview 5 a release, the operator must still:
+Preview 5 publication and public-byte reconciliation are complete. The
+remaining installed-base and platform gates are:
 
-1. publish a new immutable GitHub prerelease manually with these exact assets;
-2. download the public assets into a fresh directory and verify the signature,
-   hashes, and byte equality with this local candidate;
-3. test **Help → Check for Updates** from a writable `/Applications` install
-   of the same-key Preview 4/Preview 7 baseline;
-4. observe successful replacement, restart, health confirmation, and a
-   deliberately failed-candidate rollback without losing local state; and
-5. use one or two pilot Macs before any 20–30-device rollout.
+1. **COMPLETED:** publish a new immutable GitHub prerelease manually with these
+   exact assets;
+2. **COMPLETED:** download the public assets into a fresh directory and verify
+   the signature, hashes, and byte equality with this local candidate;
+3. **COMPLETED for Preview 1 on one Mac:** test **Help → Check for Updates**
+   from the writable `/Applications` installation;
+4. **COMPLETED for the successful path / OPEN for recovery:** observe
+   replacement, restart, health confirmation, and preserved visible chat state;
+   a deliberately failed-candidate rollback is still open; and
+5. **OPEN:** use two or three pilot Macs before any 20–30-device rollout.
 
 Apple Developer ID signing/notarization, Windows publisher signing, Linux
 acceptance, live provider limits, and anonymous/session behavior remain

@@ -3,15 +3,15 @@
 ## Decision
 
 The immutable `v0.2.0-preview.1` tag was not reused. Controlled macOS
-`v0.2.0-preview.4` is now published from public-main commit `abfeeba` and is
-the current preview candidate. Preview 3 and the superseded
+`v0.2.0-preview.5` is now the current public preview from public `main`
+target `c28d787`. Preview 4, Preview 3, and the superseded
 `v0.2.0-preview.2` remain available as historical release inputs. Stable
 `v0.2.0` remains a later
 release candidate, not a release to publish until the device and pilot gates
 pass.
 
 The exact current publication and byte-reconciliation evidence is recorded in
-[`PREVIEW-4-PUBLICATION-2026-08-31.md`](PREVIEW-4-PUBLICATION-2026-08-31.md);
+[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md);
 the earlier Preview 2 record remains historical provenance.
 
 The updater is working as a staged, user-consented migration mechanism. It is
@@ -21,8 +21,8 @@ but it does not download, replace, or restart until the user selects
 
 The evidence sections below that name Preview 1, Preview 2, or Preview 3 are
 retained as historical provenance for the earlier publication sequence. The
-authoritative current state is the Preview 4 reconciliation and the
-post-Preview-4 source reconciliation at the end of this document.
+authoritative current state is the Preview 5 reconciliation at the end of this
+document. Earlier publication sections are historical provenance.
 
 ## Evidence snapshot before PR #42
 
@@ -191,7 +191,7 @@ Developer ID/notarization, Google provider behavior, or 20–30-device pilot
 acceptance. The private signing key remains outside the public repository in
 the owner-controlled local secret store.
 
-## Preview 4 publication reconciliation — 2026-08-31
+## Preview 4 publication reconciliation — 2026-08-31 (historical)
 
 The current public release is `v0.2.0-preview.4`, published from public-main
 merge commit `abfeebaaaaabc740ea29602b602591a0b707fbc2` as a macOS universal
@@ -213,7 +213,7 @@ interrupted-update rollback, Apple platform trust, Google provider behavior,
 or 20–30-device pilot acceptance. The private key remains outside the public
 repository and release assets.
 
-## Post-Preview 4 source reconciliation — 2026-08-31
+## Post-Preview 4 source reconciliation — 2026-08-31 (historical)
 
 Protected PR #62 merged the artifact-preview lifecycle fix, responsive-header
 fix, generated web bundle, focused regression tests, and dated browser evidence;
@@ -228,3 +228,22 @@ is therefore ahead of the latest public package by two reviewed UI/reliability
 changes. Preview 5 requires the clean-source gate, local package build,
 Keychain-backed manifest signing, fresh public-byte reconciliation, and
 installed-bundle acceptance before publication.
+
+## Preview 5 publication and one-host migration — 2026-08-31
+
+The current public macOS release is the immutable `v0.2.0-preview.5`
+prerelease, published manually without GitHub Actions from public `main`
+target `c28d787`. The signed package was built from clean source receipt
+`88f2881`, whose source tree matches that target. Its five public assets were
+downloaded into a fresh directory, verified with the checked-in Ed25519 public
+key, and matched the local signed inputs byte-for-byte. The exact hashes and
+sizes are recorded in
+[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md).
+
+On the audit Mac, a writable `/Applications` Preview 1 installation used
+**Help → Check for Updates**, discovered Preview 5, installed it after
+explicit consent, restarted on a healthy loopback gateway, preserved the
+visible chat response, and reported no newer release on a second check.
+This proves one same-key installed migration; deliberate rollback, clean-device
+acceptance, Apple platform trust, live Google behavior, and staged pilot/fleet
+rollout remain open.

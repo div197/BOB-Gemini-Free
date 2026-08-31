@@ -60,22 +60,20 @@ local file; do not pipe an unpinned branch directly into a shell.
 
 ## Native automatic-update status
 
-The current public native preview is `v0.2.0-preview.4`, built with the
+The current public native preview is `v0.2.0-preview.5`, built with the
 desktop trust key and a signed preview manifest. It performs an explicit
 metadata check, and a user can approve a verified staged update with health
 confirmation and rollback. The immutable `v0.2.0-preview.1` package remains
-the migration bridge; Preview 2 and Preview 3 are historical release inputs.
-The current Preview 4 embeds the desktop trust key and remains an explicit,
-user-consented updater. The public `main` source now includes the post-Preview-4
-artifact-preview, responsive-header, and multiline-SSE fixes, but the published
-Preview 4 assets remain immutable; the three preview packagers default to the next candidate
-`v0.2.0-preview.5`, which is not published yet. Historical builds without an
-embedded desktop trust key remain manual-update-only. Stable builds never move
-into preview; current-key preview builds may migrate into a newer stable
-release only after explicit user consent.
+the migration bridge; Preview 2, Preview 3, and Preview 4 are historical
+release inputs. Preview 5 embeds the desktop trust key and remains an explicit,
+user-consented updater. The public `main` source includes the post-Preview-4
+artifact-preview, responsive-header, multiline-SSE, and credential-boundary
+fixes. Historical builds without an embedded desktop trust key remain
+manual-update-only. Stable builds never move into preview; current-key preview
+builds may migrate into a newer stable release only after explicit user consent.
 
-The exact Preview 4 public-byte evidence is recorded in
-[`PREVIEW-4-PUBLICATION-2026-08-31.md`](PREVIEW-4-PUBLICATION-2026-08-31.md).
+The exact Preview 5 public-byte and installed-migration evidence is recorded in
+[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md).
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the

@@ -1,26 +1,40 @@
-# BOB Gemini Free v0.2.0 Release Readiness
+# BOB Gemini Free v0.2.0 Release Readiness (historical compilation)
 
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
-**Current public previews:** immutable `v0.2.0-preview.1` migration bridge,
-historical `v0.2.0-preview.3`, and current controlled macOS `v0.2.0-preview.4`
+**Current packaged source baseline:** public `main` at `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`
+**Current public preview:** immutable macOS universal `v0.2.0-preview.5`; Preview
+4 and Preview 3 are historical, and Preview 1 remains the migration bridge
 **Decision:** **NOT READY for publication as a student-facing stable release**
 
 > **Current audit superseding this historical compilation:** the authoritative
 > release state is recorded in
-> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). At the audit
-> boundary, public `main` is `558e8609333e`, `v0.2.0-preview.4` is the latest
-> immutable desktop preview, `v0.2.0-preview.5` is only the next candidate,
-> the Preview 7 public assets verify with the checked-in public key, and the
-> private key remains only in the owner-controlled macOS Keychain.
+> [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). Preview 5 is
+> published and its public bytes plus one writable Preview 1 → Preview 5
+> migration are verified. Apple platform trust, deliberate rollback, clean
+> device/pilot acceptance, provider behavior, and fleet rollout remain open.
+> The private key remains only in the owner-controlled macOS Keychain.
 
-**Current public `main`:** merge commit `cd44b2c` (PRs #62 and #64), containing
-the post-Preview-4 artifact-preview, responsive-header, and multiline-SSE fixes.
-**Next preview
-candidate:** `v0.2.0-preview.5`, not yet published.
+The sections below preserve earlier readiness snapshots for provenance. Treat
+their Preview 1–4 “current” wording as historical at the time each section was
+written; use the current release audit and Preview 5 publication record for
+present-day operations.
 
-## Current Preview 4 publication refresh — 2026-08-31
+## Current Preview 5 publication reconciliation — 2026-08-31
+
+The public `v0.2.0-preview.5` macOS universal prerelease was published
+manually from `main` target `c28d787` after clean-source, package, Keychain
+signature, and public-byte gates. A writable `/Applications` Preview 1
+installation updated through **Help → Check for Updates**, restarted healthy,
+and retained visible chat state. See
+[`PREVIEW-5-PUBLICATION-2026-08-31.md`](PREVIEW-5-PUBLICATION-2026-08-31.md).
+
+This is a controlled public beta, not a stable or unattended fleet release.
+The remaining gates are deliberate rollback, clean-device and pilot evidence,
+Apple/Windows platform trust, and live provider/network validation.
+
+## Preview 4 publication refresh — 2026-08-31 (historical)
 
 The Preview 4 package source is `main` at merge commit
 `abfeebaaaaabc740ea29602b602591a0b707fbc2`. Protected PR #58 merged the
@@ -134,6 +148,12 @@ This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,
 platform trust, an update migration, and a 30-device acceptance run are four
 different proofs.
+
+## Historical readiness snapshot (before Preview 5 publication)
+
+The remaining sections preserve the decision records and acceptance tables that
+were written before Preview 5 was published. They are retained for audit
+provenance and are not the current rollout instruction.
 
 ## Executive decision
 

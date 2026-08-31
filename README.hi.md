@@ -12,8 +12,8 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.4-7c3aed?style=flat-square" alt="Release">
-  <img src="https://img.shields.io/badge/Go-1.26+-00ADD8?style=flat-square&logo=go" alt="Go Version">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.5-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Go-1.26.6-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
 </p>
@@ -31,12 +31,12 @@
 ## वर्तमान स्थिति और प्रमाण सीमा
 
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
-bridge, historical Preview 3 और current controlled preview `v0.2.0-preview.4`
-शामिल हैं। Public `main` में Preview 4 के बाद का artifact-preview,
-responsive-header, multiline-SSE और credential-boundary सुधार आ चुके हैं।
-`v0.2.0-preview.5` का fresh local signed candidate merged public-main source से
-package/startup smoke में पास है, लेकिन public-byte और installed-update gates
-पूरे होने तक प्रकाशित नहीं है।
+bridge, historical Preview 3/4 और current controlled preview
+`v0.2.0-preview.5` शामिल हैं। Public `main` में Preview 4 के बाद का
+artifact-preview, responsive-header, multiline-SSE और credential-boundary
+सुधार आ चुके हैं। Preview 5 के public bytes और एक writable Preview 1 →
+Preview 5 installed migration का प्रमाण उपलब्ध है; rollback, clean-device,
+pilot और platform-trust gates अभी खुले हैं।
 Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
@@ -245,12 +245,11 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public `v0.2.0-preview.4` preview में project update key embedded है। यह
+Public `v0.2.0-preview.5` preview में project update key embedded है। यह
 current same-key controlled preview है और explicit consent मांगता है; stable
-`v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी। Preview 5 का local
-candidate अभी public नहीं है, इसलिए मौजूदा Preview 7 installations से उसका
-वास्तविक replacement अभी प्रमाणित नहीं है। Actual replacement और rollback का
-clean-device प्रमाण अलग gate है।
+`v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी। एक writable Preview 1
+installation से Preview 5 तक का replacement इस audit Mac पर प्रमाणित है;
+Preview 7 fleet, deliberate rollback और clean-device प्रमाण अलग gates हैं।
 
 ---
 
