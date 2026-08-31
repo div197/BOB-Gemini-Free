@@ -2,8 +2,10 @@
 
 **Status:** branded public macOS preview `v0.2.0-preview.6` is the current
 controlled candidate; Preview 5, Preview 4, and Preview 3 remain historical, the
-immutable `v0.2.0-preview.1` migration bridge remains available, and
-`v0.1.7-preview.7` remains the existing fleet baseline.
+published `v0.2.0-preview.1` migration bridge remains available, and
+`v0.1.7-preview.7` remains the existing fleet baseline. A locally packaged and
+signed `v0.2.0-preview.7` candidate is the next source version, but is not yet
+published.
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -51,7 +53,7 @@ contains the universal macOS package shape and current-key signed manifest.
 It was built from public source target `f9b3410`, passed fresh local package,
 signature, secure-key transport, and old-gateway coexistence checks, and was
 re-downloaded and byte-verified after publication. Existing Preview 7 users can
-discover Preview 6 directly through their preview-only lookup. The immutable
+discover Preview 6 directly through their preview-only lookup. The published
 [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
 
@@ -92,11 +94,9 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to the explicit next candidate
-`v0.2.0-preview.7`; the published `v0.2.0-preview.6` package remains
-immutable. The
-signed `v0.2.0-preview.1` migration
-bridge is immutable and already public. Set `BOB_RELEASE_VERSION` explicitly
-for every publication;
+`v0.2.0-preview.7`; the published `v0.2.0-preview.6` package remains the
+current public baseline. The signed `v0.2.0-preview.1` migration bridge is
+already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public
 preview and is not rebuilt in place.
 

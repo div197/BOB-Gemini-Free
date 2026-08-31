@@ -568,17 +568,20 @@ This is the current release-state boundary for the repository. Historical
 Preview 1–5 sections above remain evidence of earlier states and must not be
 read as the current downloadable package.
 
-The immutable public macOS prerelease is
+The published public macOS prerelease is
 [`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
 packaged from source target `f9b3410`. Its five public assets were manually
 published, re-downloaded, signature-verified, and compared byte-for-byte with
 the local signed inputs. The current source advances `PREVIEW_VERSION` to the
-unused `v0.2.0-preview.7` so Preview 6 cannot be rebuilt accidentally.
+unused `v0.2.0-preview.7` so the project does not reuse Preview 6 for changed
+bytes. GitHub currently reports `immutable: false`; write-once release identity
+is therefore an operator/project discipline, not a GitHub-enforced lock.
 
 | Current claim | Classification | Evidence | Boundary |
 |---|---|---|---|
 | Preview 6 is the current public macOS beta | VERIFIED_LIVE | GitHub release `v0.2.0-preview.6` is published as a prerelease with the universal DMG, ZIP, notice, checksum manifest, and detached signature; the five public files were freshly verified | It remains ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
-| Preview 6 carries the reviewed v0.2 source follow-ups | VERIFIED_LIVE | The local package was built from release source target `f9b3410`, whose browser-boundary, credential-route, telemetry, release-version, settings, gateway-coexistence, and transport-guard changes are in the package receipt | Later `main` documentation/test-only reconciliation is not retroactively part of the immutable tag. |
+| Preview 6 carries the reviewed v0.2 source follow-ups | VERIFIED_LIVE | The local package was built from release source target `f9b3410`, whose browser-boundary, credential-route, telemetry, release-version, settings, gateway-coexistence, and transport-guard changes are in the package receipt | Later `main` documentation/test-only reconciliation is not retroactively part of the published release. |
 | The updater can select Preview 6 for legacy Preview 7 and Preview 5 clients | VERIFIED_BY_UNIT_TEST | `TestPublishedPreviewFleetMatrixSelectsPreview6Candidate` uses a mocked official preview listing and asserts Preview 6 selection, manifest availability, and no self-update | The mock does not prove an installed-bundle replacement; one Preview 7/Preview 5 → Preview 6 pilot is still required. |
 | The settings surface explains the four credential boundaries | VERIFIED_BY_UNIT_TEST | `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials`, the localized dictionary test, and pre-send route guards cover BOB access, Google Developer API, engine-owned cookies, and endpoint identity | Student-owned key validity, Google quota, provider availability, and the safety of a remote endpoint remain external decisions. |
+| Current `main` can produce a signed Preview 7 candidate without claiming it is public | VERIFIED_LOCAL | The clean-source packager, Wails universal build, Keychain-backed manifest signer, exact-asset verifier, DMG-layout check, isolated `/healthz` smoke, and updater transition tests passed; receipt: `PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md` | `v0.2.0-preview.7` is not published or downloadable yet; public-byte reconciliation, installed Preview 6 → Preview 7 replacement, rollback, clean-device, Apple trust, provider, and pilot gates remain open. |
 | A stable 0.2.0 student release is ready | UNKNOWN | Local source/package/public-byte gates are green, but no Apple platform trust, clean-device rollback, live provider, Windows/Linux, or staged pilot evidence exists | Do not announce stable or perform a 30-device wave until the remaining acceptance gates are recorded. |

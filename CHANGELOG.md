@@ -47,6 +47,20 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Adds a source regression for the phone-control containment and drawer-width
   contract, and keeps the generated `web/index.html` bundle synchronized.
 
+### Release candidate verification
+
+- Packaged and locally verified the next `v0.2.0-preview.7` macOS universal
+  candidate from `main`, including the signed manifest, DMG layout, bundle
+  architecture, bundled runtime startup, and updater transition matrix.
+- Recorded the current 1/10/20/30-concurrency local benchmark against the
+  current source commit. This remains a local-only measurement, not a Google
+  quota or classroom-capacity claim.
+- Exercised the generated-artifact lifecycle with a synthetic local SSE
+  fixture: preview launch and Code-tab hydration passed with the complete
+  source, without a provider request or credential.
+- Kept Preview 7 explicitly unpublished until installed-base, rollback,
+  clean-device, platform-trust, provider, and pilot gates are observed.
+
 ## [0.2.0-preview.6] - 2026-08-31
 
 ### Release safety
@@ -56,8 +70,8 @@ to an earlier implementation. The current contract supersedes those phrases:
   guard to the next unused candidate, `v0.2.0-preview.7`.
 - Passes that candidate explicitly from every desktop preview target.
 - Makes the macOS, Windows, and Linux preview packagers fail closed when
-  `BOB_RELEASE_VERSION` is unset, preventing accidental reuse of an immutable
-  published preview tag.
+  `BOB_RELEASE_VERSION` is unset, preventing accidental reuse of a published
+  preview tag.
 - Extends the release-source gate to validate the explicit candidate and the
   packager fail-closed contract.
 
