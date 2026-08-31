@@ -68,6 +68,19 @@ func TestSecurityBoundaryRejectsDifferentLoopbackOrigin(t *testing.T) {
 	}
 }
 
+func TestSecurityBoundaryRejectsNonLoopbackHostOriginConfusion(t *testing.T) {
+	app := New(config.Default(), "security-host-confusion")
+	preflight := httptest.NewRequest(http.MethodOptions, "/v1/chat/completions", nil)
+	preflight.Host = "evil.example:39123"
+	preflight.Header.Set("Origin", "http://evil.example:39123")
+	preflight.Header.Set("Access-Control-Request-Method", http.MethodPost)
+	rec := httptest.NewRecorder()
+	app.Handler().ServeHTTP(rec, preflight)
+	if rec.Code != http.StatusForbidden {
+		t.Fatalf("host-header origin confusion status = %d, want 403", rec.Code)
+	}
+}
+
 func TestSecurityBoundaryAllowsExplicitRemoteOrigin(t *testing.T) {
 	cfg := config.Default()
 	cfg.AllowedOrigins = []string{"https://studio.example.test"}

@@ -145,13 +145,27 @@ func isAllowedOrigin(origin string, configured []string, requestHost, requestSch
 	}
 
 	// A local browser page needs no cross-origin permission when it talks to
-	// the exact gateway origin that served it. Do not trust every loopback
-	// port by default: another local web server can be malicious and the
-	// gateway may hold privileged Google session credentials.
-	if strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
+	// the exact gateway origin that served it. Only trust a literal loopback
+	// listener host here: an attacker-controlled Host header or DNS alias must
+	// not turn an arbitrary web origin into an implicit same-origin exception.
+	if isLoopbackHost(requestHost) && strings.EqualFold(parsed.Scheme, requestScheme) && strings.EqualFold(parsed.Host, strings.TrimSpace(requestHost)) {
 		return true
 	}
 	return false
+}
+
+func isLoopbackHost(hostport string) bool {
+	hostport = strings.TrimSpace(hostport)
+	if host, _, err := net.SplitHostPort(hostport); err == nil {
+		hostport = host
+	} else if strings.HasPrefix(hostport, "[") && strings.HasSuffix(hostport, "]") {
+		hostport = strings.TrimSuffix(strings.TrimPrefix(hostport, "["), "]")
+	}
+	if strings.EqualFold(hostport, "localhost") {
+		return true
+	}
+	ip := net.ParseIP(hostport)
+	return ip != nil && ip.IsLoopback()
 }
 
 const maxRequestBodySize = 32 << 20 // 32 MB limit
