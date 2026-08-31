@@ -5913,7 +5913,7 @@ const I18N = {
     gatewayAuthTitle: "BOB Gateway Access Key (optional)",
     gatewayAuthOptional: "Only when the gateway owner enabled api_keys",
     gatewayAuthPlaceholder: "Only if the gateway owner gave you one",
-    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no api_keys configured.",
+    gatewayAuthHelp: "This protects access to the BOB endpoint; it is not a Google key. It stays in this page's memory and is sent as BOB authorization only. Leave it empty when the local gateway has no api_keys configured. After entering a key, choose Test Ping to verify the endpoint.",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "Universal Local AI Gateway Engine • v0.2.0",
     modalAboutClose: "Close",
@@ -6126,7 +6126,7 @@ const I18N = {
     gatewayAuthTitle: "BOB Gateway Access Key (वैकल्पिक)",
     gatewayAuthOptional: "केवल तब जब gateway owner ने api_keys चालू किया हो",
     gatewayAuthPlaceholder: "केवल gateway owner द्वारा दी गई key होने पर",
-    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें।",
+    gatewayAuthHelp: "यह BOB endpoint की access सुरक्षा है; यह Google key नहीं है। यह इसी page की memory में रहती है और केवल BOB authorization के रूप में भेजी जाती है। Local gateway में api_keys न होने पर इसे खाली रखें। Key दर्ज करने के बाद endpoint जाँचने के लिए टेस्ट पिंग चुनें।",
     modalAboutTitle: "BOB GEMINI FREE",
     modalAboutSub: "सार्वभौमिक स्थानीय AI गेटवे इंजन • v0.2.0",
     modalAboutClose: "बंद करें",
@@ -7029,9 +7029,9 @@ function closeGatewayModal() {
 function saveApiKeyFromInput(val) {
   const clean = (val || "").trim();
   gatewayApiKey = clean;
+  // Typing a credential must never send partial input to the gateway. The
+  // explicit Test Ping action performs the first network check after entry.
   updateGatewayCredentialStatus();
-  refreshTelemetry();
-  if (!backendModelsLoaded) syncBackendModels();
 }
 
 function clearGatewayApiKey() {
