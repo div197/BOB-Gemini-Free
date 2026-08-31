@@ -96,6 +96,16 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased] — 2026-08-31
 
+### Browser preview and responsive layout
+
+- Fixes interactive artifact previews that could appear blank in a WebView when
+  the iframe was hydrated while its modal was hidden; the modal is now visible
+  before generated `srcdoc` is assigned, with a focused regression test.
+- Keeps the New action, prompt, and language selector reachable at tablet and
+  phone widths while preventing header controls from creating page-level
+  horizontal overflow. See the dated
+  [`browser validation record`](docs/engineering/BROWSER-UI-VALIDATION-2026-08-31.md).
+
 ### Responsive drawer accessibility
 
 - Responsive configuration and integration drawers now expose temporary

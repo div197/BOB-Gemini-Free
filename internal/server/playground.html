@@ -3258,6 +3258,35 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   .hero-headline { font-size: 1.55rem; }
   .sub-bar { padding: 6px 12px; }
   .studio-input-area { padding: 8px 12px; }
+
+  /* Keep the desktop navigation usable at tablet widths without allowing
+     the header's natural control widths to create a second page axis. The
+     controls retain their accessible names/titles; only visible labels are
+     compacted, while language remains available as a bounded selector. */
+  .header-controls {
+    min-width: 0;
+    flex-shrink: 1;
+    gap: 4px;
+  }
+  .header-controls .nav-btn-text,
+  #cmd-menu-label {
+    display: none !important;
+  }
+  #theme-selector {
+    display: none !important;
+  }
+  .header-controls .lang-selector {
+    width: 82px;
+    min-width: 82px;
+    max-width: 82px;
+    flex: 0 1 82px;
+    padding: 0 7px;
+  }
+  .header-controls .github-pill {
+    width: 34px;
+    min-width: 34px;
+    padding: 0 8px;
+  }
 }
 
 @media (max-width: 640px) {
@@ -3306,19 +3335,22 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
     height: 28px;
     touch-action: manipulation;
   }
-  .lang-selector {
+  .header-controls .lang-selector {
     padding: 0 4px;
     font-size: 0.7rem;
     height: 28px;
+    width: 46px;
+    min-width: 46px;
     max-width: 46px;
+    flex-basis: 46px;
   }
-  .theme-selector {
+  #theme-selector {
     padding: 0 6px;
     font-size: 0.7rem;
     height: 28px;
     max-width: 90px;
     touch-action: manipulation;
-    /* Hidden on phone – use ⌘K Menu > Themes instead */
+    /* Hide the theme selector on phone; keep the language selector available. */
     display: none !important;
   }
   .token-live-chip {
@@ -8611,6 +8643,13 @@ function openArtifactCanvas(artId) {
   if (badgeEl) badgeEl.innerText = art.type.toUpperCase() + " • " + (art.isInteractive ? "Interactive Live Canvas" : "Source Artifact");
   hideArtifactRuntimeError();
 
+  // Make the preview pane visible before assigning srcdoc. Some WebView
+  // implementations calculate a hidden iframe's document at 0x0 and do not
+  // reflow it when the modal is opened afterwards, leaving a blank preview.
+  const modal = document.getElementById("artifact-modal");
+  if (modal) openManagedModal(modal, "#btn-art-back");
+  switchArtifactTab(art.isInteractive ? 'preview' : 'code');
+
   // Load Iframe Sandbox
   const iframe = document.getElementById("art-sandbox-iframe");
   if (iframe) {
@@ -8841,10 +8880,7 @@ function openArtifactCanvas(artId) {
     codeEl.className = "language-" + (art.lang || "none");
   }
 
-  switchArtifactTab(art.isInteractive ? 'preview' : 'code');
-  const modal = document.getElementById("artifact-modal");
   if (modal) {
-    openManagedModal(modal, "#btn-art-back");
     setTimeout(() => {
       const iframe = document.getElementById("art-sandbox-iframe");
       if (iframe && iframe.contentWindow) {
