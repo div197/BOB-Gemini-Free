@@ -3,21 +3,22 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `d06556c`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `a954dec`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces nine real failure classes: coalesced
+This continuation materially reduces ten real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
 read-only or translocated location, stale attachment parsing/OCR work after the
 user removes a file, initialization failures when browser preference storage
 is denied, execution risk from mutable root CDN dependencies, and
 false-positive optional service health reports, misleading request status logs
-after response commitment, and a Host-header origin-confusion path in the
-default CORS shortcut. The source and deterministic test gates are green.
+after response commitment, a Host-header origin-confusion path in the default
+CORS shortcut, and delayed recovery after transient page-token refresh
+failures. The source and deterministic test gates are green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -255,6 +256,17 @@ cannot activate the local shortcut. Explicitly configured remote origins are
 unchanged and remain an operator trust decision. The security boundary suite
 covers the rejected host-confusion case.
 
+### 16. Page-token refresh recovery — `a954dec`
+
+The multimodal page-token cache now keeps one in-flight refresh reservation and
+uses a bounded 15-second retry delay after a failed refresh. A transient
+login-page, redirect, oversized response, or transport failure therefore does
+not poison the cache for the full ten-minute success TTL, while concurrent
+callers still receive the last-known-good/default set instead of starting a
+refresh storm. Deterministic tests cover the failure, backoff, and recovery
+sequence. Google token lifetime and authenticated upload/vision capability
+remain provider-dependent.
+
 ## Verification completed
 
 | Gate | Result | Evidence boundary |
@@ -272,6 +284,7 @@ covers the rejected host-confusion case.
 | Dedicated service-health probe tests | PASS | `internal/service` tests cover the `/healthz` path and reject an unrelated HTTP 200 process. |
 | Response-status logging regression tests | PASS | `internal/server/middleware_test.go` covers first-commit semantics for explicit headers, implicit writes, and streaming flushes. |
 | CORS Host-header confusion regression tests | PASS | `internal/server/security_boundary_test.go` rejects a matching non-loopback `Host`/`Origin` pair while preserving literal-loopback and explicitly configured remote origins. |
+| Page-token refresh recovery tests | PASS | `internal/multimodal/multimodal_test.go` proves a failed refresh is backed off, does not dog-pile, and recovers after the bounded delay. |
 | macOS Preview package | PASS locally | Universal Wails app, ZIP, DMG, visible `/Applications` shortcut, release notice, and ad-hoc `codesign --verify` passed. The package was not published and its local checksum manifest was not signed. |
 | Browser desktop/tablet/phone walk | NOT AVAILABLE | The configured browser runtime reported no available browser; source tests are not rendered interaction proof. |
 | Live Google/provider run | NOT RUN | No provider credential or cookie was used. |
