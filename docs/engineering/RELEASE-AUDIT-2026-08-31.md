@@ -30,28 +30,32 @@ Do not call the current state a stable student release. Apple Developer ID,
 notarization, clean-device replacement/rollback, Windows/Linux acceptance,
 live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
-The 2026-09-01 continuation rebuilt the Preview 8 candidate from the exact
-current `main` tip `bfa68ff` after the interactive credential route-control
-follow-up merged. The fresh package and hashes are recorded in
-[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md); the earlier bytes were not reused or published.
+The 2026-09-01 continuation rebuilt Preview 8 from the reviewed runtime source
+tip `bfa68ff` after the interactive credential route-control follow-up merged.
+The fresh package and hashes are recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
+those exact bytes were subsequently published, while earlier candidate bytes
+were not reused.
 
 ## What is confirmed now
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Preview 6 is packaged from `f9b3410e74d7ccc08487dc03788b54a201e12ade`; the earlier Preview 5 source baseline `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` remains historical | VERIFIED |
-| Public releases | Latest desktop preview is the published `v0.2.0-preview.6`; GitHub currently reports `immutable: false`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED_LIVE |
+| Public source | Preview 8 runtime bytes are packaged from reviewed source `bfa68ff5926924d1c0b35410e8d8175c404002d6`; later `main` changes are documentation-only | VERIFIED |
+| Public releases | Latest desktop preview is the published `v0.2.0-preview.8`; GitHub reports `immutable: false`; Preview 6 and earlier remain available as historical inputs | VERIFIED_LIVE |
 | Historical Preview 7 public package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED_LIVE_HISTORICAL |
 | Superseded Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from the main-tip source snapshot `0c6a6ff` after PR #99, signed through the local Keychain, and verified locally; it was never a public release | VERIFIED_LOCAL_HISTORICAL |
-| Current Preview 8 candidate | `v0.2.0-preview.8` was freshly packaged from runtime source commit `bfa68ff`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
+| Current Preview 8 release | `v0.2.0-preview.8` was freshly packaged from runtime source commit `bfa68ff`, signed through the local Keychain, published manually, and verified again after public download | VERIFIED_LIVE |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
-| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.8` passes on current `main`; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
+| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.8` passes on current `main`; the public Preview 8 package remains tied to runtime source `bfa68ff` | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
 | Historical Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from clean checkout `88f2881` whose source tree matched the then-current public release target, and passed local asset verification | VERIFIED_LOCAL_HISTORICAL |
 | Historical Preview 5 package smoke | Fresh `open -n` launch owned loopback `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential map, and shut down cleanly | VERIFIED_LOCAL_HISTORICAL |
-| Preview 6 package | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `f9b3410`; bundle, architecture, DMG layout, signed manifest, and updater version checks passed | VERIFIED_LOCAL |
-| Preview 6 public assets | All five uploaded assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE |
-| Preview 6 coexistence smoke | The `/tmp` candidate selected `127.0.0.1:53065` while the installed app stayed on `127.0.0.1:8081`, served `X-BOB-Version: v0.2.0-preview.6`, and shut down cleanly | VERIFIED_LOCAL |
+| Historical Preview 6 package | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `f9b3410`; bundle, architecture, DMG layout, signed manifest, and updater version checks passed | VERIFIED_LOCAL_HISTORICAL |
+| Historical Preview 6 public assets | All five uploaded assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE_HISTORICAL |
+| Historical Preview 6 coexistence smoke | The `/tmp` candidate selected `127.0.0.1:53065` while the installed app stayed on `127.0.0.1:8081`, served `X-BOB-Version: v0.2.0-preview.6`, and shut down cleanly | VERIFIED_LOCAL_HISTORICAL |
+| Preview 8 package and local coexistence | Fresh universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were built from `bfa68ff`; the candidate selected `127.0.0.1:62885` beside the installed gateway on `127.0.0.1:8081`, served `X-Bob-Version: v0.2.0-preview.8`, and shut down cleanly | VERIFIED_LOCAL |
+| Preview 8 public assets | All five uploaded assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE |
 | Historical Preview 5 public assets | All five published assets were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte with the local signed inputs | VERIFIED_LIVE_HISTORICAL |
 | Historical Preview 1 installation update to Preview 5 | **Help → Check for Updates** discovered Preview 5; explicit install closed the old app, replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check reported no newer release. This remains the only live installed-bundle migration observation. | VERIFIED_LIVE_HISTORICAL |
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
@@ -71,8 +75,8 @@ startup, and local updater matrix all passed. The detailed receipt is in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).
 
 This candidate was never tagged, uploaded, or published and is retained only
-for provenance. The public downloadable version remains
-`v0.2.0-preview.6`; no installed device can discover it.
+for provenance. At that historical boundary, the public downloadable version
+was `v0.2.0-preview.6`; it was later superseded publicly by Preview 8.
 
 ## Current public Preview 8 release — 2026-09-01
 
@@ -172,7 +176,7 @@ Complete these in order, from a clean checkout based on public `main`:
    wave. Record only version, OS/architecture, health result, generation
    class, and update result.
 
-If a future gate fails, keep `v0.2.0-preview.6` and all earlier releases
+If a future gate fails, keep `v0.2.0-preview.8` and all earlier releases
 unchanged and do not reuse any published tag or overwrite its assets. Create a
 new uniquely versioned preview identity after a corrected build.
 

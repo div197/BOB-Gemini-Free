@@ -44,10 +44,10 @@ The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
 declared size, signed manifest, and official GitHub URLs. The public
-`v0.2.0-preview.6` updater carries the current key; its preview-channel
+`v0.2.0-preview.8` updater carries the current key; its preview-channel
 transition remains subject to a live installed-device test. Historical
 `v0.1.7-preview.3` has no embedded desktop key and therefore cannot install a
-native update; the current `v0.2.0-preview.6` package embeds the current
+native update; the current `v0.2.0-preview.8` package embeds the current
 project public key.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
@@ -137,9 +137,9 @@ The private key must never be placed in the repository, shell history, command
 output, issue comments, or a local fixture. Rotate both values together if the
 private key is exposed.
 
-## Preview 6 publication evidence — 2026-08-31
+## Preview 6 publication evidence — 2026-08-31 (historical)
 
-The current public macOS preview is the published
+At that historical boundary, the public macOS preview was the published
 [`v0.2.0-preview.6`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.6),
 packaged from source target `f9b3410`. The exact universal DMG, ZIP, release
 notice, `SHA256SUMS`, and `SHA256SUMS.sig` were signed locally through the
@@ -151,7 +151,7 @@ This proves release-byte authenticity and publication integrity. It does not
 prove Apple Developer ID/notarization, a clean-device replacement or rollback,
 live Google availability, or a 20–30-device rollout. The earlier Preview 1 →
 Preview 5 installed migration is the only live installed-update observation;
-Preview 7/Preview 5 → Preview 6 remains a staged device gate.
+Preview 7/Preview 5 → Preview 6 remained a staged device gate.
 
 ## Superseded Preview 7 candidate — 2026-08-31
 

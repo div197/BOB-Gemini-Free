@@ -6,10 +6,12 @@ macOS pilot fleet.
 **Purpose:** move existing Preview 7 installations onto the current updater
 path without manually replacing the application on every Mac.
 
-**Current release truth (2026-08-31):** public macOS `v0.2.0-preview.6` is the
-current downloadable preview. A locally packaged and signed
-`v0.2.0-preview.8` candidate exists from the reviewed current source, but it is
-not published or downloadable yet.
+**Current release truth (2026-09-01):** public macOS
+`v0.2.0-preview.8` is the current downloadable preview, built from reviewed
+runtime source `bfa68ff`. Its five public assets were re-downloaded,
+signature-verified, and byte-reconciled. A Preview 5 app discovered it through
+**Help → Check for Updates** on the audit Mac, but that install was canceled;
+replacement, rollback, clean-device, and pilot evidence remain open.
 
 This is a staged, user-consented migration. It is not a silent fleet push and
 it does not require GitHub Actions, an Apple Developer account, a shared
@@ -29,17 +31,17 @@ Google cookie, or a student-facing private key.
 
 ## Phase 1: Preview 7 to current public preview
 
-The signed same-key `v0.2.0-preview.6` macOS preview is now published. The
+The signed same-key `v0.2.0-preview.8` macOS preview is now published. The
 published `v0.2.0-preview.1` bridge remains available if a device already
 selected that intermediate release:
 
 1. Open BOB Gemini Free.
 2. Select **Help → Check for Updates**.
-3. Confirm that the dialog names `v0.2.0-preview.6` (or the published bridge)
+3. Confirm that the dialog names `v0.2.0-preview.8` (or the published bridge)
    and a macOS universal package.
 4. Select **Install Update** and allow BOB to restart.
 5. Reopen BOB and confirm that the displayed version is
-   `v0.2.0-preview.6` (or the bridge version selected by the updater).
+   `v0.2.0-preview.8` (or the bridge version selected by the updater).
 6. Send one small, ordinary test prompt and confirm that the local gateway
    still starts and the response state reaches a terminal result.
 
@@ -48,12 +50,12 @@ macOS version, architecture, current version, and exact error. Check the
 official release page and use the documented manual DMG recovery path if the
 device is on a read-only or translocated application path.
 
-The legacy Preview 7 updater can select the published Preview 6 directly when
+The legacy Preview 7 updater can select the published Preview 8 directly when
 its signed manifest and compatible macOS asset are present. The current-source
 updater selects stable first and otherwise the highest valid preview. The local
-Preview 7 candidate is not part of that public lookup until it is published
-under its new tag. The exact published version must always be confirmed in the
-dialog; never assume that a source candidate is already downloadable.
+Preview 7 candidate was never part of that public lookup. The exact published
+version must always be confirmed in the dialog; never assume that a source
+candidate is already downloadable.
 
 ## Phase 2: Bridge to stable
 
@@ -67,7 +69,7 @@ stable `v0.2.0` package. On each bridge device, repeat:
 
 The bridge is only necessary when using the already-published Preview 7 binary
 to reach stable through a preview-only step. That binary can first discover
-the published Preview 6; a current-source preview looks at the stable channel
+the published Preview 8; a current-source preview looks at the stable channel
 first and can then migrate to stable.
 
 ## Rollout order for 30 Macs
