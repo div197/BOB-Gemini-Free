@@ -50,6 +50,20 @@ to an earlier implementation. The current contract supersedes those phrases:
   their preview-channel updater path; actual replacement and rollback remain
   clean-device and pilot gates.
 
+## [0.2.0-preview.3] - 2026-08-31
+
+### Controlled source candidate
+
+- Advances the immutable macOS preview candidate after Preview 2 with the
+  bounded updater metadata retry and calm update/staging failure dialogs
+  merged on public `main`.
+- Adds responsive drawer dialog semantics, focus-in, Tab trapping, Escape
+  close, and focus return for keyboard users at tablet and phone widths.
+- Local browser smoke evidence covers 1440x900, 1024x768, and 390x844 with no
+  document horizontal overflow or console warnings/errors. This candidate
+  remains ad-hoc signed, non-notarized, macOS-only, and controlled until its
+  exact release assets are built, signed, published, and re-verified.
+
 ---
 
 ## [Unreleased] — 2026-08-31
