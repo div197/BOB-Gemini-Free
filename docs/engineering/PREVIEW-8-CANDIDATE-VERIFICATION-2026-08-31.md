@@ -2,9 +2,8 @@
 
 **Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
 **Status:** locally packaged, signed, and verified; **not published**
-**Runtime source snapshot:** `7395243c90eec3f884dd49067b64dd549aab1956` (the
-clean reviewed code commit used to build the package; later receipt-only
-documentation commits do not change its bytes)
+**Runtime source snapshot:** `82aba61e1d14f65db7e197d50891c66ea4af1f69` (the
+clean reviewed main commit used to build the package)
 **Public baseline:** `v0.2.0-preview.6` remains the current downloadable
 macOS preview. The earlier local Preview 7 candidate was never published and
 is superseded by this source.
@@ -22,8 +21,10 @@ package, manifest, signature, and public-byte reconciliation are completed.
   toolbar, and the generated `web/index.html` bundle is synchronized.
 - Config copy explicitly distinguishes the endpoint URL, the optional BOB
   Gateway Access Key, the engine-owned web-session cookies, and the optional
-  Google Gemini Developer API key. Route headers, in-memory handling, HTTPS
-  guards, and no-fallback behavior are unchanged.
+  Google Gemini Developer API key. The route-choice guide appears before the
+  detailed credential map and highlights the current route; the existing
+  provider toggle remains the only route control. Route headers, in-memory
+  handling, HTTPS guards, and no-fallback behavior are unchanged.
 
 ## Earlier candidate follow-up — 2026-09-01
 
@@ -61,24 +62,24 @@ rollback, Apple trust, provider, and pilot gates before publishing a successor.
 
 ## Final package refresh — 2026-09-01
 
-After the source follow-up merged, the candidate was rebuilt from the exact
-clean runtime source commit `7395243c90eec3f884dd49067b64dd549aab1956` into the isolated
-directory `/tmp/bob-gemini-free-preview-20260901-main7395243`. The old
-`/tmp/bob-gemini-free-preview-20260901` directory was not reused because its
-DMG, ZIP, manifest, and signature belonged to the superseded `240b57b` source.
+After the route-choice follow-up merged, the candidate was rebuilt from the
+exact clean main commit `82aba61e1d14f65db7e197d50891c66ea4af1f69` into the
+isolated directory `/tmp/bob-gemini-free-preview-20260901-main82aba61`. The
+older candidate directories were not reused because their DMG, ZIP, manifest,
+and signature belonged to superseded source snapshots.
 
 The fresh universal Wails bundle was signed ad hoc for bundle integrity, then
 its exact three payload files were signed through the owner-controlled macOS
 Keychain manifest path. The fresh signed directory passed checksum,
 detached-signature, app-bundle, architecture, and DMG-layout verification.
 Launching that exact app while an occupied/unresponsive process held
-`127.0.0.1:8081` selected `http://127.0.0.1:57770`; `/healthz` returned HTTP
-200 with `X-BOB-Version: v0.2.0-preview.8`, and `/`, `/playground`,
+`127.0.0.1:8081` selected `http://127.0.0.1:49339`; `/healthz` returned HTTP
+200 with `X-Bob-Version: v0.2.0-preview.8`, and `/`, `/playground`,
 `/manifest.json`, `/sw.js`, and `/favicon.ico` all returned HTTP 200. The
-packaged Studio Config surface showed the separate BOB access-key and Google
-Developer API-key fields, the default web-session route, and the engine-owned
-cookie boundary. No provider key, Google cookie, or generation request was
-used.
+packaged Studio Config surface showed the route-choice guide, separate BOB
+access-key and Google Developer API-key fields, the default web-session route,
+and the engine-owned cookie boundary. No provider key, Google cookie, or
+generation request was used.
 
 ## Evidence completed before packaging
 
@@ -91,7 +92,7 @@ used.
 | `go mod verify` | PASS; all modules verified |
 | `scripts/verify-release-source.sh v0.2.0-preview.8` | PASS |
 | `git diff --check` | PASS |
-| Browser settings copy on current source | PASS; endpoint, BOB, and Google key boundaries render distinctly |
+| Browser settings copy on current source | PASS; route choice is visible before the detailed map, and endpoint, BOB, and Google key boundaries render distinctly in English and Hindi |
 | Browser responsive smoke | PASS at 1440×900, 1024×768, and 390×844; no horizontal overflow |
 | Open drawer toolbar hit test | PASS at 390×844; the New action resolves to `newChat()` while the drawer is open |
 | Provider/session credentials | Not used; no Google key, cookie, or live generation request |
@@ -117,7 +118,7 @@ BOB_WAILS_PLATFORM=darwin/universal
 | macOS DMG layout | PASS; app plus `/Applications` shortcut |
 | Keychain-backed Ed25519 manifest signing | PASS; private value stayed in the local Keychain path |
 | `scripts/verify-release-assets.sh` | PASS; exact signed directory |
-| Local packaged startup | PASS; occupied/unresponsive process on `127.0.0.1:8081` was not reused; current candidate selected `127.0.0.1:57770` |
+| Local packaged startup | PASS; occupied/unresponsive process on `127.0.0.1:8081` was not reused; current candidate selected `127.0.0.1:49339` |
 | Local packaged health | PASS; HTTP 200, `X-Bob-Version: v0.2.0-preview.8`, `X-Bob-Auth-Required: false` |
 | Local packaged static routes | PASS; `/playground`, `/manifest.json`, `/sw.js`, and `/favicon.ico` returned 200 |
 | Installed Preview 6 → Preview 8 replacement | OPEN; requires a writable device |
@@ -126,15 +127,15 @@ BOB_WAILS_PLATFORM=darwin/universal
 ## Signed asset hashes
 
 The exact local candidate directory was
-`/tmp/bob-gemini-free-preview-20260901-main7395243`:
+`/tmp/bob-gemini-free-preview-20260901-main82aba61`:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `dee95f9374865479c343d76e210710b060b150dd8892556e1561fae068c075db` |
-| `bob-gemini-free-macos-universal.dmg` | `c1a7b4795d5635ad2660ef792b141835dd7d201e679a62a143a4d3e732ef3bfc` |
-| `bob-gemini-free-macos-universal.zip` | `d74acaeb0adcd3c46457801b00ca7a2067180b8faee28348fb116b4efae8f063` |
-| `SHA256SUMS` | `03abe6681fe36309f307882ada8353f3e97c361d3551648b4a2019c1173321c4` |
-| `SHA256SUMS.sig` | `bc64e9a10b94832fbc1bfa8ee45fed8727bb516bb30eeffb6274cf29ee378e37` |
+| `bob-gemini-free-macos-universal.dmg` | `ba2a4fcb1bb984ae7f68325eac7d1214930d5ddb45989a3de35f07587ac9f60e` |
+| `bob-gemini-free-macos-universal.zip` | `5946a4254843cb1a6cb6a3ede043da89c49e156bcb1b057908f7e86a8df3f753` |
+| `SHA256SUMS` | `6378aa90acffe7d2ad7fd75dedb717ea41936f19996b38a5ef997f98732b0275` |
+| `SHA256SUMS.sig` | `a0a82cb8bb1d4d854c1e5f29f00302dfecb2caaa570e0eb2aff7aa1140c4abf7` |
 
 The manifest contains one entry for each of the three release payloads and was
 verified against the checked-in public trust anchor. The private signing
