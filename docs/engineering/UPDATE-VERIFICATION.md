@@ -65,8 +65,9 @@ magic, and only then considered for replacement. Unix replacement uses an
 atomic same-filesystem rename. The updater flushes the temporary metadata file
 before its commit and flushes the Unix containing directory after transaction
 renames and rollback; Windows retains the existing rollback path because a
-running executable cannot be renamed over in place and directory flushing has
-no portable Go contract.
+running executable cannot be renamed over in place. Windows metadata commits
+use native `MoveFileExW` replace-existing/write-through semantics; directory
+flushing still has no portable Go contract.
 
 `cmd/release-manifest` creates a sorted manifest from regular release files,
 excluding `SHA256SUMS` and `SHA256SUMS.sig`, and signs the exact manifest bytes.

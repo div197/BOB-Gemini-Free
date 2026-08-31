@@ -48,8 +48,9 @@ current local truth is:
 - Follow-up commit `b136724` hardens updater transaction durability with
   flushed metadata commits, Unix directory synchronization around swaps and
   recovery, and a fault-injected rollback regression. Recursive app-bundle
-  durability, Windows directory-flush semantics, physical power interruption,
-  and clean-device acceptance remain open gates.
+  durability, Windows directory-flush/journal evidence, physical power
+  interruption, and clean-device acceptance remain open gates; `fd279aa` adds
+  the native Windows metadata replacement path.
 
 This is a release gate, not a claim that the source is unusable. The current
 branch is a large post-Preview-7 source milestone, but a signed artifact,

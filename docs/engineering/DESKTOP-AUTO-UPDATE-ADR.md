@@ -44,8 +44,9 @@ Build a user-consented, transaction-based native updater in these stages:
    flush the relevant Unix directory entry, move the candidate into place,
    flush again, and relaunch the candidate. The helper keeps the backup until
    the new app sends a local health confirmation. Windows retains its
-   platform-specific rollback boundary because there is no portable directory
-   fsync contract.
+   platform-specific rollback boundary; updater metadata uses native
+   `MoveFileExW` replace-existing/write-through semantics because there is no
+   portable directory fsync contract.
 6. **Recover:** if replacement, launch, or confirmation fails, restore the
    backup and leave a human-readable failure record. The manual GitHub release
    path remains available at every stage.
