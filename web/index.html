@@ -9987,6 +9987,26 @@ async function extractDocumentToMarkdown(file) {
   }
   let activePDF = null;
   let activePDFLoadingTask = null;
+  let pdfDestroyPromise = null;
+  const attachmentSignal = fileEntry.abortController ? fileEntry.abortController.signal : null;
+  function destroyActivePDF() {
+    if (pdfDestroyPromise) return pdfDestroyPromise;
+    const target = activePDF && typeof activePDF.destroy === 'function'
+      ? activePDF
+      : activePDFLoadingTask && typeof activePDFLoadingTask.destroy === 'function'
+        ? activePDFLoadingTask
+        : null;
+    if (!target) return Promise.resolve();
+    try {
+      pdfDestroyPromise = Promise.resolve(target.destroy());
+    } catch (error) {
+      pdfDestroyPromise = Promise.reject(error);
+    }
+    return pdfDestroyPromise;
+  }
+  function abortPDFParse() {
+    void destroyActivePDF().catch(() => {});
+  }
   try {
     if (!isAttachmentEntryActive(fileEntry)) return;
     if (meta.cat === 'pdf') {
@@ -9994,6 +10014,10 @@ async function extractDocumentToMarkdown(file) {
       if (!isAttachmentEntryActive(fileEntry)) return;
       if (window.pdfjsLib) {
         activePDFLoadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+        if (attachmentSignal && typeof attachmentSignal.addEventListener === 'function') {
+          attachmentSignal.addEventListener('abort', abortPDFParse, { once: true });
+          if (attachmentSignal.aborted) abortPDFParse();
+        }
         const pdf = await activePDFLoadingTask.promise;
         activePDF = pdf;
         fileEntry.pageCount = pdf.numPages;
@@ -10156,12 +10180,11 @@ async function extractDocumentToMarkdown(file) {
     fileEntry.statusText = 'Failed to parse';
     console.error('File parsing error:', err);
   } finally {
+    if (attachmentSignal && typeof attachmentSignal.removeEventListener === 'function') {
+      attachmentSignal.removeEventListener('abort', abortPDFParse);
+    }
     try {
-      if (activePDF && typeof activePDF.destroy === 'function') {
-        await activePDF.destroy();
-      } else if (activePDFLoadingTask && typeof activePDFLoadingTask.destroy === 'function') {
-        await activePDFLoadingTask.destroy();
-      }
+      await destroyActivePDF();
     } catch (_) {}
     releaseParseSlot();
   }
