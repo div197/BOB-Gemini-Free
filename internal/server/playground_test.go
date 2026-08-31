@@ -1037,6 +1037,7 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	html := string(playgroundHTML)
 	for _, marker := range []string{
 		`id="gateway-credential-map"`,
+		`id="gateway-credential-map-lead"`,
 		`id="gateway-route-status"`,
 		`id="gateway-route-status-title"`,
 		`id="gateway-route-status-help"`,
@@ -1045,6 +1046,7 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`id="gateway-route-model-state"`,
 		`data-state="blocked"`,
 		`Credential map — these are different`,
+		`most students should leave both key fields empty`,
 		`Default web-session route:`,
 		`Google Developer API route:`,
 		`BOB endpoint access:`,
@@ -1097,6 +1099,46 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	} {
 		if strings.Count(html, marker) < 2 {
 			t.Fatalf("credential-boundary translation marker %q is not present in English and Hindi dictionaries", marker)
+		}
+	}
+}
+
+func TestPlaygroundCredentialTranslationsUseTheCorrectDictionaryScope(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`"gateway-credential-map-title": dict.gatewayCredentialMapTitle,`,
+		`"gateway-credential-map-lead": dict.gatewayCredentialMapLead,`,
+		`"gateway-route-web-label": dict.gatewayRouteWebLabel,`,
+		`"gateway-route-web-help": dict.gatewayRouteWebHelp,`,
+		`"gateway-route-provider-label": dict.gatewayRouteProviderLabel,`,
+		`"gateway-route-provider-help": dict.gatewayRouteProviderHelp,`,
+		`"gateway-route-access-label": dict.gatewayRouteAccessLabel,`,
+		`"gateway-route-access-help": dict.gatewayRouteAccessHelp,`,
+		`"gateway-auth-title": dict.gatewayAuthTitle,`,
+		`"gateway-auth-optional": dict.gatewayAuthOptional,`,
+		`"gateway-auth-help": dict.gatewayAuthHelp,`,
+		`gatewayKeyInput.placeholder = dict.gatewayAuthPlaceholder;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("credential translation mapping is missing %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		`ui.gatewayCredentialMapTitle`,
+		`ui.gatewayCredentialMapLead`,
+		`ui.gatewayRouteWebLabel`,
+		`ui.gatewayRouteWebHelp`,
+		`ui.gatewayRouteProviderLabel`,
+		`ui.gatewayRouteProviderHelp`,
+		`ui.gatewayRouteAccessLabel`,
+		`ui.gatewayRouteAccessHelp`,
+		`ui.gatewayAuthTitle`,
+		`ui.gatewayAuthOptional`,
+		`ui.gatewayAuthHelp`,
+		`ui.gatewayAuthPlaceholder`,
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("credential translation still reads top-level value through ui: %q", forbidden)
 		}
 	}
 }
