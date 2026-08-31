@@ -386,6 +386,13 @@ evidence only.
 | Release evidence omits the source commit, toolchain, or exact signed asset hashes | VERIFIED_IN_SOURCE | `scripts/record-release-evidence.sh` re-runs source/asset verification and records commit, branch, Go version, host, time, manifest/signature hashes, and asset hashes in a 0600 receipt outside the worktree | The operator must retain and reconcile the receipt with the public GitHub release; it is not a hosted attestation. |
 | The whole 100-path register is closed | STALE_OR_INCORRECT | The register contains 100 numbered paths with explicit PROTECTED/PARTIAL/OPEN/EXTERNAL statuses | Do not use this matrix or the register as a production-readiness certificate; close each release/device/provider gate with its own evidence. |
 
+## Current version-identity hardening — 2026-08-31
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| An unflagged source build cannot present a Go pseudo-version as a published updateable release | VERIFIED_BY_INTEGRATION_TEST | `main.go` now accepts only the explicit `Version` build variable; `main_test.go` covers `dev`, an injected release version, and an empty injection. A direct `go build .` reproduction changed from `v0.2.0-preview.1.0.20260831062407-8ce3483234a4` to `dev`, while `make build` still reports its explicit `v0.2.0` build value. | This protects the root CLI identity; release/packaging commands must still inject the intended version and remain subject to the clean-source/public-asset gates. |
+| The updater accepts only canonical published stable or `preview.N` versions | VERIFIED_BY_UNIT_TEST | `internal/updater/updater.go` rejects Go pseudo-versions, build metadata, incomplete cores, and non-preview prereleases; updater tests cover those shapes. Stable metadata is also rejected when its tag is not canonical. | A valid version and signature do not prove that a release was uploaded, Apple-notarized, or accepted on a clean device. |
+
 ## Latest control-plane and false-success hardening
 
 | Claim | Classification | Evidence | Boundary |

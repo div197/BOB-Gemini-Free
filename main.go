@@ -15,7 +15,6 @@ import (
 	"os/signal"
 	"path/filepath"
 	"runtime"
-	"runtime/debug"
 	"slices"
 	"strconv"
 	"strings"
@@ -35,11 +34,8 @@ import (
 var Version = "dev"
 
 func resolveVersion() string {
-	if Version != "" && Version != "dev" {
-		return Version
-	}
-	if info, ok := debug.ReadBuildInfo(); ok && info.Main.Version != "" && info.Main.Version != "(devel)" {
-		return info.Main.Version
+	if Version == "" {
+		return "dev"
 	}
 	return Version
 }

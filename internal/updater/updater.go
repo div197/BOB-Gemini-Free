@@ -72,6 +72,9 @@ var BuildUpdatePublicKey string
 
 // CheckLatest queries the official GitHub repository for the latest release.
 func CheckLatest(currentVersion string) (*CheckResult, error) {
+	if !IsDesktopVersionCheckable(currentVersion) {
+		return nil, fmt.Errorf("current version %q is not a published release; refusing update check", currentVersion)
+	}
 	apiURL := "https://api.github.com/repos/div197/bob-gemini-free/releases/latest"
 	client := newUpdateHTTPClient(8 * time.Second)
 
@@ -108,6 +111,9 @@ func CheckLatest(currentVersion string) (*CheckResult, error) {
 	}
 	if release.Draft || release.Prerelease {
 		return nil, fmt.Errorf("latest release endpoint returned a non-stable release")
+	}
+	if !isStableReleaseTag(release.TagName) {
+		return nil, fmt.Errorf("latest release endpoint returned a non-canonical stable tag")
 	}
 	if release.HTMLURL != "" && !isOfficialGitHubURL(release.HTMLURL) {
 		return nil, fmt.Errorf("release metadata contains a non-official release URL")
@@ -539,13 +545,13 @@ func isNewerVersion(current, latest string) bool {
 	return valid && comparison < 0
 }
 
-// IsDesktopVersionCheckable reports whether a binary carries a published
-// semantic version suitable for release metadata checks. Local and ad-hoc
-// development builds must not query the public updater or present themselves
-// as an installable release.
+// IsDesktopVersionCheckable reports whether a binary carries a canonical
+// published release version suitable for release metadata checks. Local and
+// ad-hoc development builds, Go pseudo-versions, and non-preview prereleases
+// must not query the public updater or present themselves as installable
+// releases.
 func IsDesktopVersionCheckable(version string) bool {
-	_, valid := parseSemanticVersion(version)
-	return valid
+	return isStableReleaseTag(version) || isPreviewReleaseTag(version)
 }
 
 type semanticVersion struct {
@@ -676,7 +682,24 @@ func isNumericIdentifier(value string) bool {
 
 func isPreviewReleaseTag(tag string) bool {
 	version, valid := parseSemanticVersion(tag)
-	return valid && len(version.prerelease) == 2 && version.prerelease[0] == "preview" && isNumericIdentifier(version.prerelease[1])
+	return valid && canonicalReleaseCore(tag) && len(version.prerelease) == 2 && version.prerelease[0] == "preview" && isNumericIdentifier(version.prerelease[1])
+}
+
+func isStableReleaseTag(tag string) bool {
+	version, valid := parseSemanticVersion(tag)
+	clean := strings.TrimSpace(strings.TrimPrefix(tag, "v"))
+	return valid && canonicalReleaseCore(tag) && !strings.Contains(clean, "-") && len(version.prerelease) == 0
+}
+
+func canonicalReleaseCore(tag string) bool {
+	clean := strings.TrimSpace(strings.TrimPrefix(tag, "v"))
+	if clean == "" || strings.Contains(clean, "+") {
+		return false
+	}
+	if dash := strings.IndexByte(clean, '-'); dash >= 0 {
+		clean = clean[:dash]
+	}
+	return len(strings.Split(clean, ".")) == 3
 }
 
 func copyFile(src, dst string) error {

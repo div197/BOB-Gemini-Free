@@ -212,6 +212,9 @@ func decodeDesktopRelease(data []byte, channel string) (*GitHubRelease, error) {
 		if release.Draft || release.Prerelease {
 			return nil, fmt.Errorf("stable desktop release endpoint returned a non-stable release")
 		}
+		if !isStableReleaseTag(release.TagName) {
+			return nil, fmt.Errorf("stable desktop release endpoint returned a non-canonical tag")
+		}
 		return &release, nil
 	}
 

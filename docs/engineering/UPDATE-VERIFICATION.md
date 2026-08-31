@@ -28,9 +28,14 @@ SHA256SUMS.sig
 for controlled release tooling, but base64 is the documented format.
 
 The trusted Ed25519 public key is embedded into official CLI binaries at build
-time through `internal/updater.BuildUpdatePublicKey` and `-ldflags -X`. A
-development build may use `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a local
-fallback. Both forms accept base64 or hexadecimal. The key is deliberately
+time through `internal/updater.BuildUpdatePublicKey` and `-ldflags -X`. An
+unflagged development build remains version `dev` and does not identify itself
+as a published update client; an operator may explicitly inject a release
+version and use `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a local CLI fallback
+for a controlled verification run. An update check is rejected before network
+access when the current version is not a canonical release identity. Both
+forms accept base64 or hexadecimal.
+The key is deliberately
 not fetched from GitHub. If the key, manifest, signature, asset entry, or
 signature verification is missing or invalid, `--update` fails closed before
 the binary can replace the installed executable.

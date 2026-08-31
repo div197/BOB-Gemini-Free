@@ -355,6 +355,10 @@ explicit command:
 ./bob-gemini-free --update
 ```
 
+Only a release-shaped version explicitly injected by the build/package command
+is eligible for this check. Unflagged `go build .` and other local source builds
+report `dev` and are rejected before any GitHub update request is made.
+
 Updates now fail closed unless the release publishes a signed `SHA256SUMS`
 manifest and the matching Ed25519 public key is configured as
 `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` (base64 or hexadecimal). See
