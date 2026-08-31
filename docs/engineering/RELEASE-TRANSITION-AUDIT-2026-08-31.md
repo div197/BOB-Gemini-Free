@@ -3,14 +3,15 @@
 ## Decision
 
 The immutable `v0.2.0-preview.1` tag was not reused. Controlled macOS
-`v0.2.0-preview.3` is now published from public-main commit `284b7d1a` and is
-the current preview candidate. The superseded `v0.2.0-preview.2` remains
-available as historical release input. Stable `v0.2.0` remains a later
+`v0.2.0-preview.4` is now published from public-main commit `abfeeba` and is
+the current preview candidate. Preview 3 and the superseded
+`v0.2.0-preview.2` remain available as historical release inputs. Stable
+`v0.2.0` remains a later
 release candidate, not a release to publish until the device and pilot gates
 pass.
 
 The exact current publication and byte-reconciliation evidence is recorded in
-[`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md);
+[`PREVIEW-4-PUBLICATION-2026-08-31.md`](PREVIEW-4-PUBLICATION-2026-08-31.md);
 the earlier Preview 2 record remains historical provenance.
 
 The updater is working as a staged, user-consented migration mechanism. It is
@@ -18,9 +19,10 @@ not a silent fleet push: a running app may perform a delayed metadata check,
 but it does not download, replace, or restart until the user selects
 **Install Update**.
 
-The evidence sections below that name Preview 1 or Preview 2 are retained as
-historical provenance for the earlier publication sequence. The authoritative
-current state is the Preview 3 reconciliation at the end of this document.
+The evidence sections below that name Preview 1, Preview 2, or Preview 3 are
+retained as historical provenance for the earlier publication sequence. The
+authoritative current state is the Preview 4 reconciliation at the end of this
+document.
 
 ## Evidence snapshot before PR #42
 
@@ -188,3 +190,25 @@ close clean-device replacement, restart, interrupted-update rollback, Apple
 Developer ID/notarization, Google provider behavior, or 20–30-device pilot
 acceptance. The private signing key remains outside the public repository in
 the owner-controlled local secret store.
+
+## Preview 4 publication reconciliation — 2026-08-31
+
+The current public release is `v0.2.0-preview.4`, published from public-main
+merge commit `abfeebaaaaabc740ea29602b602591a0b707fbc2` as a macOS universal
+prerelease without GitHub Actions. The exact publication record is
+[`PREVIEW-4-PUBLICATION-2026-08-31.md`](PREVIEW-4-PUBLICATION-2026-08-31.md).
+
+The owner-controlled Keychain signer accepted the matching private/public key
+pair. The five release assets were then downloaded from GitHub into a fresh
+directory; the detached Ed25519 signature and checksums passed, and all five
+files matched the local signed inputs byte-for-byte. The package launched on
+the audit Mac, selected a safe loopback fallback when port 9610 was occupied,
+served the full Preview 4 version through the local UI, and shut down cleanly.
+
+Preview 4 includes the explicit 401/403 dynamic-session-cache invalidation fix
+and the immutable packager-version correction. It remains an ad-hoc signed,
+non-notarized controlled beta. This closes source/package/public-byte
+reconciliation, not clean-device replacement, restart confirmation,
+interrupted-update rollback, Apple platform trust, Google provider behavior,
+or 20–30-device pilot acceptance. The private key remains outside the public
+repository and release assets.

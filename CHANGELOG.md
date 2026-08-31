@@ -35,6 +35,28 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
+## [0.2.0-preview.4] - 2026-08-31
+
+### Controlled macOS preview publication
+
+- Published the macOS universal prerelease from public-main commit
+  `abfeeba` with the current updater trust anchor and a signed
+  `SHA256SUMS` manifest.
+- Re-downloaded all five public assets, verified the detached Ed25519
+  signature, and reconciled every downloaded file with the locally signed
+  publication input byte-for-byte.
+- Invalidates cached dynamic Google `/app` page tokens after an explicit HTTP
+  401/403 rejection without erasing configured cookies, rotating identities,
+  or replaying the rejected request. The in-flight bootstrap ordering race is
+  regression-tested.
+- Advances the unqualified Wails preview packager default to the immutable
+  Preview 4 identity so it cannot accidentally recreate Preview 3.
+- Confirms a fresh universal package launch, loopback `/healthz`, rendered
+  Preview 4 UI version, occupied-port fallback, and clean shutdown on the
+  audit Mac.
+- This remains an ad-hoc signed, non-notarized, macOS-only controlled beta;
+  clean-device replacement, rollback, and broad student rollout remain open.
+
 ## [0.2.0-preview.2] - 2026-08-31
 
 ### Controlled macOS preview publication
