@@ -168,7 +168,7 @@ future candidate.
 ## Current Preview 8 candidate — 2026-08-31
 
 The current source candidate is `v0.2.0-preview.8`, built from reviewed
-checkpoint `309b512a45fc17bb10de712cd110ee9bd809329b`. It is locally packaged,
+checkpoint `240b57b72c8575b0f14204b052f40e15385a277c`. It is locally packaged,
 signed, and verified; the exact package hashes and local startup evidence are
 recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).

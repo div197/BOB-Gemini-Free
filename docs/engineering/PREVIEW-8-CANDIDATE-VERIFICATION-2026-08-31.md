@@ -1,8 +1,8 @@
 # v0.2.0-preview.8 — Candidate Verification
 
-**Date:** 2026-08-31 (Asia/Kolkata)
+**Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `309b512a45fc17bb10de712cd110ee9bd809329b` (clean reviewed
+**Source snapshot:** `240b57b72c8575b0f14204b052f40e15385a277c` (clean reviewed
 checkpoint; the package was built from this commit)
 **Public baseline:** `v0.2.0-preview.6` remains the current downloadable
 macOS preview. The earlier local Preview 7 candidate was never published and
@@ -61,7 +61,7 @@ BOB_WAILS_PLATFORM=darwin/universal
 | macOS DMG layout | PASS; app plus `/Applications` shortcut |
 | Keychain-backed Ed25519 manifest signing | PASS; private value stayed in the local Keychain path |
 | `scripts/verify-release-assets.sh` | PASS; exact signed directory |
-| Local packaged startup | PASS; incompatible process on `127.0.0.1:8081` was not reused; candidate selected `127.0.0.1:64778` |
+| Local packaged startup | PASS; incompatible process on `127.0.0.1:8081` was not reused; candidate selected `127.0.0.1:49238` |
 | Local packaged health | PASS; HTTP 200, `X-Bob-Version: v0.2.0-preview.8`, `X-Bob-Auth-Required: false` |
 | Local packaged static routes | PASS; `/playground`, `/manifest.json`, `/sw.js`, and `/favicon.ico` returned 200 |
 | Installed Preview 6 → Preview 8 replacement | OPEN; requires a writable device |
@@ -70,15 +70,15 @@ BOB_WAILS_PLATFORM=darwin/universal
 ## Signed asset hashes
 
 The exact local publication directory was
-`/tmp/bob-gemini-free-preview-20260831`:
+`/tmp/bob-gemini-free-preview-20260901`:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `dee95f9374865479c343d76e210710b060b150dd8892556e1561fae068c075db` |
-| `bob-gemini-free-macos-universal.dmg` | `edf77a9c27039f70a67875d3959e237a0d59f677b18b5465bc5a388da8352346` |
-| `bob-gemini-free-macos-universal.zip` | `a8682b8c18b0898485f4224786315acce7110c3f7287776cd90b9b7b1c15dd9c` |
-| `SHA256SUMS` | `08f41eb6b2dcbac85dcfbfff7299104e8b6d878d9a75287c5b96ab6672adb33f` |
-| `SHA256SUMS.sig` | `90ef8fe1ae28a1376dc25d76e04edb16628609262d8031fbb9105a987419aa03` |
+| `bob-gemini-free-macos-universal.dmg` | `5981e07f827fc7598a2da0a13304fbdc097003be93f67e1cd6d44bf2784324f5` |
+| `bob-gemini-free-macos-universal.zip` | `bb3123b115c23a98d17e3865fd5232a38aa40d2294370b294333f25259664194` |
+| `SHA256SUMS` | `7bc40807e5e509269e620ee30dc2a76c773a41dd55eaa5d78f7d6eddc5f1ad04` |
+| `SHA256SUMS.sig` | `dda86e12b17ef9b70ffa1f4bbea04366e8617c37693af3fe496d8274192ad928` |
 
 The manifest contains one entry for each of the three release payloads and was
 verified against the checked-in public trust anchor. The private signing
