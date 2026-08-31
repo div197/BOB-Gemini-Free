@@ -254,7 +254,24 @@ func (a *App) handleCountTokens(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) handleUpdateCheck(w http.ResponseWriter, r *http.Request) {
-	res, err := updater.CheckLatest(a.Version)
+	if !updater.IsDesktopVersionCheckable(a.Version) {
+		writeJSON(w, http.StatusOK, map[string]any{
+			"current_version": a.Version,
+			"has_update":      false,
+			"error":           publicUpdateCheckErrorMessage(fmt.Errorf("current version %q is not a published release", a.Version)),
+		})
+		return
+	}
+
+	check := a.updateCheck
+	if check == nil {
+		check = updater.CheckLatestDesktopForChannelContext
+	}
+	channel := a.updateChannel
+	if channel == "" {
+		channel = updater.DesktopChannelStable
+	}
+	res, err := check(r.Context(), a.Version, channel)
 	if err != nil {
 		writeJSON(w, http.StatusOK, map[string]any{
 			"current_version": a.Version,

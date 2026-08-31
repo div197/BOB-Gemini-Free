@@ -1036,6 +1036,25 @@ func TestPlaygroundBoundsManualRetriesAndLocksRequestControls(t *testing.T) {
 	}
 }
 
+func TestPlaygroundUpdateNoticeUsesTheNativeAndChannelAwareAction(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`const updateAction = isNativeDesktopStudio()`,
+		`"open Help → Check for Updates"`,
+		`up.channel === "preview"`,
+		`"open the official Releases page"`,
+		`"run bob-gemini-free --update"`,
+		`escapeHtml(updateAction)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground update notice is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(html, `(run <code>bob-gemini-free --update</code>)`) {
+		t.Fatal("playground update notice still promises the stable CLI updater for every build")
+	}
+}
+
 func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

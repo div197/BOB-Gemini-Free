@@ -49,6 +49,17 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Adds a source regression for the phone-control containment and drawer-width
   contract, and keeps the generated `web/index.html` bundle synchronized.
 
+### Update-channel consistency
+
+- Carries the build-pinned stable/preview channel into the embedded gateway so
+  `/v1/update/check` uses the same preview-aware, signed-release metadata path
+  as the native desktop updater.
+- Keeps the CLI and embedded-library constructor stable by default, rejects
+  unpublished development identities before any GitHub request, and adds a
+  deterministic server regression for preview-channel forwarding.
+- Updates the Studio badge copy so native builds direct users to **Help → Check
+  for Updates** instead of suggesting the stable CLI updater for every build.
+
 ### Release candidate verification
 
 - Packaged and locally verified the next `v0.2.0-preview.7` macOS universal

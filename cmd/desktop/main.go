@@ -44,7 +44,7 @@ func main() {
 	// 1. Run the local Gateway engine in the background
 	cfg, configErr := loadDesktopConfig()
 
-	srv := server.New(cfg, desktopVersion)
+	srv := server.NewWithUpdateChannel(cfg, desktopVersion, desktopChannel)
 	defer srv.Close()
 	app := NewApp()
 	app.updateConfirmationPath = updateConfirmationPath

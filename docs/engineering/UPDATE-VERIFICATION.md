@@ -64,6 +64,23 @@ The updater rejects a GitHub asset whose declared size exceeds
 `MaxUpdateArtifactBytes` (512 MiB), and the streaming download has the same
 bound even when a server omits or lies about `Content-Length`.
 
+## Embedded Studio status-check boundary
+
+The `GET /v1/update/check` status route is metadata-only and now carries the
+owning build's channel into `CheckLatestDesktopForChannelContext`. `server.New`
+keeps the stable channel for CLI and embedded-library callers; the native
+desktop constructor uses `NewWithUpdateChannel` with its build-pinned Wails
+channel. A preview build therefore observes the same stable-first/preview
+continuation policy as **Help → Check for Updates**, while a development build
+is rejected before any GitHub request. The endpoint's JSON remains additive and
+includes `channel`, package availability, and signed-manifest availability.
+
+This is discovery only. The browser status badge never downloads or installs a
+package, and a native Wails user must still explicitly choose installation in
+the Help dialog. `internal/server/server_test.go` locks channel forwarding and
+`internal/server/playground_test.go` locks the corresponding native/preview
+status copy.
+
 ## Replacement boundary
 
 The candidate is downloaded into a temporary file in the executable's own

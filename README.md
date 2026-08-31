@@ -213,6 +213,12 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   The one-clean-Mac, pilot, and 20–30-device gates are documented in
   [`PREVIEW-ROLLOUT-VALIDATION.md`](docs/engineering/PREVIEW-ROLLOUT-VALIDATION.md).
 
+  The embedded Studio status check uses that same build-pinned channel. It no
+  longer queries only the stable endpoint for a preview build, so a preview
+  can surface the next published preview without implying that the browser
+  badge silently installs anything. Native installation remains explicit
+  through **Help → Check for Updates** and the signed-manifest transaction.
+
 ### Optional: use a student's own Gemini Developer API key
 
 The normal BOB route uses Google's web experience and does not require a Google

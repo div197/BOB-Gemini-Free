@@ -17,6 +17,7 @@ import (
 	"github.com/div197/bob-gemini-free/internal/format"
 	"github.com/div197/bob-gemini-free/internal/gemini"
 	"github.com/div197/bob-gemini-free/internal/geminiapi"
+	"github.com/div197/bob-gemini-free/internal/updater"
 )
 
 type fakeGeminiRequester struct {
@@ -943,6 +944,40 @@ func TestPublicUpdateCheckErrorMessageDoesNotExposeTransportDetails(t *testing.T
 	}
 	if message != "update check unavailable" {
 		t.Fatalf("public update message = %q", message)
+	}
+}
+
+func TestUpdateCheckUsesTheGatewayBuildChannel(t *testing.T) {
+	app := NewWithUpdateChannel(config.Default(), "v0.2.0-preview.6", updater.DesktopChannelPreview)
+	t.Cleanup(app.Close)
+
+	var gotVersion, gotChannel string
+	app.updateCheck = func(_ context.Context, currentVersion, channel string) (*updater.DesktopCheckResult, error) {
+		gotVersion = currentVersion
+		gotChannel = channel
+		return &updater.DesktopCheckResult{
+			CurrentVersion: currentVersion,
+			LatestVersion:  "v0.2.0-preview.7",
+			HasUpdate:      true,
+			Channel:        channel,
+		}, nil
+	}
+
+	rec := httptest.NewRecorder()
+	app.handleUpdateCheck(rec, httptest.NewRequest(http.MethodGet, "/v1/update/check", nil))
+	if rec.Code != http.StatusOK {
+		t.Fatalf("update check status = %d, want 200", rec.Code)
+	}
+	if gotVersion != "v0.2.0-preview.6" || gotChannel != updater.DesktopChannelPreview {
+		t.Fatalf("update checker received version=%q channel=%q, want preview build identity", gotVersion, gotChannel)
+	}
+
+	var body updater.DesktopCheckResult
+	if err := json.Unmarshal(rec.Body.Bytes(), &body); err != nil {
+		t.Fatalf("decode update check response: %v", err)
+	}
+	if !body.HasUpdate || body.LatestVersion != "v0.2.0-preview.7" || body.Channel != updater.DesktopChannelPreview {
+		t.Fatalf("unexpected channel-aware update response: %+v", body)
 	}
 }
 
