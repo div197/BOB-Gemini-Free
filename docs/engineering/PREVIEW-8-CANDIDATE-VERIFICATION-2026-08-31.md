@@ -2,7 +2,7 @@
 
 **Date:** 2026-09-01 (Asia/Kolkata; receipt refreshed from the final clean tip)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` (clean reviewed
+**Source snapshot:** `7395243c90eec3f884dd49067b64dd549aab1956` (clean reviewed
 `main` tip; the package was built from this commit)
 **Public baseline:** `v0.2.0-preview.6` remains the current downloadable
 macOS preview. The earlier local Preview 7 candidate was never published and
@@ -61,8 +61,8 @@ rollback, Apple trust, provider, and pilot gates before publishing a successor.
 ## Final package refresh — 2026-09-01
 
 After the source follow-up merged, the candidate was rebuilt from the exact
-clean `main` tip `638aa1d6437fbdfd7c6526e04bdbfec16ae12d11` into the isolated
-directory `/tmp/bob-gemini-free-preview-20260901-main638aa1d`. The old
+clean `main` tip `7395243c90eec3f884dd49067b64dd549aab1956` into the isolated
+directory `/tmp/bob-gemini-free-preview-20260901-main7395243`. The old
 `/tmp/bob-gemini-free-preview-20260901` directory was not reused because its
 DMG, ZIP, manifest, and signature belonged to the superseded `240b57b` source.
 
@@ -125,15 +125,15 @@ BOB_WAILS_PLATFORM=darwin/universal
 ## Signed asset hashes
 
 The exact local candidate directory was
-`/tmp/bob-gemini-free-preview-20260901-main638aa1d`:
+`/tmp/bob-gemini-free-preview-20260901-main7395243`:
 
 | Asset | SHA-256 |
 |---|---|
 | `RELEASE-NOTICE.txt` | `dee95f9374865479c343d76e210710b060b150dd8892556e1561fae068c075db` |
-| `bob-gemini-free-macos-universal.dmg` | `5dccce41a8404e8257dd7064807133c911aa68a160cd5310117a60452fe8690b` |
-| `bob-gemini-free-macos-universal.zip` | `d319e9b3679fb0422d3f58e0382e52df925534ac1f6a313fb64b1c798236fc1f` |
-| `SHA256SUMS` | `b93f31ccefb38a712e7e5688108654a371693354d81ee600a38e914212610c18` |
-| `SHA256SUMS.sig` | `ec18086a0e6a8eff487497e2d4b98550eb20683f2db7f227d73156c5d1ab52d9` |
+| `bob-gemini-free-macos-universal.dmg` | `c1a7b4795d5635ad2660ef792b141835dd7d201e679a62a143a4d3e732ef3bfc` |
+| `bob-gemini-free-macos-universal.zip` | `d74acaeb0adcd3c46457801b00ca7a2067180b8faee28348fb116b4efae8f063` |
+| `SHA256SUMS` | `03abe6681fe36309f307882ada8353f3e97c361d3551648b4a2019c1173321c4` |
+| `SHA256SUMS.sig` | `bc64e9a10b94832fbc1bfa8ee45fed8727bb516bb30eeffb6274cf29ee378e37` |
 
 The manifest contains one entry for each of the three release payloads and was
 verified against the checked-in public trust anchor. The private signing
