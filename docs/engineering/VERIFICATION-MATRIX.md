@@ -500,3 +500,14 @@ verified, and byte-reconciled. The complete evidence is in
 | Preview 4 is built from the current public source and carries the current updater trust anchor | VERIFIED_LIVE | Release-source verification passed at public-main `abfeeba`; the Keychain-backed signer accepted the private/public pair and the Wails build embedded the checked-in public key | Keychain presence and manifest signing do not prove future key custody, Apple trust, or a live installed-bundle update. |
 | The exact Preview 4 artifact launches locally and owns a healthy loopback gateway | VERIFIED_LIVE | Fresh artifact launch bound to `127.0.0.1:8081` when 9610 was occupied, returned 200 from `/healthz`, rendered `v0.2.0-preview.4` in `/playground`, and shut down cleanly | This is one host's package smoke test; it does not prove Google acceptance, provider quota, clean-device replacement, rollback, or fleet rollout. |
 | Existing Preview 7 users silently update to Preview 4 | STALE_OR_INCORRECT | The updater is explicit and user-consented; public metadata and project-signature selection are verified, but installed replacement has not been observed on a clean student device | Use **Help → Check for Updates**, verify the exact target, install from a writable app location, and record restart/rollback evidence before a 20–30-device rollout. |
+
+## Post-Preview 4 source state — 2026-08-31
+
+Protected PR #62 merged the artifact-preview lifecycle and responsive-header
+fix, generated-bundle update, focused tests, and browser evidence into public
+`main` at merge commit `5530edb`. The latest public package remains immutable
+Preview 4, built from `abfeeba`; it does not contain this post-publication
+source fix. The next source package candidate is explicitly
+`v0.2.0-preview.5`, and it has not been tagged or published. No current release
+claim should imply that Preview 4 already contains the post-release source
+change.

@@ -35,6 +35,15 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
+## [Unreleased]
+
+### Release versioning
+
+- After Preview 4 publication, all Wails preview packagers default to the next
+  immutable candidate, `v0.2.0-preview.5`. Preview 4 remains unchanged; no
+  Preview 5 package is published until clean-source, local package, Keychain
+  signature, public-byte, and installed-bundle gates pass.
+
 ## [0.2.0-preview.4] - 2026-08-31
 
 ### Controlled macOS preview publication
