@@ -133,11 +133,11 @@ to an earlier implementation. The current contract supersedes those phrases:
   settings-clarity review. The earlier local Preview 7 receipt remains
   historical and is not reused for changed source bytes.
 - Refreshes the local Preview 8 candidate from reviewed runtime source commit
-  `0583779dc6fcc635fadfa935bf164687affe7bdb` after the route-choice and
-  endpoint-scoped access-preflight changes merged. The new universal macOS
+  `bfa68ff5926924d1c0b35410e8d8175c404002d6` after the interactive route-choice
+  and endpoint-scoped access-preflight changes merged. The new universal macOS
   package, signed manifest, app bundle, DMG layout, static routes, loopback
-  health response, and protected/pending/open settings probes were reverified;
-  the candidate remains unpublished.
+  health response, packaged route-control smoke, and protected/pending/open
+  settings probes were reverified; the candidate remains unpublished.
 - Recorded the current 1/10/20/30-concurrency local benchmark against the
   current source commit. This remains a local-only measurement, not a Google
   quota or classroom-capacity claim.
