@@ -124,6 +124,10 @@ Actions workflow was used.
 ### Reliability and release hardening
 
 #### Added
+- Bounded native staging/start error dialogs so read-only, permission, timeout,
+  cancellation, and generic updater failures give recovery guidance without
+  exposing local filesystem paths or low-level OS text; they state that no app
+  change occurred.
 - Made the native update-check dialog classify cancellation, timeout, network,
   and release-metadata failures into calm actionable messages without exposing
   raw transport or GitHub response details; it clearly states that no app
