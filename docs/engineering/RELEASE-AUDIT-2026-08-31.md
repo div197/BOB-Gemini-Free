@@ -5,7 +5,7 @@
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
 **Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
-**Current source candidate:** `v0.2.0-preview.8` from reviewed runtime source commit `82aba61e1d14f65db7e197d50891c66ea4af1f69`; freshly packaged, signed, and verified, not published
+**Current source candidate:** `v0.2.0-preview.8` from reviewed runtime source commit `0583779dc6fcc635fadfa935bf164687affe7bdb`; freshly packaged, signed, and verified, not published
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -34,10 +34,10 @@ notarization, clean-device replacement/rollback, Windows/Linux acceptance,
 live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 The 2026-09-01 continuation rebuilt the Preview 8 candidate from the exact
-current `main` tip after identifying that the earlier local Preview 8 receipt
-was tied to superseded source `240b57b`. The fresh package and hashes are
-recorded in [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
-the earlier bytes were not reused or published.
+current `main` tip `0583779` after identifying that the earlier local Preview 8
+receipt was tied to superseded source `82aba61`. The fresh package and hashes
+are recorded in [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md); the earlier bytes were not reused or
+published.
 
 ## What is confirmed now
 
@@ -47,7 +47,7 @@ the earlier bytes were not reused or published.
 | Public releases | Latest desktop preview is the published `v0.2.0-preview.6`; GitHub currently reports `immutable: false`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED_LIVE |
 | Historical Preview 7 public package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED_LIVE_HISTORICAL |
 | Superseded Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from the main-tip source snapshot `0c6a6ff` after PR #99, signed through the local Keychain, and verified locally; it was never a public release | VERIFIED_LOCAL_HISTORICAL |
-| Current Preview 8 candidate | `v0.2.0-preview.8` was freshly packaged from runtime source commit `82aba61`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
+| Current Preview 8 candidate | `v0.2.0-preview.8` was freshly packaged from runtime source commit `0583779`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
 | Source gate | `scripts/verify-release-source.sh v0.2.0-preview.8` passes on current `main`; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
@@ -80,15 +80,16 @@ for provenance. The public downloadable version remains
 
 ## Current source Preview 8 candidate — 2026-09-01
 
-The reviewed runtime source commit `82aba61e1d14f65db7e197d50891c66ea4af1f69`
-advances the next candidate to `v0.2.0-preview.8`. It includes the request-flight identity
-fix, responsive drawer fix, synchronized generated Studio bundle, settings
-credential-map and route-choice clarification, generation terminal-state fix,
-and bounded gateway-diagnostics lifecycle. Full tests, race tests, vet, build,
-module verification, browser responsive/settings smoke, Wails universal
-packaging, local health/static-route startup, Keychain-backed manifest signing,
-and exact local asset verification all passed. The detailed receipt and exact
-hashes are in
+The reviewed runtime source commit `0583779dc6fcc635fadfa935bf164687affe7bdb`
+advances the next candidate to `v0.2.0-preview.8`. It includes the request-flight
+identity fix, responsive drawer fix, synchronized generated Studio bundle,
+settings credential-map and route-choice clarification, endpoint-scoped
+gateway-auth preflight/checking state, generation terminal-state fix, and
+bounded gateway-diagnostics lifecycle. Full tests, race tests, vet, build,
+module verification, browser responsive/settings/preflight smoke, Wails
+universal packaging, local health/static-route startup, Keychain-backed
+manifest signing, and exact local asset verification all passed. The detailed
+receipt and exact hashes are in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
 
 Preview 8 has not been tagged, uploaded, or published. The public downloadable
