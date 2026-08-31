@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `4a0f15d`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `838b066`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -142,6 +142,18 @@ The cache remains scoped to a single authenticated cookie source and bounded
 by entry count. The provider's actual reference lifetime is undocumented, so
 the local age is explicitly a stale-reference guard rather than a claim about
 Google's TTL. Clock-injected tests cover both expiry and refresh.
+
+### 6. Local history persistence failure visibility — `838b066`
+
+The Web Studio now routes conversation writes and new-chat deletion through
+guarded storage helpers. Normal writes remain silent, while compacted writes,
+corrupt/oversized history recovery, unavailable storage, and a complete write
+failure produce an accessible status message near the composer. The message
+does not expose the storage exception or conversation content; it tells the
+student when attachment previews may be omitted and when to export work before
+closing. This is a user-facing recovery boundary, not a claim that browser
+`localStorage` has a uniform quota or that long-session CPU behavior is
+proven across devices.
 
 ## Verification completed
 
