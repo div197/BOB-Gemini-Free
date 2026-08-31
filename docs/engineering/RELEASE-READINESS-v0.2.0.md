@@ -1,6 +1,6 @@
 # BOB Gemini Free v0.2.0 Release Readiness
 
-**Audit date:** 2026-08-29 (Asia/Kolkata)
+**Audit date:** 2026-08-31 (Asia/Kolkata)
 **Base HEAD before this readiness preparation:** `59a0d228ab8602427820ae90a14efe5f36f38ccd`
 **Previous public fleet release:** `v0.1.7-preview.7`
 **Current public migration bridge:** `v0.2.0-preview.1`
@@ -13,9 +13,12 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `5eae3e2`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `12d85c3`, ahead of `origin/main`; the
   branch contains the subsequent audit documentation, coalesced-stream,
   remote-image, and updater-preflight hardening commits.
+- The next source package identity is `v0.2.0-preview.2`. The immutable public
+  `v0.2.0-preview.1` bridge must not be rebuilt or overwritten, and no Preview 2
+  tag or release exists yet.
 - The current branch contains the later 100-path hardening follow-ups,
   including nil-safe server and Gemini-client optional logging, accessible
   attachment/image controls, and JavaScript-URL-free gateway recovery, but those

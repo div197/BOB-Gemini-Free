@@ -3,6 +3,11 @@
 **Status:** Preview 7 enables a signed, user-consented preview updater; the
 public app remains ad-hoc signed and not Apple-notarized.
 
+The immutable public migration bridge is `v0.2.0-preview.1`. The current
+source defaults its next preview package to `v0.2.0-preview.2`; that candidate
+is not tagged, signed, or published yet. Stable `v0.2.0` remains gated on
+clean-device and pilot acceptance.
+
 This document is the operator and product boundary for the native updater. An
 updater can be correct in source and still be unsafe to announce if the
 release key, platform signatures, artifact list, or clean-device evidence is

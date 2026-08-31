@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `b394214`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `12d85c3`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -66,7 +66,7 @@ The remaining high-value source risks were:
 
 ## Work completed
 
-### 1. Coalesced stream lifecycle — `7ee4a23`, `1f47a29`, `5eae3e2`
+### 1. Coalesced stream lifecycle — `7ee4a23`, `1f47a29`, `5eae3e2`, `974cb56`
 
 `internal/gemini/flight.go` now gives each subscriber an independent context
 and bounded queue. A leader's cancellation or deadline detaches only the
@@ -195,9 +195,10 @@ parity and real client compatibility remain open.
 
 The Web Studio now associates each attachment parse with an abort controller.
 FileReader-based reads are interrupted when a student removes an attachment,
-cancelled queued parses are removed before they start, and late results from
-compatibility Promise readers are discarded before they can mutate the shelf or
-prompt state. Tesseract.js v5 uses a terminable worker when the worker API is
+active PDF.js loading/document tasks are destroyed on abort, cancelled queued
+parses are removed before they start, and late results from compatibility
+Promise readers are discarded before they can mutate the shelf or prompt
+state. Tesseract.js v5 uses a terminable worker when the worker API is
 available; older OCR helpers remain an explicit fallback whose in-flight CPU
 work cannot be interrupted by BOB. The existing 32 MiB file,
 extraction-character, PDF-page, and two-job concurrency limits are unchanged.
@@ -320,11 +321,11 @@ behavior remains an external gate.
 ## Updater truth for the existing Preview 7 fleet
 
 The already-published `v0.1.7-preview.7` binary predates stable-first
-discovery. Its updater can discover a newer preview signed by the same project
-key, so the safe updater-mediated route is:
+discovery. Its updater can discover the highest newer preview signed by the
+same project key, so the safe updater-mediated route is:
 
 ```text
-Preview 7 → signed same-key v0.2.0-preview.1 bridge → signed stable v0.2.0
+Preview 7 → signed same-key v0.2.0-preview.1 bridge (or later preview) → signed stable v0.2.0
 ```
 
 The bridge and stable steps are separate explicit user-consent actions. A

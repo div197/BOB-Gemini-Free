@@ -280,7 +280,7 @@ The following later evidence is now available:
 | A free branded macOS preview package can be created without Apple membership | VERIFIED_BY_INTEGRATION_TEST | `scripts/package-wails-preview.sh` creates a branded `BOB Gemini Free.app`, `.zip`, `.dmg`, release notice, and checksums without Developer ID credentials; the bundle metadata uses the `com.abcsteps` identity | This proves local packaging only; it does not establish Gatekeeper trust, notarization, clean-device acceptance, or public student readiness. |
 | The native desktop app exposes an explicit update check | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` selects only official stable or `preview.N` channels, with a bounded preview listing; `internal/updater/updater_test.go` covers branded/legacy names, prerelease ordering, signed-manifest discovery, stable-first migration for newly built previews, stable-failure fail-closed behavior, and the endpoint bound | The current source can offer a consented verified update; the already-published Preview 7 binary must first receive a same-key bridge preview to reach stable through the updater. It does not silently install, remove the macOS warning, or replace platform publisher trust. |
 
-## Current v0.2.0 release-readiness update (2026-08-30)
+## Current v0.2.0 release-readiness update (2026-08-31)
 
 The earlier release-readiness snapshot referenced source commit `e019cf8`.
 The reviewed hardening work was merged through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
@@ -288,11 +288,13 @@ and is preserved in the current `main` history. The release-coherence
 follow-up was merged through protected PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33);
 the installer trust-anchor follow-up was merged through protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36),
 and the session-only gateway-auth follow-up through protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38).
-The current public `main` tip is merge commit `a80f08d`.
+The current public `main` tip at this audit checkpoint is merge commit
+`523ceeb`.
 The fresh native package evidence in this section was produced from clean
 source commit `d318b4f`, an ancestor of the reviewed source.
-The signed `v0.2.0-preview.1` migration bridge is published; stable `v0.2.0` has
-not been tagged or published. The separate
+The signed `v0.2.0-preview.1` migration bridge is published; the next source
+candidate is `v0.2.0-preview.2` and is not tagged or published; stable
+`v0.2.0` has not been tagged or published. The separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
 
@@ -395,14 +397,17 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `b394214`; the current checkout contains the
+The current checkout tip is `12d85c3`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
 root-CDN-integrity, queued-attachment-cancellation, dedicated service
 health-probe, dynamic-artifact-CDN, response-status-logging, literal-loopback
 CORS, page-token-retry, and Studio SSE-field-compatibility follow-ups
-after the evidence documents.
+after the evidence documents, including the Preview 1 → Preview 2
+version-transition fixtures. The signed public `v0.2.0-preview.1` bridge is
+immutable; the next source candidate is `v0.2.0-preview.2` and is not yet
+published.
 The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
@@ -415,7 +420,7 @@ workflow was added or invoked, and no provider or release secret was used.
 | A fetched remote image cannot bypass downstream decode dimensions through high compression | VERIFIED_BY_UNIT_TEST | `internal/multimodal/upload.go` validates fetched bytes with `inspectImageData`; `TestFetchImageBytesRejectsImagesOutsideDecodeBudget` covers a highly-compressible image over the source-dimension budget | OCR/browser CPU pressure and live remote-image egress remain external. |
 | The native updater explains an unwriteable or translocated install before downloading a package | VERIFIED_BY_UNIT_TEST | `CheckDesktopInstallTarget` performs a no-network same-filesystem preflight; tests cover a writable bundle, App Translocation, and unsupported OS, while `cmd/desktop/updates.go` defers background prompts and surfaces manual guidance | A real mounted-DMG, `/Applications`, Gatekeeper, helper restart, rollback, and 30-device run remain external. |
 | The current source can prove Preview 7 → bridge → stable selection without pretending it performed a live install | VERIFIED_BY_UNIT_TEST | `internal/updater/updater_test.go` covers the legacy preview-only lookup, same-key bridge discovery, stable-first migration, preview continuation, and stable-check failure | The actual public Preview 7 binary, exact signed uploaded bytes, private release-key custody, and clean-device replacement still require operator evidence. |
-| Removing an attachment can leave a FileReader or supported OCR worker running and later mutate removed UI state | VERIFIED_IN_SOURCE | `internal/server/playground.html` binds each attachment to an `AbortController`, removes cancelled queued parses, aborts `FileReader` reads on removal, suppresses stale fallback results, and terminates a Tesseract.js v5 worker when available; `internal/server/playground_test.go` locks the cancellation markers | Main-thread PDF/DOCX/XLSX work, older browser fallbacks, OCR CPU cost, and rendered device behavior remain partial. |
+| Removing an attachment can leave a FileReader, active PDF.js task, or supported OCR worker running and later mutate removed UI state | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` binds each attachment to an `AbortController`, removes cancelled queued parses, aborts `FileReader` reads on removal, destroys active PDF.js loading/document tasks, suppresses stale fallback results, and terminates a Tesseract.js v5 worker when available; `internal/server/playground_test.go` locks the cancellation markers | Main-thread DOCX/XLSX work, older browser fallbacks, OCR CPU cost, and rendered device behavior remain partial. |
 | Denied browser storage can break preference initialization or click handlers | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` routes language, transliteration, panel, theme, endpoint, speech, reading-zoom, and custom-instruction preferences through fail-closed helpers; `internal/server/playground_test.go` rejects direct preference-storage bypasses | Preferences intentionally remain session/default-only when storage is unavailable; chat-history quota and long-session CPU remain separate browser gates. |
 | A changed root CDN script or stylesheet can execute without an integrity check | VERIFIED_BY_UNIT_TEST | The playground head pins every external script/stylesheet with SHA-384 SRI and anonymous CORS, and pins Tesseract.js to `5.1.1`; `playground_test.go` rejects root dependencies without integrity attributes or a floating Tesseract major URL | Dynamic artifact `srcdoc` libraries, PDF worker/language assets, CDN availability, CSP behavior, and offline acceptance remain separate browser/runtime gates. |
 | A dynamic artifact preview can execute a mutable Mermaid or Pyodide bootstrap | VERIFIED_BY_UNIT_TEST | Mermaid is pinned to `10.9.0` and Pyodide to `0.26.2` with exact SHA-384 SRI and anonymous CORS inside their `srcdoc` bootstraps; `TestDynamicArtifactCDNBootstrapsArePinned` rejects the former floating/missing-integrity URLs | Pyodide package/worker subresources, PDF worker/language assets, CDN availability, CSP behavior, and browser execution remain separate gates. |

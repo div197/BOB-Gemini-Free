@@ -1,7 +1,8 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current target:** public migration bridge `v0.2.0-preview.1`, for the
-existing public `v0.1.7-preview.7` fleet
+**Current public target:** migration bridge `v0.2.0-preview.1`, for the
+existing public `v0.1.7-preview.7` fleet. The next source candidate is
+`v0.2.0-preview.2` and is not published yet.
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -147,7 +148,10 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-The `v0.2.0-preview.1` bridge is published. The remaining rollout gates are:
+The `v0.2.0-preview.1` bridge is published and its exact public macOS assets
+have been re-downloaded and verified locally. The next source candidate is
+`v0.2.0-preview.2`; it has not been tagged, signed, or published. The remaining
+rollout gates are:
 
 1. the full local test/race/vet/build gate passes;
 2. the generated `web/index.html` is regenerated from
@@ -162,3 +166,6 @@ The `v0.2.0-preview.1` bridge is published. The remaining rollout gates are:
 
 Until those gates pass, the honest status is **controlled public beta**, not
 “ready for an unattended 30-device production rollout.”
+
+The complete version and installed-base transition matrix is recorded in
+[`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](RELEASE-TRANSITION-AUDIT-2026-08-31.md).
