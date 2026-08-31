@@ -43,10 +43,9 @@ the binary can replace the installed executable.
 The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
-declared size, signed manifest, and official GitHub URLs. Public Preview 7 has
-the current key, but its released updater predates stable-first discovery; it
-can now discover the published same-key `v0.2.0-preview.6` through its
-preview-only path, subject to a live installed-device test. Historical
+declared size, signed manifest, and official GitHub URLs. The public
+`v0.2.0-preview.6` updater carries the current key; its preview-channel
+transition remains subject to a live installed-device test. Historical
 `v0.1.7-preview.3` has no embedded desktop key and therefore cannot install a
 native update; the current `v0.2.0-preview.6` package embeds the current
 project public key.
@@ -151,7 +150,7 @@ live Google availability, or a 20–30-device rollout. The earlier Preview 1 →
 Preview 5 installed migration is the only live installed-update observation;
 Preview 7/Preview 5 → Preview 6 remains a staged device gate.
 
-## Current source candidate — 2026-08-31
+## Superseded Preview 7 candidate — 2026-08-31
 
 The `main` source snapshot at `0c6a6ff12c3f2ff9963b73837933b2abae676270`
 was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #99.
@@ -163,8 +162,19 @@ Its candidate receipt is in
 It is not a public GitHub release yet, so it must not be presented as an
 available update or used for installed-fleet instructions. GitHub currently
 reports `immutable: false` for Preview 6; the project's write-once release
-policy therefore requires a new tag and fresh public-byte reconciliation for
-Preview 7.
+policy therefore requires a new tag and fresh public-byte reconciliation for a
+future candidate.
+
+## Current Preview 8 candidate — 2026-08-31
+
+The current source candidate is `v0.2.0-preview.8`, built from reviewed
+checkpoint `240b57b72c8575b0f14204b052f40e15385a277c`. It is locally packaged,
+signed, and verified; the exact package hashes and local startup evidence are
+recorded in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
+It is not a public release yet, so installed devices cannot discover it. A
+published release still requires the exact five-file upload followed by fresh
+signature, checksum, and byte reconciliation.
 
 ## Preview 2 publication evidence — 2026-08-31
 

@@ -8,8 +8,8 @@ path without manually replacing the application on every Mac.
 
 **Current release truth (2026-08-31):** public macOS `v0.2.0-preview.6` is the
 current downloadable preview. A locally packaged and signed
-`v0.2.0-preview.7` candidate exists from current `main`, but it is not
-published or downloadable yet.
+`v0.2.0-preview.8` candidate exists from the reviewed current source, but it is
+not published or downloadable yet.
 
 This is a staged, user-consented migration. It is not a silent fleet push and
 it does not require GitHub Actions, an Apple Developer account, a shared

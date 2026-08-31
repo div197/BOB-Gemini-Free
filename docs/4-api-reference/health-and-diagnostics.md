@@ -145,8 +145,8 @@ curl http://127.0.0.1:9610/v1/update/check
 ### Response
 ```json
 {
-  "current_version": "v0.2.0-preview.6",
-  "latest_version": "v0.2.0-preview.7",
+  "current_version": "v0.2.0-preview.5",
+  "latest_version": "v0.2.0-preview.6",
   "has_update": true,
   "channel": "preview",
   "asset_available": true,

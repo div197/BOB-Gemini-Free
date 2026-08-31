@@ -40,7 +40,7 @@ pilot और platform-trust gates अभी खुले हैं।
 Public `main` पर PR #77–#86 के बदलावों से बना immutable Preview 6 package
 `f9b3410` source target से signed और प्रकाशित है। Public bytes को फिर से
 download करके verify किया गया है। वर्तमान source future candidate के लिए
-`v0.2.0-preview.7` नाम रखता है; Preview 6 को दोबारा build नहीं करना चाहिए।
+वर्तमान source अगली candidate के लिए `v0.2.0-preview.8` नाम रखता है; Preview 6 को दोबारा build नहीं करना चाहिए। Preview 8 स्थानीय रूप से package, sign और verify हो चुका है, लेकिन अभी प्रकाशित नहीं है।
 Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,

@@ -4,7 +4,7 @@
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Historical Preview 5 packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
 **Current Preview 6 release source target:** commit `f9b3410e74d7ccc08487dc03788b54a201e12ade` (PRs #77–#86; browser-boundary, credential-input, telemetry, release-version, settings, desktop-coexistence, release-state, and gateway-key transport reconciliation)
-**Current source candidate:** `v0.2.0-preview.7` from the main-tip source snapshot `0c6a6ff12c3f2ff9963b73837933b2abae676270` after PR #99; freshly packaged and signed, not published
+**Current source candidate:** `v0.2.0-preview.8` from reviewed source checkpoint `240b57b72c8575b0f14204b052f40e15385a277c`; locally packaged, signed, and verified, not published
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -39,9 +39,10 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 | Public source | Preview 6 is packaged from `f9b3410e74d7ccc08487dc03788b54a201e12ade`; the earlier Preview 5 source baseline `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` remains historical | VERIFIED |
 | Public releases | Latest desktop preview is the published `v0.2.0-preview.6`; GitHub currently reports `immutable: false`; Preview 5 and Preview 4 remain available as historical inputs | VERIFIED_LIVE |
 | Historical Preview 7 public package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED_LIVE_HISTORICAL |
-| Current Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from the main-tip source snapshot `0c6a6ff` after PR #99, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
+| Superseded Preview 7 candidate | `v0.2.0-preview.7` was freshly packaged from the main-tip source snapshot `0c6a6ff` after PR #99, signed through the local Keychain, and verified locally; it was never a public release | VERIFIED_LOCAL_HISTORICAL |
+| Current Preview 8 candidate | `v0.2.0-preview.8` was packaged from reviewed checkpoint `240b57b`, signed through the local Keychain, and verified locally; it is not a public release | VERIFIED_LOCAL |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
-| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.7` passes on current `main` for the unpublished candidate; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
+| Source gate | `scripts/verify-release-source.sh v0.2.0-preview.8` passes on the reviewed source checkpoint; the public Preview 6 package remains separately tied to `f9b3410` | VERIFIED |
 | Go suite | `go test -count=1 ./...` passes on this host | VERIFIED |
 | Historical Preview 5 candidate | Universal macOS ZIP/DMG, release notice, `SHA256SUMS`, and detached signature were freshly built from clean checkout `88f2881` whose source tree matched the then-current public release target, and passed local asset verification | VERIFIED_LOCAL_HISTORICAL |
 | Historical Preview 5 package smoke | Fresh `open -n` launch owned loopback `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential map, and shut down cleanly | VERIFIED_LOCAL_HISTORICAL |
@@ -53,10 +54,10 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 | Automation | `.github/workflows` is absent; no Actions budget is required by the release process | VERIFIED |
 | Current public stable endpoint | GitHub `/releases/latest` resolves to historical `v0.1.5`, not `v0.2.0` | VERIFIED |
 
-## Current source Preview 7 candidate — 2026-08-31
+## Superseded local Preview 7 candidate — 2026-08-31
 
 The `main` source snapshot at `0c6a6ff` was freshly packaged as the
-explicit next candidate `v0.2.0-preview.7` after the Gateway-settings
+then-explicit candidate `v0.2.0-preview.7` after the Gateway-settings
 touch-target fix merged in PR #93, the channel-aware Studio updater fix in
 PR #95, the protected-gateway route guard merged in PR #97, and the Studio
 route pin merged in PR #98 and the release-receipt merge in PR #99. This supersedes
@@ -66,11 +67,26 @@ signed manifest, ZIP, DMG, release notice, version injection, local runtime
 startup, and local updater matrix all passed. The detailed receipt is in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).
 
-This candidate has not been tagged, uploaded, or published. The public
-downloadable version remains `v0.2.0-preview.6`; therefore no installed device
-can discover Preview 7 yet. Publishing it is a separate operator action that
-must use the exact verified five-asset directory, followed by fresh public
-download, signature verification, and byte reconciliation.
+This candidate was never tagged, uploaded, or published and is retained only
+for provenance. The public downloadable version remains
+`v0.2.0-preview.6`; no installed device can discover it.
+
+## Current source Preview 8 candidate — 2026-08-31
+
+The reviewed source checkpoint `240b57b72c8575b0f14204b052f40e15385a277c`
+advances the next candidate to `v0.2.0-preview.8`. It includes the request-flight
+identity fix, responsive drawer fix, synchronized generated Studio bundle, and
+settings credential-map clarification. Full tests, race tests, vet, build,
+module verification, browser responsive/settings smoke, Wails universal
+packaging, local health/static-route startup, Keychain-backed manifest signing,
+and exact local asset verification all passed. The detailed receipt and exact
+hashes are in
+[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
+
+Preview 8 has not been tagged, uploaded, or published. The public downloadable
+version remains `v0.2.0-preview.6`; installed devices cannot discover Preview 8
+until a new release is explicitly published. Installed Preview 6 → Preview 8,
+rollback, clean-device, Apple trust, provider, and pilot gates remain open.
 
 ## Preview 6 publication continuation — 2026-08-31
 

@@ -409,19 +409,37 @@ func TestClientOnlyCoalescesAnonymousRequests(t *testing.T) {
 	client := testClientWithRequester(&goldenRequester{}, 1)
 	client.Flight = NewStreamFlight()
 
-	if key := client.requestFlightKey("same prompt", 1, 4, nil); key == "" {
+	if key := client.requestFlightKey("same prompt", 1, 4, nil, nil); key == "" {
 		t.Fatal("anonymous request unexpectedly disabled from-flight coalescing")
 	}
 
 	client.Cfg.CookieFile = "student-session.txt"
-	if key := client.requestFlightKey("same prompt", 1, 4, nil); key != "" {
+	if key := client.requestFlightKey("same prompt", 1, 4, nil, nil); key != "" {
 		t.Fatalf("configured cookie request received a coalescing key %q", key)
 	}
 
 	client.Cfg.CookieFile = ""
 	client.Pool.AddSession("student-session.txt", "SID=sid; SAPISID=sapisid", "sapisid", "")
-	if key := client.requestFlightKey("same prompt", 1, 4, nil); key != "" {
+	if key := client.requestFlightKey("same prompt", 1, 4, nil, nil); key != "" {
 		t.Fatalf("loaded session request received a coalescing key %q", key)
+	}
+}
+
+func TestClientFlightKeyIncludesSparsePayloadOverrides(t *testing.T) {
+	client := testClientWithRequester(&goldenRequester{}, 1)
+	client.Flight = NewStreamFlight()
+
+	base := client.requestFlightKey("same prompt", 1, 4, nil, nil)
+	first := client.requestFlightKey("same prompt", 1, 4, nil, map[int]any{31: 2})
+	second := client.requestFlightKey("same prompt", 1, 4, nil, map[int]any{31: 3})
+	if base == "" || first == "" || second == "" {
+		t.Fatal("anonymous request unexpectedly disabled from-flight coalescing")
+	}
+	if base == first || first == second {
+		t.Fatalf("different sparse payload overrides shared a flight key: base=%q first=%q second=%q", base, first, second)
+	}
+	if first != client.requestFlightKey("same prompt", 1, 4, nil, map[int]any{31: 2}) {
+		t.Fatal("equivalent sparse payload overrides did not produce a stable key")
 	}
 }
 

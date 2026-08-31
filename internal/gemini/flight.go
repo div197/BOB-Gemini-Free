@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 	"sync"
 )
@@ -127,13 +127,37 @@ func (sf *StreamFlight) Key(prompt string, modelID, thinkMode int, fileRefs []st
 // or disable coalescing entirely when the upstream response may be
 // personalized.
 func (sf *StreamFlight) KeyWithScope(scope, prompt string, modelID, thinkMode int, fileRefs []string) string {
+	return sf.KeyWithScopeAndExtra(scope, prompt, modelID, thinkMode, fileRefs, nil)
+}
+
+// KeyWithScopeAndExtra derives a request-coalescing key including all fields
+// that can change the sparse upstream payload. JSON gives the key a
+// length-delimited, unambiguous representation and provides deterministic
+// ordering for map keys. If an override contains a value that cannot be
+// represented safely, coalescing is disabled rather than risking two
+// semantically different requests sharing a flight.
+func (sf *StreamFlight) KeyWithScopeAndExtra(scope, prompt string, modelID, thinkMode int, fileRefs []string, extra map[int]any) string {
 	normalizedPrompt := strings.TrimSpace(prompt)
-	h := sha256.New()
-	fmt.Fprintf(h, "%s:%d:%d:%s", scope, modelID, thinkMode, normalizedPrompt)
-	for _, ref := range fileRefs {
-		fmt.Fprintf(h, ":%s", ref)
+	payload, err := json.Marshal(struct {
+		Scope     string      `json:"scope"`
+		Prompt    string      `json:"prompt"`
+		ModelID   int         `json:"model_id"`
+		ThinkMode int         `json:"think_mode"`
+		FileRefs  []string    `json:"file_refs,omitempty"`
+		Extra     map[int]any `json:"extra,omitempty"`
+	}{
+		Scope:     scope,
+		Prompt:    normalizedPrompt,
+		ModelID:   modelID,
+		ThinkMode: thinkMode,
+		FileRefs:  fileRefs,
+		Extra:     extra,
+	})
+	if err != nil {
+		return ""
 	}
-	return hex.EncodeToString(h.Sum(nil))
+	sum := sha256.Sum256(payload)
+	return hex.EncodeToString(sum[:])
 }
 
 func (sf *StreamFlight) ExecuteStream(key string, runUpstream func(emit func(string) error) error, emit func(string) error) error {

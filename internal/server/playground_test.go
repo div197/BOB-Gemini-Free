@@ -964,6 +964,8 @@ func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
 		`--studio-toolbar-height: 42px;`,
 		`class="sub-bar"`,
 		`title="Start a new chat canvas"`,
+		`position: relative;
+    z-index: 25;`,
 		`top: var(--studio-toolbar-height);`,
 		`bottom: auto;`,
 		`height: calc(100% - var(--studio-toolbar-height));`,
@@ -998,10 +1000,17 @@ func TestResponsivePhoneControlsMeetTouchContainmentAndDrawerCap(t *testing.T) {
 		"width: 85vw !important;",
 		"min-width: 0 !important;",
 		"max-width: 320px !important;",
+		"position: absolute !important;",
+		"top: var(--studio-toolbar-height) !important;",
+		"bottom: auto !important;",
+		"height: calc(100% - var(--studio-toolbar-height)) !important;",
 	} {
 		if !strings.Contains(phoneCSS, marker) {
 			t.Fatalf("responsive phone contract is missing marker %q", marker)
 		}
+	}
+	if strings.Contains(phoneCSS, "position: fixed !important;") {
+		t.Fatal("responsive phone drawers must remain inside main so app chrome stays reachable")
 	}
 	if strings.Contains(phoneCSS, "min-width: 85vw !important;") {
 		t.Fatal("responsive drawer min-width must not override its 320px maximum")
@@ -1058,7 +1067,7 @@ func TestPlaygroundUpdateNoticeUsesTheNativeAndChannelAwareAction(t *testing.T) 
 func TestPlaygroundEducatesAboutExplicitGeminiDeveloperAPIRoute(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
-		`Google Gemini Developer API (optional)`,
+		`Google Gemini Developer API key (optional)`,
 		`https://aistudio.google.com/app/apikey`,
 		`https://ai.google.dev/gemini-api/docs/rate-limits`,
 		`https://ai.google.dev/gemini-api/docs/models`,
@@ -1087,6 +1096,8 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	for _, marker := range []string{
 		`id="gateway-credential-map"`,
 		`id="gateway-credential-map-lead"`,
+		`aria-describedby="gateway-endpoint-help"`,
+		`the endpoint URL says where Studio connects; it is not a key`,
 		`id="gateway-route-status"`,
 		`id="gateway-route-status-title"`,
 		`id="gateway-route-status-help"`,
@@ -1096,15 +1107,15 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`id="gateway-route-model-state"`,
 		`data-state="blocked"`,
 		`Credential map — these are different`,
-		`most students should leave both key fields empty`,
+		`Most students should leave both key fields empty`,
 		`Native desktop note: the embedded gateway stays on loopback`,
 		`Default web-session route:`,
 		`Google Developer API route:`,
 		`BOB endpoint access:`,
 		`Cookies belong to the engine; never paste cookies into either field.`,
 		`BOB Gateway Access Key (optional)`,
-		`Only when the gateway owner enabled api_keys`,
-		`This protects access to the BOB endpoint; it is not a Google key.`,
+		`Only if this endpoint asks for a BOB key`,
+		`This key is only for opening a protected BOB endpoint; it is not a Google key.`,
 		`type="password" id="gateway-api-key-input"`,
 		`aria-describedby="gateway-auth-help"`,
 		`Google Gemini Developer API key`,
