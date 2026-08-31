@@ -2,10 +2,11 @@
 
 ## Controlled macOS beta
 
-Preview 5 is the next immutable macOS universal preview, built from public
-`main` merge commit `757898cadd45904b0c0f0f454bb5ab30096e974c` (the signed
-package receipt records clean build checkout `88f2881`). It is intended for
-controlled evaluation before the `v0.2.0` stable gate. The release does
+Preview 5 is the immutable macOS universal preview, published from public
+`main` target commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (the signed
+package receipt records clean build checkout `88f2881`, whose source tree
+matches that target). It is intended for controlled evaluation before the
+`v0.2.0` stable gate. The release does
 not require GitHub Actions, a Go installation on the student's Mac, a database,
 or a separate memory service.
 
@@ -49,10 +50,10 @@ do not prove a successful Google generation.
 
 ## Acceptance status
 
-Local source, full-test, race-sensitive, static, package, manifest, and
-one-host `/healthz` startup/shutdown checks passed. Public asset
-byte-reconciliation, a writable `/Applications` installed-bundle update,
-rollback, clean-device Gatekeeper behavior, and staged pilot acceptance are
-separate release gates. See
+Local source, full-test, race-sensitive, static, package, manifest, public
+byte-reconciliation, one-host `/healthz` startup/shutdown, and one writable
+`/Applications` installed-bundle migration checks passed. Rollback, clean-device
+Gatekeeper behavior, and staged pilot acceptance remain separate release gates.
+See
 [`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md)
 and [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md).

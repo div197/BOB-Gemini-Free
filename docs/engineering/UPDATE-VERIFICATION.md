@@ -48,7 +48,7 @@ the current key, but its released updater predates stable-first discovery; a
 same-key bridge preview or manual install is required before it can reach a
 new stable release through the updater. Historical `v0.1.7-preview.3` has no
 embedded desktop key and therefore cannot install a native update; the current
-`v0.2.0-preview.4` package embeds the current project public key.
+`v0.2.0-preview.5` package embeds the current project public key.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
 injects it into every CLI matrix binary. On macOS,
@@ -128,7 +128,23 @@ writable application location, the user must explicitly approve installation,
 and a clean-device/pilot run must observe restart, confirmation, rollback
 preservation, and local configuration survival.
 
-## Preview 4 publication evidence — 2026-08-31
+## Preview 5 publication and installed-migration evidence — 2026-08-31
+
+The controlled macOS `v0.2.0-preview.5` release was built from the clean
+source receipt `88f2881`, published manually from public `main` target
+`c28d787`, and signed through the owner-controlled Keychain. The five public
+assets were downloaded into a fresh directory; the detached signature and
+checksums passed, and every downloaded file matched its local signed input
+byte-for-byte. On one Mac, a writable `/Applications` Preview 1 installation
+discovered Preview 5 through **Help → Check for Updates**, installed it after
+explicit consent, restarted healthy, preserved the visible chat response, and
+reported no newer release on a second check.
+
+This proves the project-signature/public-byte boundary and one successful
+same-key migration. It does not prove Apple platform trust, deliberate
+rollback, clean-device acceptance, Google provider behavior, or fleet rollout.
+
+## Preview 4 publication evidence — historical
 
 The controlled macOS `v0.2.0-preview.4` release was built from public `main`
 commit `abfeebaaaaabc740ea29602b602591a0b707fbc2`, signed through the local
@@ -165,7 +181,7 @@ This proves source/package/public-byte integrity. It does not prove an
 installed-bundle replacement, rollback after interruption, Gatekeeper trust,
 Google availability, or a 20–30-device rollout.
 
-## Remaining release gate after Preview 4
+## Remaining release gate after Preview 4 — historical
 
 The owner-controlled macOS Keychain signer was exercised for the published
 `v0.2.0-preview.4` candidate: the exact release directory received a detached

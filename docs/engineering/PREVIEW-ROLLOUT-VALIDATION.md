@@ -1,9 +1,9 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current public target:** controlled macOS preview `v0.2.0-preview.4`, for
-controlled evaluation of the existing public `v0.1.7-preview.7` fleet. Preview
-3 is historical, and the immutable `v0.2.0-preview.1` migration bridge remains
-available.
+**Current public target:** controlled macOS preview `v0.2.0-preview.5`, for
+controlled evaluation of the existing public `v0.1.7-preview.7` fleet and
+earlier `v0.2.0` previews. Preview 4 and Preview 3 are historical, and the
+immutable `v0.2.0-preview.1` migration bridge remains available.
 
 This runbook separates three different questions that are often accidentally
 combined:
@@ -100,7 +100,7 @@ Do not open 30 live generations at once. Use this order:
 - send one short text request using the student's own authorized path, if
   that capability is required;
 - for the existing public Preview 7 path, check the published same-key
-  Preview 4 candidate (or the immutable Preview 1 bridge), then check stable
+  Preview 5 candidate (or the immutable Preview 1 bridge), then check stable
   from that bridge (and separately verify a later preview when no stable update
   exists);
 - verify that an intentionally failed candidate leaves the original app,
@@ -150,21 +150,23 @@ account/network-specific observation.
 
 ## Post-publication rollout decision
 
-The `v0.2.0-preview.1` bridge and controlled macOS `v0.2.0-preview.4` are
-published. Preview 4's exact public macOS assets have been re-downloaded,
+The `v0.2.0-preview.1` bridge and controlled macOS `v0.2.0-preview.5` are
+published. Preview 5's exact public macOS assets have been re-downloaded,
 signature-verified, and byte-reconciled with the local Keychain-backed
 publication input. The remaining
 rollout gates are:
 
-1. the full local test/race/vet/build gate passes;
-2. the generated `web/index.html` is regenerated from
+1. **COMPLETED:** the full local test/race/vet/build gate passes;
+2. **COMPLETED:** the generated `web/index.html` is regenerated from
    `internal/server/playground.html` with the documented version substitution;
-3. the updater artifacts remain signed and manually verified on a clean
-   writable application copy;
-4. the release notes disclose that platform notarization/publisher trust is
+3. **COMPLETED for one writable `/Applications` host:** the updater artifacts
+   were signed and manually verified, and Preview 1 migrated to Preview 5;
+   deliberate rollback and clean-device recovery remain open;
+4. **COMPLETED:** the release notes disclose that platform notarization/publisher trust is
    still absent, if that remains true;
-5. the preview is tested on one clean Mac and three pilots; and
-6. the release page says explicitly that updater success and `/healthz` do not
+5. **COMPLETED for one audit Mac / OPEN for pilots:** the preview is tested on
+   one writable installed bundle; two or three pilot Macs remain required; and
+6. **COMPLETED:** the release page says explicitly that updater success and `/healthz` do not
    prove upstream Google availability.
 
 Until those gates pass, the honest status is **controlled public beta**, not

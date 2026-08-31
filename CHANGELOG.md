@@ -35,7 +35,7 @@ to an earlier implementation. The current contract supersedes those phrases:
   the current runner can correctly report a partial live result when a provider
   ignores instruction-only JSON formatting or image generation is unavailable.
 
-## [Unreleased]
+## [0.2.0-preview.5] - 2026-08-31
 
 ### Browser streaming
 
@@ -46,15 +46,15 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ### Release versioning
 
-- After Preview 4 publication, all Wails preview packagers default to the next
-  immutable candidate, `v0.2.0-preview.5`. Preview 4 remains unchanged; no
-  Preview 5 package is published until clean-source, local package, Keychain
-  signature, public-byte, and installed-bundle gates pass.
+- After Preview 4 publication, all Wails preview packagers defaulted to the
+  immutable `v0.2.0-preview.5` candidate. Preview 4 remains unchanged; Preview
+  5 is now published after clean-source, local package, Keychain signature,
+  public-byte, and one installed-bundle migration gates passed.
 - Added a deterministic updater matrix for the published Preview 7 fleet,
-  migration-bridge previews, Preview 4, and the next Preview 5 candidate. The
-  matrix records the real boundary: selection is fixture-tested, while a
-  signed installed-bundle replacement and rollback still require device
-  acceptance. See [`current release audit`](docs/engineering/RELEASE-AUDIT-2026-08-31.md).
+  migration-bridge previews, Preview 4, and Preview 5. The matrix records the
+  real boundary: one signed installed-bundle replacement is now observed on
+  the audit Mac, while rollback, pilot, and fleet acceptance still require
+  device evidence. See [`current release audit`](docs/engineering/RELEASE-AUDIT-2026-08-31.md).
 
 ### Credential-boundary clarity
 
@@ -78,8 +78,8 @@ to an earlier implementation. The current contract supersedes those phrases:
   public-main commit `4beb127`; its package and local startup checks did not
   include the route-clarity patch and it is superseded. A fresh candidate from
   merged public-main commit `a68eb39` passed the same local package and startup
-  gates. Preview 5 remains intentionally unpublished until public-byte and
-  installed-bundle gates pass.
+  gates. It was superseded by the current public Preview 5 candidate after
+  public-byte reconciliation and a one-host installed-bundle migration.
 
 ## [0.2.0-preview.4] - 2026-08-31
 

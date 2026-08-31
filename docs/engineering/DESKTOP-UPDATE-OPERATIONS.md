@@ -1,18 +1,18 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 4 enables a signed, user-consented macOS preview updater;
+**Status:** Preview 5 enables a signed, user-consented macOS preview updater;
 the public app remains ad-hoc signed and not Apple-notarized.
 
 The current release audit is in
-[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The source on
-public `main` is now ahead of the immutable Preview 4 assets. A local,
-Keychain-signed `v0.2.0-preview.5` candidate has passed package and startup
-smoke checks, but no Preview 5 package is public yet.
+[`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). Public `main` is
+at `c28d787`, and the immutable public `v0.2.0-preview.5` assets have passed
+signature, byte-reconciliation, and one-host installed migration checks.
 
 The immutable public migration bridge is `v0.2.0-preview.1`. Controlled macOS
-Preview 4 (`v0.2.0-preview.4`) is now published from public-main commit
-`abfeeba` and its five public assets were re-downloaded, signature-verified,
-and byte-reconciled. Preview 3 remains historical provenance.
+Preview 5 (`v0.2.0-preview.5`) is published from public `main`; Preview 4 and
+Preview 3 remain historical provenance. The five Preview 5 assets were
+re-downloaded, signature-verified, and byte-reconciled. A writable Preview 1
+installation was also updated to Preview 5 on one audit Mac.
 Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
 This document is the operator and product boundary for the native updater. An
@@ -67,7 +67,7 @@ The public `v0.1.7-preview.7` build contains the embedded public update key and
 signed `SHA256SUMS`/`SHA256SUMS.sig` manifest. Its update path is still
 explicit and user-consented; it is not a hidden or silent auto-update. The
 released Preview 7 binary predates the later stable-first source change and
-therefore discovers only newer previews. The same-key Preview 4 is now the
+therefore discovers only newer previews. The same-key Preview 5 is now the
 latest published preview candidate for that path; a current-source preview
 can then discover a newer stable release. A direct stable install is the
 simpler alternative. Preview 6

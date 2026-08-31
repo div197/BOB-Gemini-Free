@@ -258,12 +258,14 @@ two justified protected-core changes described in
   device comparison).
 - Environment-tagged performance baselines.
 
-## Phase III evidence update (2026-08-21)
+## Phase III evidence update (2026-08-21; historical snapshot)
 
-The historical Mission 0 statements above are not the current branch status.
-The following later evidence is now available:
+The historical Mission 0 statements above were not the branch status at that
+audit boundary. The following evidence was recorded then. It is retained for
+provenance; the current Preview 5 publication and migration evidence in the
+addendum below supersedes its release-specific rows.
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the 2026-08-21 audit boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The Wails-only archival change is published on `main` | VERIFIED_IN_SOURCE | GitHub PR #2 merged `phase-iii/release-desktop-docs-hardening` into `main` as merge commit `5ccbebe`; repository metadata and the merge were inspected | This proves source publication, not a signed binary release or end-user acceptance. |
 | Packaged desktop users need no separate Go runtime, database, or memory service | VERIFIED_BY_INTEGRATION_TEST | `scripts/build-wails-local.sh` produced an ad-hoc signed macOS app; Computer Use opened the branded app, reached the BOB Builder studio at `127.0.0.1:9610/playground`, and closing the window released the listener | Source builds still require Go, CGO, the desktop build toolchain, and the host toolchain; macOS notarization/signing is an external release gate. |
@@ -302,7 +304,7 @@ separate
 [`RELEASE-READINESS-v0.2.0.md`](RELEASE-READINESS-v0.2.0.md) is the authoritative
 publication gate for this milestone.
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the Preview 3 readiness boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The stable build path embeds the repository's updater public key | VERIFIED_BY_INTEGRATION_TEST | `make build`, `make dist`, `make desktop-key-check`, and binary string inspection passed for the six CLI targets and the macOS Wails candidate | This proves the embedded trust anchor, not a signed release manifest or Apple/Windows publisher trust. |
 | The release source gate rejects updater-key encoding and version/channel drift before packaging | VERIFIED_BY_INTEGRATION_TEST | `scripts/verify-release-source.sh` passed for stable and preview fixtures and failed closed when a standalone installer key or its SPKI encoding was changed; PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33) merged the source gate and protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36) merged the SPKI consistency check on `main` | This validates source/package inputs only; it does not sign, upload, or verify the public release assets. |
@@ -412,9 +414,12 @@ evidence only.
 | Rate-limit headers describe an enforced local quota when no limiter exists | VERIFIED_IN_SOURCE | `internal/server/middleware.go` now emits only request/processing/version metadata; server tests assert synthetic `x-ratelimit-limit-requests` is absent | Google/provider limits remain external and are shown only through provider errors or current official documentation. |
 | A live benchmark invents token throughput when usage metadata is absent | VERIFIED_BY_UNIT_TEST | `internal/diag/bench.go` counts only positive provider-reported `total_tokens` values and exposes `TokenCountsMeasured`; `internal/diag/bench_test.go` proves missing usage produces no fabricated token total or throughput, and `main.go` labels unavailable token throughput explicitly | Request latency/throughput remains a local measurement; token estimates and provider quotas remain separate evidence surfaces. |
 
-## Current local continuation evidence — 2026-08-31
+## Current local continuation evidence — 2026-08-31 (historical snapshot)
 
-This addendum supersedes older commit labels in the historical sections above.
+This continuation snapshot supersedes older commit labels in the historical
+sections above, but is itself retained for provenance. The current Preview 5
+publication and credential addendum below is authoritative for the present
+release.
 The reviewed code tip at the start of this continuation was `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
@@ -443,7 +448,7 @@ also merged through PRs #44–#46. Controlled macOS `v0.2.0-preview.3` is
 published and its public bytes are reconciled; stable `v0.2.0` is not
 published.
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the continuation audit boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | A slow coalesced stream subscriber is never silently dropped | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight.go` returns `ErrStreamSubscriberTooSlow` from a bounded queue; the overflow test synchronizes both subscribers and paces the burst on healthy-leader consumption, then passes repeatedly under `go test -race` | This protects the local multiplexer; live Google stream behavior and browser disconnects remain external. |
 | Cancelling a leader or follower does not cancel an independent healthy subscriber, while the last subscriber cancels an abandoned flight | VERIFIED_BY_UNIT_TEST | `internal/gemini/flight_test.go` covers follower cancellation, leader cancellation, leader deadline, and last-subscriber cleanup under the race detector | The upstream client's own total timeout remains the final bound; this is not a provider retry guarantee. |
@@ -471,7 +476,7 @@ freshly downloaded, detached-signature-verified, and byte-reconciled. The
 complete evidence is in
 [`PREVIEW-3-PUBLICATION-2026-08-31.md`](PREVIEW-3-PUBLICATION-2026-08-31.md).
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the Preview 3 publication boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The current public macOS preview is a complete, branded, signed-project artifact set | VERIFIED_LIVE | Preview 3 includes the branded universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig`; the exact public assets match the local signed inputs byte-for-byte | The project signature authenticates release bytes, not Apple Developer ID identity; the package remains ad-hoc signed, non-notarized, and macOS-only. |
 | Preview 3 is built from the current public source and carries the current updater trust anchor | VERIFIED_LIVE | Release-source verification passed at public-main `284b7d1`; the Keychain-backed signer accepted the private/public pair and the Wails build embedded the checked-in public key | Keychain presence and manifest signing do not prove future key custody, Apple trust, or a live installed-bundle update. |
@@ -489,7 +494,7 @@ bootstrap will be accepted by Google.
 |---|---|---|---|
 | A rejected dynamic Gemini session is not reused indefinitely by the local client | VERIFIED_BY_UNIT_TEST | `internal/gemini/auth.go` clears only cached `at`/`bl` values and increments a generation; `internal/gemini/client.go` invokes it for buffered and streaming 401/403 responses; `auth_test.go` covers forced refresh, configured-cookie preservation, and an in-flight bootstrap race, while `client_test.go` covers both response paths and confirms 429 does not invalidate | Google may reject the refreshed session again; cookie reauthentication, expiry detection, account entitlement, and live provider behavior remain external. The previously rejected request is intentionally not replayed. |
 
-## Current Preview 4 publication addendum — 2026-08-31
+## Current Preview 4 publication addendum — 2026-08-31 (historical)
 
 The current public release is the controlled macOS universal prerelease
 [`v0.2.0-preview.4`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.4),
@@ -499,14 +504,14 @@ owner-controlled macOS Keychain, freshly downloaded, detached-signature-
 verified, and byte-reconciled. The complete evidence is in
 [`PREVIEW-4-PUBLICATION-2026-08-31.md`](PREVIEW-4-PUBLICATION-2026-08-31.md).
 
-| Current claim | Classification | Evidence | Boundary |
+| Claim at the Preview 4 publication boundary | Classification | Evidence | Boundary |
 |---|---|---|---|
 | The current public macOS preview is a complete, branded, signed-project artifact set | VERIFIED_LIVE | Preview 4 includes the branded universal `.dmg`/`.zip`, `RELEASE-NOTICE.txt`, `SHA256SUMS`, and detached `SHA256SUMS.sig`; all five public assets passed fresh signature verification and matched the local signed inputs byte-for-byte | The project signature authenticates release bytes, not Apple Developer ID identity; the package remains ad-hoc signed, non-notarized, and macOS-only. |
 | Preview 4 is built from the current public source and carries the current updater trust anchor | VERIFIED_LIVE | Release-source verification passed at public-main `abfeeba`; the Keychain-backed signer accepted the private/public pair and the Wails build embedded the checked-in public key | Keychain presence and manifest signing do not prove future key custody, Apple trust, or a live installed-bundle update. |
 | The exact Preview 4 artifact launches locally and owns a healthy loopback gateway | VERIFIED_LIVE | Fresh artifact launch bound to `127.0.0.1:8081` when 9610 was occupied, returned 200 from `/healthz`, rendered `v0.2.0-preview.4` in `/playground`, and shut down cleanly | This is one host's package smoke test; it does not prove Google acceptance, provider quota, clean-device replacement, rollback, or fleet rollout. |
 | Existing Preview 7 users silently update to Preview 4 | STALE_OR_INCORRECT | The updater is explicit and user-consented; public metadata and project-signature selection are verified, but installed replacement has not been observed on a clean student device | Use **Help → Check for Updates**, verify the exact target, install from a writable app location, and record restart/rollback evidence before a 20–30-device rollout. |
 
-## Post-Preview 4 source state — 2026-08-31
+## Post-Preview 4 source state — 2026-08-31 (historical)
 
 Protected PR #62 merged the artifact-preview lifecycle and responsive-header
 fix, generated-bundle update, focused tests, and browser evidence; protected PR
@@ -518,17 +523,14 @@ post-publication source fixes. The next source package candidate is explicitly
 claim should imply that Preview 4 already contains either post-release source
 change.
 
-## Current credential and Preview 5 candidate addendum — 2026-08-31
+## Current Preview 5 publication and credential addendum — 2026-08-31
 
 This addendum supersedes older “current” commit labels in the historical
 sections above. The public `main` baseline used for this review is the merged
-commit `a68eb39abd0d1fd84548ff82dfd09ad134a8a5e2`; the route-clarity patch is
-now public source, while the desktop package remains Preview 4 until the
-fresh Preview 5 publication gates pass.
-The public Preview 4
-assets remain immutable; a fresh Preview 5 candidate from this merged source
-is locally verified and is not yet a public release. The complete local package
-receipt is in
+commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; the route-clarity patch and
+Preview 5 release reconciliation are now public source. Preview 4 assets
+remain immutable historical input, while Preview 5 is the current public
+macOS prerelease. The complete local package receipt is in
 [`PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-5-LOCAL-VERIFICATION-2026-08-31.md).
 
 | Current claim | Classification | Evidence | Boundary |
@@ -538,6 +540,7 @@ receipt is in
 | A Google Developer API key cannot silently become a BOB gateway access key or silently fall back to the web-RPC route | VERIFIED_BY_UNIT_TEST | `internal/server/gemini_api_test.go` covers provider-only rejection at an API-key-protected gateway, explicit provider routing, configured provider routing, unsupported endpoints, duplicate-key rejection, and credential redaction | Provider project quotas, billing, model availability, and live 401/403/429 behavior remain Google-dependent. |
 | The Studio makes the active credential route and its pre-send constraints visible | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html` renders a route-status card with web-session/provider, gateway-auth, cookie-ownership, and model-guard states; `TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials` and `TestPlaygroundBlocksIncompatibleDeveloperRouteBeforeSend` lock the source contract in the generated UI | A source test does not replace desktop/tablet/phone browser evidence, nor does it establish that a remote endpoint is trustworthy. |
 | An incompatible explicit Developer API selection creates a chat turn or sends a request before the user can correct it | VERIFIED_BY_UNIT_TEST | `developerRouteSelectionIssue()` checks key presence, endpoint transport trust, and provider-model/default-think constraints before `isGenerating`, chat-history mutation, or `fetch`; clear actions remove the two secret values from the retained modal DOM | Google may still reject a syntactically valid key, model, quota, or request; those are provider outcomes, not silently converted routes. |
-| The local Preview 5 candidate is a signed, structurally valid universal macOS package from current public `main` | VERIFIED_LOCAL | Fresh candidate from merged source `a68eb39` produced a branded universal `.dmg`/`.zip`, `x86_64`/`arm64` slices, expected identifier/name, the `/Applications` DMG alias, ad-hoc signature, and a verified detached manifest signature | This is not Apple Developer ID signing/notarization, public GitHub-byte reconciliation, or a clean-device install/update proof. |
-| The exact Preview 5 candidate bootstraps a healthy local gateway | VERIFIED_LIVE | Fresh `open -n` launch owned `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential-map markers, and shut down cleanly | One-host bootstrap does not prove Google generation, Gatekeeper acceptance, installed-bundle replacement, rollback, Windows/Linux behavior, or 20–30-device rollout. |
-| Existing Preview 4/Preview 7 installations have already been proven to replace themselves with Preview 5 | UNKNOWN | Updater selection and transaction behavior are fixture-tested, and the candidate is locally signed | A real writable `/Applications` update, restart confirmation, deliberate rollback, and public-byte comparison remain open operator gates. |
+| The public Preview 5 package is a signed, structurally valid universal macOS package from the packaged source baseline | VERIFIED_LOCAL | Fresh candidate from clean checkout `88f2881` produced a branded universal `.dmg`/`.zip`, `x86_64`/`arm64` slices, expected identifier/name, the `/Applications` DMG alias, ad-hoc signature, and a verified detached manifest signature | This is not Apple Developer ID signing/notarization or a clean-device/pilot/rollback acceptance claim. |
+| The exact public Preview 5 package bootstraps a healthy local gateway | VERIFIED_LIVE | Fresh `open -n` launch owned `127.0.0.1:8081`, returned `{"status":"ok"}` from `/healthz`, served the credential-map markers, and shut down cleanly | One-host bootstrap does not prove Google generation, Gatekeeper acceptance, rollback, Windows/Linux behavior, or 20–30-device rollout. |
+| Preview 5 public assets match the signed local inputs | VERIFIED_LIVE | The five assets from the immutable Preview 5 release were downloaded into a fresh directory, signature/checksums verified, and compared byte-for-byte | This authenticates release bytes with the project key; it does not provide Apple platform trust. |
+| An existing writable Preview 1 installation can replace itself with Preview 5 | VERIFIED_LIVE | Native Help → Check for Updates discovered Preview 5; explicit install replaced `/Applications/BOB Gemini Free.app`, restarted on `127.0.0.1:8081`, preserved the visible prior chat response, and About reported `v0.2.0-preview.5`; a second check found no newer release | This is one successful device path; Preview 4/Preview 7 baselines, deliberate rollback, and 20–30-device rollout remain open. |
