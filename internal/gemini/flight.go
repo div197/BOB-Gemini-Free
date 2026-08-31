@@ -322,10 +322,20 @@ func (sf *StreamFlight) consumeStream(ctx context.Context, key string, stream *a
 	}
 
 	for {
+		// Prefer a caller cancellation over a concurrently queued delta. A
+		// cancelled HTTP request must not report success merely because the
+		// upstream published one final item at the same time; the shared
+		// flight remains available to its other subscribers.
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case delta, ok := <-sub.ch:
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			if !ok {
 				stream.mu.Lock()
 				err := sub.err
