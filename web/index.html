@@ -1517,6 +1517,7 @@ input[type="range"] {
   color: var(--text-main);
   border-radius: 4px;
   padding: 2px 6px;
+  min-height: 24px;
   font-size: 0.68rem;
   cursor: pointer;
   display: flex;
@@ -1536,6 +1537,8 @@ input[type="range"] {
   cursor: pointer;
   font-size: 0.85rem;
   padding: 2px 4px;
+  min-width: 24px;
+  min-height: 24px;
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -3776,6 +3779,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   font-size: 0.75rem;
   cursor: pointer;
   padding: 4px;
+  min-width: 24px;
+  min-height: 24px;
   border-radius: 4px;
   transition: all 0.15s ease;
   opacity: 0.6;
@@ -3821,6 +3826,8 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   cursor: pointer;
   font-size: 0.72rem;
   padding: 0 2px;
+  min-width: 24px;
+  min-height: 24px;
   display: flex;
   align-items: center;
 }
@@ -3836,12 +3843,20 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   font-size: 0.68rem;
   cursor: pointer;
   padding: 2px 6px;
+  min-width: 24px;
+  min-height: 24px;
   border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   opacity: 0;
   transition: all 0.15s ease;
 }
 .user-row:hover .btn-user-action {
   opacity: 0.8;
+}
+.btn-user-action:focus-visible {
+  opacity: 1;
 }
 .btn-user-action:hover {
   opacity: 1;
@@ -5089,25 +5104,25 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   </div>
 
   <div class="header-controls">
-    <button type="button" class="nav-pill-btn gateway-status-btn" id="btn-gateway-status" onclick="openGatewayModal()" title="Gateway Connection Status (Click to configure)">
+    <button type="button" class="nav-pill-btn gateway-status-btn" id="btn-gateway-status" aria-label="Gateway connection status and settings" onclick="openGatewayModal()" title="Gateway Connection Status (Click to configure)">
       <span class="status-indicator-dot" id="gateway-status-dot"></span>
       <span class="nav-btn-text" id="gateway-status-text">127.0.0.1:9610</span>
     </button>
     <div class="nav-segmented-group">
-      <button type="button" class="nav-segment-btn" id="btn-toggle-left" aria-controls="sidebar-left" aria-expanded="false" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
+      <button type="button" class="nav-segment-btn" id="btn-toggle-left" aria-label="Toggle configuration panel" aria-controls="sidebar-left" aria-expanded="false" onclick="toggleSidebar('left')" title="Toggle Config Panel ([)">
         <span>◧</span> <span class="nav-btn-text" id="nav-config-label">Config</span>
       </button>
-      <button type="button" class="nav-segment-btn" id="btn-toggle-right" aria-controls="sidebar-right" aria-expanded="false" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
+      <button type="button" class="nav-segment-btn" id="btn-toggle-right" aria-label="Toggle integration code panel" aria-controls="sidebar-right" aria-expanded="false" onclick="toggleSidebar('right')" title="Toggle Code Panel (])">
         <span class="nav-btn-text" id="nav-code-label">Code</span> <span>◨</span>
       </button>
     </div>
-    <button type="button" class="nav-pill-btn" id="btn-cmd-menu" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
+    <button type="button" class="nav-pill-btn" id="btn-cmd-menu" aria-label="Open command palette" onclick="toggleCmdPalette()" title="Command Palette (⌘K)">
       <span id="cmd-menu-label" style="white-space:nowrap;">⌘K Menu</span>
     </button>
-    <a href="https://github.com/div197/BOB-Gemini-Free" target="_blank" rel="noopener noreferrer" class="nav-pill-btn github-pill" title="View & Star Repository on GitHub" style="text-decoration:none; color:inherit;">
+    <a href="https://github.com/div197/BOB-Gemini-Free" target="_blank" rel="noopener noreferrer" class="nav-pill-btn github-pill" aria-label="Open BOB Gemini Free on GitHub" title="View & Star Repository on GitHub" style="text-decoration:none; color:inherit;">
       <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" style="display:inline-block; vertical-align:middle;"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
     </a>
-    <button type="button" class="nav-pill-btn" id="btn-glossary" onclick="openGlossaryModal()" title="AI & Systems Glossary / शब्दावली (Ask Teacher)">
+    <button type="button" class="nav-pill-btn" id="btn-glossary" aria-label="Open AI and systems glossary" onclick="openGlossaryModal()" title="AI & Systems Glossary / शब्दावली (Ask Teacher)">
       <span>📚</span> <span class="nav-btn-text" id="nav-glossary-label">Glossary</span>
     </button>
 
@@ -5347,13 +5362,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           <div class="capsule-bottom-bar">
             <div class="capsule-tools-left">
               <button type="button" class="capsule-tool-btn" aria-label="Attach or paste an image" onclick="document.getElementById('image-file-input').click()" title="Attach or paste an image (Vision Multimodal)">📎</button>
-              <button type="button" class="capsule-tool-btn btn-translit-pill" id="btn-translit" aria-label="Toggle Indic phonetic typing" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
-              <button type="button" class="capsule-tool-btn btn-mic-pill" id="btn-mic" aria-label="Voice input" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
+              <button type="button" class="capsule-tool-btn btn-translit-pill" id="btn-translit" aria-label="Toggle Indic phonetic typing" aria-pressed="false" onclick="toggleTransliteration()" title="Toggle Indic Phonetic Typing (Ctrl+G) — Type in Hinglish, converts to Hindi">अ</button>
+              <button type="button" class="capsule-tool-btn btn-mic-pill" id="btn-mic" aria-label="Voice input" aria-pressed="false" onclick="toggleVoiceInput()" title="Voice Input (Speech-to-Text) — Speak in English or Hindi">🎙️</button>
               <button type="button" class="capsule-tool-btn btn-wand-pill" id="btn-wand" aria-label="Improve prompt with AI" onclick="enhanceCurrentPrompt()" title="Prompt Magic Wand (⌘+Shift+P) — Automatically polish & enhance your prompt with AI">🪄</button>
               <button type="button" id="prompt-token-estimate" class="token-live-chip" aria-label="Open token estimate" onclick="openTokenizerModal()" title="Click to open Interactive Tokenizer & BPE Visualizer Lab">0 chars • ~0 tok</button>
             </div>
             <div class="capsule-tools-right">
-              <button type="button" class="btn-pill-cta" id="send-btn" onclick="handleSendOrStop()">
+              <button type="button" class="btn-pill-cta" id="send-btn" aria-label="Send prompt" aria-busy="false" onclick="handleSendOrStop()">
                 <span id="send-btn-label">Send</span>
                 <span id="send-btn-icon" style="font-size:0.8rem;">➤</span>
               </button>
@@ -6009,7 +6024,11 @@ function initVoiceRecognition() {
   recognition.onstart = function() {
     isRecordingVoice = true;
     const micBtn = document.getElementById("btn-mic");
-    if (micBtn) micBtn.classList.add("recording");
+    if (micBtn) {
+      micBtn.classList.add("recording");
+      micBtn.setAttribute("aria-pressed", "true");
+      micBtn.setAttribute("aria-label", "Stop voice input");
+    }
     showToast(currentLang === 'hi' ? "सुन रहा हूँ... बोलिए" : "Listening... Speak now", "🎙️");
   };
 
@@ -6063,7 +6082,11 @@ function toggleVoiceInput() {
 function stopVoiceInput() {
   isRecordingVoice = false;
   const micBtn = document.getElementById("btn-mic");
-  if (micBtn) micBtn.classList.remove("recording");
+  if (micBtn) {
+    micBtn.classList.remove("recording");
+    micBtn.setAttribute("aria-pressed", "false");
+    micBtn.setAttribute("aria-label", "Voice input");
+  }
 }
 
 function setLanguageText(id, value) {
@@ -6302,6 +6325,8 @@ function initTransliteration() {
   const btn = document.getElementById("btn-translit");
   if (btn) {
     btn.classList.toggle("active", isTransliterationActive);
+    btn.setAttribute("aria-pressed", isTransliterationActive ? "true" : "false");
+    btn.setAttribute("aria-label", isTransliterationActive ? "Disable Indic phonetic typing" : "Enable Indic phonetic typing");
     if (INDIC_LANGS[currentIndicLang]) {
       btn.innerText = INDIC_LANGS[currentIndicLang].symbol;
     }
@@ -6671,6 +6696,12 @@ function updateGatewayStatusIndicator(online, latency) {
   }
   if (text) {
     text.innerText = online ? displayHost : "Gateway Offline";
+  }
+  const statusButton = document.getElementById("btn-gateway-status");
+  if (statusButton) {
+    statusButton.setAttribute("aria-label", online
+      ? `Gateway online at ${displayHost}. Open gateway settings.`
+      : "Gateway offline. Open gateway settings.");
   }
 }
 
@@ -11319,6 +11350,8 @@ async function sendMessage() {
   activeAbortController = new AbortController();
 
   sendBtn.classList.add("stop-mode");
+  sendBtn.setAttribute("aria-label", dict.btnStop || "Stop generation");
+  sendBtn.setAttribute("aria-busy", "true");
   sendLabel.innerText = dict.btnStop;
   sendIcon.innerText = "■";
   setGenerationControlsDisabled(true);
@@ -11865,7 +11898,11 @@ async function sendMessage() {
   } finally {
     isGenerating = false;
     activeAbortController = null;
-    if (sendBtn) sendBtn.classList.remove("stop-mode");
+    if (sendBtn) {
+      sendBtn.classList.remove("stop-mode");
+      sendBtn.setAttribute("aria-label", dict.btnSend || "Send prompt");
+      sendBtn.setAttribute("aria-busy", "false");
+    }
     if (sendLabel) sendLabel.innerText = dict.btnSend;
     if (sendIcon) sendIcon.innerText = "➤";
     inputEl.disabled = false;

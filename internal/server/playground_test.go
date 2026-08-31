@@ -900,8 +900,11 @@ func TestPlaygroundUsesNativeControlAndDrawerSemantics(t *testing.T) {
 		`<a class="skip-link" href="#user-input">Skip to prompt</a>`,
 		`id="theme-selector" aria-label="Color theme"`,
 		`id="lang-selector" aria-label="UI language"`,
-		`id="btn-toggle-left" aria-controls="sidebar-left" aria-expanded="false"`,
-		`id="btn-toggle-right" aria-controls="sidebar-right" aria-expanded="false"`,
+		`id="btn-toggle-left"`,
+		`id="btn-toggle-right"`,
+		`aria-controls="sidebar-left"`,
+		`aria-controls="sidebar-right"`,
+		`aria-expanded="false"`,
 		`id="sidebar-left" aria-hidden="true" inert`,
 		`id="sidebar-right" aria-hidden="true" inert`,
 		`id="instr-modal-title"`,
@@ -939,6 +942,33 @@ func TestPlaygroundUsesNativeControlAndDrawerSemantics(t *testing.T) {
 		strings.Contains(html, `class="starter-card" role="button"`) ||
 		strings.Contains(html, `class="token-live-chip" role="button"`) {
 		t.Fatal("core click-only controls still rely on generic role=button semantics")
+	}
+}
+
+func TestPlaygroundHeaderAndGenerationStatesHaveAccessibleNames(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="btn-gateway-status" aria-label="Gateway connection status and settings"`,
+		`id="btn-toggle-left" aria-label="Toggle configuration panel"`,
+		`id="btn-toggle-right" aria-label="Toggle integration code panel"`,
+		`id="btn-cmd-menu" aria-label="Open command palette"`,
+		`class="nav-pill-btn github-pill" aria-label="Open BOB Gemini Free on GitHub"`,
+		`id="btn-glossary" aria-label="Open AI and systems glossary"`,
+		`id="btn-translit" aria-label="Toggle Indic phonetic typing" aria-pressed="false"`,
+		`id="btn-mic" aria-label="Voice input" aria-pressed="false"`,
+		`id="send-btn" aria-label="Send prompt" aria-busy="false"`,
+		`statusButton.setAttribute("aria-label", online`,
+		`btn.setAttribute("aria-pressed", isTransliterationActive ? "true" : "false")`,
+		`micBtn.setAttribute("aria-pressed", "true")`,
+		`micBtn.setAttribute("aria-label", "Stop voice input")`,
+		`sendBtn.setAttribute("aria-label", dict.btnStop || "Stop generation")`,
+		`sendBtn.setAttribute("aria-busy", "true")`,
+		`sendBtn.setAttribute("aria-busy", "false")`,
+		`.btn-user-action:focus-visible`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing accessible name/state marker %q", marker)
+		}
 	}
 }
 
