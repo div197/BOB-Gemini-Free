@@ -3,20 +3,21 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `d598721`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `bb875f1`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
 ## Executive decision
 
-This continuation materially reduces seven real failure classes: coalesced
+This continuation materially reduces eight real failure classes: coalesced
 stream cancellation and silent subscriber loss, memory exposure through highly
 compressible remote images, late updater failure when the app is running from a
 read-only or translocated location, stale attachment parsing/OCR work after the
 user removes a file, initialization failures when browser preference storage
 is denied, execution risk from mutable root CDN dependencies, and
-false-positive optional service health reports. The source and deterministic
-test gates are green.
+false-positive optional service health reports, and misleading request status
+logs after response commitment. The source and deterministic test gates are
+green.
 
 BOB is not yet a universally verified student release. A real browser at the
 required viewports, a clean `/Applications` update and rollback, signed public
@@ -234,6 +235,16 @@ health response remains a running gateway. This is a local compatibility
 diagnostic, not an authentication mechanism, and OS service-manager/device
 behavior remains external.
 
+### 14. Committed response-status logging — `bb875f1`
+
+The request logging wrapper now records the first status actually committed to
+the underlying `http.ResponseWriter`. Implicit writes and supported streaming
+flushes are treated as an implicit `200 OK`, while later `WriteHeader` calls no
+longer overwrite the status that the client received. This keeps optional local
+request logs useful during streaming/error paths without changing the response
+wire format. Tests cover repeated headers, implicit writes, and flush-before-
+error behavior.
+
 ## Verification completed
 
 | Gate | Result | Evidence boundary |
@@ -249,6 +260,7 @@ behavior remains external.
 | `bash -n scripts/*.sh` | PASS | Local release scripts parse successfully. |
 | `scripts/verify-release-source.sh v0.2.0` | PASS | Clean source, key/version coherence, installer trust-anchor, and web parity passed at the packaging source commit. |
 | Dedicated service-health probe tests | PASS | `internal/service` tests cover the `/healthz` path and reject an unrelated HTTP 200 process. |
+| Response-status logging regression tests | PASS | `internal/server/middleware_test.go` covers first-commit semantics for explicit headers, implicit writes, and streaming flushes. |
 | macOS Preview package | PASS locally | Universal Wails app, ZIP, DMG, visible `/Applications` shortcut, release notice, and ad-hoc `codesign --verify` passed. The package was not published and its local checksum manifest was not signed. |
 | Browser desktop/tablet/phone walk | NOT AVAILABLE | The configured browser runtime reported no available browser; source tests are not rendered interaction proof. |
 | Live Google/provider run | NOT RUN | No provider credential or cookie was used. |

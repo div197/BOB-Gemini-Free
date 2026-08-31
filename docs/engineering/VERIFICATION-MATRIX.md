@@ -395,12 +395,13 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The source-hardening tip is `a3ed1da`; the current checkout contains the
+The source-hardening tip is `bb875f1`; the current checkout contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
 root-CDN-integrity, queued-attachment-cancellation, dedicated service
-health-probe, and dynamic-artifact-CDN follow-ups after the evidence documents.
+health-probe, dynamic-artifact-CDN, and response-status-logging follow-ups
+after the evidence documents.
 The local branch is
 `codex/release-readiness-v0.2.0`, based on `origin/main` `523ceeb`. No stable
 release was tagged, no GitHub Actions
@@ -418,4 +419,5 @@ workflow was added or invoked, and no provider or release secret was used.
 | A changed root CDN script or stylesheet can execute without an integrity check | VERIFIED_BY_UNIT_TEST | The playground head pins every external script/stylesheet with SHA-384 SRI and anonymous CORS, and pins Tesseract.js to `5.1.1`; `playground_test.go` rejects root dependencies without integrity attributes or a floating Tesseract major URL | Dynamic artifact `srcdoc` libraries, PDF worker/language assets, CDN availability, CSP behavior, and offline acceptance remain separate browser/runtime gates. |
 | A dynamic artifact preview can execute a mutable Mermaid or Pyodide bootstrap | VERIFIED_BY_UNIT_TEST | Mermaid is pinned to `10.9.0` and Pyodide to `0.26.2` with exact SHA-384 SRI and anonymous CORS inside their `srcdoc` bootstraps; `TestDynamicArtifactCDNBootstrapsArePinned` rejects the former floating/missing-integrity URLs | Pyodide package/worker subresources, PDF worker/language assets, CDN availability, CSP behavior, and browser execution remain separate gates. |
 | The optional service-status command reports an unrelated process as the BOB gateway | VERIFIED_BY_UNIT_TEST | `internal/service/service.go` probes the unauthenticated `/healthz` route and requires the BOB gateway identity and protocol headers; `internal/service/service_test.go` covers valid, wrong-status, missing-identity, wrong-identity, wrong-protocol, and unrelated-process responses | The headers are a compatibility signal, not an authentication credential; a real OS service manager and device process remain external. |
+| Request logs report a status different from the status committed to the client after repeated headers or streaming flushes | VERIFIED_BY_UNIT_TEST | `internal/server/middleware.go` records only the first committed status and marks implicit `Write`/supported `Flush` commits; `internal/server/middleware_test.go` covers repeated `WriteHeader`, implicit `Write`, and `Flush` followed by a later header | This protects local observability only; reverse-proxy logs and external log collectors remain outside BOB's control. |
 | The visual product is browser-verified at desktop, tablet, and phone widths | UNKNOWN | The browser-control runtime reported no available browser in this session; source tests and generated-bundle parity do not replace rendered interaction evidence | Recover a real browser/device and run the design-audit viewport matrix before calling the design ceiling closed. |
