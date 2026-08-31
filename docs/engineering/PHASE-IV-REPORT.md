@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `9cd999e`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `2a36ba1`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -187,17 +187,18 @@ continues toward a success response. Deterministic fixtures cover ordered
 success lifecycle and upstream-error termination; complete Claude Code event
 parity and real client compatibility remain open.
 
-### 10. Attachment parsing cancellation — `4522e2b`
+### 10. Attachment parsing cancellation — `4522e2b`, `2a36ba1`
 
 The Web Studio now associates each attachment parse with an abort controller.
 FileReader-based reads are interrupted when a student removes an attachment,
-and late results from compatibility Promise readers are discarded before they
-can mutate the shelf or prompt state. Tesseract.js v5 uses a terminable worker
-when the worker API is available; older OCR helpers remain an explicit fallback
-whose in-flight CPU work cannot be interrupted by BOB. The existing 32 MiB
-file, extraction-character, PDF-page, and two-job concurrency limits are
-unchanged. Main-thread document parsing, OCR cost, and device behavior remain
-partial until measured on representative Macs.
+cancelled queued parses are removed before they start, and late results from
+compatibility Promise readers are discarded before they can mutate the shelf or
+prompt state. Tesseract.js v5 uses a terminable worker when the worker API is
+available; older OCR helpers remain an explicit fallback whose in-flight CPU
+work cannot be interrupted by BOB. The existing 32 MiB file,
+extraction-character, PDF-page, and two-job concurrency limits are unchanged.
+Main-thread document parsing, OCR cost, and device behavior remain partial
+until measured on representative Macs.
 
 ### 11. Fail-closed preference storage — `7ccda24`
 
