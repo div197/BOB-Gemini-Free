@@ -964,6 +964,8 @@ func TestResponsiveDrawersDoNotCoverNewChatToolbar(t *testing.T) {
 		`--studio-toolbar-height: 42px;`,
 		`class="sub-bar"`,
 		`title="Start a new chat canvas"`,
+		`position: relative;
+    z-index: 25;`,
 		`top: var(--studio-toolbar-height);`,
 		`bottom: auto;`,
 		`height: calc(100% - var(--studio-toolbar-height));`,
@@ -998,10 +1000,17 @@ func TestResponsivePhoneControlsMeetTouchContainmentAndDrawerCap(t *testing.T) {
 		"width: 85vw !important;",
 		"min-width: 0 !important;",
 		"max-width: 320px !important;",
+		"position: absolute !important;",
+		"top: var(--studio-toolbar-height) !important;",
+		"bottom: auto !important;",
+		"height: calc(100% - var(--studio-toolbar-height)) !important;",
 	} {
 		if !strings.Contains(phoneCSS, marker) {
 			t.Fatalf("responsive phone contract is missing marker %q", marker)
 		}
+	}
+	if strings.Contains(phoneCSS, "position: fixed !important;") {
+		t.Fatal("responsive phone drawers must remain inside main so app chrome stays reachable")
 	}
 	if strings.Contains(phoneCSS, "min-width: 85vw !important;") {
 		t.Fatal("responsive drawer min-width must not override its 320px maximum")

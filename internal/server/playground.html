@@ -3367,6 +3367,12 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   .telemetry-bar { display: none; }
   .footer-status-pill { display: none; }
   .creators-grid { grid-template-columns: 1fr; }
+  .sub-bar {
+    /* The drawer backdrop covers the workspace, but must never intercept the
+       primary New/model controls that remain part of the app chrome. */
+    position: relative;
+    z-index: 25;
+  }
   .sidebar-panel {
     position: absolute;
     /* Keep the New/model toolbar above responsive drawers. */
@@ -3735,11 +3741,13 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
   .sidebar-panel.right,
   .sidebar-panel.left.collapsed,
   .sidebar-panel.right.collapsed {
-    position: fixed !important;
-    top: 0 !important;
-    bottom: 0 !important;
-    height: 100vh !important;
-    height: 100dvh !important;
+    /* The drawers live inside <main>. Keep the header and New/model toolbar
+       in the app chrome so the primary navigation remains reachable while a
+       mobile drawer is open. */
+    position: absolute !important;
+    top: var(--studio-toolbar-height) !important;
+    bottom: auto !important;
+    height: calc(100% - var(--studio-toolbar-height)) !important;
     z-index: 50 !important;
     width: 85vw !important;
     min-width: 0 !important;
