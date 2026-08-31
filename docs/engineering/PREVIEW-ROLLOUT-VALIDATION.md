@@ -150,7 +150,8 @@ account/network-specific observation.
 
 The `v0.2.0-preview.1` bridge is published and its exact public macOS assets
 have been re-downloaded and verified locally. The next source candidate is
-`v0.2.0-preview.2`; it has not been tagged, signed, or published. The remaining
+`v0.2.0-preview.2`; a local Keychain-backed package has been signed and
+verified, but it has not been tagged or published. The remaining
 rollout gates are:
 
 1. the full local test/race/vet/build gate passes;

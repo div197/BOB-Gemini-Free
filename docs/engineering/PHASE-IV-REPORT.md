@@ -3,7 +3,7 @@
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Workspace:** `/Users/apple31/Documents/BOB-Gemini-Free`
 **Base:** `origin/main` `523ceeb`
-**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `12d85c3`
+**Reviewed continuation:** `codex/release-readiness-v0.2.0` through `49080a5`
 **Operating rule:** local verification only; no GitHub Actions and no
 provider, cookie, PAT, or private release-key material used.
 
@@ -127,7 +127,7 @@ The updater remains user-consented. A background check may discover and show a
 candidate; it never installs without **Install Update**. No silent fleet push
 was added.
 
-### 4. Documentation and evidence — `1cc33d5`, `5eae3e2`
+### 4. Documentation and evidence — `1cc33d5`, `5eae3e2`, `49080a5`
 
 The design audit, release readiness document, desktop update operations, 100-
 path register, and verification matrix now record the continuation truth:
@@ -299,7 +299,7 @@ behavior remains an external gate.
 | Response-status logging regression tests | PASS | `internal/server/middleware_test.go` covers first-commit semantics for explicit headers, implicit writes, and streaming flushes. |
 | CORS Host-header confusion regression tests | PASS | `internal/server/security_boundary_test.go` rejects a matching non-loopback `Host`/`Origin` pair while preserving literal-loopback and explicitly configured remote origins. |
 | Page-token refresh recovery tests | PASS | `internal/multimodal/multimodal_test.go` proves a failed refresh is backed off, does not dog-pile, and recovers after the bounded delay. |
-| macOS Preview package | PASS locally | Universal Wails app, ZIP, DMG, visible `/Applications` shortcut, release notice, and ad-hoc `codesign --verify` passed. The package was not published and its local checksum manifest was not signed. |
+| macOS Preview package | PASS locally | Universal Wails app, ZIP, DMG, visible `/Applications` shortcut, release notice, and ad-hoc `codesign --verify` passed; the later local Preview 2 release directory also passed Keychain-backed Ed25519 signing, checksum, and detached-signature verification. The package was not published. |
 | Browser desktop/tablet/phone walk | NOT AVAILABLE | The configured browser runtime reported no available browser; source tests are not rendered interaction proof. |
 | Live Google/provider run | NOT RUN | No provider credential or cookie was used. |
 | Clean installed-bundle update/rollback | NOT PROVEN | Requires the owner-controlled `/Applications` device and exact signed public assets. |

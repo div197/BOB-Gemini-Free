@@ -290,8 +290,10 @@ the installer trust-anchor follow-up was merged through protected PR [#36](https
 and the session-only gateway-auth follow-up through protected PR [#38](https://github.com/div197/BOB-Gemini-Free/pull/38).
 The current public `main` tip at this audit checkpoint is merge commit
 `523ceeb`.
-The fresh native package evidence in this section was produced from clean
-source commit `d318b4f`, an ancestor of the reviewed source.
+The latest local native package evidence in this section was produced from
+clean source commit `16f3aec`, before the later test-only regression commit;
+its release directory was signed and verified through the local Keychain
+signer, while the public release remains unchanged.
 The signed `v0.2.0-preview.1` migration bridge is published; the next source
 candidate is `v0.2.0-preview.2` and is not tagged or published; stable
 `v0.2.0` has not been tagged or published. The separate
@@ -302,7 +304,7 @@ publication gate for this milestone.
 |---|---|---|---|
 | The stable build path embeds the repository's updater public key | VERIFIED_BY_INTEGRATION_TEST | `make build`, `make dist`, `make desktop-key-check`, and binary string inspection passed for the six CLI targets and the macOS Wails candidate | This proves the embedded trust anchor, not a signed release manifest or Apple/Windows publisher trust. |
 | The release source gate rejects updater-key encoding and version/channel drift before packaging | VERIFIED_BY_INTEGRATION_TEST | `scripts/verify-release-source.sh` passed for stable and preview fixtures and failed closed when a standalone installer key or its SPKI encoding was changed; PR [#33](https://github.com/div197/BOB-Gemini-Free/pull/33) merged the source gate and protected PR [#36](https://github.com/div197/BOB-Gemini-Free/pull/36) merged the SPKI consistency check on `main` | This validates source/package inputs only; it does not sign, upload, or verify the public release assets. |
-| The macOS v0.2.0 candidate is package-valid | VERIFIED_BY_INTEGRATION_TEST | Fresh `make desktop-preview-mac` on clean commit `d318b4f` produced a Wails universal app, ZIP, DMG, Applications shortcut, ad-hoc code signature, SHA-256 checks, bundle metadata, local PWA routes, and native GUI quit/shutdown proof; the public `v0.2.0-preview.1` bridge was separately re-downloaded with checksum/signature verification | `spctl` rejection is expected without Apple notarization; the local candidate has no signed release manifest and this proves neither a stable upload nor student rollout. |
+| The macOS v0.2.0 candidate is package-valid | VERIFIED_BY_INTEGRATION_TEST | Fresh `make desktop-preview-mac` on clean commit `16f3aec` produced a Wails universal app, ZIP, DMG, Applications shortcut, ad-hoc code signature, SHA-256 checks, bundle metadata, local PWA routes, and native GUI quit/shutdown proof; the local Preview 2 release directory was then signed and verified through the Keychain-backed Ed25519 flow; the public `v0.2.0-preview.1` bridge was separately re-downloaded with checksum/signature verification | `spctl` rejection is expected without Apple notarization; local package verification proves neither a public upload nor clean-device update or student rollout. |
 | Update metadata URLs are pinned to the official repository or GitHub release CDN | VERIFIED_BY_UNIT_TEST | `internal/updater/desktop.go` and `internal/updater/updater_test.go` reject other GitHub owners/repositories, non-HTTPS URLs, lookalike hosts, and unexpected ports | GitHub release metadata is still external state; the signed manifest remains the artifact authenticity boundary. |
 | CLI update asset selection requires the canonical platform filename | VERIFIED_BY_UNIT_TEST | `internal/updater/updater.go:280-294` and `internal/updater/updater_test.go` reject suffix-only lookalikes and select the exact `bob-gemini-free-{platform}-{arch}` name | This protects local selection logic; the public release asset matrix and signed-upload reconciliation remain external gates. |
 | Existing public Preview 7 installations can update directly to v0.2.0 stable | STALE_OR_INCORRECT | The published Preview 7 binary predates stable-first discovery; the published same-key `v0.2.0-preview.1` bridge is now available, while current source tests prove stable-first only for newly built packages | Install the bridge first, then bridge → stable after stable acceptance, or perform one manual stable installation. Preview 6 and older need manual current-key migration. |
@@ -397,7 +399,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31
 
 This addendum supersedes older commit labels in the historical sections above.
-The current checkout tip is `12d85c3`; it contains the
+The current reviewed code tip is `49080a5`; it contains the
 deterministic stream-regression, session-bound image-reference, local
 history-persistence, Developer API stream-error, session/quota-error,
 Anthropic lifecycle, attachment-cancellation, fail-closed preference-storage,
@@ -405,7 +407,9 @@ root-CDN-integrity, queued-attachment-cancellation, dedicated service
 health-probe, dynamic-artifact-CDN, response-status-logging, literal-loopback
 CORS, page-token-retry, and Studio SSE-field-compatibility follow-ups
 after the evidence documents, including the Preview 1 → Preview 2
-version-transition fixtures. The signed public `v0.2.0-preview.1` bridge is
+version-transition fixtures, strict release-asset validation, and a
+deterministic history-limit stream regression. The signed public
+`v0.2.0-preview.1` bridge is
 immutable; the next source candidate is `v0.2.0-preview.2` and is not yet
 published.
 The local branch is

@@ -13,7 +13,7 @@ current local truth is:
 
 - `origin/main` is `523ceeb`.
 - The reviewed source-hardening tip is pushed to
-  `codex/release-readiness-v0.2.0` at `12d85c3`, ahead of `origin/main`; the
+  `codex/release-readiness-v0.2.0` at `49080a5`, ahead of `origin/main`; the
   branch contains the subsequent audit documentation, coalesced-stream,
   remote-image, and updater-preflight hardening commits.
 - The next source package identity is `v0.2.0-preview.2`. The immutable public
@@ -32,11 +32,13 @@ current local truth is:
   release artifact download and explains App Translocation/read-only paths;
   the preflight is source- and fixture-tested but still needs a real
   `/Applications` installed-bundle run.
-- A fresh local macOS Preview package was built from clean commit `1cc33d5`;
-  its universal bundle passed ad-hoc `codesign --verify`, the DMG contained a
-  visible `/Applications` shortcut, and the package carried no private key or
-  signed release manifest. This is local package evidence, not a publication
-  or clean-device update proof.
+- The latest local macOS Preview package was built from clean commit
+  `16f3aec`; its universal bundle passed ad-hoc `codesign --verify`, the DMG
+  contained a visible `/Applications` shortcut, and the package was signed
+  and verified through the local Keychain-backed Ed25519 release signer. This
+  is local package evidence, not a publication or clean-device update proof;
+  the post-package `49080a5` change is test-only and requires a fresh receipt
+  before any public upload.
 - The current tip also contains the isolated Studio correctness pass: native
   button semantics, drawer `aria-hidden`/`inert` state, bounded dialog
   surfaces, accessible selector names, a prompt skip link, and synchronized
@@ -76,13 +78,12 @@ gaps found after Preview 7:
 - regression tests prove stable migration, preview continuation, and the
   legacy Preview 7 bridge/no-direct-stable boundary.
 
-These changes were reviewed through protected PR [#31](https://github.com/div197/BOB-Gemini-Free/pull/31)
-and are published on `main` at merge commit `c5fa74f`. The native package
-evidence below was produced from clean source commit `d318b4f`, an ancestor of
-that published source; subsequent commits refreshed the evidence documents and
-release wiring. The signed `v0.2.0-preview.1` migration bridge is publicly
-published. Stable `v0.2.0` remains unpublished until the clean-device and pilot
-gates pass.
+The following paragraph is retained as historical provenance for the earlier
+PR-based publication sequence. The current source and package truth is in the
+refresh above and in
+[`RELEASE-TRANSITION-AUDIT-2026-08-31.md`](RELEASE-TRANSITION-AUDIT-2026-08-31.md).
+The signed `v0.2.0-preview.1` migration bridge is publicly published. Stable
+`v0.2.0` remains unpublished until the clean-device and pilot gates pass.
 
 ## Evidence already available
 
@@ -108,7 +109,7 @@ cross-builds in an isolated
 temporary directory, and the public-key presence gate. Coverage remains a
 measured limitation.
 
-The working tree is currently clean. At the time of this readiness review, the
+At the time of this historical readiness review, the working tree was clean and the
 complete post-Preview-7 branch delta was 134 files relative to the then-current
 `origin/main`; the reviewed source is now published on `main` as PR #31. This
 remains a release-candidate audit of a large feature milestone, not a routine
@@ -118,15 +119,14 @@ current local-only 1/10/20/30-concurrency baseline is recorded in
 [`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
 Google capacity or latency result.
 
-The current clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
-package run on this Mac. The resulting universal ad-hoc-signed app, ZIP, DMG,
-Applications shortcut, checksum file, bundle metadata, local PWA routes, and
-native GUI quit/shutdown path were verified. This remains a local unsigned-
-manifest candidate: the current source still requires a signed release
-manifest, public-upload reconciliation, clean-device updater run, and pilot
-before publication. `spctl` rejection remains expected for a package without
-Apple Developer ID trust. An intentionally missing Keychain item also caused
-the manifest signer to fail closed; the real private key was not read.
+An earlier clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
+package run on this Mac. That historical package was an unsigned-manifest
+candidate. The later local Preview 2 candidate was signed and verified through
+the Keychain-backed manifest flow as recorded in the current refresh; public
+upload reconciliation, clean-device updater run, and pilot gates remain open.
+`spctl` rejection remains expected for a package without Apple Developer ID
+trust. An intentionally missing Keychain item also caused the manifest signer
+to fail closed; the real private key was not read.
 
 The public GitHub state was also checked:
 

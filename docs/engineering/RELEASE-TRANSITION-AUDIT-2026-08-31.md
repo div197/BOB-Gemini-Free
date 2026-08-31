@@ -21,7 +21,7 @@ cookie, or release private key.
 | Surface | Observed state | Meaning |
 |---|---|---|
 | Public `main` | `523ceeb51724dc4892c1870a4e8dd50f08916fb0` | The release-readiness branch is not `main`. |
-| Reviewed source branch | `codex/release-readiness-v0.2.0` at `12d85c3` | 87 commits ahead of public `main`; the latest source includes post-bridge Studio fixes, deterministic preview-transition fixtures, and the stream-cancellation ordering fix. |
+| Reviewed source branch | `codex/release-readiness-v0.2.0` at `49080a5` | 91 commits ahead of public `main`; the latest source includes post-bridge Studio fixes, deterministic preview-transition fixtures, stream-cancellation ordering, strict release-asset validation, and the isolated history-limit regression. |
 | Public fleet baseline | `v0.1.7-preview.7`, tag target `a5ec476` | Its released desktop updater checks the preview channel only. |
 | Public migration bridge | `v0.2.0-preview.1`, tag `e019cf8` | Its macOS universal release is published with the current project key and signed manifest. |
 | Public stable endpoint | `v0.1.5` | No stable `v0.2.0` is published yet; a Preview build therefore continues to the preview channel. |
@@ -56,7 +56,7 @@ notice must continue to show the full `v0.2.0-preview.1` identity.
 | Public `v0.1.7-preview.7` | Preview list only | `v0.2.0-preview.1` now; the highest later `preview.N` after publication | Released source behavior, current selection fixtures, public bridge manifest, and public key are verified. A real installed update/restart remains a device gate. |
 | Public `v0.1.7-preview.7` | Preview list only | Future `v0.2.0-preview.2` directly, if it is published with the same key and compatible macOS asset | Current regression fixture proves highest-preview selection; exact future public bytes do not exist yet. |
 | Public `v0.2.0-preview.1` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise a newer preview such as `v0.2.0-preview.2` | Stable-first and preview-continuation selection are covered by updater tests. Clean-device replacement is still open. |
-| Candidate `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | Source packaging/version discipline and the same updater policy apply; this candidate has not been packaged or published. |
+| Candidate `v0.2.0-preview.2` | Stable first, then preview list | Stable `v0.2.0` when published; otherwise later previews | A local Keychain-signed package from the reviewed source passed manifest, signature, checksum, bundle, and source gates; it is not tagged or published, and a final receipt must be regenerated after any source change. |
 | Stable `v0.2.0` | Stable endpoint only | A newer stable release | Stable builds do not move backward into preview. |
 
 The safe operator sequence for a device currently on Preview 7 is therefore:

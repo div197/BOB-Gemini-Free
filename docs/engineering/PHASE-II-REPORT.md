@@ -683,9 +683,11 @@ the final error and a successful stream recovery with no logger. This change
 does not alter retry classification, delay, payload construction, session
 routing, or stream deduplication.
 
-The current source-hardening tip is on the pushed branch
-`codex/release-readiness-v0.2.0` at `e6ca945`; subsequent commits on that
-branch reconcile the audit documents, while `origin/main` remains a separate
-branch at `523ceeb`. No stable release, tag, or GitHub Actions workflow was
-created by this continuation. The browser viewport acceptance matrix and
-clean-device/provider/release-asset gates remain open.
+The current source-hardening code tip is on the local branch
+`codex/release-readiness-v0.2.0` at `49080a5`; subsequent documentation
+reconciliation is being kept separate, while `origin/main` remains a separate
+branch at `523ceeb`. A local Preview 2 candidate has been signed and verified
+through the Keychain-backed release flow, but no public Preview 2 or stable
+release, tag, or GitHub Actions workflow was created by this continuation. The
+browser viewport acceptance matrix and clean-device/provider/public-release
+asset gates remain open.
