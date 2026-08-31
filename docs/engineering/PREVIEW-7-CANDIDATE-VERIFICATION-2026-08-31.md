@@ -2,9 +2,9 @@
 
 **Date:** 2026-08-31 (Asia/Kolkata)
 **Status:** locally packaged, signed, and verified; **not published**
-**Source snapshot:** `2d42d4443818f594bc8d27f906977b30acce7495` (the clean
-`main` tree used for packaging; documentation-only PR #92 later advanced
-`main` to `67e5337f0a76a9efabb334a3240411d15821a4c9`)
+**Source snapshot:** `049ca2fb5927f70a21f6647e5046b9e19679c7a5` (merged `main`
+after PR #93; this fresh receipt supersedes the earlier local same-version
+candidate built from `2d42d4443818f594bc8d27f906977b30acce7495`)
 **Public baseline:** `v0.2.0-preview.6` remains the current published macOS
 preview.
 
@@ -38,8 +38,8 @@ The following checks passed:
 
 The private signing value was not displayed, exported, copied, committed, or
 placed in the package. The signed asset receipt was written outside the
-worktree at audit time; its manifest SHA-256 was
-`bbb2a27bc73c7c7b745eddb75d5d855a843d114b0e3ddb42bc3a2db19e0a4219`.
+worktree at audit time; its manifest SHA-256 is
+`1992995eb81ef442ec2ab7e1a232ef76e41012db43dc399a970c87f3a4fec163`.
 
 ## Bundle identity and runtime proof
 

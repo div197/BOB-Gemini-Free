@@ -52,8 +52,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 ### Release candidate verification
 
 - Packaged and locally verified the next `v0.2.0-preview.7` macOS universal
-  candidate from `main`, including the signed manifest, DMG layout, bundle
-  architecture, bundled runtime startup, and updater transition matrix.
+  candidate from merged `main` (`049ca2f`), including the signed manifest, DMG
+  layout, bundle architecture, bundled runtime startup, and updater transition
+  matrix. The candidate remains unpublished pending installed-base and pilot
+  gates.
 - Recorded the current 1/10/20/30-concurrency local benchmark against the
   current source commit. This remains a local-only measurement, not a Google
   quota or classroom-capacity claim.

@@ -128,10 +128,10 @@ Preview 7/Preview 5 → Preview 6 remains a staged device gate.
 
 ## Current source candidate — 2026-08-31
 
-The clean `main` source snapshot at `2d42d4443818f594bc8d27f906977b30acce7495`
-was also packaged and signed locally as `v0.2.0-preview.7`. Documentation-only
-PR #92 later advanced `main` to `67e5337f0a76a9efabb334a3240411d15821a4c9`;
-the candidate receipt remains tied to the earlier build snapshot.
+The merged `main` source snapshot at `049ca2fb5927f70a21f6647e5046b9e19679c7a5`
+was freshly packaged and signed locally as `v0.2.0-preview.7` after PR #93.
+This supersedes the earlier local same-version candidate built from `2d42d44`.
+The fresh candidate receipt is tied to the merged source snapshot.
 Its candidate receipt is in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md).
 It is not a public GitHub release yet, so it must not be presented as an
