@@ -979,6 +979,13 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 	html := string(playgroundHTML)
 	for _, marker := range []string{
 		`id="gateway-credential-map"`,
+		`id="gateway-route-status"`,
+		`id="gateway-route-status-title"`,
+		`id="gateway-route-status-help"`,
+		`id="gateway-route-access-state"`,
+		`id="gateway-route-provider-state"`,
+		`id="gateway-route-model-state"`,
+		`data-state="blocked"`,
 		`Credential map — these are different`,
 		`Default web-session route:`,
 		`Google Developer API route:`,
@@ -997,6 +1004,10 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`input.type = input.type === "password" ? "text" : "password";`,
 		`keyInput.type = "password";`,
 		`providerKeyInput.type = "password";`,
+		`function clearGatewayApiKey()`,
+		`function clearGeminiProviderKey()`,
+		`gatewayAuthRequired = null;`,
+		`Keep credentials out of the retained modal DOM`,
 		`gatewayAuthErrorTitle:`,
 		`gatewayAuthErrorHelp:`,
 		`providerAuthError:`,
@@ -1021,10 +1032,40 @@ func TestPlaygroundSeparatesGatewayProviderAndWebSessionCredentials(t *testing.T
 		`gatewayRouteWebHelp:`,
 		`gatewayRouteProviderHelp:`,
 		`gatewayRouteAccessHelp:`,
+		`gatewayRouteStatusKicker:`,
+		`gatewayRouteProviderKeyMissing:`,
+		`gatewayRouteModelWarning:`,
+		`gatewayRouteBoundary:`,
 	} {
 		if strings.Count(html, marker) < 2 {
 			t.Fatalf("credential-boundary translation marker %q is not present in English and Hindi dictionaries", marker)
 		}
+	}
+}
+
+func TestPlaygroundBlocksIncompatibleDeveloperRouteBeforeSend(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`function selectedStudioModelName()`,
+		`function developerRouteModelIssue()`,
+		`function developerRouteSelectionIssue()`,
+		`if (!model || !/^gemini-/i.test(model)`,
+		`The selected endpoint is not trusted for a provider key.`,
+		`const routeIssue = developerRouteSelectionIssue();`,
+		`showToast(routeIssue, "⚠️");`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("playground is missing route guard marker %q", marker)
+		}
+	}
+	sendStart := strings.Index(html, "async function sendMessage()")
+	if sendStart < 0 {
+		t.Fatal("sendMessage is missing")
+	}
+	routeGuard := strings.Index(html[sendStart:], `const routeIssue = developerRouteSelectionIssue();`)
+	generationStart := strings.Index(html[sendStart:], "isGenerating = true;")
+	if routeGuard < 0 || generationStart < 0 || routeGuard > generationStart {
+		t.Fatal("incompatible Developer API route is not blocked before generation state or network work")
 	}
 }
 

@@ -1,7 +1,8 @@
 # Gemini Developer API Routing and Student Limits
 
 **Status:** implemented in the v0.2 milestone; current source is public `main`
-at `4beb127` and the public desktop package remains Preview 4 until the
+at `1b3472f` before the route-clarity patch in this review, and the public
+desktop package remains Preview 4 until the
 Preview 5 publication gates pass
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 
@@ -110,6 +111,30 @@ assigns provider quota/billing responsibility to the student's project. If the
 gateway has no `api_keys` configured, the BOB access field remains empty. If the
 Developer API toggle is off, BOB uses the default web-session route and does not
 silently fall back between provider paths.
+
+### Runtime route status and guards
+
+The Config modal shows the route that the current Studio page will use before a
+prompt is sent. It reports the BOB gateway door, Developer API-key state,
+engine-owned web-session state, and the model guard. The status is intentionally
+descriptive rather than a health claim: a successful local ping proves that BOB
+is reachable, not that Google will accept the selected session, key, model, or
+quota.
+
+When the Developer API route is selected, the Studio blocks Send before adding
+the user turn to chat history or issuing a network request if any of these are
+true:
+
+- no Developer API key is present;
+- the saved endpoint is not loopback HTTP or an explicitly saved HTTPS endpoint;
+- the selected model is a BOB/vendor alias, Imagen route, thinking suffix, or
+  non-default `@think` mode that the direct adapter does not translate.
+
+The two key fields have independent **Clear** actions. Closing Config clears
+their DOM input values while retaining neither credential in browser storage;
+reopening the modal rehydrates only the current page-memory value. This reduces
+accidental exposure in a shared classroom WebView but is not a security boundary
+against JavaScript that already runs in the same page.
 
 The UI key is held only in page memory and is sent only as
 `X-BOB-Gemini-API-Key` on generation requests. BOB translates it to the
