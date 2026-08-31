@@ -18,10 +18,11 @@ STAGE_DIR="$(mktemp -d /tmp/bob-gemini-free-preview-source.XXXXXX)"
 STAGE_ROOT="$STAGE_DIR/repo"
 INTERNAL_APP_NAME="bob-gemini-free"
 PUBLIC_APP_NAME="BOB Gemini Free"
-# The published migration bridge is v0.2.0-preview.1. The next source
-# candidate therefore defaults to a new immutable preview version. Set
-# BOB_RELEASE_VERSION explicitly for every publication.
-VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.2}"
+# The published migration bridge is v0.2.0-preview.1 and Preview 2 is the
+# previous public source candidate. The next source candidate therefore
+# defaults to a new immutable preview version. Set BOB_RELEASE_VERSION
+# explicitly for every publication.
+VERSION="${BOB_RELEASE_VERSION:-v0.2.0-preview.3}"
 CHANNEL="${BOB_RELEASE_CHANNEL:-preview}"
 EXPECTED_PUBLIC_KEY="$(awk '
 	/^Encoding: hexadecimal Ed25519 public key$/ { in_key=1; next }
@@ -127,8 +128,8 @@ fi
 hdiutil create -volname "BOB Gemini Free" -srcfolder "$DMG_ROOT" -ov -format UDZO "$DMG_PATH" >/dev/null
 bash "$ROOT_DIR/scripts/verify-macos-dmg-layout.sh" "$DMG_PATH"
 
-cat > "$OUTPUT_DIR/RELEASE-NOTICE.txt" <<'NOTICE'
-BOB Gemini Free macOS open-source beta package
+cat > "$OUTPUT_DIR/RELEASE-NOTICE.txt" <<NOTICE
+BOB Gemini Free ${VERSION} macOS open-source beta package
 
 This is the complete BOB Gemini Free desktop application for open-source
 evaluation. It is ad-hoc signed for bundle integrity, but it is not signed by
@@ -140,10 +141,13 @@ No Google session, cookie, API key, or private release key is included. A
 signed preview build may contain a public Ed25519 key for verifying future
 project release manifests; this does not provide Apple Developer ID signing
 or notarization.
-The already-published v0.1.7-preview.7 binary can discover this same-key
-bridge preview because it queries the preview channel. The bridge contains the
-new stable-first updater and can then discover a later stable v0.2.0 release.
-This is still an explicit two-step update, not a silent fleet update.
+The native updater is user-consented: it may discover a newer signed release,
+but it does not silently download, replace, or restart the app. An older build
+with an obsolete or missing project public key requires a one-time manual
+installation before it can verify future releases. The running app must also
+be installed in a writable application directory for replacement.
+This preview is not a promise of Google availability, quota, model identity,
+or unlimited use; provider/session limits still apply.
 NOTICE
 
 (
