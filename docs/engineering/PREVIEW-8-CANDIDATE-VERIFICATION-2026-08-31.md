@@ -24,6 +24,40 @@ package, manifest, signature, and public-byte reconciliation are completed.
   Google Gemini Developer API key. Route headers, in-memory handling, HTTPS
   guards, and no-fallback behavior are unchanged.
 
+## Post-receipt source follow-up — 2026-09-01
+
+This receipt's package and hashes were produced from the earlier clean source
+snapshot `240b57b`. The later `main` merge `4b69496` fixed generation terminal
+state handling, and the current follow-up adds a separate gateway-diagnostics
+lifecycle fix. Therefore the signed package and hashes below are historical
+for that earlier snapshot and must not be reused for a new release.
+
+The follow-up keeps the credential contract unchanged while making the Config
+experience truthful during connectivity failure:
+
+- the initial status is **Not checked** until the user explicitly chooses
+  **Test Ping**;
+- a ping and its update-metadata request are bounded at eight seconds;
+- starting a newer ping aborts the older request, and stale responses cannot
+  overwrite the current endpoint's status;
+- timeout output is explicit (`Latency: Timeout — endpoint did not respond`)
+  and the status text is localized for English and Hindi; and
+- `web/index.html` is regenerated from the same Studio source after the
+  generation terminal-state and diagnostics changes.
+
+Fresh local browser evidence from the current source follow-up:
+
+| Check | Result |
+|---|---|
+| Unresponsive local TCP endpoint | PASS; after the bounded wait, Config showed `OFFLINE` and a timeout explanation; no browser console errors |
+| Protected local BOB endpoint | PASS; Config showed `ONLINE (SECURED)` and the request route stayed `BLOCKED` until the separate BOB access key was present |
+| Provider key alone | PASS; a dummy test value remained `Present but off — not sent` because the protected gateway door was still separate |
+| Hindi initial Config state | PASS; `अभी जाँच नहीं हुई — टेस्ट पिंग चुनें` rendered before an explicit check |
+| Real Google credential or cookie | Not used |
+
+Re-run the full source, packaging, signing, public-byte, installed-device,
+rollback, Apple trust, provider, and pilot gates before publishing a successor.
+
 ## Evidence completed before packaging
 
 | Check | Result |

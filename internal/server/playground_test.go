@@ -1458,7 +1458,9 @@ func TestGatewayAccessKeyRequiresSecureTransport(t *testing.T) {
 		`(parsedURL.protocol === "http:" && isLoopbackGatewayURL(parsedURL.href))`,
 		`if (gatewayApiKey && isSecureGatewayForAccessKey(getGatewayBaseUrl()))`,
 		`const transportIssue = gatewayAccessKeyTransportIssue();`,
-		`pill.innerText = "HTTPS REQUIRED"`,
+		`gatewayPingState = "blocked";`,
+		`renderGatewayPingStatus();`,
+		`gatewayHttpsRequired:`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("gateway access-key transport guard is missing marker %q", marker)
@@ -1509,6 +1511,47 @@ func TestGatewayAccessKeyRequiresSecureTransport(t *testing.T) {
 		if !strings.Contains(statusSource, marker) {
 			t.Fatalf("gateway credential status is missing marker %q", marker)
 		}
+	}
+}
+
+func TestGatewayPingHasBoundedLatestRequestLifecycle(t *testing.T) {
+	html := string(playgroundHTML)
+	start := strings.Index(html, "async function pingGatewayManual()")
+	if start < 0 {
+		t.Fatal("gateway ping function is missing")
+	}
+	endOffset := strings.Index(html[start:], "\n}\n\nfunction updateGatewayStatusIndicator")
+	if endOffset < 0 {
+		t.Fatal("gateway ping function boundary is missing")
+	}
+	source := html[start : start+endOffset]
+	for _, marker := range []string{
+		`const pingID = ++gatewayPingSequence;`,
+		`if (gatewayPingController) gatewayPingController.abort();`,
+		`const controller = typeof AbortController === "function" ? new AbortController() : null;`,
+		`timeoutID = setTimeout(() =>`,
+		`if (controller) controller.abort();`,
+		`signal: controller ? controller.signal : undefined`,
+		`const isCurrentPing = () => pingID === gatewayPingSequence;`,
+		`if (!isCurrentPing()) return;`,
+		`if (timeoutID) clearTimeout(timeoutID);`,
+		`if (gatewayPingController === controller) gatewayPingController = null;`,
+	} {
+		if !strings.Contains(source, marker) {
+			t.Fatalf("gateway ping lifecycle is missing marker %q", marker)
+		}
+	}
+	for _, marker := range []string{
+		`const GATEWAY_PING_TIMEOUT_MS = 8000;`,
+		`let gatewayPingController = null;`,
+		`let gatewayPingSequence = 0;`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("gateway ping lifecycle constant is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(source, `fetch(checkUrl, { method: "GET", headers: headers });`) {
+		t.Fatal("gateway ping still performs an unbounded fetch")
 	}
 }
 

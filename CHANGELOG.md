@@ -82,6 +82,17 @@ to an earlier implementation. The current contract supersedes those phrases:
   helper text without changing route selection, headers, storage, or security
   guards.
 
+### Gateway diagnostics lifecycle
+
+- Shows an explicit, localized **Not checked** state until the user chooses
+  **Test Ping**, instead of implying that a connection check is already running.
+- Bounds gateway reachability and the follow-up update-metadata check at eight
+  seconds, reports a truthful timeout, aborts an older ping when a newer one is
+  started, and ignores stale results from an earlier endpoint.
+- Regenerates the static `web/index.html` bundle so the public Studio carries
+  the same generation terminal-state and gateway-diagnostics behavior as the
+  embedded Studio.
+
 ### Request-flight correctness
 
 - Includes sparse per-request payload overrides in the in-flight request
