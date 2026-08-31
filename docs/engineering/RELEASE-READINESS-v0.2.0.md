@@ -222,7 +222,7 @@ remains a release-candidate audit of a large feature milestone, not a routine
 patch release. Repository-wide weighted statement coverage measured 63.6% in
 the current local run; the project must not claim blanket 80% coverage. The
 current local-only 1/10/20/30-concurrency baseline is recorded in
-[`LOCAL-BENCHMARK-2026-08-29.md`](LOCAL-BENCHMARK-2026-08-29.md); it is not a
+[`LOCAL-BENCHMARK-2026-08-31.md`](LOCAL-BENCHMARK-2026-08-31.md); it is not a
 Google capacity or latency result.
 
 An earlier clean commit `d318b4f` also passed a fresh `make desktop-preview-mac`
