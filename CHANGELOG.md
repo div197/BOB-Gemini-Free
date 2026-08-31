@@ -59,6 +59,8 @@ to an earlier implementation. The current contract supersedes those phrases:
   merged on public `main`.
 - Adds responsive drawer dialog semantics, focus-in, Tab trapping, Escape
   close, and focus return for keyboard users at tablet and phone widths.
+- Ensures the ZIP and DMG both present the branded `BOB Gemini Free.app`
+  bundle name instead of leaking a temporary build-directory name.
 - Local browser smoke evidence covers 1440x900, 1024x768, and 390x844 with no
   document horizontal overflow or console warnings/errors. This candidate
   remains ad-hoc signed, non-notarized, macOS-only, and controlled until its

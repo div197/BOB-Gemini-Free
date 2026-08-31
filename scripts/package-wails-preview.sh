@@ -111,7 +111,6 @@ codesign --verify --deep --strict --verbose=2 "$DEST_APP"
 
 ZIP_PATH="$OUTPUT_DIR/bob-gemini-free-macos-universal.zip"
 DMG_PATH="$OUTPUT_DIR/bob-gemini-free-macos-universal.dmg"
-ditto -c -k --norsrc --noextattr --noqtn --keepParent "$DEST_APP" "$ZIP_PATH"
 
 # Build a conventional drag-to-install DMG root. A DMG containing only the
 # application bundle is technically mountable, but it gives users no visible
@@ -120,6 +119,7 @@ ditto -c -k --norsrc --noextattr --noqtn --keepParent "$DEST_APP" "$ZIP_PATH"
 DMG_ROOT="$STAGE_DIR/dmg-root"
 mkdir -p "$DMG_ROOT"
 ditto --norsrc --noextattr --noqtn "$DEST_APP" "$DMG_ROOT/$PUBLIC_APP_NAME.app"
+ditto -c -k --norsrc --noextattr --noqtn --keepParent "$DMG_ROOT/$PUBLIC_APP_NAME.app" "$ZIP_PATH"
 ln -s /Applications "$DMG_ROOT/Applications"
 if [[ ! -L "$DMG_ROOT/Applications" || "$(readlink "$DMG_ROOT/Applications")" != "/Applications" ]]; then
 	echo "failed to create the DMG Applications shortcut" >&2
