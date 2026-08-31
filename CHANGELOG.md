@@ -142,6 +142,18 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased] — 2026-08-31
 
+### Current public-main follow-ups
+
+- Added real in-app-browser evidence that an untrusted cross-port loopback web
+  origin cannot read models or complete a JSON/PNA preflight; the public
+  HTTPS/PNA and remote-Studio pairing gates remain explicitly open.
+- Stopped the Studio from probing the gateway and model list on every partial
+  BOB access-key keystroke. The explicit **Test Ping** action now performs the
+  network verification, with English and Hindi guidance.
+- These follow-ups are merged into public `main` after Preview 5 publication;
+  the immutable Preview 5 assets are unchanged and a new signed preview is
+  required to deliver them.
+
 ### Browser preview and responsive layout
 
 - Fixes interactive artifact previews that could appear blank in a WebView when

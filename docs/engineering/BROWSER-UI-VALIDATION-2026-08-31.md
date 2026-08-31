@@ -1,14 +1,20 @@
 # Browser UI Validation — 2026-08-31
 
+> Historical fixture record. This browser run exercised the source before the
+> Preview 5 package was published. The artifact-preview, responsive-header,
+> and multiline-SSE behavior recorded below is represented in the immutable
+> Preview 5 package. Later public-main security and credential-input follow-ups
+> are not retroactively claimed in those package bytes.
+
 ## Scope
 
 This is a local, deterministic browser check of the hosted Studio bundle. It
 does not prove Google-provider availability, native Wails rendering, CDN
 availability, or a clean-device release install.
 
-- Page: `http://127.0.0.1:19614/playground`
-- Gateway: local source build on `127.0.0.1:19614`
-- Upstream fixture: deterministic local SSE server on `127.0.0.1:19615`
+- Historical page fixture: `http://127.0.0.1:19614/playground`
+- Historical gateway fixture: local source build on `127.0.0.1:19614`
+- Historical upstream fixture: deterministic local SSE server on `127.0.0.1:19615`
 - Input: split HTML code fence and HTML source delivered across multiple SSE
   chunks
 - Credentials: none; no Google account, cookie, GitHub credential, or provider
@@ -55,12 +61,13 @@ not create page-level horizontal scroll.
 
 ## Release boundary
 
-This validation covers the local hosted bundle after the artifact-preview and
-responsive-header fixes. Those fixes and the later multiline-SSE framing fix
-are now merged into public `main` at `cd44b2c`; the published
-`v0.2.0-preview.4` assets are immutable and were built before these changes.
-All three fixes must be included in the next packaged preview, whose source
-default is `v0.2.0-preview.5`, after that commit is rebuilt and signed. Native macOS,
-Windows, Linux, CDN/offline, and
-clean-device acceptance remain open gates in
+This validation covers the local hosted bundle after the artifact-preview,
+responsive-header, and multiline-SSE framing fixes. The historical fixture
+ran before the immutable `v0.2.0-preview.5` package was built, but those three
+behaviors were included in that package after clean-source packaging and
+signature verification. Public `main` has since advanced to `ade691d` through
+PR #77 (browser security evidence) and PR #78 (credential-input probe hygiene);
+those post-publication source changes require a new package and are not claimed
+for Preview 5. Native macOS, Windows, Linux, CDN/offline, and clean-device
+acceptance remain open gates in
 [`FAILURE-REGISTER-100.md`](FAILURE-REGISTER-100.md).

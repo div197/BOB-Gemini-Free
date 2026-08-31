@@ -1,9 +1,9 @@
 # Gemini Developer API Routing and Student Limits
 
-**Status:** implemented in the v0.2 milestone; the packaged source baseline is
-public `main` at `c28d787` after the route-clarity and Preview 5
-release-reconciliation merges, and the current public desktop package is macOS
-`v0.2.0-preview.5`
+**Status:** implemented in the v0.2 milestone; immutable Preview 5 was built
+from packaged source baseline `c28d787`. Public `main` is now at `ade691d`
+after post-publication browser-boundary and credential-input follow-ups, while
+the current public desktop package remains macOS `v0.2.0-preview.5`.
 **Audit date:** 2026-08-31 (Asia/Kolkata)
 
 This document records the second provider path added to BOB Gemini Free. It is

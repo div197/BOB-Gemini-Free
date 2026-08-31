@@ -691,3 +691,24 @@ had been created by that continuation. The subsequent controlled Preview 2
 publication is recorded in [`PREVIEW-2-PUBLICATION-2026-08-31.md`](PREVIEW-2-PUBLICATION-2026-08-31.md);
 the browser viewport acceptance matrix and clean-device/provider gates remain
 open.
+
+## 9. Current public-main continuation — 2026-08-31
+
+This report is retained as the Phase-II record, but its original date and
+historical snapshots must not be mistaken for the current release state. The
+immutable macOS `v0.2.0-preview.5` package was built from source baseline
+`c28d787`. After publication, protected PR #77 merged real in-app-browser
+evidence for the cross-port localhost origin boundary, and protected PR #78
+stopped the Studio from probing the gateway while a student was still typing a
+partial BOB access key. Public `main` is now `ade691d`; the two follow-ups are
+source-verified but require a new package before students receive them.
+
+The credential model is now documented as four separate boundaries: the BOB
+Gateway Access Key protects entry to an operator-configured gateway; the
+student-owned Google Gemini Developer API key selects an explicit provider
+route; web-session cookies belong to the engine; and the endpoint URL selects
+which BOB process receives a request. Neither key is persisted by the Studio,
+and no provider key is silently converted into gateway authorization or used
+as an automatic fallback. Local source and browser evidence support that
+boundary; Google quota, live model acceptance, remote HTTPS/PNA pairing,
+platform trust, rollback, and fleet rollout remain external gates.

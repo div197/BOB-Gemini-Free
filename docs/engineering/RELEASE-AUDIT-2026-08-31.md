@@ -1,8 +1,9 @@
 # BOB Gemini Free — Current Release Audit
 
-**Audit date:** 2026-08-31 (Asia/Kolkata)  
+**Audit date:** 2026-08-31 (Asia/Kolkata)
 **Source baseline before this audit change:** public `main` at `558e8609333e`
 **Current audited packaged-code baseline:** commit `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89` (PRs #71–#73; route clarity and Preview 5 release reconciliation)
+**Current public-main head after Preview 5 publication:** commit `ade691db0be9d478cc2feab42e20eb0848f1460e` (PRs #77–#78; browser-boundary evidence and credential-input hygiene; not included in immutable Preview 5 assets)
 **Operating mode:** local release engineering; no GitHub Actions, provider
 credentials, cookies, or private-key export
 
@@ -16,6 +17,12 @@ Preview 5 with its visible chat state preserved. The release is not yet a
 fleet-ready update. The existing `v0.2.0-preview.4` assets remain immutable and
 were not overwritten.
 
+Public `main` is now ahead of the packaged Preview 5 source baseline because
+the browser-boundary and credential-input follow-ups were merged after
+publication. They are verified source changes, not part of the bytes students
+currently download from Preview 5; they need a new immutable preview before
+rollout.
+
 Do not call the current state a stable student release. Apple Developer ID,
 notarization, clean-device replacement/rollback, Windows/Linux acceptance,
 live Google behavior, and the staged 20–30-device pilot remain separate gates.
@@ -24,7 +31,7 @@ live Google behavior, and the staged 20–30-device pilot remain separate gates.
 
 | Surface | Current evidence | Status |
 |---|---|---|
-| Public source | Public `main` contains the audited code baseline `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; the route/release reconciliation PRs #71–#73 are merged | VERIFIED |
+| Public source | Packaged Preview 5 source baseline is `c28d78736eaae436cc1f1f3b4ec6e0bbcd058b89`; public `main` now advances to `ade691db0be9d478cc2feab42e20eb0848f1460e` through PRs #77–#78 | VERIFIED |
 | Public releases | Latest desktop preview is immutable `v0.2.0-preview.5`; Preview 4 remains available as historical input | VERIFIED |
 | Preview 7 package | All five public `v0.1.7-preview.7` assets verify against the checked-in Ed25519 public key | VERIFIED |
 | Key custody | Keychain service `BOB-Gemini-Free-Release-Ed25519` was used by the local signer; the private value was not displayed, exported, or copied | VERIFIED_LOCAL |
