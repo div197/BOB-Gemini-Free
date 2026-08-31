@@ -184,6 +184,73 @@ func TestGenerationCleanupReferencesAreVisibleFromFinally(t *testing.T) {
 	}
 }
 
+func TestGenerationErrorHandlerRetainsStateAcrossTryBoundary(t *testing.T) {
+	html := string(playgroundHTML)
+	functionStart := strings.Index(html, "async function sendMessage()")
+	if functionStart < 0 {
+		t.Fatal("sendMessage function start is missing")
+	}
+	functionEndOffset := strings.Index(html[functionStart:], "\n}\n\n// Progressive Web App (PWA) Offline Service Worker Registration")
+	if functionEndOffset < 0 {
+		t.Fatal("sendMessage function boundaries are missing")
+	}
+	source := html[functionStart : functionStart+functionEndOffset]
+	tryStart := strings.Index(source, "\n  try {")
+	catchStart := strings.Index(source, "\n  } catch(err) {")
+	if tryStart < 0 || catchStart <= tryStart {
+		t.Fatal("sendMessage try/catch lifecycle is missing")
+	}
+
+	for _, declaration := range []string{
+		`const msgIdx = chatHistory.length;`,
+		`let inputPromptTokens = 0;`,
+		`let storyDiv = null;`,
+		`let contentSpan = null;`,
+		`let footer = null;`,
+		`let asstFullText = "";`,
+		`let thoughtFullText = "";`,
+		`let streamStartTime = 0;`,
+	} {
+		declarationIndex := strings.Index(source, declaration)
+		if declarationIndex < 0 {
+			t.Fatalf("sendMessage is missing error-handler state declaration %q", declaration)
+		}
+		if declarationIndex > tryStart {
+			t.Fatalf("%q is declared inside try and is unavailable to catch", declaration)
+		}
+	}
+
+	for _, guard := range []string{
+		`if (contentSpan && storyDiv && footer) {`,
+		`if (contentSpan && storyDiv) {`,
+		`const errorStats = storyDiv && storyDiv.querySelector("#live-stream-stats");`,
+		"errorStats.innerText = `${inErrorStr}${ui.generationFailed || \"Generation failed\"}`;",
+		`if (footer) {`,
+	} {
+		if !strings.Contains(source[catchStart:], guard) {
+			t.Fatalf("generation error handler is missing partial-UI guard %q", guard)
+		}
+	}
+
+	abortStart := strings.Index(source, "\n    if (err.name === 'AbortError') {")
+	guardStart := strings.Index(source, "\n      if (contentSpan && storyDiv && footer) {")
+	if abortStart < 0 || guardStart <= abortStart {
+		t.Fatal("generation cancellation guard boundary is missing")
+	}
+	for _, declaration := range []string{
+		`const stopElapsed = streamStartTime > 0 ? (performance.now() - streamStartTime) / 1000 : 0;`,
+		`const finalWords = asstFullText.trim().split(/\s+/).filter(w => w).length;`,
+		`const stopTokens = estimateTokensJS(asstFullText);`,
+		`const totalStopTokens = (inputPromptTokens + stopTokens);`,
+		"const inStopStr = inputPromptTokens > 0 ? `In: ~${inputPromptTokens.toLocaleString()} tok • ` : '';",
+	} {
+		declarationIndex := strings.Index(source, declaration)
+		if declarationIndex < 0 || declarationIndex > guardStart {
+			t.Fatalf("cancellation state must outlive guarded partial UI: %q", declaration)
+		}
+	}
+}
+
 func TestStudioSSEParserAcceptsStandardDataFieldForms(t *testing.T) {
 	html := string(playgroundHTML)
 	start := strings.Index(html, "function processSSELines(buffer)")
