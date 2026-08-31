@@ -8,6 +8,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/div197/bob-gemini-free/internal/server"
@@ -19,9 +20,13 @@ type desktopGateway struct {
 	reused   bool
 }
 
-func startDesktopGateway(cfgPort int, handler http.Handler) (*desktopGateway, error) {
+func startDesktopGateway(cfgPort int, handler http.Handler, expectedVersion string) (*desktopGateway, error) {
 	if cfgPort <= 0 {
 		cfgPort = 9610
+	}
+	expectedVersion = strings.TrimSpace(expectedVersion)
+	if expectedVersion == "" {
+		expectedVersion = "dev"
 	}
 	if handler == nil {
 		handler = http.NotFoundHandler()
@@ -32,7 +37,7 @@ func startDesktopGateway(cfgPort int, handler http.Handler) (*desktopGateway, er
 	listener, err := net.Listen("tcp", requestedAddr)
 	if err != nil {
 		requestedEndpoint := "http://" + requestedAddr
-		if compatible, probeErr := probeCompatibleGateway(requestedEndpoint); compatible {
+		if compatible, probeErr := probeCompatibleGateway(requestedEndpoint, expectedVersion); compatible {
 			return &desktopGateway{endpoint: requestedEndpoint, reused: true}, nil
 		} else if probeErr != nil {
 			fmt.Printf("Desktop gateway port %s is occupied and is not a compatible BOB gateway: %v\n", requestedAddr, probeErr)
@@ -73,7 +78,11 @@ func (g *desktopGateway) Shutdown(ctx context.Context) error {
 	return g.server.Shutdown(ctx)
 }
 
-func probeCompatibleGateway(endpoint string) (bool, error) {
+func probeCompatibleGateway(endpoint, expectedVersion string) (bool, error) {
+	expectedVersion = strings.TrimSpace(expectedVersion)
+	if expectedVersion == "" {
+		expectedVersion = "dev"
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, endpoint+"/healthz", nil)
@@ -102,6 +111,9 @@ func probeCompatibleGateway(endpoint string) (bool, error) {
 	}
 	if resp.Header.Get("X-BOB-Protocol") != server.HealthzProtocolVersion {
 		return false, fmt.Errorf("unsupported BOB health protocol %q", resp.Header.Get("X-BOB-Protocol"))
+	}
+	if got := strings.TrimSpace(resp.Header.Get(server.HealthzVersionHeader)); got != expectedVersion {
+		return false, fmt.Errorf("BOB gateway version %q does not match expected %q", got, expectedVersion)
 	}
 	if resp.Header.Get("X-BOB-Auth-Required") != "false" {
 		return false, fmt.Errorf("existing gateway requires API-key authentication")

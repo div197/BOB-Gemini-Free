@@ -117,6 +117,9 @@ func TestHealthzIsUnauthenticatedAndStable(t *testing.T) {
 	if got := rec.Header().Get("X-BOB-Protocol"); got != HealthzProtocolVersion {
 		t.Fatalf("healthz protocol = %q", got)
 	}
+	if got := rec.Header().Get(HealthzVersionHeader); got != "healthz-test" {
+		t.Fatalf("healthz version = %q", got)
+	}
 	if got := rec.Header().Get("X-BOB-Auth-Required"); got != "true" {
 		t.Fatalf("healthz auth marker = %q", got)
 	}
@@ -135,7 +138,7 @@ func TestTrustedBrowserCanReadHealthzAuthMarker(t *testing.T) {
 		t.Fatalf("trusted healthz status = %d, want 200", rec.Code)
 	}
 	exposed := strings.ToLower(rec.Header().Get("Access-Control-Expose-Headers"))
-	for _, marker := range []string{"x-bob-auth-required", "x-bob-gateway", "x-bob-protocol"} {
+	for _, marker := range []string{"x-bob-auth-required", "x-bob-gateway", "x-bob-protocol", "x-bob-version"} {
 		if !strings.Contains(exposed, marker) {
 			t.Fatalf("trusted healthz CORS exposure missing %q: %q", marker, exposed)
 		}

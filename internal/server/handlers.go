@@ -19,6 +19,10 @@ import (
 // desktop wrappers. It is not an authentication credential.
 const HealthzProtocolVersion = "1"
 
+// HealthzVersionHeader carries the running gateway's release identity for
+// desktop coexistence checks. It contains no credentials or user data.
+const HealthzVersionHeader = "X-BOB-Version"
+
 const (
 	routeOpenAIChatWebRPC      = metrics.RouteOpenAIChatWebRPC
 	routeOpenAIResponsesWebRPC = metrics.RouteOpenAIResponsesWebRPC
@@ -39,8 +43,13 @@ func (a *App) observeRoute(route metrics.Route) {
 // route. It performs no upstream, cookie, or GitHub work and is safe for
 // container orchestration probes even when API keys protect the main API.
 func (a *App) handleHealthz(w http.ResponseWriter, _ *http.Request) {
+	version := strings.TrimSpace(a.Version)
+	if version == "" {
+		version = "dev"
+	}
 	w.Header().Set("X-BOB-Gateway", "bob-gemini-free")
 	w.Header().Set("X-BOB-Protocol", HealthzProtocolVersion)
+	w.Header().Set(HealthzVersionHeader, version)
 	w.Header().Set("X-BOB-Auth-Required", strconv.FormatBool(len(a.Cfg.APIKeys) > 0))
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
 }
