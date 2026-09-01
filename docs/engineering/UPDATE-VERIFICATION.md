@@ -44,10 +44,10 @@ The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
 declared size, signed manifest, and official GitHub URLs. The public
-`v0.2.0-preview.8` updater carries the current key; its preview-channel
+`v0.2.0-preview.9` updater carries the current key; its preview-channel
 transition remains subject to a live installed-device test. Historical
 `v0.1.7-preview.3` has no embedded desktop key and therefore cannot install a
-native update; the current `v0.2.0-preview.8` package embeds the current
+native update; the current `v0.2.0-preview.9` package embeds the current
 project public key.
 
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
@@ -177,15 +177,15 @@ reports `immutable: false` for Preview 6; the project's write-once release
 policy therefore requires a new tag and fresh public-byte reconciliation for a
 future candidate.
 
-## Current Preview 8 publication — 2026-09-01
+## Current Preview 9 publication — 2026-09-01
 
 The current public macOS prerelease is
-[`v0.2.0-preview.8`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8),
+[`v0.2.0-preview.9`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9),
 built from reviewed runtime source commit
-`bfa68ff5926924d1c0b35410e8d8175c404002d6`. It was packaged, signed, and
+`4236f65b9e4972a581d140ce46b0c5126602df65`. It was packaged, signed, and
 verified locally; the exact package hashes and local startup evidence are
 recorded in
-[`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
+[`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md).
 The exact five-file release set was then uploaded manually without GitHub
 Actions, downloaded again into a fresh directory, signature- and
 checksum-verified, and compared byte-for-byte with the local signed inputs.
@@ -193,7 +193,7 @@ checksum-verified, and compared byte-for-byte with the local signed inputs.
 This proves public release-byte integrity and metadata discovery. It does not
 prove Apple Developer ID/notarization, a clean-device replacement, rollback,
 live Google availability, or a 20–30-device rollout. On the audit Mac, the
-installed Preview 5 app discovered Preview 8 through **Help → Check for
+exact public Preview 7 app discovered Preview 9 through **Help → Check for
 Updates**; the install action was canceled, so replacement remains an open
 device gate.
 

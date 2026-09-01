@@ -42,12 +42,12 @@ to an earlier implementation. The current contract supersedes those phrases:
 ### Distribution truth
 
 - Corrects the current English and Hindi release references from Preview 5 to
-  the public Preview 8 updater package.
+  the public Preview 9 updater package.
 - Makes the CLI installer limitation explicit: the historical stable CLI
   release has no signed manifest, so the installers intentionally fail closed
   until a signed CLI release is published.
 - Removes unavailable CLI commands from the hosted local-engine onboarding
-  modal and keeps the native Preview 8 release page as the current student
+  modal and keeps the native Preview 9 release page as the current student
   desktop path.
 - Adds the 2026-09-01 installed-lineage transition audit, documenting the
   current-key Preview 7 path, obsolete-key manual migrations, the absence of

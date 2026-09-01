@@ -1,9 +1,9 @@
 # Upstream Authentication and Shared-Network Boundary
 
-**Status:** Current v0.2 source / public Preview 8 engineering truth
+**Status:** Current v0.2 source / public Preview 9 engineering truth
 
-The downloadable macOS package is the public prerelease `v0.2.0-preview.8`,
-built from reviewed runtime source target `bfa68ff`. Earlier Preview 6,
+The downloadable macOS package is the public prerelease `v0.2.0-preview.9`,
+built from reviewed runtime source target `4236f65`. Earlier Preview 6,
 Preview 5, and Preview 7 references below describe historical/current-fleet
 boundaries and are not the current package identity.
 

@@ -62,7 +62,10 @@ The following source-level gates pass on the repair branch:
 
 A fresh desktop package still must be built and launched before this repair is
 available to users. The published Preview 8 assets are immutable and do not
-silently acquire source changes.
+silently acquire source changes. The repaired source was subsequently packaged
+into the public Preview 9 release; its exact package and public-byte evidence
+is recorded in
+[`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md).
 
 ## Remaining evidence gate
 

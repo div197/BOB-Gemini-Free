@@ -21,16 +21,15 @@ stable build into a preview build.
 
 The public release inventory checked on 2026-09-01 contains `v0.1.5` as the
 latest stable release, `v0.1.7-preview.1` through `.7`, and
-`v0.2.0-preview.1` through `.6` plus `.8`. There is no public GitHub tag or
-release named `v0.1.9`. `v0.1.9` is a source/changelog milestone only.
+`v0.2.0-preview.1` through `.9`. There is no public GitHub tag or release
+named `v0.1.9`; `v0.1.9` is a source/changelog milestone only.
 
-The artifact-family guard is public on `main` in merge commit `6a5606d`. A
-Preview 9 package was previously built from `1410bc2`, before that guard was
-merged. That package is superseded and must not be published or treated as an
-updater target. Preview 9 must be rebuilt from `6a5606d` (or a later reviewed
-commit), then separately published and reconciled against its public bytes.
-This audit therefore does not claim that a Preview 9 update is currently
-discoverable by students.
+Preview 9 was rebuilt from reviewed `main` commit `4236f65` after the
+artifact-family guard, signed through the owner-controlled macOS Keychain,
+published manually as a prerelease, and reconciled against a clean public
+download. The five release assets match byte-for-byte and pass detached
+signature/checksum verification. The prior local package from `1410bc2` is
+superseded and is not a release input.
 
 ## Installed-lineage matrix
 
@@ -42,7 +41,8 @@ discoverable by students.
 | Public `v0.2.0-preview.1`–`.6` and `.8` | Carry the current project key. The current source lineage checks stable first, then continues to the highest published preview when stable has no newer native package for the current platform. A newer stable CLI-only release does not mask a native preview. | Can move to a newer signed preview, or directly to a newer signed stable release once that stable release exists. |
 | Local/source `v0.1.9` build | No public release exists. The `4c8dbee` source milestone labels the normal Wails build as stable and does not inject the current desktop public key through its Makefile. | No reliable automatic migration can be promised. It must be manually replaced with a signed current package. A stable-only build must never be redirected to a prerelease merely to make the version appear current. |
 | Public stable `v0.1.5` | This is a CLI release, not a signed native Wails desktop release. Its public assets do not satisfy the native signed-manifest package contract, and the tagged source predates the updater implementation. | It cannot prompt itself, auto-convert into the native desktop app, or update through today's code. Use a manual native installation; a future signed stable CLI release can serve updater-capable later CLI binaries. |
-| Prior Preview 9 candidate from `1410bc2` | Locally packaged with the current key, but built before the artifact-family guard in `6a5606d`; it is superseded and not a valid release input. | Rebuild from current `main`, then publish only after package, signature, public-byte, and installed-device gates pass. |
+| Public `v0.2.0-preview.9` | Rebuilt from reviewed `main` commit `4236f65`, with the current project public key embedded; the exact five assets were signed through Keychain and reconciled against the public release. | It is the current controlled macOS beta. Preview 7 can discover it, but installed replacement, restart, rollback, and fleet acceptance remain device gates. |
+| Prior local Preview 9 candidate from `1410bc2` | Locally packaged with the current key, but built before the artifact-family guard in `6a5606d`; it is superseded and not a valid release input. | Never publish or distribute those bytes. |
 
 The early-preview rows are based on downloaded public release assets and
 historical binary/source inspection. The absence of `v0.1.9` is based on the
@@ -207,10 +207,38 @@ For the current fleet, the honest operator instruction is:
 
 ```text
 Preview 1–6 or local v0.1.9  → manual install of the current signed preview
-Preview 7                    → same-key preview update after it is published
+Preview 7                    → same-key update to the published Preview 9, with consent
 Current v0.2 previews       → stable-first update only after stable exists
 Stable                       → stable-only updates
 ```
+
+## Current Preview 9 publication — 2026-09-01
+
+The current public macOS prerelease is
+[`v0.2.0-preview.9`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9),
+built from reviewed `main` commit
+`4236f65b9e4972a581d140ce46b0c5126602df65`. The local universal package was
+signed through the owner-controlled Keychain; the public DMG, ZIP, release
+notice, checksum manifest, and detached signature were downloaded into a
+clean directory, verified, and compared byte-for-byte with the local signed
+inputs.
+
+The exact public `v0.1.7-preview.7` app was also downloaded and run in
+isolation. Its native **Help → Check for Updates** flow displayed a signed
+update dialog naming `v0.2.0-preview.9`. The test selected **Cancel** before
+staging, so this is live discovery evidence, not installed-bundle
+replacement, restart, rollback, or 30-device acceptance evidence. The public
+Preview 7 web status endpoint may still report its legacy stable metadata
+(`v0.1.5`); that endpoint is separate from the native Help updater and must
+not be used to infer the native preview result.
+
+| Current claim | Classification | Evidence | Boundary |
+|---|---|---|---|
+| Preview 9 is the current public macOS prerelease | VERIFIED_LIVE | GitHub release `v0.2.0-preview.9` is public with the universal DMG/ZIP, release notice, `SHA256SUMS`, and `SHA256SUMS.sig`; all five public files match the local signed inputs byte-for-byte and pass verification | The package remains ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open. |
+| Preview 9 identifies the reviewed source and current updater trust anchor | VERIFIED_LIVE | The release receipt records source `4236f65`, Keychain-backed signing, public-key digest, and the exact manifest/signature hashes | The private key remains local; this does not establish Apple Developer ID/notarization or future key custody. |
+| Public Preview 7 can discover Preview 9 | VERIFIED_LIVE | The exact public Preview 7 app displayed the Preview 9 consent dialog through **Help → Check for Updates** on an isolated audit run | The install action was canceled; replacement, restart, rollback, clean-device, and fleet acceptance remain open. |
+| Preview 9 silently updates all 30 student Macs | STALE_OR_INCORRECT | The updater requires explicit consent and a writable application location; background checks are metadata-only | Each Mac needs an approved install or manual recovery. No GitHub Actions or remote classroom push exists. |
+| A stable `v0.2.0` student release is ready | UNKNOWN | Preview 9 package, source, signature, public-byte, and discovery gates are green | Apple trust, rollback, clean-device, Windows/Linux, live Google behavior, and staged pilot gates remain open. |
 
 ## Deliberate non-claims
 

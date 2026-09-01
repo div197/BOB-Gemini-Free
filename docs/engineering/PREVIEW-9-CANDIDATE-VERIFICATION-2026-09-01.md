@@ -1,142 +1,159 @@
-# v0.2.0-preview.9 — Candidate Verification
+# v0.2.0-preview.9 — Release Verification
 
 **Date:** 2026-09-01 (Asia/Kolkata)
-**Status:** superseded local package; do not publish
-**Source candidate:** public `main` merge commit `1410bc2` (superseded by `6a5606d`)
+**Status:** public controlled macOS beta
+**Source:** public `main` commit `4236f65b9e4972a581d140ce46b0c5126602df65`
+**Release:** [GitHub v0.2.0-preview.9](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9)
 
-The earlier `3518c24` commit only advanced the next candidate number. The
-package receipt below is historical: it was built from `1410bc2` before the
-artifact-family updater guard landed in `6a5606d`. The bytes are therefore not
-eligible for publication or updater discovery. Rebuild Preview 9 from the
-current reviewed `main` before using this receipt as a release checklist.
+Preview 9 was rebuilt from the reviewed `main` source after the artifact-family
+guard. It was signed through the owner-controlled macOS Keychain, published
+manually without GitHub Actions, and verified again from a clean GitHub
+download. The earlier local package built from `1410bc2` is superseded and is
+not part of this release.
 
-This receipt covers the focused reliability work after Preview 8. It does not
-turn an ad-hoc macOS package into a Developer ID/notarized release, and it does
-not claim that every generated HTML application is correct.
+This receipt records package and updater evidence. It does not turn an ad-hoc
+macOS package into a Developer ID/notarized release, and it does not claim
+that every generated HTML artifact or Google upstream request will succeed.
 
 ## User-reported issues addressed
 
-- Native Wails external links now remain inside a small Wails bootstrap shell,
-  while the loopback Studio runs in a same-window iframe. GitHub and other
-  allow-listed external links are forwarded to Wails `BrowserOpenURL`, which
-  opens the operating system's default browser.
-- Artifact Full Screen is now an in-place, reversible focus mode in the native
-  shell. It does not depend on a second browser window or a popup permission.
-  Ordinary hosted-browser pop-outs retain the sandboxed popup path and expand
-  in place when the browser blocks the popup.
-- Generated HTML artifact diagnostics now report a source location, failed
-  external resource, or CSP-blocked resource when the sandbox can provide it.
-  The artifact remains an opaque-origin sandbox without
-  `allow-same-origin`.
+- Native Wails external links remain inside a small bootstrap shell while the
+  loopback Studio runs in a same-window iframe. GitHub and other allow-listed
+  external links are forwarded to Wails `BrowserOpenURL`, which opens the
+  operating system's default browser.
+- Artifact Full Screen is an in-place, reversible focus mode in the native
+  shell. It does not depend on a second browser window or popup permission.
+  Hosted-browser pop-outs retain their sandboxed path and expand in place when
+  a browser blocks the popup.
+- Generated HTML artifact diagnostics report a source location, failed
+  external resource, or CSP-blocked resource when the sandbox can provide it;
+  the artifact remains an opaque-origin sandbox without `allow-same-origin`.
 - Ordinary Studio pages retain `X-Frame-Options: SAMEORIGIN`. Only the
   explicit `desktop_shell=1` Studio path allows the narrow Wails embedding
   origins required by the native bootstrap.
 
-## Local package gates
+## Build and signing evidence
 
-The superseded local candidate was staged at:
+The inspected local release directory was:
 
 ```text
-/tmp/bob-gemini-free-preview9-20260901-main-1410bc2
-/tmp/bob-gemini-free-preview9-20260901-main-1410bc2.app
+/tmp/bob-gemini-free-preview9-20260901-main-4236f65
+/tmp/bob-gemini-free-preview9-20260901-main-4236f65.app
 ```
 
 | Gate | Result |
 |---|---|
+| Source identity | PASS; clean `main` commit `4236f65b9e4972a581d140ce46b0c5126602df65` |
 | Wails packaging | PASS; Wails `v2.15.0`, macOS universal |
-| App bundle signature | PASS; ad-hoc signature is valid on disk and satisfies its designated requirement |
-| Binary architecture | PASS; `x86_64` and `arm64` |
+| App bundle signature | PASS; ad-hoc signature validates on disk |
+| Binary architecture | PASS; `x86_64` and `arm64` slices |
 | Bundle metadata | PASS; numeric base version `0.2.0`, minimum macOS `10.13.0` |
 | DMG layout | PASS; app plus conventional `/Applications` drag target |
-| Detached manifest | PASS; `SHA256SUMS` and `SHA256SUMS.sig` verify against the checked-in public key |
+| Detached manifest | PASS; `SHA256SUMS` and `SHA256SUMS.sig` verify with the checked-in public key |
 | Asset checksums | PASS; notice, DMG, and ZIP match the signed manifest |
+| Signing custody | PASS; private value streamed from the owner-controlled macOS Keychain and never displayed, exported, or committed |
 | GitHub Actions | NOT USED; no repository workflow exists |
 
-The private release-signing value was read only through the owner-controlled
-macOS Keychain signing path. It was not displayed, exported, copied, or put in
-the package or repository.
+The release asset set is exactly:
 
-## Packaged runtime smoke
+```text
+bob-gemini-free-macos-universal.dmg
+bob-gemini-free-macos-universal.zip
+RELEASE-NOTICE.txt
+SHA256SUMS
+SHA256SUMS.sig
+```
 
-The candidate was launched separately from the installed student application
-and served its own loopback endpoint at `127.0.0.1:51024`.
-
-| Check | Result |
-|---|---|
-| `GET /healthz` | PASS; HTTP 200, stable `{"status":"ok"}` JSON, no provider call |
-| Candidate identity | PASS; `X-Bob-Version: v0.2.0-preview.9` |
-| Ordinary `/playground` headers | PASS; `X-Frame-Options: SAMEORIGIN` |
-| `/playground?desktop_shell=1` headers | PASS; no X-Frame-Options and Wails-only `frame-ancestors` CSP |
-| Packaged bridge markers | PASS; native browser bridge, exact-origin message validation, and artifact diagnostics are embedded |
-| Existing installed app | PRESERVED; it was not stopped, replaced, or modified |
-
-The final merged candidate asset digests were recorded before any possible
-publication:
+Local SHA-256 values for the published bytes:
 
 ```text
 RELEASE-NOTICE.txt                    52fbe5623355bcc5a6349ea0c94b351b98441c045549dd0f4bae0deaeaad60c9
-SHA256SUMS                            db8a0387452ea1962b3ea16bdd2cc90a2922326b4607af74447628adfdd3c9af
-SHA256SUMS.sig                        f91fb898b3a573f4984b961e6686d327294ecb445155ae3fb5bb8f74b50f122a
-bob-gemini-free-macos-universal.dmg  a7c02a22de210e0f85d3138c40a1ef3f16df7dc4b425647aa80d0ccda08e7d7f
-bob-gemini-free-macos-universal.zip  f43ea08414f21499af187557b2facfa8cc14d0f1e5aaea32985553f3bc3dc278
+SHA256SUMS                            1f8e77f840dd7ae99fea39af2909f98e3d6de87c48de4fda03085dbd128b5a7c
+SHA256SUMS.sig                        2d0eb022a2df8723dfd757c79354bab8c2e9e95267e8fa59a3e6dee53a0f929b
+bob-gemini-free-macos-universal.dmg  874e00e6b67984dd4c77aad3b720cbbbc33d4483f8d26ee68db14c8078251cdf
+bob-gemini-free-macos-universal.zip  2cc75368b6b9256f99e78e1f10b5cb8a3510446cf3030b5fc7240f5dcad1db50
 ```
 
-These are superseded local-package hashes, not release inputs and not
-public-release hashes. Do not upload them. Recompute all hashes from a clean
-release directory after rebuilding from current `main`, then reconcile the
-public bytes against GitHub before any student-facing announcement.
+The public release has the same five file sizes as the local signed input:
 
-## Headless browser smoke
+```text
+bob-gemini-free-macos-universal.dmg  20,567,178 bytes
+bob-gemini-free-macos-universal.zip  19,017,019 bytes
+RELEASE-NOTICE.txt                    1,257 bytes
+SHA256SUMS                            289 bytes
+SHA256SUMS.sig                        89 bytes
+```
 
-The packaged endpoint was exercised with a local Chromium binary at these
-viewports:
+## Packaged runtime smoke
 
-| Viewport | Horizontal overflow | Result |
-|---|---:|---|
-| 1440 × 900 | none | PASS |
-| 1024 × 900 | none | PASS |
-| 390 × 844 | none | PASS |
+The fresh package was launched separately from the installed student
+application and owned its own loopback endpoint at `127.0.0.1:8081`.
 
-Additional deterministic checks passed:
+| Check | Result |
+|---|---|
+| `GET /healthz` | PASS; HTTP 200, stable `{"status":"ok"}`, no provider call |
+| Package identity | PASS; `X-Bob-Version: v0.2.0-preview.9` |
+| Ordinary `/playground` headers | PASS; `X-Frame-Options: SAMEORIGIN` |
+| `/playground?desktop_shell=1` headers | PASS; no X-Frame-Options and Wails-only `frame-ancestors` CSP |
+| Embedded bridge markers | PASS; native browser bridge, exact-origin message validation, and artifact diagnostics are embedded |
+| Existing installed app | PRESERVED; it was not stopped, replaced, or modified |
+| Current updater check | PASS; `/v1/update/check` reported channel `preview`, current/latest `v0.2.0-preview.9`, `has_update=false` |
 
-- an inline artifact exception was surfaced as `fixture boom` with a source
-  location;
-- a failed external script was surfaced with its exact resource URL;
-- a representative Three.js plus OrbitControls fixture loaded in the same
-  opaque sandbox and reached its ready state with no failed requests;
-- the embedded artifact focus branch toggled `false → true → false → true`;
-- the hosted top-level external-link fallback invoked the allow-listed URL.
+The fresh temporary package was stopped after the smoke run. The installed
+`/Applications/BOB Gemini Free.app` was left untouched.
 
-These checks prove the BOB host boundary and failure reporting. They do not
-prove the correctness of the particular Solar System HTML generated in the
-user's earlier chat, because that generated source is not stored in this
-repository and was not available as a fixture.
+## Public Preview 7 migration observation
 
-## Remaining acceptance gates
+The exact public `v0.1.7-preview.7` macOS app was downloaded and launched in
+isolation, without installing over the student's app. The native Help menu
+was opened and **Check for Updates** was selected. The app displayed:
 
-The following remain deliberately open before calling this a stable or
-30-device release:
+```text
+Update available
+A newer signed desktop release is available: v0.2.0-preview.9
+Download, verify, and install it after restarting BOB?
+```
 
-1. Rebuild a fresh Preview 9 package from current `main`, then open the exact
-   generated Solar System artifact and record the
-   new diagnostic if it still fails. If the diagnostic points into generated
-   code, repair that source or add it as a regression fixture; do not weaken
-   the sandbox to hide the defect.
-2. On one writable Mac, use **Help → Check for Updates** from the installed
-   Preview 7/Preview 8 lineage, approve the update, and verify restart,
-   version, health, and rollback behavior. Local updater tests do not replace
-   this installed-device observation.
-3. After publication, re-download the public Preview 9 assets from a clean
-   directory and compare all bytes with the signed local inputs.
-4. Keep the Apple Gatekeeper warning boundary explicit. The candidate is
-   ad-hoc signed and non-notarized; platform publisher trust is not established.
-5. Treat Google availability, cookies, API keys, quotas, model identity, and
-   generated-artifact CDN behavior as upstream- or source-dependent.
+This is **VERIFIED_LIVE discovery** from the real public Preview 7 binary. The
+test selected **Cancel** before the download/staging action. Therefore the
+following remain unproven on an installed writable bundle:
 
-The superseded package is not suitable for distribution. A rebuilt Preview 9
-is suitable only as an explicitly labelled controlled macOS beta until those
-gates are closed. No silent classroom-wide update is enabled.
+- replacement and restart;
+- preservation of config, cookies, and chat state;
+- deliberate failed-candidate rollback;
+- standard-user and managed-Mac permissions; and
+- 30-device fleet acceptance.
 
-The installed-version transition rules, including the special case of local
-or historical `v0.1.9` builds, are recorded in
-[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
+The old Preview 7 web `/v1/update/check` endpoint can still report its legacy
+stable metadata (`v0.1.5`). That endpoint is separate from the native Help
+updater; it must not be used to conclude that the native Preview 7 app cannot
+discover Preview 9.
+
+## Browser and artifact boundary
+
+The source and packaged browser checks covered desktop, tablet, and phone
+layout constraints, external-link forwarding, native artifact focus mode,
+resource diagnostics, and the existing opaque sandbox. A generated Solar
+System artifact is not stored in this repository, so this release receipt
+does not claim that a particular prior chat's generated source is correct.
+If that artifact still fails, preserve its source as a fixture, use the
+reported diagnostic to identify the failing line/resource, and repair the
+artifact or generator contract rather than weakening the sandbox.
+
+## Release gates and remaining work
+
+| Gate | Status |
+|---|---|
+| Source, unit, race, vet, generated-bundle, package, signing, and public-byte checks | PASS |
+| Public Preview 7 discovers Preview 9 through native Help | VERIFIED_LIVE |
+| Preview 7 installed-bundle replacement/restart | OPEN; requires one approved writable pilot Mac |
+| Deliberate rollback and state preservation | OPEN; must be exercised on an installed bundle |
+| Clean-device and two/three-Mac pilot | OPEN |
+| Apple Developer ID, hardened runtime, notarization, and stapling | OPEN; separate Apple account/service gate |
+| Windows publisher-signed installer and Linux native acceptance | OPEN |
+| Google anonymous/session/API-key availability, quotas, model identity | UPSTREAM-DEPENDENT |
+
+Preview 9 is suitable for an explicitly labelled controlled macOS beta. It is
+not yet a stable, notarized, unattended, or cross-platform student release.
+No silent classroom-wide update is enabled: each updater-capable device must
+be in a writable location and a user must approve the installation.

@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.8-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.9-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26.6-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -31,17 +31,17 @@
 ## वर्तमान स्थिति और प्रमाण सीमा
 
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
-bridge, historical Preview 3–7 और current controlled preview
-`v0.2.0-preview.8` उपलब्ध हैं। Public `main` में Preview 4 के बाद का
+bridge, historical Preview 3–8 और current controlled preview
+`v0.2.0-preview.9` उपलब्ध हैं। Public `main` में Preview 4 के बाद का
 artifact-preview, responsive-header, multiline-SSE, credential-boundary,
 route-control, diagnostics, native external-link और deterministic
-artifact-focus सुधार आ चुके हैं। Preview 8 के public bytes और signature को
-फिर से download करके verify किया गया है। Preview 9 का पुराना local candidate पैकेज
-`1410bc2` से बना था, लेकिन current `main` commit `6a5606d` के updater guard के
-बाद वह superseded है और publish नहीं किया जा सकता। उसे current source से फिर
-से build करना होगा।
+artifact-focus सुधार आ चुके हैं। Preview 9 के public bytes और signature को
+फिर से download करके verify किया गया है और पाँचों assets local signed inputs से
+byte-for-byte मिलते हैं। Public Preview 7 app के Help → Check for Updates path ने
+live test में Preview 9 का consent dialog दिखाया; install action cancel किया गया,
+इसलिए replacement, restart और rollback अभी device gates हैं।
 Preview 1 → Preview 5 installed migration का प्रमाण उपलब्ध है; बाद के audit
-Mac checks ने Preview 8 को खोज लिया था, लेकिन install action cancel किया गया,
+Mac checks ने Preview 9 को खोज लिया था, लेकिन install action cancel किया गया,
 इसलिए current replacement, rollback, clean-device, pilot और platform-trust
 gates अभी खुले हैं। Stable `v0.2.0` अभी प्रकाशित नहीं है। Historical और local
 version transition matrix [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md)
@@ -214,7 +214,7 @@ docker compose up -d
 ध्यान दें: वर्तमान stable `v0.1.5` CLI release में signed `SHA256SUMS` और
 `SHA256SUMS.sig` manifest नहीं है। इसलिए installer सुरक्षा के लिए binary
 इंस्टॉल करने से पहले रुक जाएगा। वर्तमान native student preview के लिए केवल
-official [public Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+official [public Preview 9 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9)
 से सूचीबद्ध macOS package लें।
 
 ```bash
@@ -259,7 +259,7 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public `v0.2.0-preview.8` preview में project update key embedded है। यह
+Public `v0.2.0-preview.9` preview में project update key embedded है। यह
 current same-key controlled preview है और explicit consent मांगता है; stable
 `v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी। एक writable Preview 1
 installation से Preview 5 तक का replacement इस audit Mac पर प्रमाणित है;
