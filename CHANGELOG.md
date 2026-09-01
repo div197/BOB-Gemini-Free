@@ -37,6 +37,8 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+## [0.2.0-preview.9] - 2026-09-01
+
 ### Distribution truth
 
 - Corrects the current English and Hindi release references from Preview 5 to
