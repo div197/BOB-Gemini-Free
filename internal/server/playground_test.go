@@ -35,6 +35,31 @@ func TestHostedStudioDoesNotProbeLoopbackOnStartup(t *testing.T) {
 	}
 }
 
+func TestHostedOnboardingDoesNotAdvertiseUnavailableCLIInstaller(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		"Choose a verified local path:",
+		"The current native student preview is available from the official",
+		"installer intentionally stops instead of installing an unauthenticated",
+		"Current native package",
+		"CLI installer status",
+		"fail closed until a signed CLI release is published",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("hosted onboarding is missing current distribution marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		"Start the CLI engine locally:",
+		"These commands install the standalone CLI and browser studio.",
+		"less install.sh &amp;&amp; bash install.sh",
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("hosted onboarding still advertises unavailable CLI installer copy %q", forbidden)
+		}
+	}
+}
+
 func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{
@@ -818,6 +843,12 @@ func TestArtifactSandboxKeepsOpaqueIsolationAndReportsRuntimeFailures(t *testing
 		`installStorage('localStorage')`,
 		`installStorage('sessionStorage')`,
 		`type: 'BOB_ARTIFACT_RUNTIME_ERROR'`,
+		`function describeError(event)`,
+		`target.src || target.href`,
+		`event.filename`,
+		`window.addEventListener('error', function(event){`,
+		`}, true);`,
+		`securitypolicyviolation`,
 		`window.addEventListener('unhandledrejection'`,
 		`function prepareHTMLArtifactSource(source)`,
 		`const htmlPattern = /<html\b[^>]*>/i;`,
@@ -867,12 +898,15 @@ func TestArtifactPopoutPreservesSandboxAndHandlesBrowserFailures(t *testing.T) {
 	}
 	source := html[start : start+endOffset]
 	for _, marker := range []string{
+		`window.parent && window.parent !== window`,
+		`setArtifactFocusMode(`,
+		`setArtifactFocusMode(!artifactFocusMode)`,
 		`iframe sandbox="allow-scripts allow-modals allow-forms"`,
 		`const frameSource = JSON.stringify(content)`,
 		`.replace(/</g, "\\u003c")`,
 		`window.open(url, '_blank', 'noopener,noreferrer')`,
 		`if (!opened)`,
-		`The artifact window was blocked by the browser`,
+		`Pop-out was blocked; artifact expanded here instead`,
 		`setTimeout(() => URL.revokeObjectURL(url), 60000);`,
 	} {
 		if !strings.Contains(source, marker) {
@@ -881,6 +915,22 @@ func TestArtifactPopoutPreservesSandboxAndHandlesBrowserFailures(t *testing.T) {
 	}
 	if strings.Contains(source, `window.open(url, '_blank');`) {
 		t.Fatal("pop-out still opens generated content without noopener")
+	}
+}
+
+func TestArtifactFocusModeIsReversibleAndAccessible(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`id="art-focus-btn" aria-pressed="false"`,
+		`function updateArtifactFocusModeUI()`,
+		`button.setAttribute("aria-pressed", artifactFocusMode ? "true" : "false")`,
+		`modal.classList.toggle("focus-mode", artifactFocusMode)`,
+		`.artifact-modal-backdrop.focus-mode .artifact-studio-box`,
+		`.artifact-modal-backdrop.focus-mode .artifact-side-rail`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("artifact focus mode is missing marker %q", marker)
+		}
 	}
 }
 
@@ -930,6 +980,7 @@ func TestNativeExternalLinksUseTheDefaultBrowserBridge(t *testing.T) {
 	for _, marker := range []string{
 		`function openExternalURL(rawURL)`,
 		`window.runtime.BrowserOpenURL(parsedURL.href)`,
+		`window.parent.postMessage({ type: "BOB_OPEN_EXTERNAL_URL", url: parsedURL.href }, "*")`,
 		`target.target === "_blank" || linkURL.origin !== window.location.origin`,
 		`openExternalURL('https://github.com/div197/BOB-Gemini-Free/releases')`,
 	} {

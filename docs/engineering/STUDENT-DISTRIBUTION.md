@@ -170,22 +170,16 @@ until the WebKit2GTK ABI/package matrix is tested. A controlled pilot can use
 the published macOS/Windows preview with the release notice; it must remain
 labelled beta and must not be presented as a finished cross-platform release.
 
-## Same-day public path
+## Current distribution path
 
-The latest stable GitHub Release contains standalone CLI binaries, so a
-student can start today without installing Go:
+The latest stable GitHub Release is the historical `v0.1.5` CLI release. It
+contains legacy platform binaries but does not publish the signed
+`SHA256SUMS`/`SHA256SUMS.sig` pair required by the current installers. The
+installers therefore fail closed today; they must not be advertised as a
+working student bootstrap until a maintainer publishes a new signed CLI
+release. This is an intentional security stop, not an installation workaround.
 
-1. macOS/Linux: run the published `install.sh` command from the repository
-   README; Windows: run the published `install.ps1` command.
-2. Start the installed gateway with the exact path printed by the installer
-   (`bob-gemini-free --port 9610` on macOS/Linux; the printed `.exe` path on
-   Windows), then open its browser studio at the displayed loopback URL.
-3. Complete authentication with that student's own authorized Google session
-   if the selected capability requires it.
-
-This path is a CLI plus browser experience. It is not a native desktop download,
-and the hosted Cloudflare Studio alone does not silently access a student's
-local machine. For the native beta, use the exact files listed on the
+The current native student evaluation path is the exact macOS package listed on
 [`v0.2.0-preview.8` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8):
 macOS universal `.dmg`/`.zip`. Existing `v0.1.7-preview.7` devices should be
 piloted through **Help → Check for Updates** before any broad wave; the audit
@@ -193,3 +187,9 @@ Mac discovered Preview 8 but did not install it. Legacy
 `v0.1.7-preview.6` devices need the one-time manual migration described in the
 release notes. Windows `v0.1.7-preview.3` remains available separately; Linux
 is not included in the current native preview.
+
+The CLI path remains a CLI plus browser experience, not a native desktop
+download. Once a signed CLI release exists, students should download
+`install.sh` or `install.ps1` as a local file, inspect it, and run it. The
+hosted Cloudflare Studio alone does not silently access a student's local
+machine.

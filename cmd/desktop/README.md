@@ -6,9 +6,11 @@ end users do not need a separate Go installation, local server, SQLite
 database, or memory service.
 
 The bootstrap page in `frontend/index.html` validates the gateway endpoint
-before handing off to `/playground`. It also has an event-independent
-`GatewayURL` handoff for the one-shot startup event, so a fast local gateway
-cannot strand the window on its loading screen.
+before embedding `/playground?desktop_shell=1`. Keeping the Wails shell alive
+preserves the native default-browser bridge for GitHub and other allow-listed
+external links; the loopback Studio itself remains the same local UI. It also
+has an event-independent `GatewayURL` handoff for the one-shot startup event,
+so a fast local gateway cannot strand the window on its loading screen.
 
 The packaged app discovers the current user's config and cookie files when
 they exist, while forcibly keeping the desktop gateway on loopback with API

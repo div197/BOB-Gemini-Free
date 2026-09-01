@@ -15,7 +15,11 @@ It requires:
 
 ## Direct Binary Downloads
 
-Students should use the reviewed local-file installer above. A direct binary
+Students should use the reviewed local-file installer above only when the
+selected GitHub release publishes the signed manifest pair. The current
+stable `v0.1.5` release does not, so the installer intentionally fails closed;
+the current native macOS preview is distributed separately from the Preview 8
+release page. A direct binary
 download is not authenticated by its SHA-256 value alone: download
 `SHA256SUMS` and `SHA256SUMS.sig` from the same release and verify the complete
 directory with the repository's `cmd/release-verify` tool before execution.
@@ -41,11 +45,11 @@ verification cannot be performed, stop and use the authenticated installer or
 do not execute the file. Do not replace this check with a checksum copied from
 an unrelated page.
 
-For student distribution, the reviewed `install.sh`/`install.ps1` flow is the
-supported path: download the script as a local file, inspect it, and run it.
-The installers fail closed when a signed release cannot be verified. They do
-not pipe a remote script into a shell, compile the current directory, or accept
-an unsigned binary by default.
+For a future signed CLI release, the reviewed `install.sh`/`install.ps1` flow
+is the supported CLI path: download the script as a local file, inspect it,
+and run it. Until then, the installers fail closed when a signed release
+cannot be verified. They do not pipe a remote script into a shell, compile the
+current directory, or accept an unsigned binary by default.
 
 ---
 

@@ -37,7 +37,30 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
-No unreleased changes are recorded yet.
+### Distribution truth
+
+- Corrects the current English and Hindi release references from Preview 5 to
+  the public Preview 8 updater package.
+- Makes the CLI installer limitation explicit: the historical stable CLI
+  release has no signed manifest, so the installers intentionally fail closed
+  until a signed CLI release is published.
+- Removes unavailable CLI commands from the hosted local-engine onboarding
+  modal and keeps the native Preview 8 release page as the current student
+  desktop path.
+
+### Desktop and artifact reliability
+
+- Keeps the Wails shell alive while the loopback Studio is loaded in an
+  explicitly Wails-allowlisted frame, restoring GitHub and other safe external
+  links to the device's default browser without weakening the ordinary
+  browser clickjacking policy.
+- Makes the artifact full-screen action deterministic in native WebViews by
+  expanding the existing sandbox in place, with a reversible accessible state;
+  browser pop-outs remain available where the browser permits them and fall
+  back to the same safe in-place view when blocked.
+- Reports artifact resource-load failures and source locations instead of
+  reducing every cross-origin failure to the opaque `Script error.` message.
+  The generated artifact remains isolated in its opaque sandbox.
 
 ## [0.2.0-preview.8] - 2026-09-01
 

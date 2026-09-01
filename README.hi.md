@@ -12,7 +12,7 @@
 <p align="center">
   <a href="https://abcsteps.com/"><img src="https://img.shields.io/badge/Powered%20by-ABCsteps.com-2563eb?style=flat-square" alt="ABCsteps"></a>
   <a href="https://github.com/div197/bob-gemini-free"><img src="https://img.shields.io/badge/Author-Divyanshu%20Singh%20Chouhan-16a34a?style=flat-square" alt="Author"></a>
-  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.5-7c3aed?style=flat-square" alt="Release">
+  <img src="https://img.shields.io/badge/Release-v0.2.0--preview.8-7c3aed?style=flat-square" alt="Release">
   <img src="https://img.shields.io/badge/Go-1.26.6-00ADD8?style=flat-square&logo=go" alt="Go Version">
   <img src="https://img.shields.io/badge/Protocols-OpenAI%20%7C%20Anthropic%20%7C%20Gemini-059669?style=flat-square" alt="Protocols">
   <img src="https://img.shields.io/badge/License-MIT-f59e0b?style=flat-square" alt="License">
@@ -41,7 +41,6 @@ installed migration का प्रमाण उपलब्ध है; audit M
 rollback, clean-device, pilot और platform-trust gates अभी खुले हैं।
 Public `main` पर current Preview 8 package `bfa68ff` source target से signed और
 manually प्रकाशित है। Stable `v0.2.0` अभी प्रकाशित नहीं है।
-Stable `v0.2.0` अभी प्रकाशित नहीं है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
@@ -206,6 +205,12 @@ docker compose up -d
 ---
 
 ### विकल्प B: ऑटोमैटिक इंस्टॉलर स्क्रिप्ट (macOS / Linux)
+
+ध्यान दें: वर्तमान stable `v0.1.5` CLI release में signed `SHA256SUMS` और
+`SHA256SUMS.sig` manifest नहीं है। इसलिए installer सुरक्षा के लिए binary
+इंस्टॉल करने से पहले रुक जाएगा। वर्तमान native student preview के लिए केवल
+official [Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+से सूचीबद्ध macOS package लें।
 
 ```bash
 curl --fail --location --proto '=https' --proto-redir '=https' \

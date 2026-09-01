@@ -8,6 +8,12 @@ BOB Gemini Free is a high-performance, single-binary local AI gateway written in
 
 ## ⚡ Installation
 
+Current distribution note: the latest stable tag (`v0.1.5`) contains legacy
+CLI binaries but not the signed `SHA256SUMS` and `SHA256SUMS.sig` pair required
+by these installers. The default path therefore fails closed until a signed
+CLI release is published. These scripts are not the native desktop app; for
+the current macOS desktop preview use the [Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8).
+
 The published installers download a platform-matching CLI and verify its
 detached Ed25519 release manifest before installing it. Download the script as
 a local file, inspect it, and then run it. Do not pipe an unpinned repository

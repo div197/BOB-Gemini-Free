@@ -208,7 +208,14 @@ func (a *App) withAuthAndLogging(next http.Handler) http.Handler {
 		w.Header().Set("x-powered-by", "BOB-Gemini-Free / ABCsteps (div197)")
 		w.Header().Set("openai-version", "2020-10-01")
 		w.Header().Set("x-content-type-options", "nosniff")
-		w.Header().Set("x-frame-options", "SAMEORIGIN")
+		// The Wails desktop shell embeds the loopback Studio in an iframe so the
+		// native runtime bridge remains available. The playground handler adds a
+		// narrower CSP frame-ancestors policy for that explicit query path;
+		// ordinary browser/API responses retain SAMEORIGIN clickjacking defense.
+		desktopShellPlayground := (r.URL.Path == "/playground" || r.URL.Path == "/ui") && r.URL.Query().Get("desktop_shell") == "1"
+		if !desktopShellPlayground {
+			w.Header().Set("x-frame-options", "SAMEORIGIN")
+		}
 		w.Header().Set("x-xss-protection", "1; mode=block")
 		w.Header().Set("referrer-policy", "strict-origin-when-cross-origin")
 		w.Header().Set("cross-origin-opener-policy", "same-origin-allow-popups")

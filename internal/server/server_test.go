@@ -799,6 +799,26 @@ func TestPlaygroundEndpoint(t *testing.T) {
 	}
 }
 
+func TestDesktopShellPlaygroundAllowsOnlyTheWailsEmbeddingPath(t *testing.T) {
+	app := New(config.Default(), "desktop-shell-test")
+
+	ordinary := httptest.NewRecorder()
+	app.Handler().ServeHTTP(ordinary, httptest.NewRequest(http.MethodGet, "/playground", nil))
+	if got := ordinary.Header().Get("X-Frame-Options"); got != "SAMEORIGIN" {
+		t.Fatalf("ordinary playground X-Frame-Options = %q, want SAMEORIGIN", got)
+	}
+
+	desktop := httptest.NewRecorder()
+	app.Handler().ServeHTTP(desktop, httptest.NewRequest(http.MethodGet, "/playground?desktop_shell=1", nil))
+	if got := desktop.Header().Get("X-Frame-Options"); got != "" {
+		t.Fatalf("desktop-shell playground X-Frame-Options = %q, want empty", got)
+	}
+	policy := desktop.Header().Get("Content-Security-Policy")
+	if !strings.Contains(policy, "frame-ancestors wails://wails wails://wails.localhost:* http://wails.localhost http://wails.localhost:*") {
+		t.Fatalf("desktop-shell playground policy does not restrict framing to Wails: %q", policy)
+	}
+}
+
 func TestStreamWithKeepAlive(t *testing.T) {
 	rec := httptest.NewRecorder()
 	ctx := t.Context()
