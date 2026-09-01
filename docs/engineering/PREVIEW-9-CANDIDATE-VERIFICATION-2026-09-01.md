@@ -1,12 +1,14 @@
 # v0.2.0-preview.9 — Candidate Verification
 
 **Date:** 2026-09-01 (Asia/Kolkata)
-**Status:** locally packaged and verified; public publication remains pending
-**Source candidate:** public `main` merge commit `1410bc2`
+**Status:** superseded local package; do not publish
+**Source candidate:** public `main` merge commit `1410bc2` (superseded by `6a5606d`)
 
 The earlier `3518c24` commit only advanced the next candidate number. The
-package receipt below was refreshed from the final merged source so the
-candidate cannot be confused with an earlier pre-merge build.
+package receipt below is historical: it was built from `1410bc2` before the
+artifact-family updater guard landed in `6a5606d`. The bytes are therefore not
+eligible for publication or updater discovery. Rebuild Preview 9 from the
+current reviewed `main` before using this receipt as a release checklist.
 
 This receipt covers the focused reliability work after Preview 8. It does not
 turn an ad-hoc macOS package into a Developer ID/notarized release, and it does
@@ -32,7 +34,7 @@ not claim that every generated HTML application is correct.
 
 ## Local package gates
 
-The exact local candidate was staged at:
+The superseded local candidate was staged at:
 
 ```text
 /tmp/bob-gemini-free-preview9-20260901-main-1410bc2
@@ -79,9 +81,10 @@ bob-gemini-free-macos-universal.dmg  a7c02a22de210e0f85d3138c40a1ef3f16df7dc4b42
 bob-gemini-free-macos-universal.zip  f43ea08414f21499af187557b2facfa8cc14d0f1e5aaea32985553f3bc3dc278
 ```
 
-These are local candidate hashes, not public-release hashes. They must be
-recomputed from a clean release directory after publication and reconciled
-against GitHub before any student-facing announcement.
+These are superseded local-package hashes, not release inputs and not
+public-release hashes. Do not upload them. Recompute all hashes from a clean
+release directory after rebuilding from current `main`, then reconcile the
+public bytes against GitHub before any student-facing announcement.
 
 ## Headless browser smoke
 
@@ -114,7 +117,8 @@ repository and was not available as a fixture.
 The following remain deliberately open before calling this a stable or
 30-device release:
 
-1. Open the exact generated Solar System artifact in Preview 9 and record the
+1. Rebuild a fresh Preview 9 package from current `main`, then open the exact
+   generated Solar System artifact and record the
    new diagnostic if it still fails. If the diagnostic points into generated
    code, repair that source or add it as a regression fixture; do not weaken
    the sandbox to hide the defect.
@@ -122,15 +126,16 @@ The following remain deliberately open before calling this a stable or
    Preview 7/Preview 8 lineage, approve the update, and verify restart,
    version, health, and rollback behavior. Local updater tests do not replace
    this installed-device observation.
-3. Re-download the public Preview 9 assets from a clean directory and compare
-   all bytes with the signed local inputs after publication.
+3. After publication, re-download the public Preview 9 assets from a clean
+   directory and compare all bytes with the signed local inputs.
 4. Keep the Apple Gatekeeper warning boundary explicit. The candidate is
    ad-hoc signed and non-notarized; platform publisher trust is not established.
 5. Treat Google availability, cookies, API keys, quotas, model identity, and
    generated-artifact CDN behavior as upstream- or source-dependent.
 
-Preview 9 is suitable only as an explicitly labelled controlled macOS beta
-until those gates are closed. No silent classroom-wide update is enabled.
+The superseded package is not suitable for distribution. A rebuilt Preview 9
+is suitable only as an explicitly labelled controlled macOS beta until those
+gates are closed. No silent classroom-wide update is enabled.
 
 The installed-version transition rules, including the special case of local
 or historical `v0.1.9` builds, are recorded in

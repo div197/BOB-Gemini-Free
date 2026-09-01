@@ -24,10 +24,13 @@ latest stable release, `v0.1.7-preview.1` through `.7`, and
 `v0.2.0-preview.1` through `.6` plus `.8`. There is no public GitHub tag or
 release named `v0.1.9`. `v0.1.9` is a source/changelog milestone only.
 
-The current repository source is public `main` commit `1410bc2`. Preview 9
-remains a local candidate until a separate publication and public-byte
-reconciliation is completed. This audit therefore does not claim that a
-Preview 9 update is currently discoverable by students.
+The artifact-family guard is public on `main` in merge commit `6a5606d`. A
+Preview 9 package was previously built from `1410bc2`, before that guard was
+merged. That package is superseded and must not be published or treated as an
+updater target. Preview 9 must be rebuilt from `6a5606d` (or a later reviewed
+commit), then separately published and reconciled against its public bytes.
+This audit therefore does not claim that a Preview 9 update is currently
+discoverable by students.
 
 ## Installed-lineage matrix
 
@@ -39,7 +42,7 @@ Preview 9 update is currently discoverable by students.
 | Public `v0.2.0-preview.1`–`.6` and `.8` | Carry the current project key. The current source lineage checks stable first, then continues to the highest published preview when stable has no newer native package for the current platform. A newer stable CLI-only release does not mask a native preview. | Can move to a newer signed preview, or directly to a newer signed stable release once that stable release exists. |
 | Local/source `v0.1.9` build | No public release exists. The `4c8dbee` source milestone labels the normal Wails build as stable and does not inject the current desktop public key through its Makefile. | No reliable automatic migration can be promised. It must be manually replaced with a signed current package. A stable-only build must never be redirected to a prerelease merely to make the version appear current. |
 | Public stable `v0.1.5` | This is a CLI release, not a signed native Wails desktop release. Its public assets do not satisfy the native signed-manifest package contract, and the tagged source predates the updater implementation. | It cannot prompt itself, auto-convert into the native desktop app, or update through today's code. Use a manual native installation; a future signed stable CLI release can serve updater-capable later CLI binaries. |
-| Current Preview 9 candidate | Locally packaged from reviewed public `main`, carrying the current key; not yet a public release at the time of this audit. | After publication, it becomes the next same-key preview target. |
+| Prior Preview 9 candidate from `1410bc2` | Locally packaged with the current key, but built before the artifact-family guard in `6a5606d`; it is superseded and not a valid release input. | Rebuild from current `main`, then publish only after package, signature, public-byte, and installed-device gates pass. |
 
 The early-preview rows are based on downloaded public release assets and
 historical binary/source inspection. The absence of `v0.1.9` is based on the
@@ -213,7 +216,7 @@ Stable                       → stable-only updates
 
 This audit does not claim that:
 
-- Preview 9 is already public;
+- The superseded local Preview 9 package is a valid release input;
 - a version number alone proves release provenance;
 - every historical package carries the current trust key;
 - a background check silently updates 30 devices;
