@@ -31,8 +31,17 @@ func (a *App) handlePlayground(w http.ResponseWriter, r *http.Request) {
 	}
 	html := bytes.ReplaceAll(playgroundHTML, []byte("__BOB_DESKTOP_VERSION__"), []byte(version))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	w.Header().Set("X-Frame-Options", "SAMEORIGIN")
-	w.Header().Set("Content-Security-Policy", "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src 'self' data: blob:; connect-src *;")
+	contentSecurityPolicy := "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src 'self' data: blob:; connect-src *;"
+	if r.URL.Query().Get("desktop_shell") == "1" {
+		// The Wails bootstrap and the loopback gateway have different origins.
+		// Allow this explicit desktop-shell embedding path only to Wails' asset
+		// origins (custom-scheme macOS/Linux and localhost Windows); ordinary
+		// browser responses retain clickjacking protection.
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy+" frame-ancestors wails://wails wails://wails.localhost:* http://wails.localhost http://wails.localhost:*;")
+	} else {
+		w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		w.Header().Set("Content-Security-Policy", contentSecurityPolicy)
+	}
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(html)
 }

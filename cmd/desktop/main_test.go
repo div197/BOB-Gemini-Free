@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"syscall"
 	"testing"
@@ -22,6 +23,30 @@ func TestDesktopOptionsKeepNativeWindowMaximizable(t *testing.T) {
 	}
 	if opts.Mac.DisableZoom {
 		t.Fatal("desktop window unexpectedly disables the native macOS zoom button")
+	}
+}
+
+func TestDesktopBootstrapKeepsTheNativeBridgeAfterGatewayLoad(t *testing.T) {
+	source, err := os.ReadFile("frontend/index.html")
+	if err != nil {
+		t.Fatalf("read desktop bootstrap: %v", err)
+	}
+	html := string(source)
+	for _, marker := range []string{
+		`import { BrowserOpenURL, EventsOn } from "/wailsjs/runtime/runtime.js";`,
+		`data-gateway-frame`,
+		`window.addEventListener("message"`,
+		`event.source !== frame.contentWindow || event.origin !== gatewayOrigin`,
+		`message.type !== "BOB_OPEN_EXTERNAL_URL"`,
+		`BrowserOpenURL(url.href)`,
+		`desktop_shell=1`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("desktop bootstrap is missing marker %q", marker)
+		}
+	}
+	if strings.Contains(html, "window.location.replace(`${gateway.origin}/playground") {
+		t.Fatal("desktop bootstrap navigates away from the Wails shell and loses native bridges")
 	}
 }
 

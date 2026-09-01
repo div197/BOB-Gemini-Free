@@ -2346,6 +2346,25 @@ input[type="range"] {
 .artifact-modal-backdrop.open {
   display: flex;
 }
+.artifact-modal-backdrop.focus-mode {
+  padding: 0;
+  background: #030711;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+.artifact-modal-backdrop.focus-mode .artifact-studio-box {
+  width: 100vw;
+  max-width: none;
+  height: 100vh;
+  height: 100dvh;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  animation: none;
+}
+.artifact-modal-backdrop.focus-mode .artifact-side-rail {
+  display: none;
+}
 
 /* Clickable Side Dismiss Rails */
 .artifact-side-rail {
@@ -4709,7 +4728,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
         <button type="button" class="btn-pill-subtle" onclick="reloadArtifactSandbox()" title="Reload Sandbox Execution"><span id="art-reload-label">⟳ Reload</span></button>
         <button type="button" class="btn-pill-subtle" onclick="copyArtifactCode()" title="Copy Artifact Source"><span id="art-copy-label">📋 Copy</span></button>
         <button type="button" class="btn-pill-subtle" onclick="downloadArtifactFile()" title="Download as File"><span id="art-save-label">💾 Save</span></button>
-        <button type="button" class="btn-pill-subtle" onclick="popOutArtifact()" title="Open in New Fullscreen Browser Tab"><span id="art-popout-label">⛶ Pop Out</span></button>
+        <button type="button" class="btn-pill-subtle" id="art-focus-btn" aria-pressed="false" onclick="popOutArtifact()" title="Expand artifact to fill the app window"><span id="art-popout-label">⛶ Full Screen</span></button>
         <button type="button" class="btn-pill-subtle btn-art-close" id="btn-art-close" onclick="closeArtifactCanvas()" title="Close Canvas (Esc)">
           <span>✕</span> <span id="art-close-label">Close</span>
         </button>
@@ -5859,8 +5878,9 @@ function sanitizeMarkdownHref(rawHref) {
 
 // Native Wails WebViews do not reliably navigate target=_blank links. Route
 // allow-listed external links through the host's default browser when the
-// Wails runtime is present, while preserving ordinary new-tab behavior for
-// hosted browsers.
+// Wails runtime is present. The desktop bootstrap keeps this page in a
+// loopback iframe, so the fallback parent message preserves that native
+// bridge without exposing an arbitrary URL opener to the gateway.
 function openExternalURL(rawURL) {
   let parsedURL;
   try {
@@ -5875,6 +5895,13 @@ function openExternalURL(rawURL) {
   if (window.runtime && typeof window.runtime.BrowserOpenURL === "function") {
     window.runtime.BrowserOpenURL(parsedURL.href);
     return true;
+  }
+
+  if (window.parent && window.parent !== window) {
+    try {
+      window.parent.postMessage({ type: "BOB_OPEN_EXTERNAL_URL", url: parsedURL.href }, "*");
+      return true;
+    } catch (_) {}
   }
 
   return window.open(parsedURL.href, "_blank", "noopener,noreferrer") !== null;
@@ -6116,7 +6143,7 @@ const I18N = {
       gatewayOnline: "ONLINE • {version}", gatewayOnlineSecured: "ONLINE (SECURED)", gatewayOffline: "OFFLINE",
       gatewayLatency: "Latency: {ms}ms", gatewayUnreachable: "Latency: Unreachable", gatewayTimeout: "Latency: Timeout — endpoint did not respond",
       close: "Close", cancel: "Cancel", clearHistory: "Clear History", aboutSubtitle: "High-Performance Local AI Gateway • Web RPC Protocol Bridge",
-      artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Pop Out",
+      artBack: "← Back to Chat", artClose: "Close", artPreview: "Preview", artCode: "Code", artReload: "Reload", artCopy: "Copy", artSave: "Save", artPopOut: "Full Screen", artExitFullScreen: "Exit Full Screen",
       gatewayTitle: "GATEWAY ENGINE STATUS", gatewaySubtitle: "Local-First RPC Bridge • On-Device • Provider limits still apply",
       geminiProviderTitle: "Google Gemini Developer API key (optional)", geminiProviderSession: "Use your Google key for this session",
       geminiProviderPlaceholder: "Paste your own Google AI Studio key",
@@ -6343,7 +6370,7 @@ const I18N = {
       gatewayOnline: "ऑनलाइन • {version}", gatewayOnlineSecured: "ऑनलाइन (सुरक्षित)", gatewayOffline: "ऑफ़लाइन",
       gatewayLatency: "विलंबता: {ms}ms", gatewayUnreachable: "विलंबता: पहुँच से बाहर", gatewayTimeout: "विलंबता: समय समाप्त — endpoint ने उत्तर नहीं दिया",
       close: "बंद करें", cancel: "रद्द करें", clearHistory: "इतिहास हटाएं", aboutSubtitle: "उच्च-प्रदर्शन स्थानीय AI गेटवे • वेब RPC प्रोटोकॉल ब्रिज",
-      artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "नई विंडो",
+      artBack: "← चैट पर वापस जाएं", artClose: "बंद करें", artPreview: "पूर्वावलोकन", artCode: "कोड", artReload: "रीलोड", artCopy: "कॉपी", artSave: "सहेजें", artPopOut: "पूर्ण स्क्रीन", artExitFullScreen: "पूर्ण स्क्रीन से बाहर",
       gatewayTitle: "गेटवे इंजन स्थिति", gatewaySubtitle: "स्थानीय-प्रथम RPC ब्रिज • ऑन-डिवाइस • प्रदाता सीमाएं लागू",
       geminiProviderTitle: "Google Gemini Developer API key (वैकल्पिक)", geminiProviderSession: "इस session के लिए अपनी Google key उपयोग करें",
       geminiProviderPlaceholder: "अपनी Google AI Studio key paste करें",
@@ -9165,6 +9192,7 @@ function handleImageError(img, altText) {
 /* Native Client-Side Interactive Artifacts Engine (Claude-Class Live Canvas) */
 const artifactsRegistry = new Map();
 let currentActiveArtifact = null;
+let artifactFocusMode = false;
 let artifactEditorListenersBound = false;
 let artifactEditorWrapEnabled = true;
 const MAX_ARTIFACT_SOURCE_CHARS = 2 * 1024 * 1024;
@@ -9429,10 +9457,26 @@ function artifactRuntimeBootstrap() {
         window.parent.postMessage({ type: 'BOB_ARTIFACT_RUNTIME_ERROR', message: String(message || 'Unknown artifact runtime error').slice(0, 500) }, '*');
       } catch (_) {}
     }
+    function describeError(event){
+      const target = event && event.target;
+      if (target && target !== window) {
+        const resource = target.src || target.href;
+        if (resource) return 'Artifact resource failed to load: ' + resource;
+      }
+      const message = (event && event.error && event.error.message) || (event && event.message) || 'Artifact script error';
+      const filename = event && event.filename;
+      const line = event && event.lineno;
+      const column = event && event.colno;
+      if (filename) return message + ' at ' + filename + ':' + (line || 0) + ':' + (column || 0);
+      return message;
+    }
     installStorage('localStorage');
     installStorage('sessionStorage');
     window.addEventListener('error', function(event){
-      report((event.error && event.error.message) || event.message || 'Artifact script error');
+      report(describeError(event));
+    }, true);
+    window.addEventListener('securitypolicyviolation', function(event){
+      report('Artifact resource blocked by policy: ' + ((event && event.blockedURI) || 'unknown resource'));
     });
     window.addEventListener('unhandledrejection', function(event){
       const reason = event.reason;
@@ -9742,7 +9786,32 @@ function openArtifactCanvas(artId) {
   }
 }
 
+function updateArtifactFocusModeUI() {
+  const button = document.getElementById("art-focus-btn");
+  const label = document.getElementById("art-popout-label");
+  const dict = I18N[currentLang] || I18N.en;
+  const ui = dict.ui || I18N.en.ui;
+  if (button) {
+    button.setAttribute("aria-pressed", artifactFocusMode ? "true" : "false");
+    button.title = artifactFocusMode ? (ui.artExitFullScreen || "Exit Full Screen") : (ui.artPopOut || "Full Screen");
+  }
+  if (label) {
+    label.innerText = artifactFocusMode
+      ? `↙ ${ui.artExitFullScreen || "Exit Full Screen"}`
+      : `⛶ ${ui.artPopOut || "Full Screen"}`;
+  }
+}
+
+function setArtifactFocusMode(enabled) {
+  const modal = document.getElementById("artifact-modal");
+  if (!modal) return;
+  artifactFocusMode = Boolean(enabled);
+  modal.classList.toggle("focus-mode", artifactFocusMode);
+  updateArtifactFocusModeUI();
+}
+
 function closeArtifactCanvas() {
+  setArtifactFocusMode(false);
   const modal = document.getElementById("artifact-modal");
   closeManagedModal(modal);
   hideArtifactRuntimeError();
@@ -9878,6 +9947,17 @@ function downloadArtifactFile() {
 
 function popOutArtifact() {
   if (!currentActiveArtifact) return;
+
+  // A Wails page cannot reliably create a second blob window. The desktop
+  // bootstrap embeds the loopback Studio, so make the action deterministic by
+  // expanding the existing sandbox to the full app viewport. The same mode
+  // is a safe fallback when a normal browser blocks a popup.
+  if (isNativeDesktopStudio() || (window.parent && window.parent !== window)) {
+    setArtifactFocusMode(!artifactFocusMode);
+    showToast(artifactFocusMode ? "Artifact expanded to fill the app window" : "Artifact returned to the chat view", artifactFocusMode ? "⛶" : "↙");
+    return;
+  }
+
   let mime = currentActiveArtifact.type === 'svg' ? 'image/svg+xml' : 'text/html';
   let content = getArtifactSource(currentActiveArtifact);
   if (currentActiveArtifact.type === 'svg') {
@@ -9902,7 +9982,8 @@ function popOutArtifact() {
   setTimeout(() => URL.revokeObjectURL(url), 60000);
   if (!opened) {
     URL.revokeObjectURL(url);
-    showToast("The artifact window was blocked by the browser", "⚠️");
+    setArtifactFocusMode(true);
+    showToast("Pop-out was blocked; artifact expanded here instead", "⛶");
     return;
   }
   showToast("Launched artifact in standalone window", "⛶");
