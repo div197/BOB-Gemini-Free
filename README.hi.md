@@ -36,8 +36,10 @@ bridge, historical Preview 3–7 और current controlled preview
 artifact-preview, responsive-header, multiline-SSE, credential-boundary,
 route-control, diagnostics, native external-link और deterministic
 artifact-focus सुधार आ चुके हैं। Preview 8 के public bytes और signature को
-फिर से download करके verify किया गया है। Preview 9 का local candidate पैकेज
-बनाकर verify किया गया है, पर वह अभी public download या updater target नहीं है।
+फिर से download करके verify किया गया है। Preview 9 का पुराना local candidate पैकेज
+`1410bc2` से बना था, लेकिन current `main` commit `6a5606d` के updater guard के
+बाद वह superseded है और publish नहीं किया जा सकता। उसे current source से फिर
+से build करना होगा।
 Preview 1 → Preview 5 installed migration का प्रमाण उपलब्ध है; बाद के audit
 Mac checks ने Preview 8 को खोज लिया था, लेकिन install action cancel किया गया,
 इसलिए current replacement, rollback, clean-device, pilot और platform-trust

@@ -3,9 +3,11 @@
 **Status:** branded public macOS preview `v0.2.0-preview.8` is the current
 controlled package; Preview 7 and earlier remain historical, the published
 `v0.2.0-preview.1` migration bridge remains available, and
-`v0.1.7-preview.7` remains the existing fleet baseline. Preview 9 is a local,
-signed candidate only; it has not been published or made discoverable by the
-updater. The installed-lineage rules and the `v0.1.9` source-milestone
+`v0.1.7-preview.7` remains the existing fleet baseline. A previous Preview 9
+package was signed locally from `1410bc2`, but it was superseded by the
+artifact-family guard merged in `6a5606d`; it must be rebuilt and is
+not published or discoverable by the updater. The installed-lineage rules and
+the `v0.1.9` source-milestone
 boundary are recorded in
 [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
 
@@ -54,10 +56,12 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 The current [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
 contains the universal macOS package shape and current-key signed manifest.
-Its public bytes were re-downloaded and byte-verified. A separate Preview 9
-candidate passed local package, signature, secure-key transport, settings-route,
-and old-gateway coexistence checks, but it remains unpublished and cannot yet
-be discovered by any installed updater. Existing Preview 7 users can discover
+Its public bytes were re-downloaded and byte-verified. A prior Preview 9
+candidate from `1410bc2` passed local package, signature, secure-key transport,
+settings-route, and old-gateway coexistence checks, but it is superseded by
+current `main` and must not be published or discovered by any installed
+updater. Rebuild it from `6a5606d` before publication. Existing Preview 7 users
+can discover
 a newer same-key preview directly once that release is actually published. The published
 [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
@@ -98,8 +102,9 @@ From macOS:
 make desktop-preview-mac
 ```
 
-In the current source this command defaults to the explicit local candidate
-`v0.2.0-preview.9`; that exact candidate is not yet a public preview release.
+In the current source this command defaults to a fresh local build labelled
+`v0.2.0-preview.9`; a prior package with that label was superseded and is not
+a public preview release. Rebuild from current `main` before publication.
 The signed `v0.2.0-preview.1` migration bridge is
 already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public
