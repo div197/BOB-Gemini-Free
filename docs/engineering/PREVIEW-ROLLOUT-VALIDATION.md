@@ -1,9 +1,9 @@
 # Preview Rollout and 20–30 Device Validation
 
-**Current public target:** controlled macOS preview `v0.2.0-preview.8`, for
+**Current public target:** controlled macOS preview `v0.2.0-preview.9`, for
 controlled evaluation of the existing public `v0.1.7-preview.7` fleet and
 earlier `v0.2.0` previews. Preview 6, Preview 5, Preview 4, and Preview 3 are
-historical; Preview 8 is the current signed public prerelease, and the earlier
+historical; Preview 9 is the current signed public prerelease, and the earlier
 Preview 7 candidate was superseded before publication. The published
 `v0.2.0-preview.1` migration bridge remains
 available.
@@ -46,11 +46,11 @@ the preview listing. The updater:
 Legacy `v0.1.7-preview.6` installations cannot verify Preview 7 because the
 original Preview 6 project signing key was not recoverable. Install Preview 7
 manually once on those devices; later releases signed with the Preview 7 key
-can then use this updater. This is separate from the current `v0.2.0-preview.8`
+can then use this updater. This is separate from the current `v0.2.0-preview.9`
 public release. A newly built current-source preview can migrate to a newer
 stable release after the stable candidate is published with the same project
 key. An existing public Preview 7 installation can now discover the published
-same-key Preview 8 through its preview-only path, subject to the live device
+same-key Preview 9 through its preview-only path, subject to the live device
 transition gate, or be manually replaced with stable.
 
 It does **not** silently download, replace, or restart the application, and it
@@ -106,7 +106,7 @@ Do not open 30 live generations at once. Use this order:
 - send one short text request using the student's own authorized path, if
   that capability is required;
 - for the existing public `v0.1.7-preview.7` path, check the published
-  same-key Preview 8 candidate (or the published Preview 1 bridge only if that
+  same-key Preview 9 (or the published Preview 1 bridge only if that
   intermediate step was selected), then check stable from that bridge (and
   separately verify a later preview when no newer stable native package exists);
 - verify that an intentionally failed candidate leaves the original app,
@@ -157,12 +157,12 @@ account/network-specific observation.
 ## Post-publication rollout decision
 
 The published `v0.2.0-preview.1` bridge and controlled macOS
-`v0.2.0-preview.8` are public. Preview 8's exact public macOS assets have been re-downloaded,
+`v0.2.0-preview.9` are public. Preview 9's exact public macOS assets have been re-downloaded,
 signature-verified, and byte-reconciled with the local Keychain-backed
 publication input. The earlier Preview 1 → Preview 5 installed migration is
-verified on one writable host; the audit Mac discovered Preview 8 from the
-installed Preview 5 app, but the install action was canceled. A Preview 5 or
-Preview 7 → Preview 8 installed transition therefore remains a device gate.
+verified on one writable host; the audit Mac discovered Preview 9 from the
+installed public Preview 7 app, but the install action was canceled. A Preview 5
+or Preview 7 → Preview 9 installed transition therefore remains a device gate.
 The remaining
 rollout gates are:
 
@@ -171,7 +171,7 @@ rollout gates are:
    `internal/server/playground.html` with the documented version substitution;
 3. **COMPLETED for one writable `/Applications` host:** the updater artifacts
    were signed and manually verified, and Preview 1 migrated to Preview 5;
-   deliberate rollback, clean-device recovery, and Preview 8 installed-base
+   deliberate rollback, clean-device recovery, and Preview 9 installed-base
    transition remain open;
 4. **COMPLETED:** the release notes disclose that platform notarization/publisher trust is
    still absent, if that remains true;

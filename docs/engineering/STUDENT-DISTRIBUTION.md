@@ -1,6 +1,6 @@
 # Student Desktop Distribution Contract
 
-**Status:** public macOS Preview 8 and an older Windows preview artifact are
+**Status:** public macOS Preview 9 and an older Windows preview artifact are
 published; production trust, Linux acceptance, installed replacement, and
 broad student rollout remain pending.
 
@@ -23,8 +23,8 @@ screenshots from a product release that students can download and trust.
 - The public [`v0.1.7-preview.7` release](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.7-preview.7)
   contains the corrected macOS universal preview package and signed project
   manifest. It is a controlled beta, not an Apple-trusted student installer.
-- The public [`v0.2.0-preview.8` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
-  is the current same-key updater candidate for controlled evaluation. Its
+- The public [`v0.2.0-preview.9` controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9)
+  is the current same-key updater package for controlled evaluation. Its
   five release assets were re-downloaded, signature-verified, and reconciled
   byte-for-byte with the local signed inputs. The
   immutable [`v0.2.0-preview.1` migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
@@ -110,23 +110,23 @@ only.
 
 The native Help menu now offers a user-initiated metadata check. It does not
 perform a silent replacement. Until platform-trusted production packages and
-manifests are published, students must use the Preview 8 release page or the
+manifests are published, students must use the Preview 9 release page or the
 documented pilot path.
 
 ## Automatic update plan and 30-device rollout gate
 
-The current Preview 8 is a public native preview with a signed, build-pinned
+The current Preview 9 is a public native preview with a signed, build-pinned
 update channel. A newly built current-key preview can discover a newer stable
 native package from the Help menu and migrate after user consent; when stable
 has no newer native package for the current platform, a newer signed preview
 can be discovered, verified, staged, and rolled back. A stable CLI-only release
 does not mask that native preview path. The already-published `v0.1.7-preview.7` binary predates the stable-first
-change, but its preview-only path can select the published same-key Preview 8;
+change, but its preview-only path can select the published same-key Preview 9;
 the installed transition still needs a live pilot. Historical
 `v0.1.7-preview.3` still requires one manual migration because it has no
 embedded desktop trust key. Legacy `v0.1.7-preview.6` also requires one manual
 migration because its original project signing key was not recoverable. Current
-`v0.2.0-preview.8` installations already carry the current key and do not need
+`v0.2.0-preview.9` installations already carry the current key and do not need
 that migration.
 
 The source contains the tested user-consented updater that
@@ -185,10 +185,10 @@ working student bootstrap until a maintainer publishes a new signed CLI
 release. This is an intentional security stop, not an installation workaround.
 
 The current native student evaluation path is the exact macOS package listed on
-[`v0.2.0-preview.8` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8):
+[`v0.2.0-preview.9` release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9):
 macOS universal `.dmg`/`.zip`. Existing `v0.1.7-preview.7` devices should be
 piloted through **Help → Check for Updates** before any broad wave; the audit
-Mac discovered Preview 8 but did not install it. Legacy
+Mac discovered Preview 9 but did not install it. Legacy
 `v0.1.7-preview.6` devices need the one-time manual migration described in the
 release notes. Windows `v0.1.7-preview.3` remains available separately; Linux
 is not included in the current native preview.

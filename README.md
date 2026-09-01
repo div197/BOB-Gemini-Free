@@ -40,7 +40,7 @@ gate is tracked in [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDI
 |---|---|
 | **Implemented** | Local routes, protocol adapters, stream retry deduplication, `/healthz`, origin filtering, signed-update verification, native desktop port selection, and aggregate metrics |
 | **Optional provider route** | Web Studio can explicitly use one student-owned Gemini Developer API key for `/v1/chat/completions` and native `/v1beta` generation; this is a separate Google project/quota path, not a quota bypass or key pool |
-| **Native updater status** | The public `v0.2.0-preview.1` bridge, historical Preview 3–7, and current macOS universal `v0.2.0-preview.8` are available. Preview 8 is signed with the checked-in project key, was re-downloaded and byte-reconciled, and passed local coexistence/health smoke. A prior Preview 9 package was built from `1410bc2`, but current `main` `6a5606d` added an artifact-family guard afterward; that package is superseded and must be rebuilt before publication. The transition receipt and historical-version matrix are recorded in [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md). The earlier Preview 1 → Preview 5 installed migration remains the only completed live replacement; the later Preview 5 → Preview 8 install was discovered but canceled. Current previews add explicit Preview → Stable migration. Stable `v0.2.0` remains gated on rollback, clean-device, pilot, provider, and platform-trust acceptance. Older builds with an unrecoverable key still require one manual migration |
+| **Native updater status** | The public `v0.2.0-preview.1` bridge, historical Preview 3–8, and current macOS universal `v0.2.0-preview.9` are available. Preview 9 was built from `main` commit `4236f65`, signed through the owner-controlled macOS Keychain, re-downloaded from GitHub, and byte-reconciled across all five release assets. A public Preview 7 binary was tested live through **Help → Check for Updates** and displayed the Preview 9 consent dialog; installation was canceled, so replacement/restart/rollback remain device gates. The transition receipt and historical-version matrix are recorded in [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md). Current previews add explicit Preview → Stable migration. Stable `v0.2.0` remains gated on rollback, clean-device, pilot, provider, and platform-trust acceptance. Older builds with an unrecoverable key still require one manual migration |
 | **Emulated** | OpenAI/Anthropic/Google tool calling is prompt/Markdown extraction, not native Google function calling; token counts are estimates |
 | **Tested** | Fixture-based payload, auth, parser, stream, thinking, tool, adapter, upload, security, updater, desktop, and local benchmark paths; full Go tests, race tests, vet, and host build pass on the audit host |
 | **Measured** | Local-only benchmark results are recorded in [`LOCAL-BENCHMARK-2026-08-21.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-21.md), [`LOCAL-BENCHMARK-2026-08-25.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-25.md), [`LOCAL-BENCHMARK-2026-08-29.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-29.md), and the current [`LOCAL-BENCHMARK-2026-08-31.md`](docs/engineering/LOCAL-BENCHMARK-2026-08-31.md); they are not Google latency or rate-limit measurements |
@@ -189,7 +189,7 @@ adapter route it uses before classroom or production adoption:
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The historical latest stable GitHub release contains legacy CLI binaries, but it does not currently publish the signed `SHA256SUMS` and `SHA256SUMS.sig` files required by the installers, so the default installer intentionally stops. The public [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8) is the current downloadable universal desktop preview. A prior Preview 9 package was built from `1410bc2`, but it was superseded by current `main` `6a5606d` and must be rebuilt before publication; it is not a public download or updater target. The [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) and earlier previews remain available as historical release inputs. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; rollback, clean-device, pilot, and provider gates remain open. See [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md), [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md), and [`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](docs/engineering/PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md).
+* The historical latest stable GitHub release contains legacy CLI binaries, but it does not currently publish the signed `SHA256SUMS` and `SHA256SUMS.sig` files required by the installers, so the default installer intentionally stops. The public [v0.2.0-preview.9 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9) is the current downloadable universal desktop preview. It was built from `4236f65`, signed through the owner-controlled Keychain, and its five public assets were independently verified and byte-reconciled. The [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) and earlier previews remain available as historical release inputs. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; rollback, clean-device, pilot, and provider gates remain open. See [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md), [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md), and [`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](docs/engineering/PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md).
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
@@ -211,7 +211,7 @@ BOB Gemini Free has a **native desktop application** powered by Go. It bundles t
   manual migration because it predates the embedded trust key. Legacy
   `v0.1.7-preview.6` also needs one manual migration to Preview 7 because the
   original Preview 6 signing key was not recoverable; this is unrelated to the
-  current public `v0.2.0-preview.8` package.
+  current public `v0.2.0-preview.9` package.
   The one-clean-Mac, pilot, and 20–30-device gates are documented in
   [`PREVIEW-ROLLOUT-VALIDATION.md`](docs/engineering/PREVIEW-ROLLOUT-VALIDATION.md).
 
@@ -308,7 +308,7 @@ release (`v0.1.5`) has legacy CLI binaries but no signed release manifest, so
 these installers deliberately fail closed today rather than install an
 unauthenticated binary. Keep this section for the next signed CLI release;
 for the current student desktop path, use the native package explicitly listed
-on the [public Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8). Do not use the unpublished Preview 9 candidate for student installation.
+on the [public Preview 9 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9). Do not use a locally built or unpublished candidate for student installation.
 Native packages are available only when the corresponding artifact is listed
 in the GitHub Release assets.
 Download each script as a local file, inspect it, and then run it. The default
@@ -424,7 +424,7 @@ manifest and the matching Ed25519 public key is configured as
 
 This CLI environment-key path is not the native desktop trust boundary.
 Production native builds must embed their public key at build time. The public
-`v0.2.0-preview.8` carries that key; it still requires explicit user consent
+`v0.2.0-preview.9` carries that key; it still requires explicit user consent
 and does not silently replace the app. Existing Preview 7 builds can discover
 a later same-key preview through their preview-only path after that preview is
 actually published. See

@@ -1,8 +1,8 @@
 # Gemini Developer API Routing and Student Limits
 
 **Status:** implemented in the v0.2 milestone; the current public desktop
-package is macOS `v0.2.0-preview.8`, built from reviewed runtime source target
-`bfa68ff` and verified after public download. Preview 6, Preview 5, and their
+package is macOS `v0.2.0-preview.9`, built from reviewed runtime source target
+`4236f65` and verified after public download. Preview 6, Preview 5, and their
 source baselines remain historical provenance; the current source includes the
 reviewed browser-boundary, credential-input, telemetry, release-version,
 settings, route-control, diagnostics, and desktop-coexistence follow-ups.
