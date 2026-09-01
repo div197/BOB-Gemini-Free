@@ -249,7 +249,7 @@ GitHub की signed release से CLI को एक explicit command में
 ./bob-gemini-free --update
 ```
 
-Public `v0.2.0-preview.5` preview में project update key embedded है। यह
+Public `v0.2.0-preview.8` preview में project update key embedded है। यह
 current same-key controlled preview है और explicit consent मांगता है; stable
 `v0.2.0` अभी pilot testing के बाद ही प्रकाशित होगी। एक writable Preview 1
 installation से Preview 5 तक का replacement इस audit Mac पर प्रमाणित है;
