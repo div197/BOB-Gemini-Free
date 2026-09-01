@@ -412,7 +412,7 @@ manifest and the matching Ed25519 public key is configured as
 
 This CLI environment-key path is not the native desktop trust boundary.
 Production native builds must embed their public key at build time. The public
-`v0.2.0-preview.5` carries that key; it still requires explicit user consent
+`v0.2.0-preview.8` carries that key; it still requires explicit user consent
 and does not silently replace the app. Existing Preview 7 builds can discover
 this same-key preview through their preview-only path. See
 [`docs/engineering/DESKTOP-UPDATE-OPERATIONS.md`](docs/engineering/DESKTOP-UPDATE-OPERATIONS.md).
