@@ -208,7 +208,7 @@ For the current fleet, the honest operator instruction is:
 ```text
 Preview 1–6 or local v0.1.9  → manual install of the current signed preview
 Preview 7                    → same-key preview update after it is published
-Preview 1 / current previews → stable-first update only after stable exists
+Current v0.2 previews       → stable-first update only after stable exists
 Stable                       → stable-only updates
 ```
 
