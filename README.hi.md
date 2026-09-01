@@ -32,15 +32,18 @@
 
 वर्तमान सार्वजनिक macOS previews में immutable `v0.2.0-preview.1` migration
 bridge, historical Preview 3–7 और current controlled preview
-`v0.2.0-preview.8` शामिल हैं। Public `main` में Preview 4 के बाद का
+`v0.2.0-preview.8` उपलब्ध हैं। Public `main` में Preview 4 के बाद का
 artifact-preview, responsive-header, multiline-SSE, credential-boundary,
-route-control और diagnostics सुधार आ चुके हैं। Preview 8 के public bytes और
-signature को फिर से download करके verify किया गया है। Preview 1 → Preview 5
-installed migration का प्रमाण उपलब्ध है; audit Mac पर Preview 5 ने Preview 8
-को खोज लिया था, लेकिन install action cancel किया गया, इसलिए replacement,
-rollback, clean-device, pilot और platform-trust gates अभी खुले हैं।
-Public `main` पर current Preview 8 package `bfa68ff` source target से signed और
-manually प्रकाशित है। Stable `v0.2.0` अभी प्रकाशित नहीं है।
+route-control, diagnostics, native external-link और deterministic
+artifact-focus सुधार आ चुके हैं। Preview 8 के public bytes और signature को
+फिर से download करके verify किया गया है। Preview 9 का local candidate पैकेज
+बनाकर verify किया गया है, पर वह अभी public download या updater target नहीं है।
+Preview 1 → Preview 5 installed migration का प्रमाण उपलब्ध है; बाद के audit
+Mac checks ने Preview 8 को खोज लिया था, लेकिन install action cancel किया गया,
+इसलिए current replacement, rollback, clean-device, pilot और platform-trust
+gates अभी खुले हैं। Stable `v0.2.0` अभी प्रकाशित नहीं है। Historical और local
+version transition matrix [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](docs/engineering/RELEASE-TRANSITION-AUDIT-2026-09-01.md)
+में दी गई है।
 यह दस्तावेज़ सुविधा-सूची है, production या
 unlimited-access प्रमाणपत्र नहीं। मॉडल पहचान, quota, context, vision, Imagen,
 Google session और live compatibility provider पर निर्भर हैं; tool calling और
@@ -209,7 +212,7 @@ docker compose up -d
 ध्यान दें: वर्तमान stable `v0.1.5` CLI release में signed `SHA256SUMS` और
 `SHA256SUMS.sig` manifest नहीं है। इसलिए installer सुरक्षा के लिए binary
 इंस्टॉल करने से पहले रुक जाएगा। वर्तमान native student preview के लिए केवल
-official [Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
+official [public Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
 से सूचीबद्ध macOS package लें।
 
 ```bash

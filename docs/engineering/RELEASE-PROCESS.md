@@ -22,7 +22,7 @@ It does not replace the signed release process below and must not be uploaded
 as a trusted student release without the warning notice.
 
 Preview versioning is explicit and fail-closed. `PREVIEW_VERSION` in the
-Makefile names the next uniquely versioned candidate (`v0.2.0-preview.8` in the
+Makefile names the next uniquely versioned candidate (`v0.2.0-preview.9` in the
 current source), and the `desktop-preview-*` targets pass it as
 `BOB_RELEASE_VERSION`.
 The three preview packagers refuse to guess a version when called directly.
@@ -32,7 +32,9 @@ published tag from a later checkout.
 
 As of the 2026-09-01 follow-up, the earlier `v0.2.0-preview.7` candidate was
 never published and is superseded by the changed source. The current public
-release is `v0.2.0-preview.8`; it was packaged, signed, and verified from the
+release is `v0.2.0-preview.8`; the explicit `v0.2.0-preview.9` value is a
+locally packaged candidate and remains unpublished until the transition and
+installed-device gates are accepted. Preview 8 was packaged, signed, and verified from the
 clean reviewed checkpoint recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md),
 then published manually and re-downloaded for signature, checksum, and
@@ -57,8 +59,10 @@ symlinked file before the directory is uploaded.
 
 The native Help menu's install action is intentionally user-initiated. Stable
 builds check the fixed official stable channel. Newly built current-key preview
-builds check stable first for a one-way Preview → Stable migration, then check
-the fixed official preview channel when no stable update exists. A published
+builds check stable first for a one-way Preview → Stable migration when a
+newer native package exists for the current platform, then check the fixed
+official preview channel when stable has no newer native package. A stable
+CLI-only release therefore cannot mask a newer native preview. A published
 desktop build may also perform one delayed startup metadata check and then one
 per day while running. Both paths verify a signed manifest and offer a
 consented staged replacement with rollback. The already-published Preview 7
@@ -126,6 +130,12 @@ same-key `v0.2.0-preview.8` is the direct preview target; use the published
 Preview 1 bridge only when a device has already selected that intermediate
 step. A current-source preview can then use its stable-first path after stable
 acceptance is complete. No silent install is enabled by the current preview.
+
+The complete historical transition matrix is in
+[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
+In particular, `v0.1.9` is a source/changelog milestone rather than a public
+release, so a local build carrying that stable identity is not promised a
+preview migration.
 
 The non-technical rollout risks and operator checklist are recorded in
 [`DESKTOP-UPDATE-OPERATIONS.md`](DESKTOP-UPDATE-OPERATIONS.md).

@@ -744,6 +744,54 @@ func TestPreviewDesktopBuildChecksPreviewWhenStableHasNoUpdate(t *testing.T) {
 	}
 }
 
+func TestPreviewDesktopBuildSkipsStableCLIOnlyRelease(t *testing.T) {
+	var stableRequests, previewRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/stable":
+			stableRequests++
+			// A stable CLI release may be newer without being a native desktop
+			// replacement for the running Wails application.
+			_ = json.NewEncoder(w).Encode(GitHubRelease{
+				TagName: "v0.2.0",
+				HTMLURL: "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0",
+				Assets: []ReleaseAsset{{
+					Name:               "bob-gemini-free-darwin-arm64",
+					BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-gemini-free-darwin-arm64",
+					Size:               1024,
+				}},
+			})
+		case "/preview":
+			previewRequests++
+			_ = json.NewEncoder(w).Encode([]GitHubRelease{{
+				TagName:    "v0.2.0-preview.9",
+				Prerelease: true,
+				HTMLURL:    "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9",
+				Assets: []ReleaseAsset{
+					{Name: "bob-gemini-free-macos-universal.zip", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.9/bob-gemini-free-macos-universal.zip", Size: 2048},
+					{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.9/SHA256SUMS"},
+					{Name: "SHA256SUMS.sig", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.9/SHA256SUMS.sig"},
+				},
+			}})
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	result, err := checkLatestDesktopPreviewWithStableMigration(server.Client(), server.URL+"/stable", server.URL+"/preview", "v0.2.0-preview.8", "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("checkLatestDesktopPreviewWithStableMigration: %v", err)
+	}
+	if result.LatestVersion != "v0.2.0-preview.9" || result.Channel != DesktopChannelPreview || !result.HasUpdate || !result.AssetAvailable || !result.ManifestAvailable {
+		t.Fatalf("preview result = %#v, want installable preview update", result)
+	}
+	if stableRequests != 1 || previewRequests != 1 {
+		t.Fatalf("requests = stable:%d preview:%d, want one request to each channel", stableRequests, previewRequests)
+	}
+}
+
 func TestPreviewDesktopBuildDoesNotHideStableCheckFailure(t *testing.T) {
 	var previewRequests int
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -770,6 +818,42 @@ func TestPreviewDesktopBuildDoesNotHideStableCheckFailure(t *testing.T) {
 	}
 	if previewRequests != 0 {
 		t.Fatalf("preview requests = %d, want 0 after stable failure", previewRequests)
+	}
+}
+
+func TestStableDesktopBuildNeverFollowsPreviewChannel(t *testing.T) {
+	var stableRequests, previewRequests int
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		switch r.URL.Path {
+		case "/stable":
+			stableRequests++
+			// A local build labelled v0.1.9 is still a stable-channel build.
+			// The public v0.1.9 release does not exist; this fixture locks the
+			// channel rule independently of GitHub's current release inventory.
+			_ = json.NewEncoder(w).Encode(GitHubRelease{
+				TagName: "v0.1.9",
+				HTMLURL: "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.9",
+			})
+		case "/preview":
+			previewRequests++
+			t.Errorf("stable desktop build queried preview channel")
+			http.Error(w, "preview channel must not be queried", http.StatusInternalServerError)
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	defer server.Close()
+
+	result, err := checkLatestDesktopChannel(server.Client(), server.URL+"/stable", "v0.1.9", DesktopChannelStable, "darwin", "arm64")
+	if err != nil {
+		t.Fatalf("stable-channel update check: %v", err)
+	}
+	if result.Channel != DesktopChannelStable || result.LatestVersion != "v0.1.9" || result.HasUpdate {
+		t.Fatalf("stable-channel result = %#v, want no stable update", result)
+	}
+	if stableRequests != 1 || previewRequests != 0 {
+		t.Fatalf("requests = stable:%d preview:%d, want stable:1 preview:0", stableRequests, previewRequests)
 	}
 }
 

@@ -36,7 +36,7 @@ the preview listing. The updater:
   up to five minutes so a classroom restart does not synchronize every
   metadata request;
 - selects the newer stable package, or the highest published `preview.N`
-  package when no stable update exists, for the current platform;
+  package when no newer stable native package exists for the current platform;
 - verifies the embedded Ed25519 public key, `SHA256SUMS`, signature, asset name,
   size, and package contents;
 - stages beside the installed application and restarts through the tested
@@ -108,7 +108,7 @@ Do not open 30 live generations at once. Use this order:
 - for the existing public `v0.1.7-preview.7` path, check the published
   same-key Preview 8 candidate (or the published Preview 1 bridge only if that
   intermediate step was selected), then check stable from that bridge (and
-  separately verify a later preview when no stable update exists);
+  separately verify a later preview when no newer stable native package exists);
 - verify that an intentionally failed candidate leaves the original app,
   cookies, preferences, and chat history usable.
 

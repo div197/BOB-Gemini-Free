@@ -68,10 +68,11 @@ func CheckLatestDesktop(currentVersion string) (*DesktopCheckResult, error) {
 // CheckLatestDesktopForChannel checks only fixed official release channels
 // selected by the build. Stable builds use GitHub's latest-release endpoint.
 // Preview builds first check that same stable endpoint so a preview install can
-// make the intentional one-way migration to a newer stable release; when no
-// stable update exists, they use the published prerelease list and select the
-// highest semver tag whose prerelease identifier is preview.N. The channel is a
-// build property, never a runtime URL or user-controlled setting.
+// make the intentional one-way migration to a newer stable native package; if
+// the stable release is CLI-only for this platform, they continue to the
+// published prerelease list and select the highest semver tag whose
+// prerelease identifier is preview.N. The channel is a build property, never a
+// runtime URL or user-controlled setting.
 func CheckLatestDesktopForChannel(currentVersion, channel string) (*DesktopCheckResult, error) {
 	return CheckLatestDesktopForChannelContext(context.Background(), currentVersion, channel)
 }
@@ -95,10 +96,12 @@ func CheckLatestDesktopForChannelContext(ctx context.Context, currentVersion, ch
 }
 
 // checkLatestDesktopPreviewWithStableMigration keeps the two channels
-// explicit: a preview app may move forward into stable, but a stable app never
-// moves backwards into preview. A failed stable check is not hidden by a
-// preview result because doing so would make the update UI report an
-// incomplete view of the official release channels.
+// explicit: a preview app may move forward into a newer stable native package,
+// but a stable app never moves backwards into preview. A stable CLI-only
+// release is not a native desktop migration target, so it must not mask a
+// newer native preview. A failed stable check is not hidden by a preview
+// result because doing so would make the update UI report an incomplete view
+// of the official release channels.
 func checkLatestDesktopPreviewWithStableMigration(client *http.Client, stableURL, previewURL, currentVersion, targetOS, targetArch string) (*DesktopCheckResult, error) {
 	return checkLatestDesktopPreviewWithStableMigrationContext(context.Background(), client, stableURL, previewURL, currentVersion, targetOS, targetArch)
 }
@@ -108,7 +111,7 @@ func checkLatestDesktopPreviewWithStableMigrationContext(ctx context.Context, cl
 	if err != nil {
 		return nil, fmt.Errorf("stable desktop update check failed: %w", err)
 	}
-	if stable.HasUpdate {
+	if stable.HasUpdate && stable.AssetAvailable {
 		return stable, nil
 	}
 	return checkLatestDesktopChannelContext(ctx, client, previewURL, currentVersion, DesktopChannelPreview, targetOS, targetArch)

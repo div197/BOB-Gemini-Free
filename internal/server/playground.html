@@ -4675,7 +4675,7 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
           installer intentionally stops instead of installing an unauthenticated
           binary. This browser studio does not install a native app.
         </div>
-        <div style="margin-top:8px; color:var(--text-muted);">Use the exact native package listed for your platform. The current public native package is the macOS Preview 8 beta; Windows and Linux native packages still require their own release and acceptance evidence.</div>
+        <div style="margin-top:8px; color:var(--text-muted);">Use the exact native package listed for your platform. The current public native package is the macOS Preview 8 beta; Windows and Linux native packages still require their own release and acceptance evidence. Do not install an unpublished candidate.</div>
       </div>
 
       <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.45; margin-top:8px;">
@@ -9007,7 +9007,7 @@ function showLocalOnboardingModal() {
 
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 0.25rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem; overflow-wrap: anywhere; word-break: break-word; overflow: auto;">
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Current native package</span>
-          <span style="color: #10b981; display: block; line-height: 1.45;">Use the exact package listed on the official GitHub Releases page. The current public native package is the macOS Preview 8 beta.</span>
+          <span style="color: #10b981; display: block; line-height: 1.45;">Use the exact package listed on the official GitHub Releases page. The current public native package is the macOS Preview 8 beta. Do not install an unpublished candidate.</span>
           <br>
           <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI installer status</span>
           <span style="color: var(--text-muted); display: block; line-height: 1.45;">The historical stable CLI release has no signed <code>SHA256SUMS</code>/<code>SHA256SUMS.sig</code> pair, so <code>install.sh</code> and <code>install.ps1</code> fail closed until a signed CLI release is published. This hosted page cannot install a native app automatically.</span>
