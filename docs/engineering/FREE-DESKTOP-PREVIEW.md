@@ -1,12 +1,13 @@
 # Free Native Desktop Beta
 
 **Status:** branded public macOS preview `v0.2.0-preview.8` is the current
-controlled candidate; Preview 6 and earlier remain historical, the published
+controlled package; Preview 7 and earlier remain historical, the published
 `v0.2.0-preview.1` migration bridge remains available, and
-`v0.1.7-preview.7` remains the existing fleet baseline. Preview 8 was packaged,
-signed, published manually, and re-downloaded for exact signature, checksum,
-and byte verification; the earlier Preview 7 candidate was superseded before
-publication.
+`v0.1.7-preview.7` remains the existing fleet baseline. Preview 9 is a local,
+signed candidate only; it has not been published or made discoverable by the
+updater. The installed-lineage rules and the `v0.1.9` source-milestone
+boundary are recorded in
+[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
 desktop product. It creates a real branded native application and packages it
@@ -30,9 +31,11 @@ student-facing release names are BOB Gemini Free.
 - a native Help menu with an explicit “Check for Updates” action.
 
 The update action checks fixed official GitHub channels only when the user
-selects it. A newly built preview first checks for a newer stable release so it
-can make an explicit Preview → Stable migration; if none exists, it checks the
-preview channel. The already-published Preview 7 binary predates that
+selects it. A newly built preview first checks for a newer stable native
+package so it can make an explicit Preview → Stable migration; when no newer
+native package exists for the current platform, it checks the preview channel.
+A stable CLI-only release cannot mask that native preview path. The
+already-published Preview 7 binary predates that
 stable-first behavior and can reach stable through the updater only after a
 same-key bridge preview, or through a manual stable install. It never silently
 downloads or replaces an application. A newer signed candidate requires
@@ -51,11 +54,11 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 The current [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8)
 contains the universal macOS package shape and current-key signed manifest.
-It was built from reviewed runtime source target `bfa68ff`, passed fresh local
-package, signature, secure-key transport, settings-route, and old-gateway
-coexistence checks, and was re-downloaded and byte-verified after publication.
-Existing Preview 7 users can discover Preview 8 directly through their
-preview-only lookup. The published
+Its public bytes were re-downloaded and byte-verified. A separate Preview 9
+candidate passed local package, signature, secure-key transport, settings-route,
+and old-gateway coexistence checks, but it remains unpublished and cannot yet
+be discovered by any installed updater. Existing Preview 7 users can discover
+a newer same-key preview directly once that release is actually published. The published
 [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
 
@@ -70,7 +73,7 @@ Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
 legacy `v0.1.7-preview.6` installations require a one-time manual migration
 because their older project signing key cannot verify Preview 7. This is
-separate from the published `v0.2.0-preview.8` package. Windows and Linux require
+separate from the public `v0.2.0-preview.8` package. Windows and Linux require
 their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
@@ -95,8 +98,8 @@ From macOS:
 make desktop-preview-mac
 ```
 
-In the current source this command defaults to the explicit next candidate
-`v0.2.0-preview.8`; that exact candidate is now the published public preview.
+In the current source this command defaults to the explicit local candidate
+`v0.2.0-preview.9`; that exact candidate is not yet a public preview release.
 The signed `v0.2.0-preview.1` migration bridge is
 already public. Set `BOB_RELEASE_VERSION` explicitly for every publication;
 the already-published `v0.1.7-preview.7` package remains the historical public

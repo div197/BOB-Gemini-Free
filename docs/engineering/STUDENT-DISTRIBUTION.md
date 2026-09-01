@@ -4,6 +4,10 @@
 published; production trust, Linux acceptance, installed replacement, and
 broad student rollout remain pending.
 
+The exact installed-version transition matrix, including the unpublished
+`v0.1.9` source milestone and legacy trust-key boundaries, is in
+[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
+
 This document separates the working native application shown in the local
 screenshots from a product release that students can download and trust.
 
@@ -113,9 +117,10 @@ documented pilot path.
 
 The current Preview 8 is a public native preview with a signed, build-pinned
 update channel. A newly built current-key preview can discover a newer stable
-release from the Help menu and migrate after user consent; when stable has no
-update, a newer signed preview can be discovered, verified, staged, and rolled
-back. The already-published `v0.1.7-preview.7` binary predates the stable-first
+native package from the Help menu and migrate after user consent; when stable
+has no newer native package for the current platform, a newer signed preview
+can be discovered, verified, staged, and rolled back. A stable CLI-only release
+does not mask that native preview path. The already-published `v0.1.7-preview.7` binary predates the stable-first
 change, but its preview-only path can select the published same-key Preview 8;
 the installed transition still needs a live pilot. Historical
 `v0.1.7-preview.3` still requires one manual migration because it has no

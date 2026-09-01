@@ -26,9 +26,11 @@ Build a user-consented, transaction-based native updater in these stages:
 1. **Discover:** query only the fixed official GitHub repository and select a
    platform-matching release from the build's channel policy. Stable builds use
    the stable channel only. Preview builds check stable first to permit an
-   intentional one-way migration into a newer stable release, then check the
-   bounded preview channel only when no stable update exists; they never treat a
-   prerelease as stable or silently switch channels.
+   intentional one-way migration into a newer stable native package, then
+   check the bounded preview channel when no newer native package exists for
+   the current platform. A stable CLI-only release must not mask a native
+   preview; the updater never treats a prerelease as stable or silently
+   switches channels.
 2. **Authorize:** show the release, version, channel, and package type to the
    user. No package download or replacement occurs until the user confirms.
 3. **Verify:** download the exact desktop archive/executable, `SHA256SUMS`,

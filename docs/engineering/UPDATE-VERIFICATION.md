@@ -63,6 +63,12 @@ The updater rejects a GitHub asset whose declared size exceeds
 `MaxUpdateArtifactBytes` (512 MiB), and the streaming download has the same
 bound even when a server omits or lies about `Content-Length`.
 
+For a native preview, a newer stable release is actionable only when the
+release contains a matching native package for the current platform. A
+stable CLI-only release is intentionally skipped in favor of the newer
+native preview list; this keeps the CLI and Wails artifact families from being
+treated as interchangeable.
+
 ## Embedded Studio status-check boundary
 
 The `GET /v1/update/check` status route is metadata-only and now carries the
@@ -70,9 +76,12 @@ owning build's channel into `CheckLatestDesktopForChannelContext`. `server.New`
 keeps the stable channel for CLI and embedded-library callers; the native
 desktop constructor uses `NewWithUpdateChannel` with its build-pinned Wails
 channel. A preview build therefore observes the same stable-first/preview
-continuation policy as **Help → Check for Updates**, while a development build
-is rejected before any GitHub request. The endpoint's JSON remains additive and
-includes `channel`, package availability, and signed-manifest availability.
+continuation policy as **Help → Check for Updates**: a newer stable release is
+a migration target only when it contains a native package for the current
+platform, so a stable CLI-only release cannot hide a newer native preview. A
+development build is rejected before any GitHub request. The endpoint's JSON
+remains additive and includes `channel`, package availability, and
+signed-manifest availability.
 
 This is discovery only. The browser status badge never downloads or installs a
 package, and a native Wails user must still explicitly choose installation in

@@ -2,8 +2,11 @@
 
 **Date:** 2026-09-01 (Asia/Kolkata)
 **Status:** locally packaged and verified; public publication remains pending
-**Source candidate:** `3518c24` plus the release documentation state recorded
-  with this candidate
+**Source candidate:** public `main` merge commit `1410bc2`
+
+The earlier `3518c24` commit only advanced the next candidate number. The
+package receipt below was refreshed from the final merged source so the
+candidate cannot be confused with an earlier pre-merge build.
 
 This receipt covers the focused reliability work after Preview 8. It does not
 turn an ad-hoc macOS package into a Developer ID/notarized release, and it does
@@ -32,8 +35,8 @@ not claim that every generated HTML application is correct.
 The exact local candidate was staged at:
 
 ```text
-/tmp/bob-gemini-free-preview9-20260901
-/tmp/bob-gemini-free-preview9-20260901.app
+/tmp/bob-gemini-free-preview9-20260901-main-1410bc2
+/tmp/bob-gemini-free-preview9-20260901-main-1410bc2.app
 ```
 
 | Gate | Result |
@@ -64,6 +67,21 @@ and served its own loopback endpoint at `127.0.0.1:51024`.
 | `/playground?desktop_shell=1` headers | PASS; no X-Frame-Options and Wails-only `frame-ancestors` CSP |
 | Packaged bridge markers | PASS; native browser bridge, exact-origin message validation, and artifact diagnostics are embedded |
 | Existing installed app | PRESERVED; it was not stopped, replaced, or modified |
+
+The final merged candidate asset digests were recorded before any possible
+publication:
+
+```text
+RELEASE-NOTICE.txt                    52fbe5623355bcc5a6349ea0c94b351b98441c045549dd0f4bae0deaeaad60c9
+SHA256SUMS                            db8a0387452ea1962b3ea16bdd2cc90a2922326b4607af74447628adfdd3c9af
+SHA256SUMS.sig                        f91fb898b3a573f4984b961e6686d327294ecb445155ae3fb5bb8f74b50f122a
+bob-gemini-free-macos-universal.dmg  a7c02a22de210e0f85d3138c40a1ef3f16df7dc4b425647aa80d0ccda08e7d7f
+bob-gemini-free-macos-universal.zip  f43ea08414f21499af187557b2facfa8cc14d0f1e5aaea32985553f3bc3dc278
+```
+
+These are local candidate hashes, not public-release hashes. They must be
+recomputed from a clean release directory after publication and reconciled
+against GitHub before any student-facing announcement.
 
 ## Headless browser smoke
 
@@ -113,3 +131,7 @@ The following remain deliberately open before calling this a stable or
 
 Preview 9 is suitable only as an explicitly labelled controlled macOS beta
 until those gates are closed. No silent classroom-wide update is enabled.
+
+The installed-version transition rules, including the special case of local
+or historical `v0.1.9` builds, are recorded in
+[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).

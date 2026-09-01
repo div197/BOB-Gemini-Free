@@ -22,6 +22,12 @@ A writable Preview 1 installation was previously updated to Preview 5 on one
 audit Mac; Preview 8 installed-base transition remains open.
 Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
+The current installed-lineage and channel-transition matrix is maintained in
+[`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
+It records why Preview 7 can move to a later same-key preview, why obsolete
+key lineages need one manual migration, and why a local stable-labelled
+`v0.1.9` build must not be redirected into the preview channel.
+
 This document is the operator and product boundary for the native updater. An
 updater can be correct in source and still be unsafe to announce if the
 release key, platform signatures, artifact list, or clean-device evidence is

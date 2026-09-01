@@ -47,6 +47,12 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Removes unavailable CLI commands from the hosted local-engine onboarding
   modal and keeps the native Preview 8 release page as the current student
   desktop path.
+- Adds the 2026-09-01 installed-lineage transition audit, documenting the
+  current-key Preview 7 path, obsolete-key manual migrations, the absence of
+  a public `v0.1.9` release, and the stable-only boundary for stable-labelled
+  builds. A regression test prevents a stable build from querying previews,
+  and a second guard prevents a stable CLI-only release from masking a newer
+  native preview for desktop users.
 
 ### Desktop and artifact reliability
 
