@@ -189,7 +189,7 @@ adapter route it uses before classroom or production adoption:
 ### Option 0: The Native Desktop App (Recommended)
 BOB Gemini Free has a **native desktop application** powered by Go. It bundles the studio and gateway, probes for an existing compatible local gateway, selects a safe loopback port when needed, and hands the actual endpoint to the frontend.
 * A locally built packaged app opens without Go, Node, Rust, SQLite, or a separate server.
-* The latest stable GitHub release contains CLI binaries. The public [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8) is the current downloadable universal preview, built from reviewed runtime source target `bfa68ff`; Preview 6 and earlier are historical inputs. Public `main` contains the post-Preview-5 settings, telemetry, release-version, version-aware desktop coexistence, release-state reconciliation, secure gateway-key transport guard, responsive phone-boundary fix, request-flight identity fix, settings clarity pass, and bounded diagnostics lifecycle. Preview 8 was signed, verified, coexistence-smoke-tested locally, published manually, and re-downloaded for exact byte verification. The [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) and earlier previews remain available as historical release inputs. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; rollback, clean-device, pilot, and provider gates remain open. See [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md), [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](docs/engineering/PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md), and the [`Preview 8 release receipt`](docs/engineering/PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
+* The historical latest stable GitHub release contains legacy CLI binaries, but it does not currently publish the signed `SHA256SUMS` and `SHA256SUMS.sig` files required by the installers, so the default installer intentionally stops. The public [v0.2.0-preview.8 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8) is the current downloadable universal desktop preview, built from reviewed runtime source target `bfa68ff`; Preview 6 and earlier are historical inputs. Public `main` contains the post-Preview-5 settings, telemetry, release-version, version-aware desktop coexistence, release-state reconciliation, secure gateway-key transport guard, responsive phone-boundary fix, request-flight identity fix, settings clarity pass, and bounded diagnostics lifecycle. Preview 8 was signed, verified, coexistence-smoke-tested locally, published manually, and re-downloaded for exact byte verification. The [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1) and earlier previews remain available as historical release inputs. It is an authentic open-source beta, platform trust is not yet established, and Windows/Linux remain separate preview targets. Stable `v0.2.0` is not yet published; rollback, clean-device, pilot, and provider gates remain open. See [`RELEASE-AUDIT-2026-08-31.md`](docs/engineering/RELEASE-AUDIT-2026-08-31.md), [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](docs/engineering/PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md), and the [`Preview 8 release receipt`](docs/engineering/PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md).
 * For a free macOS evaluation package, run `make desktop-preview-mac`; it is ad-hoc signed and explicitly not notarized or production-ready.
 * Build the native app with `make desktop` or follow the platform matrix in [`docs/engineering/STUDENT-DISTRIBUTION.md`](docs/engineering/STUDENT-DISTRIBUTION.md).
 * Anonymous upstream access may be available, but authenticated Google features remain account/session-dependent. Never distribute one shared student cookie.
@@ -301,9 +301,14 @@ the page-memory keys are still cleared on page unload and are never persisted.
 ### Option 1: CLI Installer (No Go Required)
 
 These scripts install the standalone CLI gateway and open the browser studio.
-They are the currently published, same-day path; they do **not** install the
-native desktop application. Native desktop packages are only available
-when the corresponding artifact is listed in the GitHub Release assets.
+They do **not** install the native desktop application. The current stable
+release (`v0.1.5`) has legacy CLI binaries but no signed release manifest, so
+these installers deliberately fail closed today rather than install an
+unauthenticated binary. Keep this section for the next signed CLI release;
+for the current student desktop path, use the native package explicitly listed
+on the [Preview 8 release page](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.8).
+Native packages are available only when the corresponding artifact is listed
+in the GitHub Release assets.
 Download each script as a local file, inspect it, and then run it. The default
 installer verifies the signed release manifest, refuses an unsigned binary,
 and never compiles an arbitrary current directory.

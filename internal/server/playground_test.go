@@ -35,6 +35,31 @@ func TestHostedStudioDoesNotProbeLoopbackOnStartup(t *testing.T) {
 	}
 }
 
+func TestHostedOnboardingDoesNotAdvertiseUnavailableCLIInstaller(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		"Choose a verified local path:",
+		"The current native student preview is available from the official",
+		"installer intentionally stops instead of installing an unauthenticated",
+		"Current native package",
+		"CLI installer status",
+		"fail closed until a signed CLI release is published",
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("hosted onboarding is missing current distribution marker %q", marker)
+		}
+	}
+	for _, forbidden := range []string{
+		"Start the CLI engine locally:",
+		"These commands install the standalone CLI and browser studio.",
+		"less install.sh &amp;&amp; bash install.sh",
+	} {
+		if strings.Contains(html, forbidden) {
+			t.Fatalf("hosted onboarding still advertises unavailable CLI installer copy %q", forbidden)
+		}
+	}
+}
+
 func TestGatewayAuthKeyIsSessionOnly(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

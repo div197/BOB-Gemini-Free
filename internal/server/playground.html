@@ -4647,21 +4647,16 @@ tr:hover td { background: rgba(255, 255, 255, 0.03); }
       </div>
 
       <div class="legal-notice-box" style="margin-top:12px;">
-        <strong>🚀 Start the CLI engine locally:</strong>
+        <strong>🚀 Choose a verified local path:</strong>
         <div style="margin-top:6px; line-height:1.45;">
-          These commands install the standalone CLI and browser studio. They do
-          not download the native Wails app; use <b>View Releases</b> only when
-          a native package is explicitly listed there.
+          The current native student preview is available from the official
+          <b>GitHub Releases</b> page. The historical stable CLI release does
+          not publish the signed <code>SHA256SUMS</code> and
+          <code>SHA256SUMS.sig</code> pair required by the installer, so the
+          installer intentionally stops instead of installing an unauthenticated
+          binary. This browser studio does not install a native app.
         </div>
-        <div class="gateway-command-row" style="margin-top:8px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</span>
-          <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand(&quot;curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh&quot;)" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy</button>
-        </div>
-        <div class="gateway-command-row" style="margin-top:6px; font-family:var(--font-mono); font-size:0.75rem; background:rgba(0,0,0,0.15); padding:8px 10px; border-radius:6px; display:flex; justify-content:space-between; align-items:center; gap:8px;">
-          <span style="overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1</span>
-          <button type="button" class="btn-pill-subtle" onclick="copyLaunchCommand('curl.exe --fail --location --proto &quot;=https&quot; --proto-redir &quot;=https&quot; -o install.ps1 https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.ps1')" style="padding:2px 8px; font-size:0.68rem; flex-shrink:0;">Copy (Win)</button>
-        </div>
-        <div style="margin-top:6px; color:var(--text-muted);">Inspect the downloaded file, then run <code>bash install.sh</code> on macOS/Linux or <code>.\install.ps1</code> on Windows.</div>
+        <div style="margin-top:8px; color:var(--text-muted);">Use the exact native package listed for your platform. The current public native package is the macOS Preview 8 beta; Windows and Linux native packages still require their own release and acceptance evidence.</div>
       </div>
 
       <div style="font-size:0.75rem; color:var(--text-muted); line-height:1.45; margin-top:8px;">
@@ -8984,16 +8979,11 @@ function showLocalOnboardingModal() {
         </p>
 
         <div style="background: var(--bg-input); padding: 1.25rem; border-radius: 8px; margin: 0.25rem 0; border: 1px solid var(--border-color); font-family: var(--font-mono); font-size: 0.9rem; overflow-wrap: anywhere; word-break: break-word; overflow: auto;">
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI engine (macOS / Linux)</span>
-          <code style="color: #10b981; user-select: all; overflow-wrap: anywhere;">curl --fail --location --proto '=https' --proto-redir '=https' -o install.sh https://raw.githubusercontent.com/div197/BOB-Gemini-Free/main/install.sh</code>
-          <br><br>
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Inspect, then run the local installer</span>
-          <code style="color: #10b981; user-select: all; overflow-wrap: anywhere;">less install.sh &amp;&amp; bash install.sh</code>
-          <br><br>
-          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Start the installed CLI engine</span>
-          <code style="color: #3b82f6; user-select: all; overflow-wrap: anywhere;">bob-gemini-free --port 9610</code>
-          <br><br>
-          <span style="color: var(--text-muted); display: block; line-height: 1.45;">Use the exact path printed by the installer. From a source checkout, use <code>./bob-gemini-free --port 9610</code> instead.</span>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">Current native package</span>
+          <span style="color: #10b981; display: block; line-height: 1.45;">Use the exact package listed on the official GitHub Releases page. The current public native package is the macOS Preview 8 beta.</span>
+          <br>
+          <span style="color: #94a3b8; display: block; margin-bottom: 0.5rem; font-size: 0.8rem; text-transform: uppercase; font-weight: bold;">CLI installer status</span>
+          <span style="color: var(--text-muted); display: block; line-height: 1.45;">The historical stable CLI release has no signed <code>SHA256SUMS</code>/<code>SHA256SUMS.sig</code> pair, so <code>install.sh</code> and <code>install.ps1</code> fail closed until a signed CLI release is published. This hosted page cannot install a native app automatically.</span>
         </div>
 
         <div class="about-actions" style="margin-top: 0.25rem;">
