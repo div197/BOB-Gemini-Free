@@ -117,7 +117,14 @@ func (a *App) checkDesktopUpdate(ctx context.Context, automatic bool) {
 		return
 	}
 
-	update, err := updater.CheckLatestDesktopForChannelContext(ctx, desktopVersion, desktopChannel)
+	check := updater.CheckLatestDesktopForChannelContext
+	if !automatic {
+		// An explicit Help action is a freshness request. Background discovery
+		// may use the signed low-volume feed, but a user asking now should query
+		// the official release metadata directly.
+		check = updater.CheckLatestDesktopForChannelFreshContext
+	}
+	update, err := check(ctx, desktopVersion, desktopChannel)
 	if err != nil {
 		if automatic {
 			log.Printf("automatic desktop update check skipped: %v", err)

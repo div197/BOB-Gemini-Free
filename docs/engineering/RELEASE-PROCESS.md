@@ -71,6 +71,23 @@ or a manual stable install before updater-based migration to stable. The
 updater never silently downloads, replaces, or restarts a running native
 bundle.
 
+Current-source desktop builds also try the fixed, detached-signed
+`updates/desktop-feed.json` discovery document before the GitHub REST API. The
+feed is deliberately small and signed with the same project Ed25519 key, so a
+30-device startup burst uses two raw-CDN metadata requests per device rather
+than one or two unauthenticated GitHub API calls against the shared API quota.
+It contains metadata only; package installation still downloads the exact
+GitHub release archive and verifies `SHA256SUMS` plus `SHA256SUMS.sig`. If the
+feed is missing, expired, malformed, or unavailable, the fixed API path
+remains the compatibility fallback. This feed behavior is present only in
+builds produced from the current source; it is not retrofitted into
+already-published Preview 7–9 binaries.
+
+The explicit native **Help → Check for Updates** action bypasses the feed and
+performs a fresh official API check. The feed is for quiet background discovery
+and startup availability; a manual request must report the current public
+release inventory or explain that the network/API check could not complete.
+
 The standalone installers use the same fixed public key and fail closed unless
 they can verify the detached Ed25519 signature and exact SHA-256 entry. The
 default path never compiles the current directory and never installs an
@@ -196,7 +213,18 @@ commit it, put it in a shell command, or print it in a terminal transcript.
 7. Download the exact published assets into a fresh directory and rerun
    `scripts/verify-release-assets.sh` with the embedded public key. Compare the
    release tag, app version, channel, and release notice manually.
-8. Verify the published asset names and manifest entries from a clean machine
+8. Refresh `updates/desktop-feed.json` so it names only reconciled public
+   releases, then sign it locally without exporting the private key:
+
+   ```bash
+   BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY=... \
+   scripts/sign-update-feed.sh updates/desktop-feed.json
+   ```
+
+   Inspect the signed feed diff, run the updater tests, and commit the feed
+   with its `.sig` file. The feed is an availability layer; never use it to
+   skip the release manifest verification.
+9. Verify the published asset names and manifest entries from a clean machine
    before announcing the release. Never replace the developer's running
    executable as a test.
 
