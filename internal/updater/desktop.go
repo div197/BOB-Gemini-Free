@@ -218,7 +218,11 @@ func desktopCheckResultFromRelease(release *GitHubRelease, currentVersion, chann
 			releaseURL = DesktopPreviewReleaseURL
 		}
 	}
-	if !isOfficialGitHubURL(releaseURL) {
+	if release.HTMLURL != "" {
+		if !isOfficialGitHubReleasePageURL(releaseURL, latestVersion) {
+			return nil, fmt.Errorf("desktop release contains a non-official or mismatched release URL; refusing to offer it")
+		}
+	} else if !isOfficialGitHubURL(releaseURL) {
 		return nil, fmt.Errorf("desktop release contains a non-official release URL; refusing to offer it")
 	}
 	result := &DesktopCheckResult{
@@ -229,8 +233,8 @@ func desktopCheckResultFromRelease(release *GitHubRelease, currentVersion, chann
 		Channel:        channel,
 	}
 	if asset != nil {
-		if asset.BrowserDownloadURL == "" || !isOfficialGitHubURL(asset.BrowserDownloadURL) {
-			return nil, fmt.Errorf("desktop release asset %q has a non-official download URL; refusing to offer it", asset.Name)
+		if asset.BrowserDownloadURL == "" || !isOfficialGitHubReleaseAssetURL(asset.BrowserDownloadURL, latestVersion, asset.Name) {
+			return nil, fmt.Errorf("desktop release asset %q has a non-official or mismatched download URL; refusing to offer it", asset.Name)
 		}
 		result.AssetAvailable = true
 		result.AssetName = asset.Name
@@ -240,8 +244,9 @@ func desktopCheckResultFromRelease(release *GitHubRelease, currentVersion, chann
 	checksumAsset := findAssetByName(release.Assets, "SHA256SUMS")
 	signatureAsset := findAssetByName(release.Assets, "SHA256SUMS.sig")
 	if checksumAsset != nil && signatureAsset != nil {
-		if !isOfficialGitHubURL(checksumAsset.BrowserDownloadURL) || !isOfficialGitHubURL(signatureAsset.BrowserDownloadURL) {
-			return nil, fmt.Errorf("desktop release manifest URLs are not official GitHub downloads; refusing to offer automatic installation")
+		if !isOfficialGitHubReleaseAssetURL(checksumAsset.BrowserDownloadURL, latestVersion, checksumAsset.Name) ||
+			!isOfficialGitHubReleaseAssetURL(signatureAsset.BrowserDownloadURL, latestVersion, signatureAsset.Name) {
+			return nil, fmt.Errorf("desktop release manifest URLs are not official or mismatched GitHub downloads; refusing to offer automatic installation")
 		}
 		result.ChecksumURL = checksumAsset.BrowserDownloadURL
 		result.SignatureURL = signatureAsset.BrowserDownloadURL
@@ -297,6 +302,77 @@ func isOfficialGitHubURL(raw string) bool {
 	return len(segments) >= 2 &&
 		strings.EqualFold(segments[0], officialGitHubOwner) &&
 		strings.EqualFold(segments[1], officialGitHubRepository)
+}
+
+// isOfficialGitHubReleasePageURL binds a release page returned by metadata to
+// the exact tag being considered. A repository-scoped URL alone is not enough:
+// a compromised or malformed metadata response could otherwise point the user
+// at a different release while the UI displays the selected tag.
+func isOfficialGitHubReleasePageURL(raw, tag string) bool {
+	parsed, segments, ok := officialGitHubRepositoryPath(raw)
+	if !ok || !strings.EqualFold(parsed.Hostname(), "github.com") {
+		return false
+	}
+	return len(segments) == 5 &&
+		strings.EqualFold(segments[2], "releases") &&
+		strings.EqualFold(segments[3], "tag") &&
+		segments[4] == tag
+}
+
+// isOfficialGitHubReleaseAssetURL binds canonical github.com download URLs to
+// both the exact release tag and the exact asset name. GitHub may redirect a
+// browser download to its official opaque CDN; those CDN paths cannot carry a
+// stable tag/name path, so they remain allowed only as official GitHub CDN
+// hosts. The signed SHA256SUMS manifest is still required before installation.
+func isOfficialGitHubReleaseAssetURL(raw, tag, assetName string) bool {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme != "https" || parsed.User != nil || parsed.Fragment != "" {
+		return false
+	}
+	if parsed.Port() != "" && parsed.Port() != "443" {
+		return false
+	}
+	switch strings.ToLower(parsed.Hostname()) {
+	case "objects.githubusercontent.com", "release-assets.githubusercontent.com":
+		return true
+	case "github.com":
+		_, segments, ok := officialGitHubRepositoryPath(raw)
+		return ok && len(segments) == 6 &&
+			strings.EqualFold(segments[2], "releases") &&
+			strings.EqualFold(segments[3], "download") &&
+			segments[4] == tag &&
+			segments[5] == assetName
+	default:
+		return false
+	}
+}
+
+func officialGitHubRepositoryPath(raw string) (*url.URL, []string, bool) {
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme != "https" || parsed.User != nil || parsed.Fragment != "" {
+		return nil, nil, false
+	}
+	if parsed.Port() != "" && parsed.Port() != "443" {
+		return nil, nil, false
+	}
+	if !strings.EqualFold(parsed.Hostname(), "github.com") {
+		return nil, nil, false
+	}
+	escaped := strings.Split(strings.Trim(parsed.EscapedPath(), "/"), "/")
+	segments := make([]string, len(escaped))
+	for index, segment := range escaped {
+		decoded, err := url.PathUnescape(segment)
+		if err != nil {
+			return nil, nil, false
+		}
+		segments[index] = decoded
+	}
+	if len(segments) < 2 ||
+		!strings.EqualFold(segments[0], officialGitHubOwner) ||
+		!strings.EqualFold(segments[1], officialGitHubRepository) {
+		return nil, nil, false
+	}
+	return parsed, segments, true
 }
 
 func isOfficialGitHubAPIURL(raw string) bool {
