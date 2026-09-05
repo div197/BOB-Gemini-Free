@@ -197,6 +197,26 @@ exact public Preview 7 app discovered Preview 9 through **Help → Check for
 Updates**; the install action was canceled, so replacement remains an open
 device gate.
 
+## Signed discovery feed — 2026-09-05
+
+The current source adds `updates/desktop-feed.json` and its detached
+`updates/desktop-feed.json.sig` as a low-volume discovery layer. The feed is
+signed with the same project Ed25519 key used for release manifests, has a
+bounded validity window, and is pinned to the exact raw-content paths in
+`internal/updater/update_feed.go`. It contains release metadata only; the
+native archive and its signed `SHA256SUMS` manifest remain the installation
+trust boundary.
+
+`internal/updater/update_feed_test.go` verifies valid-feed selection without a
+GitHub API request, signature/tamper rejection with API fallback, explicit
+fresh-check bypass, expiry/validity limits, exact URL pinning, and the
+checked-in feed signature against the documented public key. The feed is not
+retroactive: public Preview 7–9 binaries retain their compiled API discovery
+path. A future native build must refresh and sign the feed after public asset
+reconciliation; if the feed is stale or unavailable, the source falls back to
+the fixed GitHub API path. This improves discovery availability and request
+spreading; it does not create silent installation or fleet control.
+
 ## Preview 2 publication evidence — 2026-08-31
 
 The controlled macOS `v0.2.0-preview.2` release is now published from public

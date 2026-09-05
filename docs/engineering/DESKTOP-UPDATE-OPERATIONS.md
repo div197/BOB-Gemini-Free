@@ -1,7 +1,8 @@
 # Desktop Update Operations and Rollout Contract
 
-**Status:** Preview 9 enables a signed, user-consented macOS preview updater;
-the public app remains ad-hoc signed and not Apple-notarized.
+**Status:** Current source adds a signed discovery feed to the existing
+user-consented updater; the public Preview 9 app remains ad-hoc signed and not
+Apple-notarized.
 
 The current release audit is in
 [`RELEASE-AUDIT-2026-08-31.md`](RELEASE-AUDIT-2026-08-31.md). The published
@@ -33,6 +34,27 @@ This document is the operator and product boundary for the native updater. An
 updater can be correct in source and still be unsafe to announce if the
 release key, platform signatures, artifact list, or clean-device evidence is
 missing.
+
+## Discovery availability layer
+
+The current source first requests the exact raw-content URLs
+`DesktopUpdateFeedURL` and `DesktopUpdateFeedSignatureURL`. The JSON feed is
+signed with the project Ed25519 key, has a short explicit validity window, and
+contains only stable/preview release metadata. It is not a package mirror and
+it is not an additional trust anchor. The native updater still obtains the
+archive and detached release manifest from the official GitHub release and
+verifies them before staging.
+
+If either feed resource cannot be reached, is stale, or fails validation, the
+updater falls back to the existing fixed GitHub API discovery path. This makes
+the feed a rate-limit and availability improvement rather than a single point
+of failure. The feed is especially useful when many classroom devices start
+at once, but it does not change the explicit consent, platform-signing,
+rollback, or per-user provider boundaries. Published Preview 7–9 binaries do
+not contain this new code; they retain their compiled API discovery behavior.
+The explicit **Help → Check for Updates** action bypasses the feed and requests
+fresh official release metadata; only the quiet background check uses the feed
+first.
 
 ## What students will eventually experience
 

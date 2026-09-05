@@ -37,6 +37,21 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+### Desktop update discovery
+
+- Adds a fixed, detached-signed desktop release feed so current-source native
+  builds can discover updates through two small raw-CDN requests instead of
+  creating a classroom-wide GitHub REST API burst. Feed expiry, exact URL
+  pinning, size bounds, preview ordering, tamper rejection, and API fallback
+  are covered by updater tests.
+- Adds the no-Actions `scripts/sign-update-feed.sh` operator path. It streams
+  the private release key from the owner-controlled macOS Keychain and never
+  places that key in the repository or student package.
+- Keeps the update contract explicit: discovery is not installation; the user
+  still consents, and the GitHub release archive plus detached `SHA256SUMS`
+  signature remain the installation trust boundary. Already-published
+  binaries retain the updater behavior compiled into their release.
+
 ## [0.2.0-preview.9] - 2026-09-01
 
 ### Distribution truth

@@ -85,14 +85,51 @@ func CheckLatestDesktopForChannelContext(ctx context.Context, currentVersion, ch
 		ctx = context.Background()
 	}
 	client := newUpdateHTTPClient(8 * time.Second)
+	return checkLatestDesktopForChannelWithClientContext(ctx, client, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
+}
+
+// CheckLatestDesktopForChannelFreshContext performs an explicit network
+// discovery check. The native Help action uses this form so a user asking
+// "Check for Updates" does not receive a still-valid but older feed snapshot;
+// background discovery uses the signed feed to avoid API bursts.
+func CheckLatestDesktopForChannelFreshContext(ctx context.Context, currentVersion, channel string) (*DesktopCheckResult, error) {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	client := newUpdateHTTPClient(8 * time.Second)
+	return checkLatestDesktopForChannelFreshWithClientContext(ctx, client, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
+}
+
+func checkLatestDesktopForChannelWithClientContext(ctx context.Context, client *http.Client, currentVersion, channel, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	return checkLatestDesktopForChannelPolicyContext(ctx, client, currentVersion, channel, targetOS, targetArch, true)
+}
+
+func checkLatestDesktopForChannelFreshWithClientContext(ctx context.Context, client *http.Client, currentVersion, channel, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	return checkLatestDesktopForChannelPolicyContext(ctx, client, currentVersion, channel, targetOS, targetArch, false)
+}
+
+func checkLatestDesktopForChannelPolicyContext(ctx context.Context, client *http.Client, currentVersion, channel, targetOS, targetArch string, useSignedFeed bool) (*DesktopCheckResult, error) {
+	if client == nil {
+		return nil, fmt.Errorf("desktop update check requires an HTTP client")
+	}
 	if channel != DesktopChannelStable && channel != DesktopChannelPreview {
 		return nil, fmt.Errorf("unsupported desktop update channel: %s", channel)
 	}
+	// Prefer one tiny signed document over the GitHub REST API. This avoids a
+	// two-request stable/preview burst when a classroom starts many apps at
+	// once. If the feed is unavailable, expired, or invalid, the existing
+	// official API path remains the compatible discovery fallback; installation
+	// still requires the release's independently signed SHA256SUMS manifest.
+	if useSignedFeed {
+		if feedResult, feedErr := checkLatestDesktopFeedForChannelContext(ctx, client, DesktopUpdateFeedURL, DesktopUpdateFeedSignatureURL, currentVersion, channel, targetOS, targetArch); feedErr == nil {
+			return feedResult, nil
+		}
+	}
 	if channel == DesktopChannelPreview {
-		return checkLatestDesktopPreviewWithStableMigrationContext(ctx, client, DesktopReleaseAPIURL, DesktopPreviewReleaseAPIURL, currentVersion, runtime.GOOS, runtime.GOARCH)
+		return checkLatestDesktopPreviewWithStableMigrationContext(ctx, client, DesktopReleaseAPIURL, DesktopPreviewReleaseAPIURL, currentVersion, targetOS, targetArch)
 	}
 	apiURL := DesktopReleaseAPIURL
-	return checkLatestDesktopChannelContext(ctx, client, apiURL, currentVersion, channel, runtime.GOOS, runtime.GOARCH)
+	return checkLatestDesktopChannelContext(ctx, client, apiURL, currentVersion, channel, targetOS, targetArch)
 }
 
 // checkLatestDesktopPreviewWithStableMigration keeps the two channels
@@ -162,6 +199,13 @@ func checkLatestDesktopChannelContext(ctx context.Context, client *http.Client, 
 	if err != nil {
 		return nil, err
 	}
+	return desktopCheckResultFromRelease(release, currentVersion, channel, targetOS, targetArch)
+}
+
+func desktopCheckResultFromRelease(release *GitHubRelease, currentVersion, channel, targetOS, targetArch string) (*DesktopCheckResult, error) {
+	if release == nil {
+		return nil, fmt.Errorf("desktop release metadata is empty")
+	}
 	latestVersion := release.TagName
 	if latestVersion == "" {
 		return nil, fmt.Errorf("desktop release metadata has no tag name")
@@ -225,21 +269,7 @@ func decodeDesktopRelease(data []byte, channel string) (*GitHubRelease, error) {
 	if err := json.Unmarshal(data, &releases); err != nil {
 		return nil, fmt.Errorf("failed to parse desktop preview release metadata: %w", err)
 	}
-	var selected *GitHubRelease
-	for index := range releases {
-		release := &releases[index]
-		if release.Draft || !release.Prerelease || !isPreviewReleaseTag(release.TagName) {
-			continue
-		}
-		if selected == nil {
-			selected = release
-			continue
-		}
-		comparison, valid := compareSemanticVersions(selected.TagName, release.TagName)
-		if valid && comparison < 0 {
-			selected = release
-		}
-	}
+	selected := highestPublishedPreview(releases)
 	if selected == nil {
 		return nil, fmt.Errorf("no published preview desktop release was found")
 	}
@@ -291,7 +321,7 @@ func isAllowedUpdateRedirect(raw *url.URL) bool {
 	if raw == nil {
 		return false
 	}
-	return isOfficialGitHubURL(raw.String()) || isOfficialGitHubAPIURL(raw.String())
+	return isOfficialGitHubURL(raw.String()) || isOfficialGitHubAPIURL(raw.String()) || isOfficialUpdateFeedURL(raw.String())
 }
 
 func newUpdateHTTPClient(timeout time.Duration) *http.Client {

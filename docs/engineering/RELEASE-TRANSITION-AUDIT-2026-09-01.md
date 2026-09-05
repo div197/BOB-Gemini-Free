@@ -24,6 +24,11 @@ latest stable release, `v0.1.7-preview.1` through `.7`, and
 `v0.2.0-preview.1` through `.9`. There is no public GitHub tag or release
 named `v0.1.9`; `v0.1.9` is a source/changelog milestone only.
 
+The current source now has a second discovery layer: a detached-signed feed
+at the fixed raw-content URL, with the existing GitHub API path as fallback.
+This affects only binaries built after that source change. It cannot change
+the updater behavior already compiled into public Preview 7–9 packages.
+
 Preview 9 was rebuilt from reviewed `main` commit `4236f65` after the
 artifact-family guard, signed through the owner-controlled macOS Keychain,
 published manually as a prerelease, and reconciled against a clean public
