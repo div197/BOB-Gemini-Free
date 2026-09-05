@@ -51,6 +51,9 @@ to an earlier implementation. The current contract supersedes those phrases:
   still consents, and the GitHub release archive plus detached `SHA256SUMS`
   signature remain the installation trust boundary. Already-published
   binaries retain the updater behavior compiled into their release.
+- Rejects canonical GitHub release metadata when its page, package, or
+  manifest URL does not match the selected tag and declared asset name; the
+  official opaque release CDN remains supported behind manifest verification.
 
 ## [0.2.0-preview.9] - 2026-09-01
 
