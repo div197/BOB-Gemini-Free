@@ -80,6 +80,12 @@ anchor. A bad or unreachable feed cannot authorize an install. The API
 fallback preserves compatibility with already-published binaries and gives a
 manual check a recovery path when the feed commit or raw CDN is unavailable.
 
+The release metadata boundary is exact as well: canonical `github.com` release
+pages, package URLs, and manifest URLs must match the selected tag; package and
+manifest paths must also match their declared asset names. Official opaque
+GitHub release CDN URLs remain supported, but never replace the detached
+manifest verification performed before staging.
+
 Every future published desktop release must refresh the feed after the public
 release assets have been reconciled, sign it locally with
 `scripts/sign-update-feed.sh`, and commit the feed plus detached signature to

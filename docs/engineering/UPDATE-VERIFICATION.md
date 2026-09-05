@@ -217,6 +217,15 @@ reconciliation; if the feed is stale or unavailable, the source falls back to
 the fixed GitHub API path. This improves discovery availability and request
 spreading; it does not create silent installation or fleet control.
 
+Canonical `github.com` release metadata is also bound to the selected tag and
+asset name before it can reach the update UI. A release page must identify that
+exact tag, and a package or manifest URL must identify both that tag and the
+metadata asset name. GitHub's official opaque release CDN hosts remain allowed
+because their paths are not tag-addressable; those downloads still require the
+detached signed manifest before installation. This prevents a malformed or
+tampered metadata response from pairing one release's displayed identity with
+another release's download path.
+
 ## Preview 2 publication evidence — 2026-08-31
 
 The controlled macOS `v0.2.0-preview.2` release is now published from public

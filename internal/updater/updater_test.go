@@ -377,7 +377,7 @@ func TestCheckLatestDesktopFindsNativePackage(t *testing.T) {
 			Assets: []ReleaseAsset{
 				{
 					Name:               "bob-gemini-free-wails-windows-amd64.exe",
-					BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-windows.exe",
+					BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-gemini-free-wails-windows-amd64.exe",
 					Size:               1234,
 				},
 				{Name: "SHA256SUMS", BrowserDownloadURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/SHA256SUMS"},
@@ -394,7 +394,7 @@ func TestCheckLatestDesktopFindsNativePackage(t *testing.T) {
 	if !result.AssetAvailable || result.AssetName != "bob-gemini-free-wails-windows-amd64.exe" {
 		t.Fatalf("desktop asset = %#v", result)
 	}
-	if result.DownloadURL != "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-windows.exe" {
+	if result.DownloadURL != "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0/bob-gemini-free-wails-windows-amd64.exe" {
 		t.Fatalf("download URL = %q", result.DownloadURL)
 	}
 	if result.AssetSize != 1234 {
@@ -408,6 +408,83 @@ func TestCheckLatestDesktopFindsNativePackage(t *testing.T) {
 	}
 	if result.ChecksumURL == "" || result.SignatureURL == "" {
 		t.Fatalf("manifest URLs = %q / %q", result.ChecksumURL, result.SignatureURL)
+	}
+}
+
+func TestDesktopReleaseMetadataBindsGitHubURLsToTagAndAsset(t *testing.T) {
+	const tag = "v0.2.0-preview.10"
+	const assetName = "bob-gemini-free-macos-universal.zip"
+	canonicalPage := "https://github.com/div197/BOB-Gemini-Free/releases/tag/" + tag
+	canonicalAsset := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/" + assetName
+	canonicalManifest := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/SHA256SUMS"
+	canonicalSignature := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/SHA256SUMS.sig"
+
+	newRelease := func(page, assetURL, manifestURL, signatureURL string) *GitHubRelease {
+		return &GitHubRelease{
+			TagName: tag,
+			HTMLURL: page,
+			Assets: []ReleaseAsset{
+				{Name: assetName, BrowserDownloadURL: assetURL, Size: 1024},
+				{Name: "SHA256SUMS", BrowserDownloadURL: manifestURL},
+				{Name: "SHA256SUMS.sig", BrowserDownloadURL: signatureURL},
+			},
+		}
+	}
+
+	valid, err := desktopCheckResultFromRelease(newRelease(canonicalPage, canonicalAsset, canonicalManifest, canonicalSignature), "v0.2.0-preview.9", DesktopChannelPreview, "darwin", "arm64")
+	if err != nil || valid == nil || !valid.AssetAvailable || !valid.ManifestAvailable {
+		t.Fatalf("canonical release metadata rejected: result=%#v err=%v", valid, err)
+	}
+
+	cases := []struct {
+		name    string
+		release *GitHubRelease
+	}{
+		{
+			name:    "release page points at another tag",
+			release: newRelease("https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9", canonicalAsset, canonicalManifest, canonicalSignature),
+		},
+		{
+			name:    "package points at another tag",
+			release: newRelease(canonicalPage, "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.9/"+assetName, canonicalManifest, canonicalSignature),
+		},
+		{
+			name:    "package filename does not match metadata",
+			release: newRelease(canonicalPage, "https://github.com/div197/BOB-Gemini-Free/releases/download/"+tag+"/different.zip", canonicalManifest, canonicalSignature),
+		},
+		{
+			name:    "manifest points at another tag",
+			release: newRelease(canonicalPage, canonicalAsset, "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.9/SHA256SUMS", canonicalSignature),
+		},
+		{
+			name:    "signature filename does not match metadata",
+			release: newRelease(canonicalPage, canonicalAsset, canonicalManifest, "https://github.com/div197/BOB-Gemini-Free/releases/download/"+tag+"/signature.txt"),
+		},
+	}
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			if result, err := desktopCheckResultFromRelease(test.release, "v0.2.0-preview.9", DesktopChannelPreview, "darwin", "arm64"); err == nil || result != nil {
+				t.Fatalf("mismatched release metadata accepted: result=%#v err=%v", result, err)
+			}
+		})
+	}
+}
+
+func TestOfficialGitHubReleaseURLHelpersRejectCrossRepositoryAndEncodedSeparators(t *testing.T) {
+	if !isOfficialGitHubReleasePageURL("https://github.com/DIV197/bob-gemini-free/releases/tag/v0.2.0-preview.10", "v0.2.0-preview.10") {
+		t.Fatal("case variation of canonical release page was rejected")
+	}
+	if isOfficialGitHubReleasePageURL("https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9", "v0.2.0-preview.10") {
+		t.Fatal("release page for another tag was accepted")
+	}
+	if isOfficialGitHubReleaseAssetURL("https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.10/bob-gemini-free-macos-universal.zip", "v0.2.0-preview.10", "bob-gemini-free-macos-universal.zip") == false {
+		t.Fatal("canonical release asset was rejected")
+	}
+	if isOfficialGitHubReleaseAssetURL("https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.10/bob-gemini-free-macos-universal.zip", "v0.2.0-preview.10", "bob-gemini-free-macos-arm64.zip") {
+		t.Fatal("asset with mismatched filename was accepted")
+	}
+	if isOfficialGitHubReleaseAssetURL("https://github.com/div197/BOB-Gemini-Free/releases/download/v0.2.0-preview.10/bob-gemini-free-macos-universal%2F.zip", "v0.2.0-preview.10", "bob-gemini-free-macos-universal.zip") {
+		t.Fatal("encoded path separator was accepted")
 	}
 }
 
