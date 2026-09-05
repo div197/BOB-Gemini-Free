@@ -92,8 +92,10 @@ func stageDesktopUpdate(client *http.Client, result *DesktopCheckResult, targetP
 	if !result.ManifestAvailable || result.ChecksumURL == "" || result.SignatureURL == "" {
 		return nil, fmt.Errorf("release %s has no signed desktop manifest; refusing automatic installation", result.LatestVersion)
 	}
-	if !isOfficialGitHubURL(result.DownloadURL) || !isOfficialGitHubURL(result.ChecksumURL) || !isOfficialGitHubURL(result.SignatureURL) {
-		return nil, fmt.Errorf("desktop update sources are not official GitHub URLs")
+	if !isOfficialGitHubReleaseAssetURL(result.DownloadURL, result.LatestVersion, result.AssetName) ||
+		!isOfficialGitHubReleaseAssetURL(result.ChecksumURL, result.LatestVersion, "SHA256SUMS") ||
+		!isOfficialGitHubReleaseAssetURL(result.SignatureURL, result.LatestVersion, "SHA256SUMS.sig") {
+		return nil, fmt.Errorf("desktop update sources are not official or release-bound GitHub URLs")
 	}
 	if !desktopAssetNameMatches(result.AssetName, targetOS, targetArch) {
 		return nil, fmt.Errorf("desktop asset %q does not match %s/%s", result.AssetName, targetOS, targetArch)

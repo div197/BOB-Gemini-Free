@@ -21,9 +21,9 @@ func TestStageDesktopUpdateVerifiesSignedMacArchiveBeforeReplacement(t *testing.
 
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case strings.HasSuffix(r.URL.Path, "/manifest"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS"):
 			_, _ = w.Write(manifest)
-		case strings.HasSuffix(r.URL.Path, "/signature"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS.sig"):
 			_, _ = w.Write(signature)
 		case strings.HasSuffix(r.URL.Path, ".zip"):
 			_, _ = w.Write(archivePayload)
@@ -57,8 +57,8 @@ func TestStageDesktopUpdateVerifiesSignedMacArchiveBeforeReplacement(t *testing.
 		AssetName:         assetName,
 		AssetSize:         int64(len(archivePayload)),
 		DownloadURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/" + assetName,
-		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/manifest",
-		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/signature",
+		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS",
+		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS.sig",
 		ManifestAvailable: true,
 		Channel:           DesktopChannelStable,
 	}
@@ -236,14 +236,74 @@ func TestStageDesktopUpdateRefusesUnsignedManifest(t *testing.T) {
 	}
 }
 
+func TestStageDesktopUpdateRejectsReleaseUnboundSources(t *testing.T) {
+	const tag = "v0.1.8"
+	const assetName = "bob-gemini-free-wails-macos-universal.zip"
+	canonicalDownload := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/" + assetName
+	canonicalManifest := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/SHA256SUMS"
+	canonicalSignature := "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/SHA256SUMS.sig"
+
+	cases := []struct {
+		name         string
+		downloadURL  string
+		checksumURL  string
+		signatureURL string
+	}{
+		{
+			name:         "package points at another tag",
+			downloadURL:  "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.7/" + assetName,
+			checksumURL:  canonicalManifest,
+			signatureURL: canonicalSignature,
+		},
+		{
+			name:         "package filename disagrees with asset name",
+			downloadURL:  "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/different.zip",
+			checksumURL:  canonicalManifest,
+			signatureURL: canonicalSignature,
+		},
+		{
+			name:         "manifest points at another tag",
+			downloadURL:  canonicalDownload,
+			checksumURL:  "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.7/SHA256SUMS",
+			signatureURL: canonicalSignature,
+		},
+		{
+			name:         "signature filename disagrees with manifest contract",
+			downloadURL:  canonicalDownload,
+			checksumURL:  canonicalManifest,
+			signatureURL: "https://github.com/div197/BOB-Gemini-Free/releases/download/" + tag + "/signature.txt",
+		},
+	}
+	for _, test := range cases {
+		t.Run(test.name, func(t *testing.T) {
+			result := &DesktopCheckResult{
+				CurrentVersion:    "v0.1.7",
+				LatestVersion:     tag,
+				HasUpdate:         true,
+				AssetAvailable:    true,
+				AssetName:         assetName,
+				AssetSize:         1024,
+				DownloadURL:       test.downloadURL,
+				ChecksumURL:       test.checksumURL,
+				SignatureURL:      test.signatureURL,
+				ManifestAvailable: true,
+				Channel:           DesktopChannelStable,
+			}
+			if _, err := stageDesktopUpdate(http.DefaultClient, result, filepath.Join(t.TempDir(), desktopAppBundleName), "darwin", "arm64"); err == nil || !strings.Contains(err.Error(), "release-bound") {
+				t.Fatalf("unbound release source was not rejected: %v", err)
+			}
+		})
+	}
+}
+
 func TestStageDesktopUpdateDoesNotUseMutableEnvironmentKey(t *testing.T) {
 	archivePayload := macOSUpdateArchive(t)
 	manifest, signature, publicKey := signedManifestFixture(t, "bob-gemini-free-wails-macos-universal.zip", archivePayload)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case strings.HasSuffix(r.URL.Path, "/manifest"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS"):
 			_, _ = w.Write(manifest)
-		case strings.HasSuffix(r.URL.Path, "/signature"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS.sig"):
 			_, _ = w.Write(signature)
 		default:
 			_, _ = w.Write(archivePayload)
@@ -267,9 +327,9 @@ func TestStageDesktopUpdateDoesNotUseMutableEnvironmentKey(t *testing.T) {
 		AssetAvailable:    true,
 		AssetName:         "bob-gemini-free-wails-macos-universal.zip",
 		AssetSize:         int64(len(archivePayload)),
-		DownloadURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/app.zip",
-		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/manifest",
-		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/signature",
+		DownloadURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/bob-gemini-free-wails-macos-universal.zip",
+		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS",
+		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS.sig",
 		ManifestAvailable: true,
 		Channel:           DesktopChannelStable,
 	}
@@ -284,9 +344,9 @@ func TestStageDesktopUpdateRejectsDeclaredSizeMismatch(t *testing.T) {
 	manifest, signature, publicKey := signedManifestFixture(t, "bob-gemini-free-wails-macos-universal.zip", archivePayload)
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch {
-		case strings.HasSuffix(r.URL.Path, "/manifest"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS"):
 			_, _ = w.Write(manifest)
-		case strings.HasSuffix(r.URL.Path, "/signature"):
+		case strings.HasSuffix(r.URL.Path, "/SHA256SUMS.sig"):
 			_, _ = w.Write(signature)
 		default:
 			_, _ = w.Write(archivePayload)
@@ -312,9 +372,9 @@ func TestStageDesktopUpdateRejectsDeclaredSizeMismatch(t *testing.T) {
 		AssetAvailable:    true,
 		AssetName:         "bob-gemini-free-wails-macos-universal.zip",
 		AssetSize:         int64(len(archivePayload)) + 1,
-		DownloadURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/app.zip",
-		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/manifest",
-		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/signature",
+		DownloadURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/bob-gemini-free-wails-macos-universal.zip",
+		ChecksumURL:       "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS",
+		SignatureURL:      "https://github.com/div197/BOB-Gemini-Free/releases/download/v0.1.8/SHA256SUMS.sig",
 		ManifestAvailable: true,
 		Channel:           DesktopChannelStable,
 	}
