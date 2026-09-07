@@ -641,3 +641,33 @@ statement.
 | Public Preview 7 can discover Preview 9 | VERIFIED_LIVE | The exact public Preview 7 app displayed a signed Preview 9 offer through **Help → Check for Updates** on an isolated audit run | The install action was canceled; replacement, restart, rollback, clean-device, and fleet acceptance remain unproven. |
 | Preview 9 silently updates every student computer | STALE_OR_INCORRECT | The updater requires explicit consent and a writable application location; startup checks are metadata-only | Each device needs an approved install or manual recovery. No GitHub Actions or remote classroom push exists. |
 | A stable `v0.2.0` student release is ready | UNKNOWN | Source, package, signature, public-byte, and Preview 7 discovery gates are green | Apple trust, deliberate rollback, clean-device, Windows/Linux, live Google behavior, and staged pilot gates remain open. |
+
+## 2026-09-05 current-source continuation
+
+This addendum supersedes the “current” wording in earlier historical release
+sections. GitHub was rechecked on 2026-09-05: `v0.2.0-preview.9` remains the
+latest public native macOS prerelease, while `v0.2.0-preview.10` is only the
+next local source candidate.
+
+| Claim | Classification | Current evidence | Truth boundary / remaining proof |
+|---|---|---|---|
+| A legacy local PWA service worker can strand the native Wails shell after a same-port relaunch | VERIFIED_LIVE | On this Mac, the installed bundle opened on a fresh `127.0.0.1:65047` origin, then reproduced the permanent splash on relaunch after `/sw.js` was registered; an isolated patched ARM64 source build opened both before and after relaunch on the same port | One host and one WebKit environment; clean-device and public-package acceptance remain separate. |
+| Native desktop mode now retires legacy PWA workers and does not register a new one | VERIFIED_BY_UNIT_TEST | `internal/server/playground.html`, `internal/server/sw.js`, `internal/server/playground.go`, and `internal/server/playground_test.go` cover desktop-shell detection, unregister migration, readiness signaling, worker bypass, and `no-store` headers | The browser/PWA path remains worker-enabled; future WebKit/OS versions and packaged-release bytes still require acceptance. |
+| The native parent can reveal the loopback frame without relying solely on iframe `load` | VERIFIED_BY_UNIT_TEST | `cmd/desktop/frontend/index.html` accepts only the exact frame source/origin and `BOB_DESKTOP_SHELL_READY`, with a bounded retryable timeout; `cmd/desktop/main_test.go` protects the source contract | The live patched ARM64 bundle exercised this path; no claim is made for an unbuilt public release. |
+| The public Preview 9 package contains the bootstrap repair | STALE_OR_INCORRECT | The repair exists on current local `main`, after the Preview 9 source target | Build and publish a new unique preview, reconcile its five public assets, then retest an installed bundle. |
+| Public Preview 7 can update directly to the next public candidate | UNKNOWN | Current source tests prove same-key preview selection and the exact public Preview 7 previously discovered Preview 9 | A Preview 10 package has not yet been published; installation/restart/rollback from the real Preview 7 bundle remains a device gate. |
+| Every historical native version can update through **Check for Updates** | STALE_OR_INCORRECT | Trust-key lineage and artifact-family boundaries differ across Preview 1–6, Preview 7, v0.2 previews, and CLI v0.1.5 | Preview 1–6/legacy stable-labelled builds require manual migration; Preview 7 can use a same-key preview bridge; current v0.2 previews use the current policy. |
+| The updater silently updates all 30 Macs | STALE_OR_INCORRECT | Discovery is low-frequency and installation requires explicit user consent, a writable app location, signed manifest verification, restart, and health confirmation | Staggered 2–3 Mac pilot and per-device evidence are still required. |
+
+## 2026-09-07 public updater identity revalidation
+
+This addendum supersedes any older wording that treats a release label as proof
+of the trust key embedded in its binary. Public release archives were inspected
+again from GitHub; no release tag or asset was changed.
+
+| Claim | Classification | Current evidence | Truth boundary / remaining proof |
+|---|---|---|---|
+| Public Preview 7 and Preview 9 carry the current project updater key | VERIFIED_LIVE | `go version -m` inspection of the public macOS universal ZIPs found the canonical key; `v0.1.7-preview.7` and `v0.2.0-preview.9` manifests verify with it | This authenticates project release bytes, not Apple Developer ID trust or installed-bundle replacement. |
+| Public Preview 4–6 form a separate legacy key lineage | VERIFIED_LIVE | Public Preview 6's binary carries the older base64-encoded key and its manifest verifies with that key but not the current key | These installations require one manual migration; runtime key download or verification weakening is prohibited. |
+| A post-Wails output identity gate protects future packages | VERIFIED_BY_INTEGRATION_TEST | `scripts/verify-desktop-build-identity.sh` checks compiled version, channel, and public key before each macOS/Windows/Linux packager copies output into release assets; source-gate references all four packagers | A release still needs a clean source commit, local manifest signing, public-byte reconciliation, platform trust, and device acceptance. |
+| Every historical native build can update through **Check for Updates** | STALE_OR_INCORRECT | Embedded key and artifact-family contracts differ across the public preview history; early and legacy-key families cannot verify a current-key successor | Preview 1–6 require manual migration; Preview 7 and v0.2 previews are current-key candidates, subject to explicit consent and installed-device proof. |

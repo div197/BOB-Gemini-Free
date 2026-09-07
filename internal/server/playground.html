@@ -19,6 +19,30 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="favicon.ico" sizes="any">
 <title>BOB GEMINI FREE — Universal AI Gateway Studio</title>
+<script>
+// Native Wails embeds the Studio in a cross-origin frame. Retire any local
+// PWA worker left by an older desktop build before the shell reveals the page;
+// the native shell has its own lifecycle and must not depend on a service
+// worker's navigation/cache behavior. The parent validates the source and
+// origin of this readiness signal before using it.
+window.__BOB_DESKTOP_SHELL__ = new URLSearchParams(window.location.search).get('desktop_shell') === '1';
+if (window.__BOB_DESKTOP_SHELL__ && window.parent !== window) {
+  const notifyDesktopShellReady = () => {
+    try { window.parent.postMessage({ type: 'BOB_DESKTOP_SHELL_READY' }, '*'); } catch (_) {}
+  };
+  // The native parent must not wait on WebKit's service-worker API. A legacy
+  // worker can make getRegistrations() slow or never settle during startup;
+  // readiness is safe to announce because the parent validates both source
+  // and origin before revealing the local frame.
+  notifyDesktopShellReady();
+  if ('serviceWorker' in navigator) {
+    Promise.resolve()
+      .then(() => navigator.serviceWorker.getRegistrations())
+      .then((registrations) => Promise.all(registrations.map((registration) => registration.unregister())))
+      .catch(() => {});
+  }
+}
+</script>
 <!-- Universal Marked.js & DOMPurify for Spec-Compliant Markdown Rendering -->
 <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js" integrity="sha384-NNQgBjjuhtXzPmmy4gurS5X7P4uTt1DThyevz4Ua0IVK5+kazYQI1W27JHjbbxQz" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/dompurify@3.0.9/dist/purify.min.js" integrity="sha384-3HPB1XT51W3gGRxAmZ+qbZwRpRlFQL632y8x+adAqCr4Wp3TaWwCLSTAJJKbyWEK" crossorigin="anonymous"></script>
@@ -13383,8 +13407,9 @@ async function sendMessage() {
   }
 }
 
-// Progressive Web App (PWA) Offline Service Worker Registration
-if ('serviceWorker' in navigator) {
+// Progressive Web App (PWA) Offline Service Worker Registration. Native Wails
+// uses its own shell lifecycle and retires existing workers above.
+if (!window.__BOB_DESKTOP_SHELL__ && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('./sw.js').catch(() => {});
   });

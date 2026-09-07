@@ -130,6 +130,22 @@ for preview_script in \
 	fi
 done
 
+DESKTOP_IDENTITY_SCRIPT="$ROOT_DIR/scripts/verify-desktop-build-identity.sh"
+if [[ ! -f "$DESKTOP_IDENTITY_SCRIPT" ]]; then
+	echo "desktop build identity verifier is missing: scripts/verify-desktop-build-identity.sh" >&2
+	exit 1
+fi
+for desktop_packager in \
+	"scripts/package-wails-preview.sh" \
+	"scripts/package-wails-release.sh" \
+	"scripts/package-wails-windows-preview.sh" \
+	"scripts/package-wails-linux-preview.sh"; do
+	if ! awk 'index($0, "verify-desktop-build-identity.sh") { found=1 } END { exit !found }' "$ROOT_DIR/$desktop_packager"; then
+		echo "$desktop_packager must verify compiled desktop identity before packaging" >&2
+		exit 1
+	fi
+done
+
 if [[ -n "$VERSION" ]]; then
 	if [[ "$VERSION" == "$MAKE_VERSION" ]]; then
 		:

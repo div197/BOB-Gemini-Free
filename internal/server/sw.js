@@ -37,7 +37,8 @@ self.addEventListener("fetch", (event) => {
     request.method !== "GET" ||
     url.pathname.startsWith("/v1/") ||
     url.pathname.startsWith("/v1beta/") ||
-    url.origin !== self.location.origin
+    url.origin !== self.location.origin ||
+    url.searchParams.get("desktop_shell") === "1"
   ) {
     return;
   }

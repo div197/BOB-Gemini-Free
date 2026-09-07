@@ -400,3 +400,38 @@ The repository is now safer to evolve because its most fragile local
 boundaries are executable and regression-locked. It is not honest to call the
 remaining external gates complete until the corresponding device, browser,
 provider, and public-release evidence exists.
+
+## 2026-09-05 continuation — native bootstrap repair
+
+The next source candidate exposed one additional failure that source-only
+review had not closed: the already-installed desktop bundle could open once,
+register the local PWA service worker, and then remain on the native splash
+screen after a same-port relaunch. This was reproduced on loopback port
+`65047`. The first run served `/playground`, `/healthz`, `/`, and `/sw.js`; the
+second run served `/playground` and `/sw.js` but never revealed the Studio.
+
+An isolated current-source ARM64 diagnostic bundle then passed the stronger
+test after the repair: it opened on the previously affected origin, quit,
+reopened on the same port, and exposed the complete Studio accessibility tree
+on both launches. The patched native path made no new `/sw.js` registration
+request. This is **VERIFIED_LIVE** for the local source candidate on one Mac;
+it is not evidence that the public Preview 9 bytes contain the repair.
+
+The minimum fix is isolated to the native/browser boundary:
+
+- native `desktop_shell=1` responses are `Cache-Control: no-store`;
+- the native shell retires legacy local service-worker registrations and does
+  not register the browser PWA worker;
+- the parent Wails shell validates the frame source/origin and accepts a
+  readiness message instead of depending only on WebKit's iframe `load` event;
+- the native bootstrap has a bounded, retryable error state rather than an
+  indefinite splash.
+
+The ordinary hosted browser/PWA path remains service-worker enabled. The
+repair does not alter Gemini transport, cookies, provider routing, updater
+signing, or release-channel policy.
+
+The next release candidate must therefore be a new immutable preview (the
+source candidate is `v0.2.0-preview.10`), followed by public-byte
+reconciliation and one installed Preview 7/current-preview pilot. Preview 9
+cannot receive this fix retroactively.

@@ -24,6 +24,15 @@ audit Mac; Preview 9 installed-base transition remains open. Public Preview 7
 discovery of Preview 9 was observed live, but installation was canceled.
 Stable `v0.2.0` remains gated on clean-device and pilot acceptance.
 
+On 2026-09-05 a separate native bootstrap regression was reproduced and
+repaired in the next source candidate. An installed desktop process first
+opened normally on a fresh loopback origin, then reproduced the permanent
+startup splash after a same-port relaunch once the old local PWA service
+worker controlled the Wails iframe. A patched ARM64 diagnostic bundle opened
+both before and after another same-port relaunch; its native path made no new
+`/sw.js` registration request. This evidence belongs to the next candidate,
+not to the already published Preview 9 bytes.
+
 The current installed-lineage and channel-transition matrix is maintained in
 [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
 It records why Preview 7 can move to a later same-key preview, why obsolete
@@ -55,6 +64,22 @@ not contain this new code; they retain their compiled API discovery behavior.
 The explicit **Help → Check for Updates** action bypasses the feed and requests
 fresh official release metadata; only the quiet background check uses the feed
 first.
+
+The discovery design is intentionally two-tiered:
+
+1. Background startup discovery uses the short detached-signed feed, bounded
+   expiry, and one low-volume request pair. It is an availability/rate-limit
+   layer, not package authenticity.
+2. An explicit **Help → Check for Updates** performs a fresh official GitHub
+   metadata lookup. A preview build checks stable first for a newer native
+   package, then the highest published `preview.N`; a stable build checks only
+   stable. Installation still requires the exact official asset, signed
+   `SHA256SUMS`, detached signature, local preflight, explicit consent, and
+   health-confirmed restart.
+
+This makes discovery realistic rather than magical: a device can learn that an
+update exists without downloading it, but no release metadata can silently
+change its channel, trust anchor, provider route, or installed bytes.
 
 ## What students will eventually experience
 
@@ -149,16 +174,18 @@ following:
 1. A native artifact for every platform named in the release notes.
 2. A signed `SHA256SUMS` and detached `SHA256SUMS.sig` covering the exact
    uploaded bytes.
-3. The public key embedded in the build and a verified public/private key
+3. The compiled desktop binary's version, channel, and public key pass
+   `scripts/verify-desktop-build-identity.sh` before packaging.
+4. The public key embedded in the build and a verified public/private key
    match before publication.
-4. macOS Developer ID signing, hardened runtime, notarization, stapling, and
+5. macOS Developer ID signing, hardened runtime, notarization, stapling, and
    a clean-device Gatekeeper check for a professional Mac release.
-5. Windows publisher signing and clean-device SmartScreen/install checks for
+6. Windows publisher signing and clean-device SmartScreen/install checks for
    a professional Windows release.
-6. A clean-device update from the previous signed build, followed by a
+7. A clean-device update from the previous signed build, followed by a
    deliberately failed candidate test proving rollback without touching
    cookies, config, chat history, or gateway data.
-7. A manual release-page recovery path in the release notes.
+8. A manual release-page recovery path in the release notes.
 
 An Ed25519 manifest authenticates the bytes published by the project. It does
 not itself create Apple Developer ID trust or Windows publisher reputation.

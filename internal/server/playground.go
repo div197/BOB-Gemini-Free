@@ -33,6 +33,9 @@ func (a *App) handlePlayground(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	contentSecurityPolicy := "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src 'self' data: blob:; connect-src *;"
 	if r.URL.Query().Get("desktop_shell") == "1" {
+		// Native Wails embeds this page in a frame. It must not be hidden behind
+		// an HTTP cache or a service-worker cache from an older desktop build.
+		w.Header().Set("Cache-Control", "no-store")
 		// The Wails bootstrap and the loopback gateway have different origins.
 		// Allow this explicit desktop-shell embedding path only to Wails' asset
 		// origins (custom-scheme macOS/Linux and localhost Windows); ordinary

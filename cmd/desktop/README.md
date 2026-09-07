@@ -10,7 +10,12 @@ before embedding `/playground?desktop_shell=1`. Keeping the Wails shell alive
 preserves the native default-browser bridge for GitHub and other allow-listed
 external links; the loopback Studio itself remains the same local UI. It also
 has an event-independent `GatewayURL` handoff for the one-shot startup event,
-so a fast local gateway cannot strand the window on its loading screen.
+so a fast local gateway cannot strand the window on its loading screen. Native
+mode retires any legacy local PWA service-worker registration and never
+registers a new one; the service worker remains a browser/PWA concern only.
+The parent reveals the frame only after validating its exact loopback source
+and a native readiness message, with a bounded retryable startup error if the
+frame does not respond.
 
 The packaged app discovers the current user's config and cookie files when
 they exist, while forcibly keeping the desktop gateway on loopback with API

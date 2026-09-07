@@ -114,6 +114,10 @@ if [[ ! -d "$SOURCE_APP" ]]; then
 	exit 1
 fi
 
+bash "$ROOT_DIR/scripts/verify-desktop-build-identity.sh" \
+	"$SOURCE_APP/Contents/MacOS/$INTERNAL_APP_NAME" \
+	"$VERSION" "$CHANNEL" "$EXPECTED_PUBLIC_KEY"
+
 ditto --norsrc --noextattr --noqtn "$SOURCE_APP" "$DEST_APP"
 xattr -cr "$DEST_APP" 2>/dev/null || true
 codesign --force --deep --sign - "$DEST_APP"

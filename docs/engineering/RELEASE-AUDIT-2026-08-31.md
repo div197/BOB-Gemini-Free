@@ -118,11 +118,13 @@ down cleanly. Full details and hashes are in
 This is a controlled public beta, not a fleet claim. Apple trust, clean-device
 rollback, live Google behavior, and pilot acceptance remain open.
 
-The Preview 7 and Preview 5 asset verifications prove the published packages
-and manifests use the current project trust anchor. The one-host update proves
-the installed transaction on this Mac, not rollback after a deliberately
-failed candidate, Apple platform trust, provider availability, or classroom
-rollout.
+The Preview 7 asset verification proves that the published Preview 7 package
+and manifest use the current project trust anchor. The historical Preview 5
+package and manifest belong to the superseded legacy key lineage; its earlier
+installed migration is evidence of one old transaction, not evidence that the
+old binary can verify current-key releases. The one-host update proves the
+installed transaction on this Mac, not rollback after a deliberately failed
+candidate, Apple platform trust, provider availability, or classroom rollout.
 
 ## Version and installed-base matrix
 
