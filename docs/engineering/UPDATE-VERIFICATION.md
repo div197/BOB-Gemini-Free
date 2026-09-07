@@ -44,10 +44,10 @@ The native desktop path is stricter: it accepts only the build-embedded public
 key and never treats `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` as a desktop trust
 anchor. Its stable-channel metadata must identify the exact package, positive
 declared size, signed manifest, and official GitHub URLs. The public
-`v0.2.0-preview.9` updater carries the current key; its preview-channel
-transition remains subject to a live installed-device test. Historical
+`v0.2.0-preview.10` updater carries the current key; its Preview 9 → Preview 10
+transition was exercised on a preserved installed-bundle copy. Historical
 `v0.1.7-preview.3` has no embedded desktop key and therefore cannot install a
-native update; the current `v0.2.0-preview.9` package embeds the current
+native update; the current `v0.2.0-preview.10` package embeds the current
 project public key.
 
 Release packagers also inspect the compiled executable after Wails finishes.
@@ -184,15 +184,14 @@ reports `immutable: false` for Preview 6; the project's write-once release
 policy therefore requires a new tag and fresh public-byte reconciliation for a
 future candidate.
 
-## Current Preview 9 publication — 2026-09-01
+## Current Preview 10 publication — 2026-09-07
 
 The current public macOS prerelease is
-[`v0.2.0-preview.9`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9),
-built from reviewed runtime source commit
-`4236f65b9e4972a581d140ce46b0c5126602df65`. It was packaged, signed, and
-verified locally; the exact package hashes and local startup evidence are
-recorded in
-[`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md).
+[`v0.2.0-preview.10`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.10),
+built from merged `main` commit `1862d313804d4290411439d69779ba36d364c327`.
+It was packaged, signed, and verified locally; the exact package hashes and
+installed-copy evidence are recorded in
+[`PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md`](PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md).
 The exact five-file release set was then uploaded manually without GitHub
 Actions, downloaded again into a fresh directory, signature- and
 checksum-verified, and compared byte-for-byte with the local signed inputs.
@@ -200,11 +199,11 @@ checksum-verified, and compared byte-for-byte with the local signed inputs.
 This proves public release-byte integrity and metadata discovery. It does not
 prove Apple Developer ID/notarization, a clean-device replacement, rollback,
 live Google availability, or a 20–30-device rollout. On the audit Mac, the
-exact public Preview 7 app discovered Preview 9 through **Help → Check for
-Updates**; the install action was canceled, so replacement remains an open
-device gate.
+installed Preview 9 discovered Preview 10 through **Help → Check for Updates**;
+a preserved Preview 9 copy completed the consented replacement and healthy
+restart path. Preview 7 and legacy-key cohort migration remain device gates.
 
-## Signed discovery feed — 2026-09-05
+## Signed discovery feed — introduced 2026-09-05; refreshed 2026-09-07
 
 The current source adds `updates/desktop-feed.json` and its detached
 `updates/desktop-feed.json.sig` as a low-volume discovery layer. The feed is
@@ -219,10 +218,12 @@ GitHub API request, signature/tamper rejection with API fallback, explicit
 fresh-check bypass, expiry/validity limits, exact URL pinning, and the
 checked-in feed signature against the documented public key. The feed is not
 retroactive: public Preview 7–9 binaries retain their compiled API discovery
-path. A future native build must refresh and sign the feed after public asset
-reconciliation; if the feed is stale or unavailable, the source falls back to
-the fixed GitHub API path. This improves discovery availability and request
-spreading; it does not create silent installation or fleet control.
+path. The public feed was refreshed after Preview 10 asset reconciliation and
+now selects `v0.2.0-preview.10`; its raw feed and detached signature matched the
+checked-in bytes after PR #128 merged. If the feed is stale or unavailable, the
+source falls back to the fixed GitHub API path. This improves discovery
+availability and request spreading; it does not create silent installation or
+fleet control.
 
 Canonical `github.com` release metadata is also bound to the selected tag and
 asset name before it can reach the update UI. A release page must identify that

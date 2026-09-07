@@ -30,18 +30,15 @@ Before any publication, advance `PREVIEW_VERSION` to a new unused
 `-preview.N` value, review the resulting source commit, and never rebuild a
 published tag from a later checkout.
 
-As of the 2026-09-01 follow-up, the earlier `v0.2.0-preview.7` candidate was
-never published and is superseded by the changed source. The current public
-release is `v0.2.0-preview.9`; the source now advances the next candidate to
-`v0.2.0-preview.10` so the immutable Preview 9 tag cannot be rebuilt under
-changed source. Preview 9 was packaged, signed, and verified from the
-clean reviewed checkpoint recorded in
-[`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md),
-then published manually and re-downloaded for signature, checksum, and
-byte-for-byte reconciliation. The release is a macOS prerelease, not a stable
-student release. macOS bundle metadata uses numeric base version `0.2.0`;
-the injected updater/About/health identity retains the full
-`v0.2.0-preview.9` channel-aware version.
+The earlier `v0.2.0-preview.7` candidate was never published and remains a
+historical source milestone. The current public release is
+`v0.2.0-preview.10`, built from merged `main` commit `1862d31`, packaged,
+signed, and re-downloaded for signature, checksum, and byte-for-byte
+reconciliation. The release is a macOS prerelease, not a stable student
+release. macOS bundle metadata uses numeric base version `0.2.0`; the injected
+updater/About/health identity retains the full `v0.2.0-preview.10`
+channel-aware version. Full public-byte and installed-copy evidence is in
+[`PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md`](PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md).
 
 The preview packager requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` even though
 the app remains ad-hoc signed. This public value is the updater trust anchor;
@@ -101,11 +98,11 @@ local file; do not pipe an unpinned branch directly into a shell.
 
 ## Native automatic-update status
 
-The current public native preview is `v0.2.0-preview.9`, built with the
+The current public native preview is `v0.2.0-preview.10`, built with the
 desktop trust key and a signed preview manifest. It performs an explicit
 metadata check, and a user can approve a verified staged update with health
 confirmation and rollback. The public `v0.2.0-preview.1` package remains
-the migration bridge; Preview 2–8 are historical release inputs. Preview 9
+the migration bridge; Preview 2–9 are historical release inputs. Preview 10
 embeds the desktop trust key and remains an explicit, user-consented updater.
 The current public source includes the post-Preview-4 artifact-preview,
 responsive-header, multiline-SSE, credential-boundary, desktop-coexistence,
@@ -114,18 +111,17 @@ trust key remain manual-update-only. Stable builds never move into preview;
 current-key preview builds may migrate into a newer stable release only after
 explicit user consent.
 
-The exact Preview 9 public-byte evidence is recorded in
-[`PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md`](PREVIEW-9-CANDIDATE-VERIFICATION-2026-09-01.md);
+The exact Preview 10 public-byte evidence is recorded in
+[`PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md`](PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md);
 the exact historical Preview 6 public-byte evidence is recorded in
 [`PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md`](PREVIEW-6-LOCAL-VERIFICATION-2026-08-31.md);
 the superseded locally verified Preview 7 candidate is recorded in
 [`PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-7-CANDIDATE-VERIFICATION-2026-08-31.md);
 the historical Preview 8 candidate is recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
-the one-host installed migration evidence remains the earlier Preview 1 →
-Preview 5 observation. Public Preview 7 → Preview 9 discovery was observed
-live on the audit Mac, but its install action was canceled and is not
-replacement proof.
+the one-host installed migration evidence now includes the preserved Preview 9
+bundle copy → Preview 10 replacement/restart check; Preview 7 → Preview 10 and
+deliberate rollback remain device gates.
 Platform publisher signing and clean-device verification remain required for a
 professional student distribution mechanism. macOS Developer ID/notarization
 and Windows publisher signing are separate operating-system trust gates; the
@@ -144,7 +140,7 @@ The implementation sequence is:
 
 This removes repeated delete/download/install work after the user approves the
 update. For the existing public `v0.1.7-preview.7` fleet, the current public
-same-key `v0.2.0-preview.9` is the direct preview target; use the published
+same-key `v0.2.0-preview.10` is the direct preview target; use the published
 Preview 1 bridge only when a device has already selected that intermediate
 step. A current-source preview can then use its stable-first path after stable
 acceptance is complete. No silent install is enabled by the current preview.

@@ -1,13 +1,14 @@
 # Free Native Desktop Beta
 
-**Status:** branded public macOS preview `v0.2.0-preview.9` is the current
-controlled package; Preview 8 and earlier remain historical, the published
-`v0.2.0-preview.1` migration bridge remains available, and
-`v0.1.7-preview.7` remains the existing fleet baseline. Preview 9 was built
-from reviewed `main` commit `4236f65`, signed through the owner-controlled
+**Status:** branded public macOS preview `v0.2.0-preview.10` is the current
+controlled package; Preview 9 and earlier remain historical inputs, the
+published `v0.2.0-preview.1` migration bridge remains available, and
+`v0.1.7-preview.7` remains an existing fleet baseline. Preview 10 was built
+from merged `main` commit `1862d31`, signed through the owner-controlled
 macOS Keychain, published manually, and byte-reconciled after a clean public
-download. The installed-lineage rules and the `v0.1.9` source-milestone
-boundary are recorded in
+download. A preserved Preview 9 bundle copy completed the real consented
+replacement and healthy restart path. The installed-lineage rules and the
+`v0.1.9` source-milestone boundary are recorded in
 [`RELEASE-TRANSITION-AUDIT-2026-09-01.md`](RELEASE-TRANSITION-AUDIT-2026-09-01.md).
 
 This is the no-Apple-membership path for evaluating the BOB Gemini Free
@@ -53,14 +54,15 @@ not interpret the CLI's project signature as Apple or Windows publisher trust.
 
 ## Public preview releases
 
-The current [v0.2.0-preview.9 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.9)
+The current [v0.2.0-preview.10 controlled macOS preview](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.10)
 contains the universal macOS package shape and current-key signed manifest.
 Its five public assets were re-downloaded, signature-verified, and
-byte-reconciled with the local signed inputs. Existing Preview 7 users can
-discover this newer same-key preview directly: the public Preview 7 native
-Help → Check for Updates flow was tested live and displayed a Preview 9
-consent dialog. The test canceled before replacement, so installed-bundle
-restart and rollback remain open device gates. The published
+byte-reconciled with the local signed inputs. The installed Preview 9 on the
+audit Mac discovered Preview 10, and a preserved Preview 9 bundle copy
+completed the consented replacement/restart path. Existing Preview 7 users can
+discover this newer same-key preview directly, subject to their older compiled
+updater and a writable install location. Deliberate rollback, clean-device,
+and fleet acceptance remain open device gates. The published
 [v0.2.0-preview.1 migration bridge](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.1)
 remains available if a device has already selected that intermediate step.
 
@@ -75,14 +77,14 @@ Historical `v0.1.7-preview.3` remains available separately with the Windows x64
 preview asset. Preview 7 is intentionally a macOS-first signed-update pilot;
 legacy `v0.1.7-preview.6` installations require a one-time manual migration
 because their older project signing key cannot verify Preview 7. This is
-separate from the public `v0.2.0-preview.9` package. Windows and Linux require
+separate from the public `v0.2.0-preview.10` package. Windows and Linux require
 their own native build and acceptance evidence.
 
 The release is suitable for informed evaluation and a controlled pilot. It is
 not a Developer ID/notarized Mac release, a Windows publisher-signed release,
 a Linux release, or proof of provider availability or unlimited use.
 
-The current Preview 9 package carries the branded package refresh, signed
+The current Preview 10 package carries the branded package refresh, signed
 preview updater, native window/browser refinements, language coverage, and the
 Web Studio generation lifecycle correction: `STOP` returns to
 `SEND` on completion, cancellation, timeout, upstream failure, and truncated
@@ -101,7 +103,7 @@ make desktop-preview-mac
 ```
 
 In the current source this command defaults to a fresh local build labelled
-`v0.2.0-preview.10`; Preview 9 is the current public preview release. Build
+`v0.2.0-preview.10`; Preview 10 is the current public preview release. Build
 from a clean reviewed `main` commit and pass the release gates before any
 future publication.
 The signed `v0.2.0-preview.1` migration bridge is

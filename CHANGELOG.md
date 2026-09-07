@@ -37,6 +37,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+No unreleased changes recorded.
+
+## [0.2.0-preview.10] - 2026-09-07
+
 ### Native desktop bootstrap
 
 - Repairs a reproducible post-relaunch splash on Wails desktop builds when a
