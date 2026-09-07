@@ -3,7 +3,8 @@
 **Audit date:** 2026-09-07 (Asia/Kolkata)  
 **Release:** [GitHub v0.2.0-preview.10](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.10)  
 **Source target:** `1862d313804d4290411439d69779ba36d364c327`  
-**Release mode:** manual publication; no GitHub Actions workflow is present
+**Release mode:** manual publication; no repository-defined GitHub Actions
+workflow was added or manually run
 
 ## Decision
 
@@ -12,6 +13,18 @@ Wails application with a signed project release manifest and a visible
 `/Applications` drag target. It remains a controlled preview: the app is
 ad-hoc signed, not Apple Developer ID signed or notarized, and the updater is
 user-consented rather than a silent fleet controller.
+
+## Automation inventory
+
+The checkout contains no `.github/workflows` files, and release packaging and
+publication were performed locally through the protected pull-request and
+release interfaces. GitHub's repository API nevertheless reports two managed
+dynamic records, `Copilot` and `pages-build-deployment`; these are not
+repository release workflows. The PR publication checks showed the Pages check
+passing, while the managed Copilot review records were historical automatic
+failures. No release gate or artifact depends on either record, and neither
+was disabled because Pages hosting and account-level Copilot settings are
+separate owner decisions.
 
 ## Release gates
 
