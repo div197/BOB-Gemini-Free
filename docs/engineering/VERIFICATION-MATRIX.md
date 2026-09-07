@@ -266,7 +266,7 @@ two justified protected-core changes described in
 
 The historical Mission 0 statements above were not the branch status at that
 audit boundary. The following evidence was recorded then. It is retained for
-  provenance; the current Preview 9 publication and migration evidence in the
+  provenance; the current Preview 10 publication and migration evidence in the
   final addendum below supersedes its release-specific rows.
 
 | Claim at the 2026-08-21 audit boundary | Classification | Evidence | Boundary |
@@ -423,7 +423,7 @@ evidence only.
 ## Current local continuation evidence — 2026-08-31 (historical snapshot)
 
 This continuation snapshot supersedes older commit labels in the historical
-sections above, but is itself retained for provenance. The current Preview 9
+sections above, but is itself retained for provenance. The current Preview 10
 publication addendum at the end is authoritative for the present release.
 The reviewed code tip at the start of this continuation was `cec4c8e`; it contains the
 deterministic stream-regression, session-bound image-reference, local
@@ -584,7 +584,7 @@ selection, the return to web, modal focus return, and zero page-level
 horizontal overflow. The exact historical Preview 8 package refresh is
 recorded in
 [`PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md`](PREVIEW-8-CANDIDATE-VERIFICATION-2026-08-31.md);
-the current Preview 9 package and public asset reconciliation are recorded in
+the current Preview 10 package and public asset reconciliation are recorded in
 the current addendum below.
 
 ## Preview 6 publication addendum — 2026-08-31 (historical)
@@ -671,3 +671,21 @@ again from GitHub; no release tag or asset was changed.
 | Public Preview 4–6 form a separate legacy key lineage | VERIFIED_LIVE | Public Preview 6's binary carries the older base64-encoded key and its manifest verifies with that key but not the current key | These installations require one manual migration; runtime key download or verification weakening is prohibited. |
 | A post-Wails output identity gate protects future packages | VERIFIED_BY_INTEGRATION_TEST | `scripts/verify-desktop-build-identity.sh` checks compiled version, channel, and public key before each macOS/Windows/Linux packager copies output into release assets; source-gate references all four packagers | A release still needs a clean source commit, local manifest signing, public-byte reconciliation, platform trust, and device acceptance. |
 | Every historical native build can update through **Check for Updates** | STALE_OR_INCORRECT | Embedded key and artifact-family contracts differ across the public preview history; early and legacy-key families cannot verify a current-key successor | Preview 1–6 require manual migration; Preview 7 and v0.2 previews are current-key candidates, subject to explicit consent and installed-device proof. |
+
+## 2026-09-07 current Preview 10 publication and migration evidence
+
+This addendum supersedes older “current Preview 9” wording above. The public
+macOS prerelease is now
+[`v0.2.0-preview.10`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.10),
+published from merged `main` commit `1862d313804d4290411439d69779ba36d364c327`.
+The detailed receipt is in
+[`PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md`](PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md).
+
+| Claim | Classification | Current evidence | Truth boundary / remaining proof |
+|---|---|---|---|
+| Preview 10 is the current public native macOS prerelease | VERIFIED_LIVE | GitHub release `v0.2.0-preview.10` is public as a prerelease with exactly the universal DMG, ZIP, notice, checksum manifest, and detached signature; all five downloaded assets match the locally signed inputs and verify | The package is ad-hoc signed and non-notarized; stable, Windows, Linux, clean-device, rollback, provider, and fleet claims remain open |
+| Preview 10 carries the reviewed source and current updater identity | VERIFIED_LIVE | Source gate and post-Wails identity gate passed at merged `main` commit `1862d31`; the package reports `v0.2.0-preview.10` and channel `preview` | The private signing key remains local; project authenticity does not establish Apple platform trust |
+| Public Preview 9 discovers Preview 10 | VERIFIED_LIVE | The installed Preview 9 on this Mac returned `latest_version=v0.2.0-preview.10`, `has_update=true`, a native ZIP URL, and signed-manifest URLs bound to the exact tag | This is metadata discovery; it does not prove that every installed lineage can verify the target |
+| A current writable installed bundle can migrate to Preview 10 | VERIFIED_LIVE | A preserved copy of the installed Preview 9 accepted the native Help action, downloaded and verified the signed package, replaced only the copy, restarted, returned healthy `/healthz`, and left no updater staging directory | Preview 7, legacy-key cohorts, clean-device recovery, deliberate rollback, and pilot/fleet acceptance remain open |
+| Preview 10 silently updates every student Mac | STALE_OR_INCORRECT | The updater requires explicit user consent and a writable application location; background discovery is metadata-only | Each device still needs an approved update or manual recovery; no GitHub Actions or remote classroom push exists |
+| A stable `v0.2.0` student release is ready | UNKNOWN | Preview 10 source, package, signature, public-byte, discovery, and one copied-bundle migration gates are green | Apple trust, deliberate rollback, clean-device, Windows/Linux, live Google behavior, and staged pilot gates remain open |

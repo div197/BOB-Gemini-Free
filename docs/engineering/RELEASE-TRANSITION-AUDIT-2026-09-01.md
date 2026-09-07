@@ -308,3 +308,32 @@ separate value to remove ambiguity. A new
 `scripts/verify-desktop-build-identity.sh` gate now checks the output binary
 after Wails builds it, preventing stale build output or incorrect ldflags from
 being packaged under a valid-looking version.
+
+## 2026-09-07 current public Preview 10 transition
+
+The current public native macOS prerelease is now
+[`v0.2.0-preview.10`](https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.2.0-preview.10),
+published from merged `main` commit `1862d313804d4290411439d69779ba36d364c327`.
+Its five public assets were downloaded again, matched byte-for-byte with the
+locally signed inputs, and verified with the checked-in project public key.
+The full evidence is in
+[`PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md`](PREVIEW-10-PUBLIC-VERIFICATION-2026-09-07.md).
+
+The installed public Preview 9 on the audit Mac discovered Preview 10 through
+**Help → Check for Updates**. A preserved copy of that Preview 9 bundle then
+completed the real user-consented download, signed-manifest verification,
+same-filesystem replacement, restart, and healthy `/healthz` confirmation for
+Preview 10. The original `/Applications` bundle was not replaced, and no
+updater staging directory remained beside the copy.
+
+| Installed lineage | Current result after Preview 10 publication |
+|---|---|
+| Public Preview 9 and current-key v0.2 previews | Same-key Preview 10 discovery is available; one preserved Preview 9 copy completed replacement/restart |
+| Public Preview 7 | Same-key Preview 10 discovery remains possible through its preview-only updater; real Preview 7 replacement is still a device gate |
+| Public Preview 1–6 and other missing/obsolete-key builds | Manual installation of a current signed preview remains required |
+| Stable CLI `v0.1.5` or local stable-labelled `v0.1.9` | No native desktop auto-migration; install the native package manually |
+
+Preview 10 remains a controlled beta. The project signature does not create
+Apple Developer ID/notarization trust, and the updater does not silently push
+to a 30-device fleet. Clean-device, deliberate rollback, two- or three-Mac
+pilot, Windows/Linux, and live provider gates remain open.
