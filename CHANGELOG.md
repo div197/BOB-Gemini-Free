@@ -37,6 +37,18 @@ to an earlier implementation. The current contract supersedes those phrases:
 
 ## [Unreleased]
 
+### Native desktop bootstrap
+
+- Repairs a reproducible post-relaunch splash on Wails desktop builds when a
+  previous browser run left a local PWA service worker controlling the
+  loopback Studio frame. Native mode now retires legacy local registrations,
+  does not register the PWA worker, and reveals the frame through a validated
+  readiness signal rather than depending only on WebKit's iframe `load`
+  event.
+- Marks native-shell navigations `no-store` and keeps the ordinary hosted
+  browser/PWA service-worker path unchanged. A bounded bootstrap timeout now
+  presents an actionable retry state instead of an indefinite spinner.
+
 ### Desktop update discovery
 
 - Adds a fixed, detached-signed desktop release feed so current-source native
@@ -54,6 +66,10 @@ to an earlier implementation. The current contract supersedes those phrases:
 - Rejects canonical GitHub release metadata when its page, package, or
   manifest URL does not match the selected tag and declared asset name; the
   official opaque release CDN remains supported behind manifest verification.
+- Adds a post-Wails desktop identity gate that verifies the emitted version,
+  update channel, and embedded updater public key before native output is
+  copied, signed, archived, or published. This prevents stale build output
+  from being released under a valid-looking version.
 
 ## [0.2.0-preview.9] - 2026-09-01
 

@@ -792,6 +792,9 @@ func TestPlaygroundEndpoint(t *testing.T) {
 			if strings.Contains(rec.Body.String(), "__BOB_CACHE_VERSION__") {
 				t.Error("service worker leaked its cache version placeholder")
 			}
+			if !strings.Contains(rec.Body.String(), `url.searchParams.get("desktop_shell") === "1"`) {
+				t.Error("service worker must bypass native desktop-shell navigations")
+			}
 		}
 		if (path == "/playground" || path == "/ui") && rec.Header().Get("Content-Type") != "text/html; charset=utf-8" {
 			t.Errorf("Expected text/html Content-Type for %s, got %s", path, rec.Header().Get("Content-Type"))
@@ -816,6 +819,9 @@ func TestDesktopShellPlaygroundAllowsOnlyTheWailsEmbeddingPath(t *testing.T) {
 	policy := desktop.Header().Get("Content-Security-Policy")
 	if !strings.Contains(policy, "frame-ancestors wails://wails wails://wails.localhost:* http://wails.localhost http://wails.localhost:*") {
 		t.Fatalf("desktop-shell playground policy does not restrict framing to Wails: %q", policy)
+	}
+	if got := desktop.Header().Get("Cache-Control"); got != "no-store" {
+		t.Fatalf("desktop-shell playground Cache-Control = %q, want no-store", got)
 	}
 }
 

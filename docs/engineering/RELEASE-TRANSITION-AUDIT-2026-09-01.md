@@ -20,9 +20,10 @@ migration path; the updater must not weaken verification or silently change a
 stable build into a preview build.
 
 The public release inventory checked on 2026-09-01 contains `v0.1.5` as the
-latest stable release, `v0.1.7-preview.1` through `.7`, and
-`v0.2.0-preview.1` through `.9`. There is no public GitHub tag or release
-named `v0.1.9`; `v0.1.9` is a source/changelog milestone only.
+latest stable release, `v0.1.7-preview.1` through `.7`, and the published
+`v0.2.0-preview.1` through `.6`, `.8`, and `.9`; there is no public
+`v0.2.0-preview.7`. There is also no public GitHub tag or release named
+`v0.1.9`; `v0.1.9` is a source/changelog milestone only.
 
 The current source now has a second discovery layer: a detached-signed feed
 at the fixed raw-content URL, with the existing GitHub API path as fallback.
@@ -264,3 +265,46 @@ repository change can make that already-installed binary show a new prompt.
 The manual bridge is not a product failure—it is the security boundary that
 prevents an untrusted binary or artifact-family change from gaining update
 authority.
+
+## 2026-09-05 continuation — native bootstrap and current discovery truth
+
+The public release inventory was rechecked against GitHub on 2026-09-05. The
+latest public native macOS prerelease remains `v0.2.0-preview.9`; the next
+source candidate is `v0.2.0-preview.10` and has not been published. The checked-
+in detached-signed feed currently names Preview 9 and expires on 2026-09-12.
+
+The exact current-source updater policy remains:
+
+| Installed identity | What **Help → Check for Updates** can discover today | What it can install automatically |
+|---|---|---|
+| `v0.1.7-preview.1`–`.6` or another build without the current project key | Metadata may be visible through its historical code, but the current signed manifest cannot be verified by the old binary | Nothing safely; perform one manual installation of the current signed native preview |
+| `v0.1.7-preview.7` | The published Preview 7 binary can discover a newer same-key preview, including public Preview 9; it does not know the later stable-first code | A user-consented, manifest-verified preview replacement only; stable requires a later bridge/current updater |
+| Published `v0.2.0-preview.1`–`.6`, `.8`, and `.9` built with the current key | Current-source builds use stable-first migration, then the highest newer native preview; the public Preview 9 binary retains the behavior compiled into Preview 9 | A user-consented replacement when the target package and signed manifest are present and the app is in a writable location; public `.7` does not exist |
+| stable-labelled CLI `v0.1.5` or local `v0.1.9` | It is not the native Wails updater family and must not be redirected into previews | No native desktop migration; install the current native package manually |
+
+The exact public Preview 7 → Preview 9 discovery dialog was observed earlier;
+the 2026-09-05 same-port bootstrap test proves the next source candidate's
+native startup repair, not a public Preview 10 installation. No claim is made
+that all 30 devices will update silently: each device still needs an explicit
+consent action, a writable installed bundle, and a recovery path.
+
+## 2026-09-07 public binary identity revalidation
+
+The public GitHub release archives were downloaded again through the existing
+authorized local GitHub client and inspected without changing any release. The
+binary's compiled Go metadata, not the release title, was treated as the source
+of updater identity. The public packages currently expose this boundary:
+
+| Public lineage | Embedded updater identity | Manifest result | Safe migration conclusion |
+|---|---|---|---|
+| `v0.1.7-preview.1`–`.3` | No current desktop trust anchor; Preview 3 was directly inspected without one | The old release family does not satisfy the current signed-manifest contract | Manual installation of a current signed native preview |
+| `v0.1.7-preview.4`–`.6` | Older base64-encoded project key | Manifest verifies with that older key, not the current key | Manual migration; never download a replacement trust anchor |
+| `v0.1.7-preview.7` | Current canonical project key | Public manifest verifies with the current key | Same-key preview discovery is possible; install/restart still need a device test |
+| Published `v0.2.0-preview.1`–`.6`, `.8`, and `.9` | Current canonical project key | Public Preview 9 manifest verifies with the current key; the published lineage is current-key based | Same-key continuation is possible when the target is published, signed, and the app is writable; there is no public `.7` release |
+
+The current key file's long fingerprint is the SHA-256 of its canonical textual
+hexadecimal encoding; the decoded-byte fingerprint is recorded there as a
+separate value to remove ambiguity. A new
+`scripts/verify-desktop-build-identity.sh` gate now checks the output binary
+after Wails builds it, preventing stale build output or incorrect ldflags from
+being packaged under a valid-looking version.

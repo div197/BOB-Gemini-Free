@@ -79,6 +79,10 @@ if [[ ! -f "$SOURCE_EXE" ]]; then
 	echo "desktop build did not produce the expected Windows executable: $SOURCE_EXE" >&2
 	exit 1
 fi
+
+bash "$ROOT_DIR/scripts/verify-desktop-build-identity.sh" \
+	"$SOURCE_EXE" "$VERSION" "$CHANNEL" "$EXPECTED_PUBLIC_KEY"
+
 cp "$SOURCE_EXE" "$DEST_EXE"
 
 cat > "$OUTPUT_DIR/RELEASE-NOTICE.txt" <<'NOTICE'

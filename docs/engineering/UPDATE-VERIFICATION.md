@@ -50,6 +50,13 @@ transition remains subject to a live installed-device test. Historical
 native update; the current `v0.2.0-preview.9` package embeds the current
 project public key.
 
+Release packagers also inspect the compiled executable after Wails finishes.
+`scripts/verify-desktop-build-identity.sh` reads Go build metadata and checks
+that the emitted version, channel, and embedded public key exactly match the
+requested release inputs before the app is copied, code-signed, archived, or
+given a release manifest. This closes the stale-build/output-identity gap;
+the manifest signer still independently checks the private/public key pair.
+
 The local release command requires `BOB_GEMINI_FREE_UPDATE_PUBLIC_KEY` and
 injects it into every CLI matrix binary. On macOS,
 `scripts/sign-release-assets.sh` reads the private signing value from the

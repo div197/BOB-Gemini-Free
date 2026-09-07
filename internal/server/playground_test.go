@@ -35,6 +35,30 @@ func TestHostedStudioDoesNotProbeLoopbackOnStartup(t *testing.T) {
 	}
 }
 
+func TestDesktopShellRetiresLocalServiceWorkerBeforeReveal(t *testing.T) {
+	html := string(playgroundHTML)
+	for _, marker := range []string{
+		`window.__BOB_DESKTOP_SHELL__ = new URLSearchParams(window.location.search).get('desktop_shell') === '1';`,
+		`navigator.serviceWorker.getRegistrations()`,
+		`registration.unregister()`,
+		`type: 'BOB_DESKTOP_SHELL_READY'`,
+		`if (!window.__BOB_DESKTOP_SHELL__ && 'serviceWorker' in navigator)`,
+	} {
+		if !strings.Contains(html, marker) {
+			t.Fatalf("desktop-shell service-worker migration is missing marker %q", marker)
+		}
+	}
+	top := strings.Index(html, `window.__BOB_DESKTOP_SHELL__ =`)
+	notify := strings.Index(html, `notifyDesktopShellReady();`)
+	ready := strings.Index(html, `type: 'BOB_DESKTOP_SHELL_READY'`)
+	registration := strings.Index(html, `navigator.serviceWorker.register('./sw.js')`)
+	guard := strings.Index(html, `if (!window.__BOB_DESKTOP_SHELL__ && 'serviceWorker' in navigator)`)
+	cleanup := strings.Index(html, `navigator.serviceWorker.getRegistrations()`)
+	if top < 0 || notify < top || cleanup < notify || ready < top || guard < 0 || registration < guard {
+		t.Fatal("desktop-shell migration must run before ordinary PWA registration")
+	}
+}
+
 func TestHostedOnboardingDoesNotAdvertiseUnavailableCLIInstaller(t *testing.T) {
 	html := string(playgroundHTML)
 	for _, marker := range []string{

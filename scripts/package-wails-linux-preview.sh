@@ -88,6 +88,9 @@ if [[ ! -f "$SOURCE_BINARY" ]]; then
 	exit 1
 fi
 
+bash "$ROOT_DIR/scripts/verify-desktop-build-identity.sh" \
+	"$SOURCE_BINARY" "$VERSION" "$CHANNEL" "$EXPECTED_PUBLIC_KEY"
+
 PACKAGE_DIR="$STAGE_DIR/$PUBLIC_APP_NAME"
 mkdir -p "$PACKAGE_DIR"
 cp "$SOURCE_BINARY" "$PACKAGE_DIR/$PUBLIC_APP_NAME"

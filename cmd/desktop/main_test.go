@@ -38,8 +38,13 @@ func TestDesktopBootstrapKeepsTheNativeBridgeAfterGatewayLoad(t *testing.T) {
 		`window.addEventListener("message"`,
 		`event.source !== frame.contentWindow || event.origin !== gatewayOrigin`,
 		`message.type !== "BOB_OPEN_EXTERNAL_URL"`,
+		`message.type === "BOB_DESKTOP_SHELL_READY"`,
+		`const showGatewayFrame = () =>`,
+		`frame.addEventListener("load", showGatewayFrame);`,
+		`The local workspace did not become ready. Restart startup and try again.`,
 		`BrowserOpenURL(url.href)`,
 		`desktop_shell=1`,
+		`desktop_boot=`,
 	} {
 		if !strings.Contains(html, marker) {
 			t.Fatalf("desktop bootstrap is missing marker %q", marker)

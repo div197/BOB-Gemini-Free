@@ -9,10 +9,23 @@ must never enter Git, chat, screenshots, release notes, or student packages.
 Encoding: hexadecimal Ed25519 public key
 ba7854781bca2a14da4f1ec5e931ff45f458ac9377c42ac127c349e5ecad2dff
 
-SHA-256 fingerprint of the public-key bytes:
+SHA-256 fingerprint of the canonical 64-character hexadecimal encoding:
 ac862068215d2944d76bee896b46a4a7ca165acfa7f51135a25bb8c2366b0c38
+
+SHA-256 fingerprint of the decoded 32-byte Ed25519 public key:
+e04c2345af1274af838012dc7cf8eb0a91aca0099006c26d5a5b9a5d97805f72
 
 This key is different from the legacy public key embedded in the old
 v0.1.7-preview.6 build. Those legacy installations require a one-time manual
 migration to a build carrying this key; the published v0.2.0-preview.6 package
-and later signed releases use this key.
+and later signed releases use this key. The public v0.1.7-preview.7 and the
+published v0.2.0-preview.1 through .6, .8, and .9 binaries were re-inspected
+on 2026-09-07 and carry this canonical key. Their release manifests also
+verify with this key. There is no public v0.2.0-preview.7 release in the
+current GitHub inventory.
+
+The public v0.1.7-preview.4 through .6 binaries carry the older base64-encoded
+project key and their manifests verify only with that older key. Public
+v0.1.7-preview.3 was inspected without an embedded desktop update key. These
+older lineages are intentionally manual-migration cases; the updater must not
+download a new trust anchor at runtime.

@@ -33,8 +33,11 @@
         const frame = document.querySelector("[data-gateway-frame]");
         let opened = false;
         let gatewayOrigin = "";
+        let frameReady = false;
+        let bootstrapTimer = 0;
         const showGatewayError = (message) => {
             if (shell.querySelector(".error")) return;
+            if (bootstrapTimer) window.clearTimeout(bootstrapTimer);
             document.querySelector(".status-row")?.remove();
             const error = document.createElement("div");
             error.className = "error";
@@ -63,15 +66,30 @@
             opened = true;
             gatewayOrigin = gateway.origin;
             status.textContent = "Opening your local workspace…";
-            frame.src = `${gateway.origin}/playground?desktop_shell=1`;
+            // A legacy worker may have cached the plain desktop-shell URL
+            // before the migration code existed. A per-launch nonce forces
+            // that first navigation to obtain the current native bootstrap;
+            // the current worker still bypasses all desktop-shell requests.
+            const desktopBootstrapNonce = `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+            frame.src = `${gateway.origin}/playground?desktop_shell=1&desktop_boot=${encodeURIComponent(desktopBootstrapNonce)}`;
+            bootstrapTimer = window.setTimeout(() => {
+                if (!frameReady) {
+                    showGatewayError("The local workspace did not become ready. Restart startup and try again.");
+                }
+            }, 15000);
         };
 
-        frame.addEventListener("load", () => {
+        const showGatewayFrame = () => {
+            if (frameReady) return;
+            frameReady = true;
+            if (bootstrapTimer) window.clearTimeout(bootstrapTimer);
             frame.hidden = false;
             frame.classList.add("ready");
             shell.hidden = true;
             document.body.classList.add("ready");
-        });
+        };
+
+        frame.addEventListener("load", showGatewayFrame);
 
         // The loopback Studio cannot retain Wails' injected runtime after a
         // top-level navigation. Accept only messages from the exact gateway
@@ -80,7 +98,12 @@
         window.addEventListener("message", (event) => {
             if (!frame || event.source !== frame.contentWindow || event.origin !== gatewayOrigin) return;
             const message = event.data;
-            if (!message || message.type !== "BOB_OPEN_EXTERNAL_URL" || typeof message.url !== "string") return;
+            if (!message) return;
+            if (message.type === "BOB_DESKTOP_SHELL_READY") {
+                showGatewayFrame();
+                return;
+            }
+            if (message.type !== "BOB_OPEN_EXTERNAL_URL" || typeof message.url !== "string") return;
             let url;
             try {
                 url = new URL(message.url);
