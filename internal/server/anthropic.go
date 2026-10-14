@@ -279,9 +279,13 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 					return
 				}
 			}
-			if err := emitChunk(format.StreamChunk{Type: format.DeltaContent, Text: cleanText, TransitionToContent: true}); err != nil {
-				a.logf("Anthropic stream text write failed: %v", err)
-				return
+			// A tool-only answer opens no text block, as the non-streaming response
+			// does. An empty answer with no tool call keeps the empty text block.
+			if cleanText != "" || (!startedThinkingBlock && len(toolCalls) == 0) {
+				if err := emitChunk(format.StreamChunk{Type: format.DeltaContent, Text: cleanText, TransitionToContent: true}); err != nil {
+					a.logf("Anthropic stream text write failed: %v", err)
+					return
+				}
 			}
 		} else {
 			for _, ch := range flushed {
@@ -298,7 +302,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				a.logf("Anthropic stream content_block_stop write failed: %v", err)
 				return
 			}
-		} else {
+		} else if len(toolCalls) == 0 {
 			if err := startTextBlock(); err != nil {
 				a.logf("Anthropic stream empty-text block write failed: %v", err)
 				return
@@ -315,8 +319,15 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		stopReason := "end_turn"
 		if len(toolCalls) > 0 {
 			stopReason = "tool_use"
+			// Tool blocks follow any open thinking or text block. With none open,
+			// the first tool takes index 0.
+			toolIndex := currentBlockIndex
+			if startedTextBlock || startedThinkingBlock {
+				toolIndex++
+			}
 			for _, tc := range toolCalls {
-				currentBlockIndex++
+				currentBlockIndex = toolIndex
+				toolIndex++
 				tID := tc.ID
 				if tID == "" {
 					tID = fmt.Sprintf("toolu_%s", format.RandHex(12))
