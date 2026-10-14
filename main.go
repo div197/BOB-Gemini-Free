@@ -527,6 +527,10 @@ func main() {
 		cfg.Impersonate = *impersonateFlag
 	}
 
+	if err := config.CheckListenPolicy(cfg); err != nil {
+		log.Fatalf("refusing to start: %v", err)
+	}
+
 	app := server.New(cfg, currentVersion)
 	defer app.Close()
 
