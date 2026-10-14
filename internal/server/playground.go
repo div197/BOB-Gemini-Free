@@ -31,7 +31,10 @@ func (a *App) handlePlayground(w http.ResponseWriter, r *http.Request) {
 	}
 	html := bytes.ReplaceAll(playgroundHTML, []byte("__BOB_DESKTOP_VERSION__"), []byte(version))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	contentSecurityPolicy := "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; frame-src 'self' data: blob:; connect-src *;"
+	// Images are the model-controlled path, so they get their own narrow list:
+	// local data/blob URLs and the Google image host. Other directives keep the
+	// broader default.
+	contentSecurityPolicy := "default-src 'self' 'unsafe-inline' 'unsafe-eval' data: blob: https:; img-src 'self' data: blob: https://lh3.googleusercontent.com; frame-src 'self' data: blob:; connect-src *;"
 	if r.URL.Query().Get("desktop_shell") == "1" {
 		// Native Wails embeds this page in a frame. It must not be hidden behind
 		// an HTTP cache or a service-worker cache from an older desktop build.
