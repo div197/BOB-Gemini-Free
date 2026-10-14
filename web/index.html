@@ -10077,12 +10077,28 @@ if (window.marked) {
     return `${artifactChip}<pre><div class="code-window-header"><div class="window-dots"><div class="window-dot dot-red"></div><div class="window-dot dot-yellow"></div><div class="window-dot dot-green"></div></div><span class="lang-badge">${escapeHtml(langLabel)}</span><div class="code-action-btns">${canvasBtn}<button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-code" data-lang="${escapeHtml(langLabel)}">💾 Save</button><button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="copy-code">📋 Copy</button></div></div><code class="${prismClass}">${highlightedCode}</code></pre>`;
   };
 
+  // Model-written markdown images may only load from these hosts (must match
+  // the img-src directive in internal/server/playground.go). Anything else is
+  // shown as a plain link, so no image request is made to it.
+  const MARKDOWN_IMAGE_HOSTS = ['lh3.googleusercontent.com'];
+  function isAllowedMarkdownImageUrl(url) {
+    try {
+      const parsed = new URL(url, window.location.href);
+      return parsed.protocol === 'https:' && MARKDOWN_IMAGE_HOSTS.includes(parsed.hostname);
+    } catch (_) {
+      return false;
+    }
+  }
+
   customRenderer.image = function(href, title, text) {
     let rawHref = typeof href === 'object' && href !== null ? (href.href || '') : (href || '');
     let rawTitle = typeof href === 'object' && href !== null ? (href.title || '') : (title || '');
     let rawText = typeof href === 'object' && href !== null ? (href.text || '') : (text || '');
     const cleanAlt = escapeHtml(rawText || rawTitle || 'Image Reference');
     const safeHref = escapeHtml(rawHref);
+    if (!isAllowedMarkdownImageUrl(rawHref)) {
+      return `<a href="${safeHref}" target="_blank" rel="noopener noreferrer">${cleanAlt}</a>`;
+    }
     return `<div class="assistant-image-card"><img src="${safeHref}" alt="${cleanAlt}" loading="lazy" referrerpolicy="no-referrer"><div class="assistant-image-footer"><span style="font-size:0.7rem; color:var(--text-muted);">${cleanAlt}</span><button type="button" class="btn-pill-subtle" style="padding:0 8px; height:22px; font-size:0.65rem;" data-action="save-image">💾 Save</button></div></div>`;
   };
 

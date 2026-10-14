@@ -58,6 +58,21 @@ func createHTTPClient(cfg config.Config) *http.Client {
 	}
 }
 
+// developerAPIHTTPClient shares the upstream transport but uses the configured
+// request budget, so request_timeout_sec governs Developer API calls. Client.Timeout
+// also bounds body reads. The shared client keeps its 30s budget for image
+// fetches, Scotty uploads and token refresh.
+func developerAPIHTTPClient(cfg config.Config, shared *http.Client) *http.Client {
+	timeoutSec := cfg.RequestTimeoutSec
+	if timeoutSec <= 0 {
+		timeoutSec = config.DefaultRequestTimeoutSec
+	}
+	return &http.Client{
+		Transport: shared.Transport,
+		Timeout:   time.Duration(timeoutSec) * time.Second,
+	}
+}
+
 func New(cfg config.Config, version string) *App {
 	return NewWithUpdateChannel(cfg, version, updater.DesktopChannelStable)
 }
@@ -84,7 +99,7 @@ func NewWithUpdateChannel(cfg config.Config, version, channel string) *App {
 	app := &App{
 		Cfg:           cfg,
 		Gem:           gemClient,
-		GeminiAPI:     geminiapi.NewClient(httpClient),
+		GeminiAPI:     geminiapi.NewClient(developerAPIHTTPClient(cfg, httpClient)),
 		Tokens:        multimodal.NewTokenCache(cfg, gemClient.Cookies, httpClient),
 		HTTPClient:    httpClient,
 		Logf:          logFn,

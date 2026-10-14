@@ -324,8 +324,35 @@ func publicImageIPs(host string, lookupIP func(string) ([]net.IP, error)) ([]net
 	return ips, nil
 }
 
+// nonPublicImageRanges are reserved or shared ranges that net.IP's helpers do
+// not classify as private. They can still reach internal networks: CGNAT
+// (100.64/10) sits behind carrier NAT, 198.18/15 is benchmark space, 240/4 is
+// reserved class E, and 64:ff9b::/96 is NAT64, which translates to IPv4 targets.
+var nonPublicImageRanges = []*net.IPNet{
+	mustParseCIDR("100.64.0.0/10"),
+	mustParseCIDR("198.18.0.0/15"),
+	mustParseCIDR("240.0.0.0/4"),
+	mustParseCIDR("64:ff9b::/96"),
+}
+
+func mustParseCIDR(cidr string) *net.IPNet {
+	_, network, err := net.ParseCIDR(cidr)
+	if err != nil {
+		panic(err)
+	}
+	return network
+}
+
 func isPublicImageIP(ip net.IP) bool {
-	return ip != nil && ip.IsGlobalUnicast() && !ip.IsPrivate() && !ip.IsLoopback() && !ip.IsLinkLocalUnicast() && !ip.IsUnspecified()
+	if ip == nil || !ip.IsGlobalUnicast() || ip.IsPrivate() || ip.IsLoopback() || ip.IsLinkLocalUnicast() || ip.IsUnspecified() {
+		return false
+	}
+	for _, network := range nonPublicImageRanges {
+		if network.Contains(ip) {
+			return false
+		}
+	}
+	return true
 }
 
 func doImageRequest(client gemini.Requester, req *http.Request, originalHost string, lookupIP func(string) ([]net.IP, error)) (*http.Response, error) {

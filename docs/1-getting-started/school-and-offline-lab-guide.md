@@ -35,7 +35,8 @@ current policies.
 
 ### Option A: Direct Binary
 ```bash
-./bob-gemini-free --host 0.0.0.0 --port 9610
+BOB_GEMINI_FREE_API_KEYS='choose-a-local-classroom-key' \
+  ./bob-gemini-free --host 0.0.0.0 --port 9610
 ```
 
 ### Option B: Docker / OrbStack
@@ -45,6 +46,7 @@ docker run -d \
   --restart always \
   -p 9610:9610 \
   -e BOB_GEMINI_FREE_HOST=0.0.0.0 \
+  -e BOB_GEMINI_FREE_API_KEYS='choose-a-local-classroom-key' \
   -e BOB_GEMINI_FREE_PORT=9610 \
   bob-gemini-free:local
 ```

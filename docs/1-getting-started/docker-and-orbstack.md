@@ -44,6 +44,8 @@ services:
     environment:
       - BOB_GEMINI_FREE_HOST=0.0.0.0
       - BOB_GEMINI_FREE_PORT=9610
+      # Required unless config.json sets api_keys: the gateway refuses to bind 0.0.0.0 without one.
+      - BOB_GEMINI_FREE_API_KEYS=${BOB_GEMINI_FREE_API_KEYS:-}
     ports:
       - "9610:9610"
     volumes:

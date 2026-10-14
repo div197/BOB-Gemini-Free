@@ -486,9 +486,9 @@ func main() {
 	}
 
 	// Auto-fallback test key if none specified and API keys are configured
-	activeTestKey := *testKeyFlag
-	if activeTestKey == "" && len(cfg.APIKeys) > 0 {
-		activeTestKey = cfg.APIKeys[0]
+	activeTestKey, keyNote := resolveTestKey(*testKeyFlag, cfg.APIKeys, *testURLFlag)
+	if (*statusFlag || *testFlag || *benchFlag) && keyNote != "" {
+		fmt.Fprintln(os.Stderr, keyNote)
 	}
 
 	if *statusFlag {
@@ -525,6 +525,10 @@ func main() {
 	}
 	if *impersonateFlag != "" {
 		cfg.Impersonate = *impersonateFlag
+	}
+
+	if err := config.CheckListenPolicy(cfg); err != nil {
+		log.Fatalf("refusing to start: %v", err)
 	}
 
 	app := server.New(cfg, currentVersion)
@@ -564,12 +568,7 @@ func main() {
 	fmt.Printf("  Impersonate: %s\n", impersonateStatus)
 	fmt.Println()
 
-	srv := &http.Server{
-		Addr:              net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
-		Handler:           app.Handler(),
-		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout:      0,
-	}
+	srv := newGatewayHTTPServer(net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)), app.Handler())
 
 	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()

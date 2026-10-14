@@ -234,10 +234,20 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 			return nil
 		}
 
+		// With tools declared, a tool-call fence must never reach the client as
+		// text. Buffer the whole answer, parse it, then emit it once, as the Chat
+		// and Responses streams already do.
+		bufferTools := len(chatReq.Tools) > 0 && !format.IsToolChoiceNone(chatReq.ToolChoice)
+		var toolCalls []models.OpenAIToolCall
+
 		streamErr := StreamWithKeepAlive(r.Context(), w, 2500*time.Millisecond, func(emitDelta func(string) error) error {
 			return a.Gem.GenerateStreamContext(r.Context(), prompt, resolved.Mode, resolved.Think, fileRefs, resolved.Extra, emitDelta)
 		}, func(delta string) error {
-			for _, ch := range splitter.Feed(delta) {
+			chunks := splitter.Feed(delta)
+			if bufferTools {
+				return nil
+			}
+			for _, ch := range chunks {
 				if err := emitChunk(ch); err != nil {
 					return err
 				}
@@ -259,10 +269,30 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Flush remaining tokens
-		for _, ch := range splitter.Flush() {
-			if err := emitChunk(ch); err != nil {
-				a.logf("Anthropic stream flush write failed: %v", err)
-				return
+		flushed := splitter.Flush()
+		if bufferTools {
+			var cleanText string
+			cleanText, toolCalls = format.ParseToolCalls(splitter.GetFullContent())
+			if thinking := splitter.GetFullThinking(); thinking != "" {
+				if err := emitChunk(format.StreamChunk{Type: format.DeltaThinking, Text: thinking}); err != nil {
+					a.logf("Anthropic stream thinking write failed: %v", err)
+					return
+				}
+			}
+			// A tool-only answer opens no text block, as the non-streaming response
+			// does. An empty answer with no tool call keeps the empty text block.
+			if cleanText != "" || (!startedThinkingBlock && len(toolCalls) == 0) {
+				if err := emitChunk(format.StreamChunk{Type: format.DeltaContent, Text: cleanText, TransitionToContent: true}); err != nil {
+					a.logf("Anthropic stream text write failed: %v", err)
+					return
+				}
+			}
+		} else {
+			for _, ch := range flushed {
+				if err := emitChunk(ch); err != nil {
+					a.logf("Anthropic stream flush write failed: %v", err)
+					return
+				}
 			}
 		}
 
@@ -272,7 +302,7 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 				a.logf("Anthropic stream content_block_stop write failed: %v", err)
 				return
 			}
-		} else {
+		} else if len(toolCalls) == 0 {
 			if err := startTextBlock(); err != nil {
 				a.logf("Anthropic stream empty-text block write failed: %v", err)
 				return
@@ -287,52 +317,56 @@ func (a *App) handleAnthropicMessages(w http.ResponseWriter, r *http.Request) {
 		fullContent := splitter.GetFullContent()
 
 		stopReason := "end_turn"
-		if len(chatReq.Tools) > 0 && fullContent != "" && !format.IsToolChoiceNone(chatReq.ToolChoice) {
-			_, toolCalls := format.ParseToolCalls(fullContent)
-			if len(toolCalls) > 0 {
-				stopReason = "tool_use"
-				for _, tc := range toolCalls {
-					currentBlockIndex++
-					tID := tc.ID
-					if tID == "" {
-						tID = fmt.Sprintf("toolu_%s", format.RandHex(12))
-					}
-					var inputMap map[string]any
-					_ = json.Unmarshal([]byte(tc.Function.Arguments), &inputMap)
-					if inputMap == nil {
-						inputMap = make(map[string]any)
-					}
-					if err := writeSSEEvent(w, "content_block_start", map[string]any{
-						"type":  "content_block_start",
-						"index": currentBlockIndex,
-						"content_block": map[string]any{
-							"type":  "tool_use",
-							"id":    tID,
-							"name":  tc.Function.Name,
-							"input": inputMap,
-						},
-					}); err != nil {
-						a.logf("Anthropic stream tool block start write failed: %v", err)
-						return
-					}
-					if err := writeSSEEvent(w, "content_block_delta", map[string]any{
-						"type":  "content_block_delta",
-						"index": currentBlockIndex,
-						"delta": map[string]any{
-							"type":         "input_json_delta",
-							"partial_json": tc.Function.Arguments,
-						},
-					}); err != nil {
-						a.logf("Anthropic stream tool block delta write failed: %v", err)
-						return
-					}
-					if err := writeSSEEvent(w, "content_block_stop", map[string]any{
-						"type":  "content_block_stop",
-						"index": currentBlockIndex,
-					}); err != nil {
-						a.logf("Anthropic stream tool block stop write failed: %v", err)
-						return
-					}
+		if len(toolCalls) > 0 {
+			stopReason = "tool_use"
+			// Tool blocks follow any open thinking or text block. With none open,
+			// the first tool takes index 0.
+			toolIndex := currentBlockIndex
+			if startedTextBlock || startedThinkingBlock {
+				toolIndex++
+			}
+			for _, tc := range toolCalls {
+				currentBlockIndex = toolIndex
+				toolIndex++
+				tID := tc.ID
+				if tID == "" {
+					tID = fmt.Sprintf("toolu_%s", format.RandHex(12))
+				}
+				var inputMap map[string]any
+				_ = json.Unmarshal([]byte(tc.Function.Arguments), &inputMap)
+				if inputMap == nil {
+					inputMap = make(map[string]any)
+				}
+				if err := writeSSEEvent(w, "content_block_start", map[string]any{
+					"type":  "content_block_start",
+					"index": currentBlockIndex,
+					"content_block": map[string]any{
+						"type":  "tool_use",
+						"id":    tID,
+						"name":  tc.Function.Name,
+						"input": inputMap,
+					},
+				}); err != nil {
+					a.logf("Anthropic stream tool block start write failed: %v", err)
+					return
+				}
+				if err := writeSSEEvent(w, "content_block_delta", map[string]any{
+					"type":  "content_block_delta",
+					"index": currentBlockIndex,
+					"delta": map[string]any{
+						"type":         "input_json_delta",
+						"partial_json": tc.Function.Arguments,
+					},
+				}); err != nil {
+					a.logf("Anthropic stream tool block delta write failed: %v", err)
+					return
+				}
+				if err := writeSSEEvent(w, "content_block_stop", map[string]any{
+					"type":  "content_block_stop",
+					"index": currentBlockIndex,
+				}); err != nil {
+					a.logf("Anthropic stream tool block stop write failed: %v", err)
+					return
 				}
 			}
 		}
