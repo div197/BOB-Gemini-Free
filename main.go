@@ -491,6 +491,12 @@ func main() {
 		activeTestKey = cfg.APIKeys[0]
 	}
 
+	if *statusFlag || *testFlag || *benchFlag {
+		if err := checkTestKeyTarget(*testURLFlag, activeTestKey); err != nil {
+			log.Fatal(err)
+		}
+	}
+
 	if *statusFlag {
 		handleStatus(*testURLFlag, activeTestKey)
 	}
