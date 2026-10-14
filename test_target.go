@@ -8,9 +8,9 @@ import (
 	"github.com/div197/bob-gemini-free/internal/config"
 )
 
-// keyMayTravelTo reports whether a gateway API key may be sent to targetURL.
-// A key goes to HTTPS targets, or over HTTP only to a loopback address. Plain
-// HTTP to any other host would expose the key on the network.
+// keyMayTravelTo reports whether a gateway API key may be sent to targetURL
+// without crossing the network in plain text: an https:// target, or an
+// http:// target on a loopback address.
 func keyMayTravelTo(targetURL string) bool {
 	u, err := url.Parse(targetURL)
 	if err != nil || u.Host == "" {
@@ -26,11 +26,23 @@ func keyMayTravelTo(targetURL string) bool {
 	}
 }
 
-// checkTestKeyTarget refuses a diagnostic run that would send a key to a target
-// keyMayTravelTo rejects. An empty key is always allowed.
-func checkTestKeyTarget(targetURL, apiKey string) error {
-	if apiKey == "" || keyMayTravelTo(targetURL) {
-		return nil
+// resolveTestKey chooses the key for a diagnostic run and returns an operator
+// note when one applies. An explicit --test-key is always used, with a warning
+// if it will go over plain HTTP. The key from config.json is a convenience
+// fallback, so it is only used for https:// or loopback targets.
+func resolveTestKey(explicitKey string, configuredKeys []string, targetURL string) (string, string) {
+	plain := !keyMayTravelTo(targetURL)
+	if explicitKey != "" {
+		if plain {
+			return explicitKey, fmt.Sprintf("warning: --test-key is sent to %s over plain HTTP", targetURL)
+		}
+		return explicitKey, ""
 	}
-	return fmt.Errorf("refusing to send an API key to %s over plain HTTP: use an https:// URL or a loopback address", targetURL)
+	if len(configuredKeys) == 0 {
+		return "", ""
+	}
+	if plain {
+		return "", fmt.Sprintf("note: not sending the configured api_keys to %s over plain HTTP; pass --test-key to send one", targetURL)
+	}
+	return configuredKeys[0], ""
 }

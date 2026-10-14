@@ -486,15 +486,9 @@ func main() {
 	}
 
 	// Auto-fallback test key if none specified and API keys are configured
-	activeTestKey := *testKeyFlag
-	if activeTestKey == "" && len(cfg.APIKeys) > 0 {
-		activeTestKey = cfg.APIKeys[0]
-	}
-
-	if *statusFlag || *testFlag || *benchFlag {
-		if err := checkTestKeyTarget(*testURLFlag, activeTestKey); err != nil {
-			log.Fatal(err)
-		}
+	activeTestKey, keyNote := resolveTestKey(*testKeyFlag, cfg.APIKeys, *testURLFlag)
+	if (*statusFlag || *testFlag || *benchFlag) && keyNote != "" {
+		fmt.Fprintln(os.Stderr, keyNote)
 	}
 
 	if *statusFlag {
