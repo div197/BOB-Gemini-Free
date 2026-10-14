@@ -568,12 +568,7 @@ func main() {
 	fmt.Printf("  Impersonate: %s\n", impersonateStatus)
 	fmt.Println()
 
-	srv := &http.Server{
-		Addr:              net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)),
-		Handler:           app.Handler(),
-		ReadHeaderTimeout: 10 * time.Second,
-		WriteTimeout:      0,
-	}
+	srv := newGatewayHTTPServer(net.JoinHostPort(cfg.Host, strconv.Itoa(cfg.Port)), app.Handler())
 
 	stopCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
