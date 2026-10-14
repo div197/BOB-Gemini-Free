@@ -52,9 +52,15 @@ func createHTTPClient(cfg config.Config) *http.Client {
 	} else {
 		transport.Proxy = http.ProxyFromEnvironment
 	}
+	// Same budget as the web RPC client, so request_timeout_sec governs every
+	// upstream call. (Client.Timeout also bounds body reads.)
+	timeoutSec := cfg.RequestTimeoutSec
+	if timeoutSec <= 0 {
+		timeoutSec = config.DefaultRequestTimeoutSec
+	}
 	return &http.Client{
 		Transport: transport,
-		Timeout:   30 * time.Second,
+		Timeout:   time.Duration(timeoutSec) * time.Second,
 	}
 }
 
