@@ -408,14 +408,12 @@ func SaveCookieFile(filePath string, cookieStr string) error {
 	if int64(len(cookieStr)) > MaxCookieFileBytes {
 		return fmt.Errorf("cookie input exceeds %d bytes", MaxCookieFileBytes)
 	}
+	// MkdirAll creates a missing directory as 0700. An existing directory keeps
+	// its mode: "." is the user's working folder, and chmod-ing it changed
+	// folders the user never asked us to touch.
 	dir := filepath.Dir(filePath)
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return fmt.Errorf("failed to create directory: %w", err)
-	}
-	if runtime.GOOS != "windows" {
-		if err := os.Chmod(dir, 0700); err != nil {
-			return fmt.Errorf("failed to restrict cookie directory: %w", err)
-		}
 	}
 	if err := os.WriteFile(filePath, []byte(cookieStr), 0600); err != nil {
 		return err
