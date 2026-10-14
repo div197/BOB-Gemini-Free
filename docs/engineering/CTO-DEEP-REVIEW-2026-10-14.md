@@ -47,7 +47,11 @@ while production checks expiry against the wall clock (V,
 | `b85ca2e` | **Stored XSS** in the studio: KaTeX fallback re-inserted captured model text unescaped; history replays run before the deferred KaTeX script (`playground.html:10200`, `loadHistory()` at `:12686`). Also bumps the hosted service-worker cache name (`web/sw.js:6`), which had been frozen since `b66a306`, and regenerates `web/index.html` | V — new test fails on old code |
 | `bfd07c0` | **Anthropic image blocks always failed** (`format/anthropic.go` built `map[string]string`; extractor requires `map[string]any`) → "has no image URL". **Echoed `thinking`/`redacted_thinking` blocks failed the whole request** | V — both new tests fail on old code, pass on fix |
 
-Full suite is green after all four commits (V).
+Full suite is green (18 packages) after all commits, and `git diff --check` is clean (V).
+
+A follow-up commit `c81b93b` adds tests for a `[thinking, tool_use]` round trip with its `tool_result`, and for a thinking-only assistant turn. Both pass without a guard. (V)
+
+Placeholder audit for the same bug class: `renderMarkdown` has two placeholder families. The `@@@BOB_CODE_n@@@` family is restored before `marked.parse` (`playground.html:10155`, `:10177`), so `marked` escapes the code. The `@@@BOB_MATH_n@@@` family is restored after `DOMPurify.sanitize` (`:10189`, `:10229`). That math restore was the only sibling, and `b85ca2e` fixes it. (V)
 
 ## 4. Open findings, by priority
 
@@ -58,7 +62,7 @@ Full suite is green after all four commits (V).
 | H1 | **Anthropic streaming with tools leaks the tool-call fence as text** and then appends a real `tool_use`. Claude Code always sends tools, so this is likely on every tool turn. Chat and Responses already buffer when tools are present. | V (structure) / I (client impact) | `internal/server/anthropic.go:130,237,290` |
 | H2 | **Markdown-image exfiltration path.** CSP `default-src … https:` with `connect-src *`, so model-generated `<img>` can beacon to any HTTPS host, and injected script can send data anywhere. | V (CSP) / R (renderer) | `internal/server/playground.go:34`; image renderer in `playground.html` |
 | H3 | **Docker exposes the gateway unauthenticated.** Dockerfile sets `HOST=0.0.0.0`; compose publishes `9610:9610`; nothing refuses a non-loopback bind when `api_keys` is empty; `config.example.json` ships the usable-looking key `sk-gemini`. | V | `Dockerfile:23`, `docker-compose.yml:8,11`, `config.example.json:12`, `main.go:568` |
-| H4 | **Multi-account pool pairs the wrong token with the cookie.** The access token and guest cookies come from the cookie cache, which is seeded only from `cookie_file`; each request's `Cookie` header comes from a round-robin pool session. Pool-only configs get a guest token with a pool cookie. | V (structure) / I (Google rejection) | `internal/gemini/client.go:155,457-470,614-638`; `auth.go` `GetSessionInfo` |
+| H4 | **Multi-account pool pairs the wrong token with the cookie.** The access token and guest cookies come from the cookie cache, which is seeded only from `cookie_file`; each request's `Cookie` header comes from a round-robin pool session. Pool-only configs get a guest token with a pool cookie. | V (both sides read: body token from `GetSessionInfo`, `client.go:457`; `Cookie`, `Authorization` and `X-Goog-AuthUser` from the pool session, `client.go:162-197`) / I (Google rejection) | `internal/gemini/client.go:155,457-470,614-638`; `auth.go` `GetSessionInfo` |
 | H5 | **Update manifest does not bind the version.** `SHA256SUMS` is only `digest  name` lines. A validly signed old manifest reused under a newer tag installs the old build, and the staged app's own version is never checked. Needs release-write access, not the signing key. | V (format) / R (exploit path) | `internal/updater/release_manifest.go:83-86`, `desktop.go:231`, `desktop_stage.go` |
 | H6 | **Production update feed has expired** (`expires_at` 2026-09-14). Desktop discovery now falls back silently to the GitHub API, which is the classroom burst the feed exists to prevent. Re-signing needs the owner's Keychain key. | V | `updates/desktop-feed.json`; `desktop.go:124-126`; `update_feed.go:182` |
 
@@ -94,7 +98,7 @@ Full suite is green after all four commits (V).
 - Studio CSP allows `unsafe-inline` and `unsafe-eval`; this matters because of H2 (R).
 - GET endpoints under DNS rebinding: not re-checked (gap).
 
-## 5. Verified healthy
+## 5. Reported sound by area reviews (not re-checked)
 
 - Protected routes: every non-public route requires the key; all key comparisons are constant-time (V).
 - `?key=` only with `allow_query_api_key` (R).
