@@ -362,6 +362,28 @@ func (p *CookiePool) MarkFailure(sessionID string) {
 	}
 }
 
+// MarkTransientFailure records a failure that happened before the provider
+// answered (dial, reset, read error, or no response). It always counts toward
+// FailureCount. With a single session it does not start a cooldown: there is no
+// other account to fail over to, and no provider policy decision was made. The
+// cooldown still applies to provider rejections (HTTP status, Bard error),
+// which use MarkFailure.
+func (p *CookiePool) MarkTransientFailure(sessionID string) {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+
+	for _, s := range p.sessions {
+		if s.ID == sessionID || s.SAPISID == sessionID {
+			atomic.AddInt64(&s.FailureCount, 1)
+			if len(p.sessions) > 1 {
+				s.LastFailure = time.Now()
+				log.Printf("[CookiePool] Session %s marked with transient failure (cooldown 60s)", s.ID[:min(10, len(s.ID))])
+			}
+			break
+		}
+	}
+}
+
 // MarkSuccess resets consecutive failure penalties for this session.
 func (p *CookiePool) MarkSuccess(sessionID string) {
 	p.mu.Lock()

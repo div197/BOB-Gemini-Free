@@ -488,13 +488,13 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
 			retrySafe = retryableBeforeRequest(err)
 			if session != nil {
-				c.Pool.MarkFailure(session.ID)
+				c.Pool.MarkTransientFailure(session.ID)
 			}
 		} else {
 			if resp == nil {
 				lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response"}
 				if session != nil {
-					c.Pool.MarkFailure(session.ID)
+					c.Pool.MarkTransientFailure(session.ID)
 				}
 			} else if err := c.triageStatus(resp); err != nil {
 				closeResponseBody(resp)
@@ -507,7 +507,7 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 				if resp.Body == nil {
 					lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response body"}
 					if session != nil {
-						c.Pool.MarkFailure(session.ID)
+						c.Pool.MarkTransientFailure(session.ID)
 					}
 				} else {
 					rawBytes, err := io.ReadAll(io.LimitReader(resp.Body, maxUpstreamResponseBytes+1))
@@ -515,7 +515,7 @@ func (c *Client) generateContextDirect(ctx context.Context, prompt string, model
 					if err != nil {
 						lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
 						if session != nil {
-							c.Pool.MarkFailure(session.ID)
+							c.Pool.MarkTransientFailure(session.ID)
 						}
 					} else if len(rawBytes) > maxUpstreamResponseBytes {
 						lastErr = &UpstreamError{Kind: "protocol", Msg: fmt.Sprintf("upstream response exceeded %d bytes", maxUpstreamResponseBytes)}
@@ -656,13 +656,13 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 			lastErr = &UpstreamError{Kind: "transport", Msg: err.Error()}
 			retrySafe = retryableBeforeRequest(err)
 			if session != nil {
-				c.Pool.MarkFailure(session.ID)
+				c.Pool.MarkTransientFailure(session.ID)
 			}
 		} else {
 			if resp == nil {
 				lastErr = &UpstreamError{Kind: "protocol", Msg: "upstream returned an empty response"}
 				if session != nil {
-					c.Pool.MarkFailure(session.ID)
+					c.Pool.MarkTransientFailure(session.ID)
 				}
 			} else if err := c.triageStatus(resp); err != nil {
 				closeResponseBody(resp)

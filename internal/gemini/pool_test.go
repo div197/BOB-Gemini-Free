@@ -117,3 +117,28 @@ func TestCookiePoolDoesNotBypassAllSessionCooldowns(t *testing.T) {
 		t.Fatalf("unhealthy session was returned during cooldown: %#v", got)
 	}
 }
+
+// A transient failure (no HTTP response) must not park the only account.
+func TestSoleSessionTransientFailureDoesNotPark(t *testing.T) {
+	pool := NewCookiePool()
+	pool.AddSession("one.txt", "SID=one; SAPISID=one", "one", "")
+	session := pool.GetHealthySession()
+	pool.MarkTransientFailure(session.ID)
+	if got := pool.GetHealthySession(); got == nil {
+		t.Fatal("sole session was parked after a transient failure")
+	}
+}
+
+// With more than one account, a transient failure still steers traffic away.
+func TestMultiSessionTransientFailureStillFailsOver(t *testing.T) {
+	pool := NewCookiePool()
+	pool.AddSession("one.txt", "SID=one; SAPISID=one", "one", "")
+	pool.AddSession("two.txt", "SID=two; SAPISID=two", "two", "")
+	pool.MarkTransientFailure("one")
+	if healthy := pool.CountHealthy(); healthy != 1 {
+		t.Fatalf("healthy sessions = %d, want 1", healthy)
+	}
+	if got := pool.GetHealthySession(); got == nil || got.SAPISID != "two" {
+		t.Fatalf("failover session = %#v, want two", got)
+	}
+}
