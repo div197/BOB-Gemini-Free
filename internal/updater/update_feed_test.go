@@ -45,10 +45,13 @@ func TestSignedDesktopFeedSelectsLatestPreviewWithoutGitHubAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("generate feed key: %v", err)
 	}
+	// Production validation reads the wall clock, so the fixture validity window
+	// must be relative to now. Fixed calendar dates expire and break this test.
+	now := time.Now().UTC()
 	feed := DesktopUpdateFeed{
 		Schema:      desktopUpdateFeedSchema,
-		GeneratedAt: time.Date(2026, 9, 5, 4, 45, 0, 0, time.UTC),
-		ExpiresAt:   time.Date(2026, 9, 12, 4, 45, 0, 0, time.UTC),
+		GeneratedAt: now.Add(-time.Hour),
+		ExpiresAt:   now.Add(7 * 24 * time.Hour),
 		Stable: &GitHubRelease{
 			TagName:     "v0.1.5",
 			HTMLURL:     "https://github.com/div197/BOB-Gemini-Free/releases/tag/v0.1.5",
