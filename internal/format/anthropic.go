@@ -116,6 +116,10 @@ func AnthropicToOpenAIChatRequest(req models.AnthropicMessagesRequest) (models.O
 						ToolCallID: toolCallID,
 						Content:    resStr,
 					})
+				case "thinking", "redacted_thinking":
+					// Prior-turn reasoning is not replayed upstream, and its signature cannot be
+					// verified here, so an echoed block is dropped instead of rejected.
+					continue
 				default:
 					return models.OpenAIChatRequest{}, fmt.Errorf("Anthropic message %d content block %d: unsupported content block type %q", messageIndex, blockIndex, bType)
 				}
@@ -275,7 +279,7 @@ func anthropicImagePart(block map[string]any) (map[string]any, error) {
 		}
 		return map[string]any{
 			"type": "image_url",
-			"image_url": map[string]string{
+			"image_url": map[string]any{
 				"url": fmt.Sprintf("data:%s;base64,%s", mediaType, data),
 			},
 		}, nil
@@ -286,7 +290,7 @@ func anthropicImagePart(block map[string]any) (map[string]any, error) {
 		}
 		return map[string]any{
 			"type": "image_url",
-			"image_url": map[string]string{
+			"image_url": map[string]any{
 				"url": url,
 			},
 		}, nil
