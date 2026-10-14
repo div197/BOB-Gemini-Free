@@ -10197,7 +10197,9 @@ function renderMarkdown(text, scopeKey) {
   // 8. Synchronously render protected LaTeX Math blocks with KaTeX
   for (let i = 0; i < mathBlocks.length; i++) {
     const rawMath = mathBlocks[i];
-    let renderedMath = rawMath;
+    // Math text is model output that was captured before sanitization, so the
+    // fallback (KaTeX not loaded yet, or blocked) must show it as escaped text.
+    let renderedMath = escapeHtml(rawMath);
     if (window.katex && typeof katex.renderToString === 'function') {
       try {
         let cleanMath = rawMath;
@@ -10223,7 +10225,8 @@ function renderMarkdown(text, scopeKey) {
         renderedMath = escapeHtml(rawMath);
       }
     }
-    html = html.replaceAll(`@@@BOB_MATH_${i}@@@`, renderedMath);
+    // Use a replacer function so "$&"-style patterns in math source stay literal.
+    html = html.replaceAll(`@@@BOB_MATH_${i}@@@`, () => renderedMath);
   }
 
   return html;
