@@ -684,7 +684,11 @@ func (c *Client) generateStreamContextDirect(ctx context.Context, prompt string,
 					return err
 				}
 				if session != nil {
-					c.Pool.MarkFailure(session.ID)
+					if isTransportFailure(err) {
+						c.Pool.MarkTransientFailure(session.ID)
+					} else {
+						c.Pool.MarkFailure(session.ID)
+					}
 				}
 				lastErr = err
 			}
@@ -802,6 +806,13 @@ func readBoundedStreamLine(reader *bufio.Reader) ([]byte, error) {
 // isClientDisconnect helps distinguish between upstream server errors (which we might want to retry)
 // and actual client-side disconnections or non-retryable transport errors.
 // If the client disconnected, we should abort the retry loop immediately to save resources.
+// isTransportFailure reports whether err is a transport-level failure (reset,
+// timeout, or read error) rather than a provider or protocol rejection.
+func isTransportFailure(err error) bool {
+	var upstreamErr *UpstreamError
+	return errors.As(err, &upstreamErr) && upstreamErr.Kind == "transport"
+}
+
 func isClientDisconnect(err error) bool {
 	if err == nil {
 		return false
